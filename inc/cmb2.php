@@ -345,6 +345,7 @@ class dci_bidirectional_cmb2 {
 
 		add_action( 'pre_post_update', array(&$this, 'get_old_values') );
 		add_action( 'before_delete_post', array(&$this,'posts_delete') );
+		add_action( 'save_post_'.$post_type_from, array(&$this,'posts_save'), 10, 3 );
 		add_action( 'cmb2_save_field_'.$this->post_field_from, array(&$this,'posts_bidirectional'), 10, 3 );
 	}
 
@@ -360,19 +361,35 @@ class dci_bidirectional_cmb2 {
 	}
 
 	public function posts_delete( $post_ID ) {
+        if ( $this->post_type_from !== get_post_type( $post_ID ) )
+            return;
+
 		if ( ! $unbind_posts = get_post_meta( $post_ID, $this->post_field_from, true ) ) {
 			return;
 		}
-		foreach ( $unbind_posts as $value => $id ) {
-			$post_values = get_post_meta( $id, $this->post_field_from, true );
+		foreach ( (array)$unbind_posts as $value => $id ) {
+			$post_values = get_post_meta( $id, $this->post_field_to, true );
 			if(is_array($post_values)){
                 $pos = array_search( $post_ID, $post_values );
                 unset( $post_values[ $pos ] );
-                update_post_meta( $id, $this->post_field_from, $post_values );
+                update_post_meta( $id, $this->post_field_to, $post_values );
             }
 
 		}
 	}
+
+    public function posts_save($post_id, $post, $update){
+
+        //check if all related entities still exist and remove those that don't
+
+        $old_values = get_post_meta($post_id, $this->post_field_from, true);
+
+        if(!$old_values || !is_array($old_values))
+            return;
+        
+        $new_values = array_filter($old_values, fn ($other_post_id) => get_post($other_post_id));
+        update_post_meta( $post_id, $this->post_field_from, $new_values );
+    }
 
 
     public function posts_bidirectional( $updated, $action, $field ) {
@@ -399,7 +416,12 @@ class dci_bidirectional_cmb2 {
             if ( is_array($field_ids) && in_array( $object_id ,$field_ids ) ) {
                 continue;
             } else {
-                $field_ids[] = $object_id;
+                if(is_array($field_ids)){
+                    $field_ids[] = $object_id;
+                }
+                else{
+                    $field_ids = $object_id;
+                }
             }
             update_post_meta( $id, $meta_key_dest, $field_ids );
 
@@ -408,7 +430,7 @@ class dci_bidirectional_cmb2 {
         $unbind_posts = array();
 
         if ( ! empty( $related_posts ) && ! empty( $old_values ) ) {
-            $unbind_posts = array_diff( $old_values, $related_posts );
+            $unbind_posts = is_array($old_values) ? array_diff( $old_values, $related_posts ) : [$old_values];
         } elseif ( ! empty( $old_values ) ) {
             $unbind_posts = $old_values;
         }
@@ -419,10 +441,17 @@ class dci_bidirectional_cmb2 {
                 continue;
             }
 
-            $pos = array_search( $object_id, $post_values );
-            unset( $post_values[ $pos ] );
-            update_post_meta( $post_id, $meta_key_dest, $post_values );
+            if(is_array($post_values)){
+                $pos = array_search( $object_id, $post_values );
+
+                if($pos !== false){
+                    unset( $post_values[ $pos ] );
+                    update_post_meta( $post_id, $meta_key_dest, $post_values );
+                }
+            }
+            else{
+                delete_post_meta( $post_id, $meta_key_dest );
+            }
 		}
 	}
 }
-

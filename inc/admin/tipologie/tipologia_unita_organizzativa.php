@@ -213,6 +213,7 @@ function dci_add_unita_organizzativa_metaboxes() {
         'desc' => __( 'Relazione con i servizi offerti dalla struttura' , 'design_comuni_italia' ),
         'type'    => 'pw_multiselect',
         'options' => dci_get_posts_options('servizio'),
+        'default_cb' => 'set_to_current_unita_organizzativa_servizi',
         'attributes' => array(
             'placeholder' =>  __( 'Seleziona i Servizi', 'design_comuni_italia' ),
         )
@@ -336,3 +337,9 @@ function dci_unita_organizzativa_set_post_content( $data ) {
     return $data;
 }
 add_filter( 'wp_insert_post_data' , 'dci_unita_organizzativa_set_post_content' , '99', 1 );
+
+new dci_bidirectional_cmb2("_dci_unita_organizzativa_", "unita_organizzativa", "persone_struttura", "box_persone", "_dci_persona_pubblica_organizzazioni");
+
+function set_to_current_unita_organizzativa_servizi($field_args, $field  ) {
+	return dci_get_meta("elenco_servizi_offerti", "_dci_unita_organizzativa_", $field->object_id) ?? [];
+}

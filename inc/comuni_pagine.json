@@ -157,6 +157,13 @@
       "template_name": "segnala-disservizio",
       "children": {}
     },
+    "Piano di miglioramento del sito": {
+      "title": "Piano di miglioramento del sito",
+      "slug": "Piano-di-miglioramento-del-sito",
+      "description": "Consulta il Piano di Miglioramento approvato dal Comune, che definisce le linee strategiche e operative per efficienza e qualità dei servizi pubblici.",
+      "template_name": "piano-miglioramento",
+      "children": {}
+    },    
     "Progetti PNRR": {
           "title": "Progetti PNRR",
           "slug": "progetti",

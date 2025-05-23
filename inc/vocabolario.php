@@ -410,6 +410,98 @@ if(!function_exists("dci_tipi_notizia_array")){
     }
 }
 
+// if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
+//     function dci_tipi_cat_amm_trasp_array() {
+//         $tipi_cat_amm_trasp_arr = [
+//             'Disposizioni generali' => [
+//                 "Programma per la Trasparenza e l'Integrità",
+//                 'Atti generali',
+//                 "Oneri informativi per cittadini e imprese"
+//             ],
+//             'Organizzazione' => [
+//                 'Organi di indirizzo politico-amministrativo',
+//                 "Sanzioni per mancata comunicazione dei dati",
+//                 "Rendiconti gruppi consiliari regionali/provinciali",
+//                 "Articolazione degli uffici",
+//                 "Telefono e posta elettronica"
+//             ],
+//             'Consulenti e collaboratori' => [],
+//             'Personale' => [
+//                 'Incarichi amministrativi di vertice',
+//                 'Dirigenti',
+//                 'Posizioni organizzative',
+//                 'Dotazione organica',
+//                 'Personale non a tempo indeterminato',
+//                 'Tassi di assenza',
+//                 "Incarichi conferiti e autorizzati ai dipendenti",
+//                 "Contrattazione collettiva",
+//                 "Contrattazione integrativa",
+//                 "OIV"
+//             ],
+//             'Bandi di concorso' => [],
+//             'Performance'=> [
+//                 "Piano della Performance",
+//                 "Relazione sulla Performance",
+//                 "Ammontare complessivo dei premi",
+//                 "Benessere organizzativo"
+//             ],
+//             'Enti controllati' =>[
+//                 "Enti pubblici vigilati",
+//                 "Società partecipate",
+//                 "Enti di diritto privato controllati",
+//                 "Rappresentazione grafica"
+//             ],
+//             "Attività e procedimenti"=>[
+//                 "Dati aggregati attività amministrativa",
+//                 "Tipologie di procedimento",
+//                 "Monitoraggio tempi procedimentali",
+//                 "Dichiarazioni sostitutive  e acquisizione d'ufficio dei dati"
+//             ],
+//             "Provvedimenti" =>[
+//                 "Provvedimenti organi indirizzo-politico",
+//                 "Provvedimenti dirigenti"
+//             ],
+//             "Bandi di Gara e contratti"=>[
+//                "Informazioni sulle singole procedure in formato tabellare",
+//                "Atti delle amministrazioni aggiudicatrici e degli enti aggiudicatori distintamente per ogni procedura"
+//             ],
+//             "Sovvenzioni , contributi sussidi, vantaggi economci"=>[
+//                 "Criteri e modalità",
+//                 "Atti di concessione",
+//                 "Elenchi"
+//             ],
+//             "Bilanci"=>[
+//                 "Bilancio preventivo e consuntivo",
+//                 "Piano degli indicatori e risultati attesi di bilancio"
+//             ],
+//             "Beni immobili e gestione patrimonio"=>[
+//                 "Patrimonio immobiliare",
+//                 "Canoni di locazione o affitto"
+//             ],
+//             "Controlli e rilievi sull'amministrazione"=>[
+//                 "Organismi indipendenti di valutazione, nuclei di valutazione o altri organismi con funzioni analoghe",
+//                 "Organi di revisione amministrativa e contabile",
+//                 "Corte dei conti"
+//             ],
+//             "Servizi Erogati"=>[
+//                 "Carta dei servizi e standard di qualità",
+//                 "Costi contabilizzati",
+//                 "Tempi medi di erogazione dei servizi",
+//                 "Liste di attesa"
+//             ],
+//             "Pagamenti dell'amministrazione" => [],
+//             "Opere pubbliche" => [],
+//             "Pianificazione e governo del territorio" => [],
+//             "Informazioni ambientali" => [],
+//             "Strutture sanitarie private accreditate" => [],
+//             "Interventi straordinari e di emergenza" => [],
+//             "Altri contenuti" => []
+//         ];
+        
+//         return $tipi_cat_amm_trasp_arr;
+//     }
+// }
+
 if(!function_exists("dci_tipi_progetto_array")){
     function dci_tipi_progetto_array() {
         $tipi_progetto_arr = [

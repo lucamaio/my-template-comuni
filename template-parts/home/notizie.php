@@ -55,32 +55,34 @@ for ($i = 1; $i <= 20; $i++) {
     <div class="section-content">
         <div class="container">
             <!-- Richiamo la prima notizia in Evidenza -->
-                      <?php  if ($post_id) {                                    
-                              get_template_part("template-parts/home/notizia_in_evidenza");                  
-                          }
-                            ?>
-            
+            <?php if ($post_id) {
+                get_template_part("template-parts/home/notizia_in_evidenza");
+            } ?>
+
             <?php if (!empty(array_filter($schede))) { ?>
                 <div class="py-4">
                     <!-- Sezione delle schede -->
-                    <div class="row mb-1">
-                        <div class="card-wrapper px-0 <?php echo $overlapping; ?> card-teaser-wrapper card-teaser-wrapper-equal card-teaser-block-3">
-                            <?php
-                            $count = 1;
-                            foreach ($schede as $scheda) {
-                                if ($scheda) {
-                                      get_template_part("template-parts/home/scheda-evidenza");
-                                }
-                                ++$count;
+                    <div class="row g-4">  <!-- Aggiunto gutter per spaziatura -->
+                        <?php
+                        $count = 1;
+                        foreach ($schede as $scheda) {
+                            if ($scheda) {
+                                ?>
+                                <div class="col-12 col-md-6 col-lg-4"> <!-- 3 schede per riga su desktop -->
+                                    <?php get_template_part("template-parts/home/scheda-evidenza"); ?>
+                                </div>
+                                <?php
                             }
-                            ?>
-                        </div>                        
+                            ++$count;
+                        }
+                        ?>
                     </div>
-            
-                    <!-- Mostra il pulsante solo se ci sono schede -->
+
+                    <!-- Pulsante "Tutte le novità" -->
                     <div class="row my-4 justify-content-md-center">
                         <a class="read-more pb-3" href="<?php echo dci_get_template_page_url("page-templates/novita.php"); ?>">
-                            <button type="button" class="btn btn-outline-primary">Tutte le novità
+                            <button type="button" class="btn btn-outline-primary">
+                                Tutte le novità
                                 <svg class="icon">
                                     <use xlink:href="#it-arrow-right"></use>
                                 </svg>
@@ -89,8 +91,6 @@ for ($i = 1; $i <= 20; $i++) {
                     </div>
                 </div>
             <?php } ?>
-
-    
         </div>
     </div>
 </section>

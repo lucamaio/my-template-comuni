@@ -75,9 +75,9 @@ get_header();
                 <?php foreach ($servizi as $servizio) { 
                         $load_card_type = "categoria_servizio";
                         $hide_categories = false;?>
-                        <div class="col-12 col-sm-6 col-lg-4"> 
+                        
                         <?php get_template_part("template-parts/servizio/card");  ?>
-                        </div>  
+                         
                     <?php   } ?>
                      <?php     
                         if (strlen(dci_get_option('servizi_maggioli_url', 'servizi')) >5 ) { ?>

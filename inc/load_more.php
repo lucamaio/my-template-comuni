@@ -62,6 +62,16 @@ function load_more(){
 					'order'   => 'ASC'
 				);
 				break;
+			case "luogo":
+				$args = array(
+				's' => $_POST['search'],
+				'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
+				'post_type'      => $post_types,
+				'post_status'    => 'publish',
+				'orderby' => 'post_title',
+				'order'   => 'ASC'
+			);
+			break;
 			default:
 				$args = array(
 					's' => $_POST['search'],

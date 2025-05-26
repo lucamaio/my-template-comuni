@@ -53,12 +53,12 @@ $posts = $the_query->posts;
                         <?php foreach ($posts as $servizio) {
                             $load_card_type = "servizio";
                             ?>
-                                <div class="col-12 col-sm-6 col-lg-4"> 
+                                <!-- <div class="col-12 col-sm-6 col-lg-4">  -->
                                     <?php if (strlen(dci_get_option('servizi_maggioli_url', 'servizi')) < 5) { 
                                         get_template_part("template-parts/servizio/card");
                                     }
                                     ?>
-                                </div>
+                                <!-- </div> -->
                             <?php
                         } ?>
                     </div>

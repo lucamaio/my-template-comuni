@@ -35,32 +35,45 @@ function load_more(){
 	$url_query_params =  json_decode( stripslashes( $_POST['query_params'] ), true );
 	$additional_filter =  json_decode( stripslashes( $_POST['additional_filter'] ), true );
 
-	$args = array(
-        's' => $_POST['search'],
-        'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
-        'post_type'      => $post_types,
-		'post_status'    => 'publish',
-        'order'          => 'DESC',
-		'meta_query' => array(
-            array(
-                'key' => '_dci_notizia_data_pubblicazione',
-            )
-        ),
-        'meta_type' => 'text_date_timestamp',
-        'orderby'   => 'meta_value_num',
-    );
-
-	if ( $post_types != "notizia" ) {
+	switch ($post_types){
+			case "notizia":
+				$args = array(
+					's' => $_POST['search'],
+					'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
+					'post_type'      => $post_types,
+					'post_status'    => 'publish',
+					'order'          => 'DESC',
+					'meta_query' => array(
+						array(
+							'key' => '_dci_notizia_data_pubblicazione',
+						)
+					),
+					'meta_type' => 'text_date_timestamp',
+					'orderby'   => 'meta_value_num',
+				);
+				break;
+			case "servizio":
+				$args = array(
+					's' => $_POST['search'],
+					'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
+					'post_type'      => $post_types,
+					'post_status'    => 'publish',
+					'orderby' => 'post_title',
+					'order'   => 'ASC'
+				);
+				break;
+			default:
+				$args = array(
+					's' => $_POST['search'],
+					'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
+					'post_type'      => $post_types,
+					'post_status'    => 'publish',
+					'orderby' => 'text_date_timestamp',
+					'order'   => 'DESC'
+				);
+		}
+		
 	
-		$args = array(
-			's' => $_POST['search'],
-	    	'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
-	    	'post_type'      => $post_types,
-			'post_status'    => 'publish',
-			'orderby' => 'text_date_timestamp',
-			'order'   => 'desc'
-		);
-	}
 
 	if ( isset($url_query_params["post_terms"]) ) {
 		$taxquery = array(

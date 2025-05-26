@@ -7,6 +7,7 @@ $descrizione_breve = dci_get_meta('descrizione_breve', $prefix, $servizio->ID);
 
 if($servizio->post_status == "publish") {
     ?>
+    <div class="col-12 col-sm-6 col-lg-4"> 
         <div class="cmp-card-latest-messages card-wrapper" data-bs-toggle="modal" data-bs-target="#">
             <div class="card shadow-sm px-4 pt-4 pb-4 rounded border border-light">
                 <?php if (!$hide_categories) { ?>
@@ -35,6 +36,7 @@ if($servizio->post_status == "publish") {
                 </div>
             </div>
         </div>
+                </div>
     <?php
 }
 

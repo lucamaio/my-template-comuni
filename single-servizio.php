@@ -376,9 +376,9 @@ get_header();
                                     <div class="row g-4">
                                         <?php
                                             foreach($posts as $servizio) { ?>
-                                        <div class="col-lg-6 col-md-12">
+                                        <!-- <div class="col-lg-6 col-md-12"> -->
                                             <?php get_template_part("template-parts/servizio/card"); ?>
-                                        </div>
+                                        <!-- </div> -->
                                         <?php } ?>
                                     </div>
                                 </div>

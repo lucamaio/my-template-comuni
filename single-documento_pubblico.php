@@ -321,13 +321,13 @@ get_header();
                             <section id="servizi" class="it-page-section mb-5">
                                 <h4>Servizi collegati</h4>
                                 <div class="row">
-                                    <div class="col-12 col-sm-8">
+                                    <!-- <div class="col-12 col-sm-8"> -->
                                         <?php foreach ($servizi as $servizio_id) {
                                             $servizio = get_post($servizio_id);
                                             $with_border = true;
                                             get_template_part("template-parts/servizio/card");
                                         } ?>
-                                    </div>
+                                    <!-- </div> -->
                                 </div>
                             </section>
                         <?php } ?>

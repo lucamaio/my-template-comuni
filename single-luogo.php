@@ -265,7 +265,7 @@ get_header();
                                         <h2 class="h3 my-2">Servizi presenti nel luogo</h2>
                                         <div class="row g-2"> <?php 
                                             foreach ($servizi as $servizio_id) { ?>
-                                                <div class="col-lg-4 col-md-12">
+                                                <!-- <div class="col-lg-4 col-md-12"> -->
                                                     <?php
                                                     $servizio = get_post($servizio_id);
                                                     $with_map = false;
@@ -273,8 +273,8 @@ get_header();
                                                         get_template_part("template-parts/servizio/card");
                                                     } else
                                                         get_template_part("template-parts/servizio/card-con-icona");?>
-                                                </div> <?php 
-                                            } ?>
+                                                <!-- </div>  -->
+                                           <?php  } ?>
                                         </div> <?php
                                         
 							        }

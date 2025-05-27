@@ -1,6 +1,7 @@
 <?php
 
-function dci_register_pagina_amministrazione_options(){
+function dci_register_pagina_amministrazione_options()
+{
     $prefix = '';
 
     /**
@@ -8,8 +9,8 @@ function dci_register_pagina_amministrazione_options(){
      */
     $args = array(
         'id'           => 'dci_options_amministrazione',
-        'title'        => esc_html__( 'Amministrazione', 'design_comuni_italia' ),
-        'object_types' => array( 'options-page' ),
+        'title'        => esc_html__('Amministrazione', 'design_comuni_italia'),
+        'object_types' => array('options-page'),
         'option_key'   => 'amministrazione',
         'tab_title'    => __('Amministrazione', "design_comuni_italia"),
         'parent_slug'  => 'dci_options',
@@ -18,20 +19,21 @@ function dci_register_pagina_amministrazione_options(){
     );
 
     // 'tab_group' property is supported in > 2.4.0.
-    if ( version_compare( CMB2_VERSION, '2.4.0' ) ) {
+    if (version_compare(CMB2_VERSION, '2.4.0')) {
         $args['display_cb'] = 'dci_options_display_with_tabs';
     }
 
-    $amministrazione_options = new_cmb2_box( $args );
+    $amministrazione_options = new_cmb2_box($args);
 
-    $amministrazione_options->add_field( array(
+    $amministrazione_options->add_field(array(
         'id' => $prefix . 'amministrazione_options',
-        'name'        => __( 'Amministrazione', 'design_comuni_italia' ),
-        'desc' => __( 'Configurazione della pagina Amministrazione.' , 'design_comuni_italia' ),
+        'name'        => __('Amministrazione', 'design_comuni_italia'),
+        'desc' => __('Configurazione della pagina Amministrazione.', 'design_comuni_italia'),
         'type' => 'title',
-    ) );
+    ));
 
-    $amministrazione_options->add_field( array(
+    $amministrazione_options->add_field(
+        array(
             'name' => __('<h5>Selezione contenuti in evidenza</h5>', 'design_comuni_italia'),
             'desc' => __('Seleziona i contenuti da mostrare in homepage ', 'design_comuni_italia'),
             'id' => $prefix . 'notizia_evidenziata',
@@ -56,39 +58,64 @@ function dci_register_pagina_amministrazione_options(){
         )
     );
 
-    
-        $amministrazione_options->add_field(array(
-            'id'      => $prefix . 'ck_dataset',
-            'name'    => __('Visualizza nella sezione Amministrazione il pulsante Dataset.', 'design_comuni_italia'),
-            'desc'    => __('Dataset fornisce l\'accesso ai dati aperti pubblicati dall\'Autorità Nazionale Anticorruzione (ANAC) riguardanti i contratti pubblici in Italia. Questi dataset, disponibili in formato aperto, comprendono informazioni dettagliate sulle procedure di appalto, le stazioni appaltanti e altri elementi chiave relativi ai contratti pubblici, permettendo un\'analisi approfondita e promuovendo la trasparenza nel settore degli appalti pubblici.', 'design_comuni_italia'),
-            'type'    => 'radio_inline',
-            'default' => 'true', // Imposta il valore predefinito su 'true'
-            'options' => array(
-                'true'  => __('Sì', 'design_comuni_italia'),
-                'false' => __('No', 'design_comuni_italia'),
-            ),
-            'attributes' => array(
-                'data-conditional-value' => 'true',
-            ),
-        ));
 
+    $amministrazione_options->add_field(array(
+        'id'      => $prefix . 'ck_dataset',
+        'name'    => __('Visualizza nella sezione Amministrazione il pulsante Dataset.', 'design_comuni_italia'),
+        'desc'    => __('Dataset fornisce l\'accesso ai dati aperti pubblicati dall\'Autorità Nazionale Anticorruzione (ANAC) riguardanti i contratti pubblici in Italia. Questi dataset, disponibili in formato aperto, comprendono informazioni dettagliate sulle procedure di appalto, le stazioni appaltanti e altri elementi chiave relativi ai contratti pubblici, permettendo un\'analisi approfondita e promuovendo la trasparenza nel settore degli appalti pubblici.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true', // Imposta il valore predefinito su 'true'
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
 
+    $amministrazione_options->add_field(array(
+        'id' => $prefix . 'ck_osl',
+        'name'        => __('Attiva la Sezione OSL', 'design_comuni_italia'),
+        'desc'    => __('Con questa funzione attivi la visualizzazione della Sezione OSL (Tutte le tipologie OSL) sulla parte amministrativa.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
 
-    
-     $amministrazione_options->add_field( array(
-         'id' => $prefix . 'ck_osl',
-         'name'        => __( 'Attiva la Sezione OSL', 'design_comuni_italia' ),
-         'desc'    => __('Con questa funzione attivi la visualizzazione della Sezione OSL (Tutte le tipologie OSL) sulla parte amministrativa.', 'design_comuni_italia'),
-             'type'    => 'radio_inline',
-             'default' => 'false', 
-             'options' => array(
-                 'true'  => __('Sì', 'design_comuni_italia'),
-                 'false' => __('No', 'design_comuni_italia'),
-             ),
-             'attributes' => array(
-                 'data-conditional-value' => 'true',
-             ),
-     ) );
-    
+    $amministrazione_options->add_field(array(
+        'id'      => $prefix . 'ck_servizi',
+        'name'    => __('Mostra servizi correlati nelle Unità Organizzative', 'design_comuni_italia'),
+        'desc'    => __('Se abilitata, questa opzione consente di visualizzare, all’interno della scheda di ciascuna Unità Organizzativa (UO), i servizi ad essa associati. I dati relativi ai servizi sono estratti da dataset ufficiali forniti dall’Autorità Nazionale Anticorruzione (ANAC), promuovendo trasparenza e accessibilità nelle informazioni sui contratti pubblici.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
 
+    $amministrazione_options->add_field(array(
+        'id'      => $prefix . 'ck_modificaUOPersone',
+        'name'    => __('Mostra servizi correlati nelle Unità Organizzative', 'design_comuni_italia'),
+        'desc'    => __('Se abilitata, questa opzione consente di visualizzare, all’interno della scheda di ciascuna Unità Organizzativa (UO), i servizi ad essa associati. I dati relativi ai servizi sono estratti da dataset ufficiali forniti dall’Autorità Nazionale Anticorruzione (ANAC), promuovendo trasparenza e accessibilità nelle informazioni sui contratti pubblici.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
 }

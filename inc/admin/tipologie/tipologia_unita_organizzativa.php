@@ -215,6 +215,7 @@ function dci_add_unita_organizzativa_metaboxes() {
         'options' => dci_get_posts_options('servizio'),
         'default_cb' => 'set_to_current_unita_organizzativa_servizi',
         'attributes' => array(
+            'readonly' => 'readonly', // Rendi il campo di sola lettura
             'placeholder' =>  __( 'Seleziona i Servizi', 'design_comuni_italia' ),
         )
     ) );

@@ -265,7 +265,8 @@ function dci_get_bootstrap_icon_options($category = 'all'){
         'it-youtube' => 'it-youtube',
         'it-google' => 'it-google',
         'it-designers-italia'=>'it-designers-italia',
-        'it-team-digitale'=>'it-team-digitale'
+        'it-team-digitale'=>'it-team-digitale',
+        'it-box-archive-solid'=>'it-box-archive-solid'
     );
     $social = array(
         'it-facebook' => 'it-facebook',
@@ -327,7 +328,6 @@ function dci_get_tipologie_singular_labels(){
 /**
  * bidirectional relation
  */
-
 class dci_bidirectional_cmb2 {
 	private $prefix;
 	private $post_type_from;

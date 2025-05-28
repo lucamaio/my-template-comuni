@@ -105,7 +105,8 @@ function dci_get_tassonomie_names(){
         'eventi_vita_impresa',
         'tipi_incarico',
         'stati_pratica',
-        'tipi_documento'
+        'tipi_documento',
+        'tipi_cat_amm_trasp'
     );
     return $tassonomie;
 }
@@ -151,7 +152,7 @@ function dci_get_sercheable_tipologie() {
         'aree_amministrative',
         'uffici',
         'progetti',
-        'commissario'
+        'commissario',
     );
 }
 
@@ -264,6 +265,7 @@ function dci_get_admin_menu_order() {
         'edit.php?post_type=documento_privato',
         'edit.php?post_type=messaggio',
         'edit.php?post_type=pagamento',
+        'edit.php?post_type=elemento_trasparenza',
         'separator2',
         'edit.php?post_type=appuntamento',
         'edit.php?post_type=richiesta_assistenza',

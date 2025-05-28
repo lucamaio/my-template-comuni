@@ -18,8 +18,9 @@ else if($obj->taxonomy == "argomenti"){
 	get_template_part( "taxonomy-tipi_progetto" );
 } else if($obj->post_type=="tipi_commissario" ||  $obj->taxonomy == "tipi_commissario"){
 	get_template_part( "taxonomy-tipi_commissario" );
-}
-else{
+}else if($obj->post_type=="tipi_cat_amm_trasp" ||  $obj->taxonomy == "tipi_cat_amm_trasp"){
+	get_template_part( "taxonomy-categorie_trasparenza" );
+} else{
 	get_template_part("archive");
 }
 ?>

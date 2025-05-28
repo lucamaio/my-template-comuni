@@ -202,6 +202,14 @@ function insertCustomTaxonomyTerms() {
     $tipi_documento_array = dci_tipi_documento_array();
     recursionInsertTaxonomy($tipi_documento_array, 'tipi_documento');
 
+    
+
+    /**
+     * Tipologia categorie Amministrazione Trasparente
+     */
+    $tipi_cat_amm_trasp_array = dci_tipi_cat_amm_trasp_array();
+    recursionInsertTaxonomy($tipi_cat_amm_trasp_array, 'tipi_cat_amm_trasp');
+
     /**
      * sistema di valutazione (stars)
      */

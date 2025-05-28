@@ -8,6 +8,7 @@
 global $post, $with_shadow;
 $search_url = esc_url( home_url( '/' ));
 
+
 function info(){?>
 <section class="hero-img mb-20 mb-lg-50">
     <div class="container">
@@ -40,7 +41,7 @@ get_header();
 			?>
 			<?php get_template_part("template-parts/progetti/hero"); ?>
                         <?php info();?>
-			
+			<?php get_template_part("template-parts/amministrazione-trasparente/categorie"); ?>
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>
 			<?php get_template_part("template-parts/common/assistenza-contatti"); ?>
 		<?php 
@@ -49,4 +50,5 @@ get_header();
 	</main>
 
 <?php
-get_footer();
+get_footer();?>
+

@@ -1,0 +1,58 @@
+<?php
+
+function dci_register_pagina_trasparenza_options()
+{
+    $prefix = '';
+
+    $args = array(
+        'id'           => 'dci_options_trasparenza',
+        'title'        => esc_html__('Amministrazione Trasparente', 'design_comuni_italia'),
+        'object_types' => array('options-page'),
+        'option_key'   => 'trasparenza',
+        'tab_title'    => __('Trasparenza', "design_comuni_italia"),
+        'parent_slug'  => 'dci_options',
+        'tab_group'    => 'dci_options',
+        'capability'   => 'manage_options',
+    );
+
+    if (version_compare(CMB2_VERSION, '2.4.0')) {
+        $args['display_cb'] = 'dci_options_display_with_tabs';
+    }
+
+    $trasparenza_options = new_cmb2_box($args);
+
+    $trasparenza_options->add_field(array(
+        'id'    => $prefix . 'trasparente_options',
+        'name'  => __('Amministrazione Trasparente', 'design_comuni_italia'),
+        'desc'  => __('Configurazione della pagina Amministrazione Trasparente (se interna).', 'design_comuni_italia'),
+        'type'  => 'title',
+    ));
+
+    $trasparenza_options->add_field(array(
+        'id'          => $prefix . 'siti_tematici',
+        'name'        => __('Sito Tematico', 'design_comuni_italia'),
+        'desc'        => __('Selezionare il sito tematico di cui visualizzare la Card', 'design_comuni_italia'),
+        'type'        => 'pw_multiselect',
+        'options'     => dci_get_posts_options('sito_tematico'),
+        'attributes'  => array(
+            'data-maximum-selection-length' => '12',
+        ),
+    ));
+
+    // Pulsante personalizzato per ricaricare i dati
+    $trasparenza_options->add_field(array(
+    'id'   => $prefix . 'reload_data_button',
+    'type' => 'title',
+    'name' => '',
+    'desc' => '<a href="' . esc_url(admin_url('themes.php?page=reload-trasparenza-theme-options')) . '" class="button button-primary">Ricarica dati Trasparenza</a>',
+));
+}
+add_theme_page(
+    'Carica Trasparenza',
+    'Ricarica i dati della Trasparenza',
+    'edit_theme_options', // ← livello di capability richiesto
+    'reload-trasparenza-theme-options',
+    'dci_reload_trasparenza_option_page'
+);
+
+?>

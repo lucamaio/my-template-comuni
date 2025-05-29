@@ -77,7 +77,7 @@ function dci_add_elemento_trasparenza_metaboxes()
 
     $cmb_documento = new_cmb2_box(array(
         'id'            => $prefix . 'box_documento',
-        'title'         => __('Documento *', 'design_comuni_italia'),
+        'title'         => __('Documento/Link *', 'design_comuni_italia'),
         'object_types'  => array('elemento_trasparenza'),
         'context'       => 'normal',
         'priority'      => 'high',
@@ -101,14 +101,23 @@ function dci_add_elemento_trasparenza_metaboxes()
             'remove_text'           => __('Rimuovi', 'design_comuni_italia'),
         ),
     ));
+    
+     $cmb_extra = new_cmb2_box(array(
+        'id'            => $prefix . 'box_extra',
+        'title'         => __('Extra', 'design_comuni_italia'),
+        'object_types'  => array('elemento_trasparenza'),
+        'context'       => 'side',
+        'priority'      => 'high',
+    ));
 
-    $cmb_documento->add_field(array(
+
+    $cmb_extra->add_field(array(
     'id'      => $prefix . 'open_in_new_tab',
     'name'    => __('Apri in una nuova finestra', 'design_comuni_italia'),
     'desc'    => __('Spuntare per aprire il documento in una nuova finestra del browser', 'design_comuni_italia'),
     'type'    => 'checkbox',
 ));
-  $cmb_documento->add_field(array(
+  $cmb_extra->add_field(array(
     'id'      => $prefix . 'open_direct',
     'name'    => __('Apri link in modo diretto', 'design_comuni_italia'),
     'desc'    => __('Link diretto al link senza visualizzare alcuna pagina intermedia', 'design_comuni_italia'),

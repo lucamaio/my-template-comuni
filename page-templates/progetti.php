@@ -5,9 +5,9 @@
  *
  * @package Design_Comuni_Italia
  */
-global $post, $with_shadow;
+global $post, $with_shadow, $url_img;
 $search_url = esc_url( home_url( '/' ));
-
+$url_img="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnDeHmoF5L5Fkqq-Ohesy45F6z-_ku02O2Fg&s";
 function info(){?>
 <section class="hero-img mb-20 mb-lg-50">
     <div class="container">
@@ -51,7 +51,7 @@ get_header();
 			
 			$with_shadow = true;
 			?>
-			<?php get_template_part("template-parts/progetti/hero"); ?>
+			<?php get_template_part("template-parts/single/hero-custom"); ?>
                         <?php info();?>
 			<?php get_template_part("template-parts/progetti/categorie"); ?>
 			<?php get_template_part("template-parts/progetti/tutti"); ?>

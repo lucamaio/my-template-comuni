@@ -232,7 +232,7 @@ function dci_add_Progetto_metaboxes() {
 
     $cmb_avanzamento->add_field(array(
         'id' => $prefix . 'avanzamento',
-        'name'        => __( 'Avanzaqmento del progetto *', 'design_comuni_italia' ),
+        'name'        => __( 'Avanzamento del progetto *', 'design_comuni_italia' ),
         'type' => 'text',
     ));
 

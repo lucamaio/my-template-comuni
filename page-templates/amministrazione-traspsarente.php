@@ -5,9 +5,10 @@
  *
  * @package Design_Comuni_Italia
  */
-global $post, $with_shadow;
+global $post, $with_shadow, $url_img;
 $search_url = esc_url( home_url( '/' ));
 $link_amministrazione=dci_get_option("link_ammtrasparente");
+$url_img="https://saassipa.cultura.gov.it/wp-content/uploads/2020/04/amm_trasp-1024x381.png";
 
 if(isset($link_amministrazione) && !empty($link_amministrazione) && $link_amministrazione!=null ) {
     header("Location: $link_amministrazione");
@@ -47,7 +48,7 @@ get_header();
 			
 			$with_shadow = true;
 			?>
-			<?php get_template_part("template-parts/progetti/hero"); ?>
+			<?php get_template_part("template-parts/single/hero-custom"); ?>
                         <?php info();?>
 			<?php get_template_part("template-parts/amministrazione-trasparente/categorie"); ?>
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>

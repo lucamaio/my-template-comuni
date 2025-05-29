@@ -1,5 +1,5 @@
 <?php
-    global $title, $description, $with_shadow, $data_element;
+    global $title, $description, $with_shadow, $data_element,$url_img;
 
     if (!$title) $title = get_the_title();
     if (!$description && $post) $description = dci_get_meta('descrizione','_dci_page_',$post->ID);
@@ -39,7 +39,7 @@
                         <div class="col-12 col-lg-5 me-lg-5">
                             <div class="card-wrapper card-column">
                                 <div class="col-12 footer-items-wrapper logo-wrapper">
-                                    <img class="ue-logo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnDeHmoF5L5Fkqq-Ohesy45F6z-_ku02O2Fg&s" width="100%">
+                                    <img class="ue-logo" src="<?=$url_img;?>" width="100%">
                                     </div>                    
                             </div>
                         </div>

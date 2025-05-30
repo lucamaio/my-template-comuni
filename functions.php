@@ -87,8 +87,10 @@ require get_template_directory() . '/walkers/footer-info.php';
 
 
 
-
-
+/**
+ *  Caricamento dati Trasparenza
+ */
+require_once get_template_directory() . '/inc/activationTrasparenza.php';
 
 /**
  * Filters
@@ -324,7 +326,3 @@ function my_custom_one_time_function() {
     }
 }
 add_action('init', 'my_custom_one_time_function');
-
-if (is_admin()) {
-    require_once get_template_directory() . '/inc/activationTrasparenza.php';
-}

@@ -15,6 +15,7 @@ function dci_trasparenza_activation() {
     }
 }
 add_action('after_switch_theme', 'dci_trasparenza_activation');
+//dci_reload_trasparenza_option_page('themes.php', 'dci_trasparenza_activation');
 
 
 // ===========================
@@ -27,13 +28,13 @@ function dci_reload_trasparenza_option_page() {
     }
 
     echo "<div class='wrap'>";
-    echo "<h1>Ricarica i dati di attivazione del tema (Trasparenza)</h1>";
+    echo "<h1>Ricarica i dati della Trasparenza</h1>";
     echo '<p>Questa operazione reinserisce le tassonomie e opzioni di default relative alla sezione "Amministrazione Trasparente".</p>';
     echo '<a href="' . esc_url(admin_url('themes.php?page=reload-trasparenza-theme-options&action=reload')) . '" class="button button-primary">Ricarica Trasparenza</a>';
     echo "</div>";
 }
 
-function dci_add_trasparenza_theme_page() {
+/*function dci_add_trasparenza_theme_page() {
     add_theme_page(
         'Ricarica Trasparenza',
         'Ricarica Trasparenza',
@@ -41,8 +42,8 @@ function dci_add_trasparenza_theme_page() {
         'reload-trasparenza-theme-options',
         'dci_reload_trasparenza_option_page'
     );
-}
-add_action('admin_menu', 'dci_add_trasparenza_theme_page');
+}*/
+//add_action('admin_menu', 'dci_add_trasparenza_theme_page');
 
 
 // ===========================
@@ -163,8 +164,6 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
         ];
     }
 }
-
-
 
 // ===========================
 // Funzione di inserimento tassonomie

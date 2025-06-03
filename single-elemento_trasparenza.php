@@ -21,7 +21,25 @@ get_header();
             $prefix= '_dci_elemento_trasparenza_';
             $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $post->ID);
             $file = dci_get_meta("file", $prefix, $post->ID);
-            var_dump($file);
+            $url=dci_get_meta("url", $prefix, $post->ID);
+            $data_pubblicazione_arr = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $post->ID);
+            $data_pubblicazione = date_i18n('d F Y', mktime(0, 0, 0, $data_pubblicazione_arr[1], $data_pubblicazione_arr[0], $data_pubblicazione_arr[2]));
+
+            $data_scadenza_arr = dci_get_data_pubblicazione_arr("data_scadenza", $prefix, $post->ID);
+            $data_scadenza = date_i18n('d F Y', mktime(0, 0, 0, $data_scadenza_arr[1], $data_scadenza_arr[0], $data_scadenza_arr[2]));
+            /*$ck_link           = dci_get_meta('open_direct', $prefix, $post->ID) === 'on';
+            //var_dump($ck_link);
+            if ($ck_link) {
+                // Link diretto (URL o file)
+                if (!empty($url)) {
+                    $link = esc_url($url);
+                } elseif (!empty($file)) {
+                    $link = esc_url($file); 
+                } else {
+                    $link = '#'; 
+                }
+            }*/
+
             ?>
             <div class="container" id="main-container">
                 <div class="row">
@@ -50,7 +68,24 @@ get_header();
                         $inline = true;
                         get_template_part('template-parts/single/actions');
                         ?>
-                    </div>                 
+                    </div>         
+                    <div class="row mt-5 mb-4">
+                            <div class="col-6">
+                                <small>Data pubblicazione:</small>
+                                <p class="fw-semibold font-monospace">
+                                    <?php echo $data_pubblicazione; ?>
+                                </p>
+                            </div>
+                            <?php if(!empty($data_scadenza) && $data_scadenza!=null){ ?>
+                            <div class="col-6">
+                                <small>Data scadenza:</small>
+                                <p class="fw-semibold font-monospace">
+                                    <?php echo $data_scadenza; ?>
+                                </p>
+                            </div>
+                            <?php } ?>
+                        </div>
+                    </div>        
                 </div>                      
             </div>
 
@@ -84,15 +119,24 @@ get_header();
                                                     <div id="collapse-one" class="accordion-collapse collapse show" role="region" aria-labelledby="accordion-title-one">
                                                         <div class="accordion-body">
                                                             <ul class="link-list" data-element="page-index">
+                                                                <?php if(!empty($descrizione_breve) && $descrizione_breve!= null) {?>
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#descrizione">
                                                                     <span class="title-medium">Descrizione</span>
                                                                     </a>
                                                                 </li>
-                                                                <?php if( is_array($documenti) && count($documenti) ) { ?>
+                                                                <?php } ?>
+                                                                <?php if(!empty($file) && $file!= null ) { ?>
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#documenti">
                                                                     <span class="title-medium">Documenti</span>
+                                                                    </a>
+                                                                </li>
+                                                                <?php } ?>
+                                                                <?php if( !empty($url) && $url!= null) { ?>
+                                                                <li class="nav-item">
+                                                                    <a class="nav-link" href="#url">
+                                                                    <span class="title-medium">Link alla pagina</span>
                                                                     </a>
                                                                 </li>
                                                                 <?php } ?>
@@ -109,6 +153,7 @@ get_header();
                     </aside>
                     <section class="col-lg-8 it-page-sections-container border-light">
                     <?php get_template_part('template-parts/single/image-large'); ?>
+                    <?php if( !empty($descrizione_breve) && $descrizione_breve!= null) {?>
                     <article class="it-page-section anchor-offset" data-audio>                        
                         <h4 id="descrizione">Descrizione</h4>
                         <div class="richtext-wrapper lora">
@@ -119,14 +164,15 @@ get_header();
                                 }
                             ?>
                         </div>
-                    </article>   
-                    <?php if( is_array($file) && count($file) ) { ?>
+                    </article> 
+                    <?php } ?>
+
+
+
+                    <?php if(!empty($file)&& $file!=null){ ?>
                     <article class="it-page-section anchor-offset mt-5">
                         <h4 id="documenti">Documenti</h4>
                         <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-                            <?php foreach ($file as $doc_id) {
-                                $documento = get_post($doc_id);
-                            ?>
                             <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
                                 <svg class="icon" aria-hidden="true">
                                 <use
@@ -135,16 +181,37 @@ get_header();
                                 </svg>
                                 <div class="card-body">
                                 <h5 class="card-title">
-                                    <a class="text-decoration-none" href="<?php echo get_permalink($doc_id); ?>" aria-label="Visualizza il documento <?php echo $documento->post_title; ?>" title="Visualizza il documento <?php echo $documento->post_title; ?>">
-                                        <?php echo $documento->post_title; ?>
+                                    <a class="text-decoration-none" href="<?php echo $file ?>" aria-label="Visualizza il documento" title="Visualizza il documento">
+                                       Visualizza il documento
                                     </a>
                                 </h5>
                                 </div>
                             </div>
-                            <?php } ?>
                         </div>
                     </article>
-                    <?php } ?>
+                        <?php } ?>
+
+                    <?php if(!empty($url)&& $url!=null){ ?>
+                    <article class="it-page-section anchor-offset mt-5">
+                        <h4 id="url">Link</h4>
+                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
+                            <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                <svg class="icon" aria-hidden="true">
+                                <use
+                                    xlink:href="#it-clip"
+                                ></use>
+                                </svg>
+                                <div class="card-body">
+                                <h5 class="card-title">
+                                    <a class="text-decoration-none" href="<?php echo $url ?>" aria-label="Vai alla pagina" title="Vai alla pagina">
+                                       Vai alla pagina
+                                    </a>
+                                </h5>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                        <?php } ?>
                         </div>
                       </div>
                 </div>

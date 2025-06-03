@@ -9,7 +9,8 @@ $ck_target         = dci_get_meta('open_in_new_tab', $prefix, $elemento->ID) ===
 $ck_link           = dci_get_meta('open_direct', $prefix, $elemento->ID) === 'on';
 $url               = dci_get_meta('url', $prefix, $elemento->ID);
 $documento         = dci_get_meta('file', $prefix, $elemento->ID);
-
+$arrdata = dci_get_data_pubblicazione_arr("data_pubblicazione",$prefix, $post->ID);
+$monthName = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
 // Inizializzazione del link
 if ($ck_link) {
     // Link diretto (URL o file)
@@ -39,6 +40,7 @@ if ($elemento->post_status === "publish") :
                     }
                 }
                 ?>
+                -    <span class="data"><?php echo $arrdata[0].' '.strtoupper($monthName).' '.$arrdata[2] ?></span>
             </div>
             <div class="card-body p-0 my-2">
                 <h3 class="green-title-big t-primary mb-8">

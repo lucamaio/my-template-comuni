@@ -25,22 +25,6 @@ function dci_register_post_type_progetto() {
         'has_archive'   => false,
         'rewrite' => array('slug' => 'progetti','with_front' => false),
         'map_meta_cap'    => true,
-         'capabilities' => array(Add commentMore actions
-            'edit_post' => 'edit_elemento_progetto',
-            'read_post' => 'read_elemento_progetto',
-            'delete_post' => 'delete_elemento_progetto',
-            'edit_posts' => 'edit_elementi_progetto',
-            'edit_others_posts' => 'edit_others_elementi_progetto',
-            'publish_posts' => 'publish_elementi_progetto',Add commentMore actions
-            'read_private_posts' => 'read_private_elementi_progetto',
-            'delete_posts' => 'delete_elementi_progetto',
-            'delete_private_posts' => 'delete_private_elementi_progetto',
-            'delete_published_posts' => 'delete_published_elementi_progetto',
-            'delete_others_posts' => 'delete_others_elementi_progetto',
-            'edit_private_posts' => 'edit_private_elementi_progetto',
-            'edit_published_posts' => 'edit_published_elementi_progetto',
-            'create_posts' => 'create_elementi_progetto'
-        ),
         'description'    => __( "Tipologia che consente l'inserimento dei progetti PNRR del comune", 'design_comuni_italia' ),
     );
     register_post_type('progetto', $args );
@@ -248,7 +232,7 @@ function dci_add_Progetto_metaboxes() {
 
     $cmb_avanzamento->add_field(array(
         'id' => $prefix . 'avanzamento',
-        'name'        => __( 'Avanzamento del progetto *', 'design_comuni_italia' ),
+        'name'        => __( 'Avanzaqmento del progetto *', 'design_comuni_italia' ),
         'type' => 'text',
     ));
 

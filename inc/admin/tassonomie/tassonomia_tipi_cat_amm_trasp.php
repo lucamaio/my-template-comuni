@@ -7,15 +7,15 @@ add_action( 'init', 'dci_register_taxonomy_tipi_cat_amm_trasp', -10 );
 function dci_register_taxonomy_tipi_cat_amm_trasp() {
 
     $labels = array(
-        'name'              => _x( 'Tipi categoria Amministrazione Trasparente', 'taxonomy general name', 'design_comuni_italia' ),
-        'singular_name'     => _x( 'Tipo di categoria Amministrazione Trasparente', 'taxonomy singular name', 'design_comuni_italia' ),
+        'name'              => _x( 'Sezioni Trasparenza', 'taxonomy general name', 'design_comuni_italia' ),
+        'singular_name'     => _x( 'Sezione Trasparenza', 'taxonomy singular name', 'design_comuni_italia' ),
         'search_items'      => __( 'Cerca Tipo categoria Amministrazione Trasparente', 'design_comuni_italia' ),
         'all_items'         => __( 'Tutti i Tipi di categoria Amministrazione Trasparente ', 'design_comuni_italia' ),
-        'edit_item'         => __( 'Modifica il Tipo di categoria Amministrazione Trasparente', 'design_comuni_italia' ),
-        'update_item'       => __( 'Aggiorna il Tipo di categoria Amministrazione Trasparente', 'design_comuni_italia' ),
-        'add_new_item'      => __( 'Aggiungi un Tipo di categoria Amministrazione Trasparente', 'design_comuni_italia' ),
-        'new_item_name'     => __( 'Nuovo Tipo di categoria Amministrazione Trasparente', 'design_comuni_italia' ),
-        'menu_name'         => __( 'Tipi di categoria Amministrazione Trasparente', 'design_comuni_italia' ),
+        'edit_item'         => __( 'Modifica sezione Trasparenza', 'design_comuni_italia' ),
+        'update_item'       => __( 'Aggiorna sezione Trasparenza', 'design_comuni_italia' ),
+        'add_new_item'      => __( 'Aggiungi una sezione Trasparenza', 'design_comuni_italia' ),
+        'new_item_name'     => __( 'Nuovo Tipo sezione Trasparenza', 'design_comuni_italia' ),
+        'menu_name'         => __( 'Sezioni Trasparenza', 'design_comuni_italia' ),
     );
 
     $args = array(

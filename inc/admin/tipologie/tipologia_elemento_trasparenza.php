@@ -25,6 +25,22 @@ function dci_register_post_type_elemento_trasparenza()
         'has_archive'       => false,
        //capability_type'   => array('elemento_trasparenza'),
         'map_meta_cap'      => true,
+        'capabilities' => array(Add commentMore actions
+            'edit_post' => 'edit_elemento_trasparenza',
+            'read_post' => 'read_elemento_trasparenza',
+            'delete_post' => 'delete_elemento_trasparenza',
+            'edit_posts' => 'edit_elementi_trasparenza',
+            'edit_others_posts' => 'edit_others_elementi_trasparenza',
+            'publish_posts' => 'publish_elementi_trasparenza',
+            'read_private_posts' => 'read_private_elementi_trasparenza',
+            'delete_posts' => 'delete_elementi_trasparenza',
+            'delete_private_posts' => 'delete_private_elementi_trasparenza',
+            'delete_published_posts' => 'delete_published_elementi_trasparenza',
+            'delete_others_posts' => 'delete_others_elementi_trasparenza',
+            'edit_private_posts' => 'edit_private_elementi_trasparenza',
+            'edit_published_posts' => 'edit_published_elementi_trasparenza',
+            'create_posts' => 'create_elementi_trasparenza'
+    ),
         'description'       => __('Struttura delle informazioni relative utili a presentare un Elemento Trasparenza', 'design_comuni_italia'),
     );
 

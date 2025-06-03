@@ -6,7 +6,7 @@ function dci_register_pagina_trasparenza_options()
 
     $args = array(
         'id'           => 'dci_options_trasparenza',
-        'title'        => esc_html__('Amministrazione Trasparente', 'design_comuni_italia'),
+        'title'        => esc_html__('Trasparenza', 'design_comuni_italia'),
         'object_types' => array('options-page'),
         'option_key'   => 'trasparenza',
         'tab_title'    => __('Trasparenza', "design_comuni_italia"),
@@ -47,12 +47,5 @@ function dci_register_pagina_trasparenza_options()
     'desc' => '<a href="' . esc_url(admin_url('themes.php?page=reload-trasparenza-theme-options')) . '" class="button button-primary">Ricarica dati Trasparenza</a>',
 ));
 }
-add_theme_page(
-    'Carica Trasparenza',
-    'Ricarica i dati della Trasparenza',
-    'edit_theme_options', // ← livello di capability richiesto
-    'reload-trasparenza-theme-options',
-    'dci_reload_trasparenza_option_page'
-);
 
 ?>

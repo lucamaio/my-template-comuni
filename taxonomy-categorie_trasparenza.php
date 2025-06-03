@@ -10,7 +10,7 @@ global $title, $description, $data_element, $elemento, $sito_tematico_id;
 
 get_header();
 $obj = get_queried_object();
-$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 3;
+$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] :-1;
 $load_posts = -1;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 $args = array(

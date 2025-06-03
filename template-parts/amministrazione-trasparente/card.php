@@ -9,8 +9,10 @@ $ck_target         = dci_get_meta('open_in_new_tab', $prefix, $elemento->ID) ===
 $ck_link           = dci_get_meta('open_direct', $prefix, $elemento->ID) === 'on';
 $url               = dci_get_meta('url', $prefix, $elemento->ID);
 $documento         = dci_get_meta('file', $prefix, $elemento->ID);
-$arrdata = dci_get_data_pubblicazione_arr("data_pubblicazione",$prefix, $post->ID);
+$arrdata = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $elemento->ID); // Ho corretto $post->ID in $elemento->ID
 $monthName = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
+$ck_sowh_section = dci_get_option("ck_show_section", "Trasparenza");
+
 // Inizializzazione del link
 if ($ck_link) {
     // Link diretto (URL o file)
@@ -30,24 +32,28 @@ if ($elemento->post_status === "publish") :
 ?>
     <div class="cmp-card-latest-messages card-wrapper" data-bs-toggle="modal" data-bs-target="#">
         <div class="card shadow-sm px-4 pt-4 pb-4 rounded border border-light">
-            <span class="visually-hidden">Categoria:</span>
-            <div class="card-header border-0 p-0">
-                <?php
-                $categorie = get_the_terms($elemento->ID, 'tipi_cat_amm_trasp');
-                if ($categorie && !is_wp_error($categorie)) {
-                    foreach ($categorie as $cat) {
-                        echo '<span class="badge bg-primary me-2">' . esc_html($cat->name) . '</span>';
+
+            <?php if ($ck_sowh_section === 'true') {?>
+                <span class="visually-hidden">Categoria:</span>
+                <div class="card-header border-0 p-0">
+                    <?php
+                    $categorie = get_the_terms($elemento->ID, 'tipi_cat_amm_trasp');
+                    if ($categorie && !is_wp_error($categorie)) {
+                        foreach ($categorie as $cat) {
+                            echo '<span class="badge bg-secondary me-2">' . esc_html($cat->name) . '</span>';
+                        }
                     }
-                }
-                ?>
-                -    <span class="data"><?php echo $arrdata[0].' '.strtoupper($monthName).' '.$arrdata[2] ?></span>
-            </div>
+                    ?>
+                    - <span class="data"><?php echo $arrdata[0].' '.strtoupper($monthName).' '.$arrdata[2] ?></span>
+                </div>
+            <?php } ?>
+            
             <div class="card-body p-0 my-2">
                 <h3 class="green-title-big t-primary mb-8">
                     <a class="text-decoration-none"
-                       href="<?php echo esc_url($link); ?>"
-                       <?php echo $ck_target ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
-                       data-element="service-link">
+                        href="<?php echo esc_url($link); ?>"
+                        <?php echo $ck_target ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
+                        data-element="service-link">
                         <?php echo esc_html($elemento->post_title); ?>
                     </a>
                 </h3>

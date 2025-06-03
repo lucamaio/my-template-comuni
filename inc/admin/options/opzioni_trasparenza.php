@@ -46,6 +46,19 @@ function dci_register_pagina_trasparenza_options()
     'name' => '',
     'desc' => '<a href="' . esc_url(admin_url('themes.php?page=reload-trasparenza-theme-options')) . '" class="button button-primary">Ricarica dati Trasparenza</a>',
 ));
-}
 
-?>
+    $trasparenza_options->add_field(array(
+        'id'      => $prefix . 'ck_show_section',
+        'name'    => __('Visualizza la sezione di appartenza.', 'design_comuni_italia'),
+        'desc'    => __('Questa spunta consente di scegliere se si desidera mostra il titolo della sezione nella card', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'false',
+        ),
+    ));
+}?>

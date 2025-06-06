@@ -10,8 +10,8 @@ global $title, $description, $data_element, $elemento, $sito_tematico_id;
 
 get_header();
 $obj = get_queried_object();
-$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] :9;
-$load_posts = 9-;
+$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] :-1;
+$load_posts = -1;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 $args = array(
     's' => $query,
@@ -112,11 +112,11 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                 </div>
             </div>
         </form>
-        <div class="row my-4">
+        <!-- <div class="row my-4">
 				<nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
 					<?php echo dci_bootstrap_pagination(); ?>
 				</nav>
-			</div>
+			</div> -->
 </main>
 	
 <?php

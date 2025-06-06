@@ -11,7 +11,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 <style>
     .title-custom {
         font-size: 18px;
-        background-color: rgb(247,247,247);
+        background-color: rgb(255, 252, 252);
         padding: 10px;
         border: 1px solid #ccc;
         cursor: pointer;
@@ -49,7 +49,6 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
             <div class="container">
                 <div class="row">
                     <h2 class="visually-hidden">Esplora tutti i servizi</h2>
-
                     <!-- Colonna sinistra: categorie -->
                     <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">
                         <div class="mycontainer p-3">
@@ -83,7 +82,6 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                             <?php } ?>
                         </div>
                     </div>
-
                     <!-- Colonna destra: link utili -->
                     <?php if (is_array($siti_tematici) && count($siti_tematici)) { ?>
                         <div class="col-12 col-lg-4 pt-30 pt-lg-50 pb-lg-50">

@@ -46,7 +46,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
             <button type="submit" class="d-none"></button>
             <div class="container">
                 <div class="row">
-                    <h2 class="visually-hidden">Esplora tutti i servizi</h2>
+                    <h2 class="visually-hidden">Esplora tutti i documenti della trasparenza</h2>
 
                     <!-- Colonna sinistra: risultati -->
                     <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">

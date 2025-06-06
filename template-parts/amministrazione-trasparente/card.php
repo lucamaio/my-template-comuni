@@ -32,10 +32,9 @@ if ($elemento->post_status === "publish") :
 ?>
     <div class="cmp-card-latest-messages card-wrapper" data-bs-toggle="modal" data-bs-target="#">
         <div class="card shadow-sm px-4 pt-4 pb-4 rounded border border-light">
-
-            <?php if ($ck_sowh_section === 'true') {?>
-                <span class="visually-hidden">Categoria:</span>
-                <div class="card-header border-0 p-0">
+            <span class="visually-hidden">Categoria:</span>
+             <div class="card-header border-0 p-0">
+                <?php if ($ck_sowh_section === 'true') {?>
                     <?php
                     $categorie = get_the_terms($elemento->ID, 'tipi_cat_amm_trasp');
                     if ($categorie && !is_wp_error($categorie)) {
@@ -43,10 +42,11 @@ if ($elemento->post_status === "publish") :
                             echo '<span class="badge bg-secondary me-2">' . esc_html($cat->name) . '</span>';
                         }
                     }
-                    ?>
+                }?>
+                    
                     - <span class="data"><?php echo $arrdata[0].' '.strtoupper($monthName).' '.$arrdata[2] ?></span>
                 </div>
-            <?php } ?>
+       
             
             <div class="card-body p-0 my-2">
                 <h3 class="green-title-big t-primary mb-8">

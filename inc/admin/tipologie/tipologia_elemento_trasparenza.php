@@ -7,44 +7,44 @@ add_action('init', 'dci_register_post_type_elemento_trasparenza');
 function dci_register_post_type_elemento_trasparenza()
 {
     $labels = array(
-        'name'                => _x('Amministrazione Trasparente', 'Post Type General Name', 'design_comuni_italia'),
-        'singular_name'       => _x('Amministrazione Trasparente', 'Post Type Singular Name', 'design_comuni_italia'),
-        'add_new'             => _x('Aggiungi un Elemento Trasparenza', 'design_comuni_italia'),
-        'add_new_item'        => _x('Aggiungi un Elemento Trasparenza', 'design_comuni_italia'), 
-        'edit_item'           => _x('Modifica l\'Elemento Trasparenza', 'design_comuni_italia'),
-        'new_item'            => __('Nuovo Elemento Trasparenza', 'design_comuni_italia'),
-        'menu_name'           => __('Amministrazione Trasparente', 'design_comuni_italia'),
+        'name'                  => _x('Amministrazione Trasparente', 'Post Type General Name', 'design_comuni_italia'),
+        'singular_name'         => _x('Amministrazione Trasparente', 'Post Type Singular Name', 'design_comuni_italia'),
+        'add_new'               => _x('Aggiungi un Elemento Trasparenza', 'design_comuni_italia'),
+        'add_new_item'          => _x('Aggiungi un Elemento Trasparenza', 'design_comuni_italia'), 
+        'edit_item'             => _x('Modifica l\'Elemento Trasparenza', 'design_comuni_italia'),
+        'new_item'              => __('Nuovo Elemento Trasparenza', 'design_comuni_italia'),
+        'menu_name'             => __('Amministrazione Trasparente', 'design_comuni_italia'),
     );
 
     $args = array(
-        'label'               => __('Elemento Trasparenza', 'design_comuni_italia'),
-        'labels'              => $labels,
-        'supports'            => array('title', 'author'),
-        'taxonomies'          => array('tipologia'),
-        'hierarchical'        => false,
-        'public'              => true,
-        'menu_position'       => 5,
-        'menu_icon'           => 'dashicons-archive',
-        'has_archive'         => false,
-        'capability_type'     => array('elemento_trasparenza', 'elementi_trasparenza'),
-        'map_meta_cap'        => true,
+        'label'                 => __('Elemento Trasparenza', 'design_comuni_italia'),
+        'labels'                => $labels,
+        'supports'              => array('title', 'author'),
+        'taxonomies'            => array('tipologia'),
+        'hierarchical'          => false,
+        'public'                => true,
+        'menu_position'         => 5,
+        'menu_icon'             => 'dashicons-archive',
+        'has_archive'           => false,
+        'capability_type'       => array('elemento_trasparenza', 'elementi_trasparenza'),
+        'map_meta_cap'          => true,
         'capabilities' => array(
-            'edit_post'          => 'edit_elemento_trasparenza',
-            'read_post'          => 'read_elemento_trasparenza',
-            'delete_post'        => 'delete_elemento_trasparenza',
-            'edit_posts'         => 'edit_elementi_trasparenza',
-            'edit_others_posts'  => 'edit_others_elementi_trasparenza',
-            'publish_posts'      => 'publish_elementi_trasparenza',
-            'read_private_posts' => 'read_private_elementi_trasparenza',
-            'delete_posts'       => 'delete_elementi_trasparenza',
-            'delete_private_posts' => 'delete_private_elementi_trasparenza',
+            'edit_post'             => 'edit_elemento_trasparenza',
+            'read_post'             => 'read_elemento_trasparenza',
+            'delete_post'           => 'delete_elemento_trasparenza',
+            'edit_posts'            => 'edit_elementi_trasparenza',
+            'edit_others_posts'     => 'edit_others_elementi_trasparenza',
+            'publish_posts'         => 'publish_elementi_trasparenza',
+            'read_private_posts'    => 'read_private_elementi_trasparenza',
+            'delete_posts'          => 'delete_elementi_trasparenza',
+            'delete_private_posts'  => 'delete_private_elementi_trasparenza',
             'delete_published_posts' => 'delete_published_elementi_trasparenza',
             'delete_others_posts' => 'delete_others_elementi_trasparenza',
             'edit_private_posts' => 'edit_private_elementi_trasparenza',
             'edit_published_posts' => 'edit_published_elementi_trasparenza',
-            'create_posts'       => 'create_elementi_trasparenza'
+            'create_posts'          => 'create_elementi_trasparenza'
         ),
-        'description'         => __('Struttura delle informazioni relative utili a presentare un Elemento Trasparenza', 'design_comuni_italia'),
+        'description'           => __('Struttura delle informazioni relative utili a presentare un Elemento Trasparenza', 'design_comuni_italia'),
     );
 
     register_post_type('elemento_trasparenza', $args);
@@ -69,8 +69,8 @@ function dci_add_transparency_multipost_page() {
         'edit.php?post_type=elemento_trasparenza',
         __('Aggiungi Multi-Elemento Trasparenza', 'design_comuni_italia'), 
         __('Multi-Elemento', 'design_comuni_italia'),
-        'create_elementi_trasparenza',               
-        'dci_transparency_multipost_page',               
+        'create_elementi_trasparenza',              
+        'dci_transparency_multipost_page',              
         'dci_render_transparency_multipost_page'
     );
 }
@@ -103,18 +103,18 @@ function dci_render_transparency_multipost_page() {
                         <td>
                             <?php
                             wp_dropdown_categories( array(
-                                'taxonomy'          => 'tipi_cat_amm_trasp',
-                                'name'              => 'dci_default_category',
-                                'id'                => 'dci_default_category',
-                                'show_option_none'  => false,
-                                'remove_default'    => true,
-                                'hide_empty'        => 0,
-                                'echo'              => 1,
-                                'selected'          => '', // Puoi pre-selezionare una categoria se vuoi
-                                'show_option_none'  => __('Seleziona una categoria', 'design_comuni_italia'),
-                                'value_field'       => 'term_id',
-                                'orderby'           => 'name',
-                                'order'             => 'ASC',
+                                'taxonomy'            => 'tipi_cat_amm_trasp',
+                                'name'                => 'dci_default_category',
+                                'id'                  => 'dci_default_category',
+                                'show_option_none'    => false,
+                                'remove_default'      => true,
+                                'hide_empty'          => 0,
+                                'echo'                => 1,
+                                'selected'            => '', // Puoi pre-selezionare una categoria se vuoi
+                                'show_option_none'    => __('Seleziona una categoria', 'design_comuni_italia'),
+                                'value_field'         => 'term_id',
+                                'orderby'             => 'name',
+                                'order'               => 'ASC',
                             ) );
                             ?>
                             <p class="description"><?php _e('Questa categoria verrà assegnata a tutti i nuovi elementi creati da questa pagina.', 'design_comuni_italia'); ?></p>
@@ -309,7 +309,7 @@ function dci_add_elemento_trasparenza_metaboxes()
 
     $cmb_corpo->add_field( array(
         'id' => $prefix . 'descrizione',
-        'name'        => __( 'Descrizione', 'design_comuni_italia' ),
+        'name'          => __( 'Descrizione', 'design_comuni_italia' ),
         'desc' => __( 'Testo principale del post' , 'design_comuni_italia' ),
         'type' => 'wysiwyg',
         'options' => array(
@@ -333,10 +333,10 @@ function dci_add_elemento_trasparenza_metaboxes()
         'type'          => 'text_url',
     ));
 
-     // Gruppo per URL multipli
+      // Gruppo per URL multipli
     $cmb_documento->add_field(array(
-        'id'          => $prefix . 'url_documento_group',
-        'type'        => 'group',
+        'id'            => $prefix . 'url_documento_group',
+        'type'          => 'group',
         'description' => __('Aggiungi uno o più link al documento', 'design_comuni_italia'),
         'options'     => array(
             'group_title'   => __('Link Documento {#}', 'design_comuni_italia'),
@@ -382,7 +382,7 @@ function dci_add_elemento_trasparenza_metaboxes()
         ),
     ));
 
-     $cmb_extra = new_cmb2_box(array(
+      $cmb_extra = new_cmb2_box(array(
         'id'            => $prefix . 'box_extra',
         'title'         => __('Extra', 'design_comuni_italia'),
         'object_types'  => array('elemento_trasparenza'),
@@ -413,9 +413,9 @@ function dci_add_elemento_trasparenza_metaboxes()
 
     $cmb_post_collegati->add_field( array(
         'id' => $prefix . 'post_trasparenza',
-        'name'        => __( 'Documenti correlati', 'design_comuni_italia' ),
+        'name'          => __( 'Documenti correlati', 'design_comuni_italia' ),
         'desc' => __( 'Selezionare i documenti di trasparenza correlati a quello attualmente pubblicato.', 'design_comuni_italia' ),
-        'type'    => 'pw_multiselect',
+        'type'          => 'pw_multiselect',
         'options' => dci_get_posts_options('elemento_trasparenza'),
         'attributes'    => array(
             'placeholder' =>  __( 'Seleziona i documenti correlati', 'design_comuni_italia' ),
@@ -426,11 +426,21 @@ function dci_add_elemento_trasparenza_metaboxes()
 
 add_action('admin_print_scripts-post-new.php', 'dci_elemento_trasparenza_admin_script', 11);
 add_action('admin_print_scripts-post.php', 'dci_elemento_trasparenza_admin_script', 11);
+// Aggiungi l'hook per la tua pagina di amministrazione personalizzata
+add_action('admin_enqueue_scripts', 'dci_enqueue_multipost_transparency_scripts');
+
 function dci_elemento_trasparenza_admin_script()
 {
     global $post_type;
     if ($post_type === 'elemento_trasparenza') {
-        wp_enqueue_script('elemento-trasparenza-admin-script', get_template_directory_uri() . '/inc/admin-js/elemento_trasparenza.js');
+        wp_enqueue_script('elemento-trasparenza-admin-script', get_template_directory_uri() . '/inc/admin-js/elemento_trasparenza.js', array('jquery'), null, true);
+    }
+}
+
+function dci_enqueue_multipost_transparency_scripts($hook_suffix) {
+    // Il $hook_suffix per le pagine di sottomenu è tipicamente 'post_type_page_YOUR_PAGE_SLUG'
+    if ( 'elemento_trasparenza_page_dci_transparency_multipost_page' === $hook_suffix ) {
+        wp_enqueue_script('multipost-transparency-validation-script', get_template_directory_uri() . '/inc/admin-js/elemento_trasparenza.js', array('jquery'), null, true);
     }
 }
 

@@ -34,7 +34,7 @@ function dci_reload_trasparenza_option_page() {
     echo "</div>";
 }
 
-/*function dci_add_trasparenza_theme_page() {
+function dci_add_trasparenza_theme_page() {
     add_theme_page(
         'Ricarica Trasparenza',
         'Ricarica Trasparenza',
@@ -42,8 +42,8 @@ function dci_reload_trasparenza_option_page() {
         'reload-trasparenza-theme-options',
         'dci_reload_trasparenza_option_page'
     );
-}*/
-//add_action('admin_menu', 'dci_add_trasparenza_theme_page');
+}
+add_action('admin_menu', 'dci_add_trasparenza_theme_page');
 
 
 // ===========================
@@ -107,6 +107,7 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
             "Bandi di Gara e contratti"=>[
                "Informazioni sulle singole procedure in formato tabellare",
                "Atti delle amministrazioni aggiudicatrici e degli enti aggiudicatori distintamente per ogni procedura",
+               "Contratti Pubblici",
             ],
             "Sovvenzioni , contributi sussidi, vantaggi economci"=>[
                 "Criteri e modalità",

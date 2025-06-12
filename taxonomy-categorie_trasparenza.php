@@ -30,6 +30,7 @@ $additional_filter = array(
     )
 );
 
+
 $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_get_option("siti_tematici", "trasparenza") : [];
 ?>
 
@@ -39,9 +40,11 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     $description = $obj->description;
     $data_element = 'data-element="page-name"';
     get_template_part("template-parts/hero/hero");
-    ?>
-
-    <div class="bg-grey-card">
+    
+    if($obj->name="Contratti Pubblici"){
+     get_template_part("template-parts/amministrazione-trasparente/bandi");
+    }else{?>
+         <div class="bg-grey-card">
         <form role="search" id="search-form" method="get" class="search-form">
             <button type="submit" class="d-none"></button>
             <div class="container">
@@ -118,10 +121,14 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 				</nav>
 			</div> -->
 </main>
+
 	
 <?php
-
+}
 get_template_part("template-parts/common/valuta-servizio");
 get_template_part("template-parts/common/assistenza-contatti");
 get_footer();
+
 ?>
+
+   

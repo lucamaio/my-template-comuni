@@ -133,6 +133,94 @@ function dci_add_bando_metaboxes()
         'type'        => 'text',
         'attributes'  => array('required' => 'required'),
     ));
+
+    $cmb_dettagli->add_field(array(
+        'id'          => $prefix . 'cf_sa',
+        'name'        => __('Codice fiscale SA *', 'design_comuni_italia'),
+        'desc'        => __('Indica il Codice fiscale della stazione appaltante', 'design_comuni_italia'),
+        'type'        => 'text',
+        'attributes'  => array('required' => 'required'),
+    ));
+
+     $cmb_dettagli->add_field(array(
+        'id'          => $prefix . 'scleta_contraente',
+        'name'        => __('Scelta del contraente*', 'design_comuni_italia'),
+        'desc'        => __('Indica la Scelta del contraente', 'design_comuni_italia'),
+        'type'        => 'text',
+        'attributes'  => array('required' => 'required'),
+    ));
+
+     $cmb_operatori = new_cmb2_box(array(
+        'id'           => $prefix . 'box_operatori',
+        'title'        => __('Operatori', 'design_comuni_italia'),
+        'object_types' => array('bando'),
+        'context'      => 'normal',
+        'priority'     => 'high',
+    ));
+
+    $cmb_operatori->add_field(array(
+        'id'            => $prefix . 'operatori_group',
+        'type'          => 'group',
+        'description' => __('Elenco degli operatori invitati a presentare offerte/numero di offerenti che hanno partecipato al procedimento', 'design_comuni_italia'),
+        'options'     => array(
+            'group_title'   => __('Operatore {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi un operatore', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi un operatore', 'design_comuni_italia'),
+            'sortable'      => true,
+            'closed'        => true,
+        ),
+    ));
+    
+    // URL del documento
+    $cmb_operatori->add_group_field($prefix . 'operatori_group', array(
+        'name' => __('Ragione sociale', 'design_comuni_italia'),
+        'id'   => 'ragione_sociale',
+        'type' => 'text',
+    ));
+    
+   
+    // Checkbox: apri in nuova scheda
+    $cmb_operatori->add_group_field($prefix . 'operatori_group', array(
+        'name' => __('Codice fiscale/P.Iva', 'design_comuni_italia'),
+        'id'   => 'codice_fiscale',
+        'type' => 'text',
+    ));
+
+    $cmb_aggiudicatari = new_cmb2_box(array(
+        'id'           => $prefix . 'box_aggiudicatari',
+        'title'        => __('Aggiudicatari', 'design_comuni_italia'),
+        'object_types' => array('bando'),
+        'context'      => 'normal',
+        'priority'     => 'high',
+    ));
+
+    $cmb_aggiudicatari->add_field(array(
+        'id'            => $prefix . 'aggiudicatari_group',
+        'type'          => 'group',
+        'description' => __('Elenco degli aggiudicatari del procedimento', 'design_comuni_italia'),
+        'options'     => array(
+            'group_title'   => __('Aggiudicatore {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi un Aggiudicatore', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi un Aggiudicatore', 'design_comuni_italia'),
+            'sortable'      => true,
+            'closed'        => true,
+        ),
+    ));
+    
+    // URL del documento
+    $cmb_aggiudicatari->add_group_field($prefix . 'aggiudicatari_group', array(
+        'name' => __('Ragione sociale', 'design_comuni_italia'),
+        'id'   => 'ragione_sociale',
+        'type' => 'text',
+    ));
+    
+   
+    // Checkbox: apri in nuova scheda
+    $cmb_aggiudicatari->add_group_field($prefix . 'aggiudicatari_group', array(
+        'name' => __('Codice fiscale/P.Iva', 'design_comuni_italia'),
+        'id'   => 'codice_fiscale',
+        'type' => 'text',
+    ));
 }
 
 /**

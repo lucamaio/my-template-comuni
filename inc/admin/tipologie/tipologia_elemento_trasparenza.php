@@ -299,6 +299,25 @@ function dci_add_elemento_trasparenza_metaboxes()
         'remove_default'    => true,
     ));
 
+        $cmb_corpo = new_cmb2_box(array(
+        'id'            => $prefix . 'box_corpo',
+        'title'         => __('Corpo', 'design_comuni_italia'),
+        'object_types'  => array('elemento_trasparenza'),
+        'context'       => 'normal',
+        'priority'      => 'low',
+    ));
+
+    $cmb_corpo->add_field( array(
+        'id' => $prefix . 'descrizione',
+        'name'        => __( 'Descrizione', 'design_comuni_italia' ),
+        'desc' => __( 'Testo principale del post' , 'design_comuni_italia' ),
+        'type' => 'wysiwyg',
+        'options' => array(
+            'textarea_rows' => 10, 
+            'teeny' => false, 
+        ),
+    ) );
+
     $cmb_documento = new_cmb2_box(array(
         'id'            => $prefix . 'box_documento',
         'title'         => __('Documento/Link *', 'design_comuni_italia'),
@@ -314,19 +333,56 @@ function dci_add_elemento_trasparenza_metaboxes()
         'type'          => 'text_url',
     ));
 
+     // Gruppo per URL multipli
+    $cmb_documento->add_field(array(
+        'id'          => $prefix . 'url_documento_group',
+        'type'        => 'group',
+        'description' => __('Aggiungi uno o più link al documento', 'design_comuni_italia'),
+        'options'     => array(
+            'group_title'   => __('Link Documento {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi link', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi link', 'design_comuni_italia'),
+            'sortable'      => true,
+            'closed'        => true,
+        ),
+    ));
+    
+    // URL del documento
+    $cmb_documento->add_group_field($prefix . 'url_documento_group', array(
+        'name' => __('URL del documento', 'design_comuni_italia'),
+        'id'   => 'url_documento',
+        'type' => 'text_url',
+    ));
+    
+    // Titolo del documento
+    $cmb_documento->add_group_field($prefix . 'url_documento_group', array(
+        'name' => __('Titolo del link', 'design_comuni_italia'),
+        'id'   => 'titolo',
+        'type' => 'text',
+    ));
+    
+    // Checkbox: apri in nuova scheda
+    $cmb_documento->add_group_field($prefix . 'url_documento_group', array(
+        'name' => __('Apri in nuova scheda', 'design_comuni_italia'),
+        'id'   => 'target_blank',
+        'type' => 'checkbox',
+    ));
+
+
     $cmb_documento->add_field(array(
         'id'            => $prefix . 'file',
-        'name'          => __('Documento: Carica file', 'design_comuni_italia'),
-        'desc'          => __('Caricare il file del documento se non è disponibile un link esterno', 'design_comuni_italia'),
-        'type'          => 'file',
+        'name'          => __('Documento: Carica più file', 'design_comuni_italia'),
+        'desc'          => __('Carica uno o più documenti. Devono essere scaricabili e stampabili.', 'design_comuni_italia'),
+        'type'          => 'file_list',
+        'preview_size' => array(100, 100),
         'text'          => array(
-            'add_upload_files_text' => __('Aggiungi un nuovo allegato', 'design_comuni_italia'),
-            'remove_image_text'     => __('Rimuovi allegato', 'design_comuni_italia'),
+            'add_upload_files_text' => __('Aggiungi allegati', 'design_comuni_italia'),
+            'remove_image_text'     => __('Rimuovi', 'design_comuni_italia'),
             'remove_text'           => __('Rimuovi', 'design_comuni_italia'),
         ),
     ));
 
-    $cmb_extra = new_cmb2_box(array(
+     $cmb_extra = new_cmb2_box(array(
         'id'            => $prefix . 'box_extra',
         'title'         => __('Extra', 'design_comuni_italia'),
         'object_types'  => array('elemento_trasparenza'),
@@ -377,7 +433,7 @@ function dci_elemento_trasparenza_admin_script()
         wp_enqueue_script('elemento-trasparenza-admin-script', get_template_directory_uri() . '/inc/admin-js/elemento_trasparenza.js');
     }
 }
-/*
+
 add_filter('wp_insert_post_data', 'dci_elemento_trasparenza_set_post_content', 99, 1);
 function dci_elemento_trasparenza_set_post_content($data)
 {
@@ -408,4 +464,4 @@ function dci_set_default_cmb2_values_for_type_2( $value, $object_id, $field_args
         $value = 'ID_DELLA_CATEGORIA_PREDEFINITA'; // Ricorda di mettere l'ID effettivo qui!
     }
     return $value;
-}*/
+}

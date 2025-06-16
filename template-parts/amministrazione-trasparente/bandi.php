@@ -3,22 +3,21 @@ $max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 9;
 $query     = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
 
 $args = array(
-    's'              => $query,
-    'post_type'      => 'bando',
-    'posts_per_page' => $max_posts,
-    'meta_key'       => '_dci_bando_data_inizio',
-    'orderby'        => 'meta_value_num',
-    'order'          => 'DESC',
+    's'               => $query,
+    'post_type'       => 'bando',
+    'posts_per_page'  => $max_posts,
+    'meta_key'        => '_dci_bando_data_inizio',
+    'orderby'         => 'meta_value_num',
+    'order'           => 'DESC',
 );
 
 $the_query = new WP_Query($args);
-$prefix = "_dci_bando_"; // Keep the prefix here for consistency
+$prefix = "_dci_bando_";
 ?>
 
-<main class="container mt-4">
     <?php if ($the_query->have_posts()) : ?>
         <?php while ($the_query->have_posts()) : $the_query->the_post(); ?>
-            <div class="card mb-4 border-light-subtle bg-grey-card shadow-sm">
+            <div class="card mb-4 rounded-4 bg-body-secondary shadow-sm">
                 <div class="card-body">
                     <div class="row g-0">
                         <div class="col-md-2 border-end border-light-subtle pe-3">
@@ -99,7 +98,6 @@ $prefix = "_dci_bando_"; // Keep the prefix here for consistency
                                         <small class="text-muted">Aggiudicato:</small><br>
                                         <?php
                                         $importo_aggiudicazione = get_post_meta(get_the_ID(), '_dci_bando_importo_aggiudicazione', true);
-                                        // Clean and cast to float
                                         $importo_aggiudicazione_numeric = floatval(preg_replace('/[^\d.,]+/', '', str_replace(',', '.', $importo_aggiudicazione)));
                                         echo $importo_aggiudicazione_numeric !== 0.0 ? esc_html(number_format($importo_aggiudicazione_numeric, 2, ',', '.')) . '€' : '-';
                                         ?>
@@ -108,7 +106,6 @@ $prefix = "_dci_bando_"; // Keep the prefix here for consistency
                                         <small class="text-muted">Liquidato:</small><br>
                                         <?php
                                         $somme_liquidate = get_post_meta(get_the_ID(), '_dci_bando_importo_somme_liquidate', true);
-                                        // Clean and cast to float
                                         $somme_liquidate_numeric = floatval(preg_replace('/[^\d.,]+/', '', str_replace(',', '.', $somme_liquidate)));
                                         echo $somme_liquidate_numeric !== 0.0 ? esc_html(number_format($somme_liquidate_numeric, 2, ',', '.')) . '€' : '-';
                                         ?>
@@ -135,4 +132,3 @@ $prefix = "_dci_bando_"; // Keep the prefix here for consistency
             Nessun bando trovato.
         </div>
     <?php endif; ?>
-</main>

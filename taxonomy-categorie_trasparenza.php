@@ -6,13 +6,14 @@
  * @package Design_Comuni_Italia
  */
 
-global $title, $description, $data_element, $elemento, $sito_tematico_id;
+global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici ;
 
 get_header();
 $obj = get_queried_object();
 $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] :-1;
 $load_posts = -1;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
+//var_dump($query);
 $args = array(
     's' => $query,
     'posts_per_page' => $max_posts,
@@ -20,7 +21,7 @@ $args = array(
     'tipi_cat_amm_trasp' => $obj->slug,
 );
 $the_query = new WP_Query($args);
-$categoria = $the_query->posts;
+
 
 $additional_filter = array(
     array(
@@ -39,18 +40,29 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     $title = $obj->name;
     $description = $obj->description;
     $data_element = 'data-element="page-name"';
-    get_template_part("template-parts/hero/hero");
-    
-    if($obj->name="Contratti Pubblici"){
-     get_template_part("template-parts/amministrazione-trasparente/bandi");
-    }else{?>
+    get_template_part("template-parts/hero/hero");?>
          <div class="bg-grey-card">
+          
+             <?php if($obj->name=="Contratti Pubblici"){?>
+                <div class="container my-5">
+                    <div class="row">
+                        <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
+                            <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50"></div>
+                             <div class="row g-4" id="load-more">
+                                   <?php get_template_part("template-parts/amministrazione-trasparente/bandi");?>
+                             </div>
+                                <?php get_template_part("template-parts/amministrazione-trasparente/side-bar");?>
+                            </div>
+                    </div>
+                </div>
+            <?php } else { ?>
         <form role="search" id="search-form" method="get" class="search-form">
             <button type="submit" class="d-none"></button>
             <div class="container">
                 <div class="row">
                     <h2 class="visually-hidden">Esplora tutti i documenti della trasparenza</h2>
-
+                    
+                   
                     <!-- Colonna sinistra: risultati -->
                     <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">
                         <div class="cmp-input-search">
@@ -78,40 +90,23 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                                 <strong><?php echo $the_query->found_posts; ?></strong> elementi trovati in ordine alfabetico
                             </p>
                         </div>
-
-                        <div class="row g-4" id="load-more">
+                         <?php if ($the_query->found_posts != 0){?>
+                            <?php $categoria = $the_query->posts; ?>
+                            <div class="row g-4" id="load-more">
                             <?php foreach ($categoria as $elemento) {
                                 $load_card_type = "elemento_trasparenza";
                                 get_template_part("template-parts/amministrazione-trasparente/card");
                             } ?>
                         </div>
-                    </div>
+                        <?php } else { ?>
+                              <div class="alert alert-info text-center" role="alert">
+                                Nessun post trovato.
+                            </div>
+                        <?php } ?>
+                     </div> 
 
                     <!-- Colonna destra: link utili -->
-                    <?php if (is_array($siti_tematici) && count($siti_tematici)) { ?>
-                        <div class="col-12 col-lg-4 pt-30 pt-lg-50 pb-lg-50">
-                            <div class="link-list-wrap">
-                                <h2 class="title-large-semi-bold"><span>Link Utili</span></h2>
-                                <ul class="link-list t-primary">
-                                    <?php foreach ($siti_tematici as $item) { ?>
-                                        <li class="mb-3 mt-3">
-                                           <?php $sito_tematico_id=$item;
-                                           get_template_part("template-parts/sito-tematico/card"); ?>
-                                        </li>
-                                    <?php } ?>
-                                    <li>
-                                        <a class="list-item ps-0 text-button-xs-bold d-flex align-items-center text-decoration-none"
-                                           href="<?php echo get_permalink(get_page_by_path('Amministrazione Trasparente')); ?>">
-                                            <span class="mr-10">Ritorna alla trasparenza Amministrativa</span>
-                                            <svg class="icon icon-xs icon-primary">
-                                                <use href="#it-arrow-right"></use>
-                                            </svg>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    <?php } ?>
+                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar");?>
                 </div>
             </div>
         </form>
@@ -120,15 +115,11 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 					<?php echo dci_bootstrap_pagination(); ?>
 				</nav>
 			</div> -->
+        <?php } ?>
+        </div>
 </main>
-
-	
 <?php
-}
 get_template_part("template-parts/common/valuta-servizio");
 get_template_part("template-parts/common/assistenza-contatti");
 get_footer();
-
-?>
-
-   
+?>  

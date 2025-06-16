@@ -1,5 +1,5 @@
 <?php
-$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 9;
+$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 10;
 $query     = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
 
 $args = array(
@@ -17,7 +17,7 @@ $prefix = "_dci_bando_";
 
     <?php if ($the_query->have_posts()) : ?>
         <?php while ($the_query->have_posts()) : $the_query->the_post(); ?>
-            <div class="card mb-4 rounded-4 bg-body-secondary shadow-sm">
+            <div class="card mb-2 rounded-3 bg-body-secondary shadow-sm">
                 <div class="card-body">
                     <div class="row g-0">
                         <div class="col-md-2 border-end border-light-subtle pe-3">

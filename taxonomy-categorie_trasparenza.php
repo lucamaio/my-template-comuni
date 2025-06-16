@@ -10,7 +10,11 @@ global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_
 
 get_header();
 $obj = get_queried_object();
-$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 10;
+
+// Recupera il numero di pagina corrente. Per query personalizzate, 'paged' è il nome corretto.
+$paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+
+$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 10;
 $load_posts = -1;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 //var_dump($query);
@@ -19,6 +23,7 @@ $args = array(
     'posts_per_page' => $max_posts,
     'post_type' => 'elemento_trasparenza',
     'tipi_cat_amm_trasp' => $obj->slug,
+    'paged'              => $paged,
 );
 $the_query = new WP_Query($args);
 

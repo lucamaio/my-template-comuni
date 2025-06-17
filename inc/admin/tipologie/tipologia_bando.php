@@ -26,6 +26,22 @@ function dci_register_post_type_bando()
         'has_archive'         => false,
         'rewrite'             => array('slug' => 'bandi', 'with_front' => false),
         'map_meta_cap'        => true,
+        'capabilities' => array(
+            'edit_post'             => 'edit_bando',
+            'read_post'             => 'read_bando',
+            'delete_post'           => 'delete_bando',
+            'edit_posts'            => 'edit_bandi',
+            'edit_others_posts'     => 'edit_others_bandi',
+            'publish_posts'         => 'publish_bandi',
+            'read_private_posts'    => 'read_private_bandi',
+            'delete_posts'          => 'delete_bandi',
+            'delete_private_posts'  => 'delete_private_bandi',
+            'delete_published_posts' => 'delete_published_bandi',
+            'delete_others_posts' => 'delete_others_bandi',
+            'edit_private_posts' => 'edit_private_bandi',
+            'edit_published_posts' => 'edit_published_bandi',
+            'create_posts'          => 'create_bandi'
+        ),
         'description'         => __("Tipologia personalizzata per la pubblicazione dei bandi di gara del Comune.", 'design_comuni_italia'),
     );
 
@@ -61,6 +77,17 @@ function dci_add_bando_metaboxes()
         'object_types' => array('bando'),
         'context'      => 'normal',
         'priority'     => 'high',
+    ));
+    
+    $cmb_apertura->add_field(array(
+        'id'                => $prefix . 'tipo_stato_bando',
+        'name'              => __('Stato del Bando *', 'design_comuni_italia'),
+        'desc'              => __('Selezionare la stato del bando.', 'design_comuni_italia'),
+        'type'              => 'taxonomy_radio_hierarchical',
+        'taxonomy'          => 'tipi_stato_bando',
+        'show_option_none'  => false,
+        'remove_default'    => true,
+        'attributes'  => array('required' => 'required'),
     ));
 
     $cmb_apertura->add_field(array(
@@ -143,12 +170,23 @@ function dci_add_bando_metaboxes()
     ));
 
      $cmb_dettagli->add_field(array(
-        'id'          => $prefix . 'scleta_contraente',
-        'name'        => __('Scelta del contraente*', 'design_comuni_italia'),
-        'desc'        => __('Indica la Scelta del contraente', 'design_comuni_italia'),
-        'type'        => 'text',
+        'id'                => $prefix . 'tipo_sceleta_contraente',
+        'name'              => __('Scelta del contraente *', 'design_comuni_italia'),
+        'desc'              => __('Selezionare la scelta del contraente', 'design_comuni_italia'),
+        'type'              => 'taxonomy_radio_hierarchical',
+        'taxonomy'          => 'tipi_procedura_contraente',
+        'show_option_none'  => false,
+        'remove_default'    => true,
         'attributes'  => array('required' => 'required'),
     ));
+
+    //  $cmb_dettagli->add_field(array(
+    //     'id'          => $prefix . 'scleta_contraente',
+    //     'name'        => __('Scelta del contraente*', 'design_comuni_italia'),
+    //     'desc'        => __('Indica la Scelta del contraente', 'design_comuni_italia'),
+    //     'type'        => 'text',
+    //     'attributes'  => array('required' => 'required'),
+    // ));
 
      $cmb_operatori = new_cmb2_box(array(
         'id'           => $prefix . 'box_operatori',

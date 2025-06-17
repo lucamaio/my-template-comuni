@@ -208,6 +208,31 @@
             "prefix" : "_dci_domanda_frequente_",
             "singular_name" : "Domanda Frequente",
             "plural_name" : "FAQ"
+        },
+         "elemento_trasparenza" : {
+            "name" : "trasparenza",
+            "capability" : "trasparenza",
+            "prefix" : "_dci_elemento_trasparenza_",
+            "singular_name" : "Elemento Trasparenza",
+            "plural_name" : "Elementi Trasparenza",
+            "group_id": "elemento_trasparenza",
+            "group_name" : "elementi trasparenza",
+            "taxonomy" : [
+                "tipi_cat_amm_trasp"
+            ]
+        },
+        "bando" : {
+            "name" : "bando",
+            "capability" : "bando",
+            "prefix" : "_dci_bando_",
+            "singular_name" : "bando",
+            "plural_name" : "Bandi",
+            "group_id": "bando",
+            "group_name" : "bando",
+            "taxonomy" : [
+                "tipi_procedura_contraente",
+                "tipi_stato_bando"
+            ]
         }
     }
 }

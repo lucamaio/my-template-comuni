@@ -201,7 +201,7 @@ function dci_render_transparency_multipost_page() {
                                         // Assegna la categoria
                                         wp_set_object_terms( $post_id, $default_category, 'tipi_cat_amm_trasp' );
 
-                                        update_post_meta( $post_id, '_dci_elemento_trasparenza_file', $movefile['url'] );
+                                        update_post_meta( $post_id, '_dci_elemento_trasparenza_file', array( $attachment_id ) );
                                         update_post_meta( $post_id, '_dci_elemento_trasparenza_open_in_new_tab', $open_new_tab );
                                         update_post_meta( $post_id, '_dci_elemento_trasparenza_open_direct', $open_direct_tab ); 
 

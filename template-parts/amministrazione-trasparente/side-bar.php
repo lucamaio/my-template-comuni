@@ -4,7 +4,7 @@ global $siti_tematici, $sito_tematico_id;
 if (is_array($siti_tematici) && count($siti_tematici)) { ?>
     <div class="col-12 col-lg-4 pt-30 pt-lg-50 pb-lg-50">
         <div class="link-list-wrap">
-            <h2 class="title-large-semi-bold"><span>Link Utili</span></h2>
+            <h2 class="title-medium-semi-bold">Link Utili</h2>
             <ul class="link-list t-primary">
                 <?php foreach ($siti_tematici as $item) { ?>
                     <li class="mb-3 mt-3">

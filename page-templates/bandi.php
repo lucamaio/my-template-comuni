@@ -26,7 +26,7 @@ get_header();
 				$with_shadow = true;
 				get_template_part("template-parts/hero/hero"); 
 			?>
-			<?php get_template_part("template-parts/amministrazione-trasparente/bandi"); ?>
+			<?php get_template_part("template-parts/bandi-di-gara/tutti-bandi"); ?>
 
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>
 			<?php get_template_part("template-parts/common/assistenza-contatti"); ?>

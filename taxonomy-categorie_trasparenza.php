@@ -11,13 +11,13 @@ global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_
 get_header();
 $obj = get_queried_object();
 
-// Recupera il numero di pagina corrente. Per query personalizzate, 'paged' è il nome corretto.
+// Recupera il numero di pagina corrente.
 $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
 $max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 10;
 $load_posts = -1;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
-//var_dump($query);
+
 $args = array(
     's' => $query,
     'posts_per_page' => $max_posts,
@@ -27,7 +27,6 @@ $args = array(
 );
 $the_query = new WP_Query($args);
 
-
 $additional_filter = array(
     array(
         'taxonomy' => 'tipi_cat_amm_trasp',
@@ -35,7 +34,6 @@ $additional_filter = array(
         'terms' => $obj->slug
     )
 );
-
 
 $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_get_option("siti_tematici", "trasparenza") : [];
 ?>
@@ -45,7 +43,9 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     $title = $obj->name;
     $description = $obj->description;
     $data_element = 'data-element="page-name"';
-    get_template_part("template-parts/hero/hero"); ?>
+    get_template_part("template-parts/hero/hero"); 
+    get_template_part("template-parts/amministrazione-trasparente/sottocategorie"); ?>
+
     <div class="bg-grey-card">
 
         <?php if ($obj->name == "Contratti Pubblici") { ?>
@@ -54,7 +54,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                     <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
                     <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
                     <div class="row g-3" id="load-more">
-                        <?php get_template_part("template-parts/amministrazione-trasparente/bandi"); ?>
+                        <?php get_template_part("template-parts/bandi-di-gara/tutti-bandi"); ?>
                     </div>
                     <!-- <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> -->
                 </div>
@@ -66,7 +66,6 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
             <div class="container">
                 <div class="row">
                     <h2 class="visually-hidden">Esplora tutti i documenti della trasparenza</h2>
-
 
                     <!-- Colonna sinistra: risultati -->
                     <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">
@@ -110,14 +109,14 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 
                     <!-- Colonna destra: link utili -->
                     <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+                    <div class="row my-4">
+                        <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
+                            <?php echo dci_bootstrap_pagination(); ?>
+                        </nav>
+                    </div>
                 </div>
             </div>
         </form>
-        <div class="row my-4">
-                <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
-                    <?php echo dci_bootstrap_pagination(); ?>
-                </nav>
-            </div>
     <?php } ?>
     </div>
 </main>

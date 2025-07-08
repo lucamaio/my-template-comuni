@@ -51,7 +51,7 @@ get_header();
 			?>
 			<?php get_template_part("template-parts/single/hero-custom"); ?>
                         <?php info();?>
-			<?php get_template_part("template-parts/amministrazione-trasparente/categorie"); ?>
+			<?php get_template_part("template-parts/amministrazione-trasparente/categorie"); ?>		
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>
 			<?php get_template_part("template-parts/common/assistenza-contatti"); ?>
 		<?php 
@@ -61,4 +61,3 @@ get_header();
 
 <?php
 get_footer();?>
-

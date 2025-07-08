@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Archivio Tassonomia trasparenza
  *
@@ -18,22 +18,30 @@ $max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 10;
 $load_posts = -1;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 
+$prefix = '_dci_elemento_trasparenza_';
+
+// Gestione dell'ordinamento
+$order = isset($_GET['order_type']) ? $_GET['order_type'] : 'data_desc'; // Default è data_desc
+
 $args = array(
     's' => $query,
     'posts_per_page' => $max_posts,
     'post_type' => 'elemento_trasparenza',
     'tipi_cat_amm_trasp' => $obj->slug,
-    'paged'              => $paged,
+    'paged' => $paged,
 );
-$the_query = new WP_Query($args);
 
-$additional_filter = array(
-    array(
-        'taxonomy' => 'tipi_cat_amm_trasp',
-        'field' => 'slug',
-        'terms' => $obj->slug
-    )
-);
+// Gestione dell'ordinamento
+if ($order === 'alfabetico_asc' || $order === 'alfabetico_desc') {
+    $args['orderby'] = 'title';
+    $args['order'] = ($order === 'alfabetico_desc') ? 'DESC' : 'ASC';
+} else {
+    // Ordinamento per data di pubblicazione del post (post_date)
+    $args['orderby'] = 'date';
+    $args['order'] = ($order === 'data_desc') ? 'DESC' : 'ASC';
+}
+
+$the_query = new WP_Query($args);
 
 $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_get_option("siti_tematici", "trasparenza") : [];
 ?>
@@ -43,11 +51,13 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     $title = $obj->name;
     $description = $obj->description;
     $data_element = 'data-element="page-name"';
-    get_template_part("template-parts/hero/hero"); 
-    get_template_part("template-parts/amministrazione-trasparente/sottocategorie"); ?>
+    get_template_part("template-parts/hero/hero");
+    get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
+    ?>
 
     <div class="bg-grey-card">
 
+        
         <?php if ($obj->name == "Contratti Pubblici") { ?>
             <div class="container my-5">
                 <div class="row">
@@ -61,6 +71,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
             </div>
         </div>
     <?php } else { ?>
+        
         <form role="search" id="search-form" method="get" class="search-form">
             <button type="submit" class="d-none"></button>
             <div class="container">
@@ -80,8 +91,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                                         <button class="btn btn-primary" type="submit" id="button-3">Invio</button>
                                     </div>
                                     <span class="autocomplete-icon" aria-hidden="true">
-                                        <svg class="icon icon-sm icon-primary" role="img"
-                                            aria-labelledby="autocomplete-label">
+                                        <svg class="icon icon-sm icon-primary" role="img" aria-labelledby="autocomplete-label">
                                             <use href="#it-search"></use>
                                         </svg>
                                     </span>
@@ -89,9 +99,23 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                             </div>
                             <p id="autocomplete-label" class="mb-4">
                                 <strong><?php echo $the_query->found_posts; ?></strong> elementi trovati in ordine
-                                alfabetico
+                                <?php echo ($order == 'alfabetico_asc' || $order == 'alfabetico_desc') ? "alfabetico" : "di pubblicazione"; ?>
+                                <?php echo ($order == 'desc' || $order == 'alfabetico_desc') ? "(Discendente)" : "(Ascendente)"; ?>
                             </p>
                         </div>
+
+                        <!-- Sezione per ordinamento -->
+                        <div class="form-group mb-4">
+                             <span style="font-size: 1.2rem; font-weight: bold; color: #333;">Ordina per</span>
+                            <select id="order-select" name="order_type" class="form-control" style="width: 100%; padding: 0.75rem 1rem; font-size: 1rem;">
+                                <option value="data_desc" <?php echo ($order == 'data_desc') ? 'selected' : ''; ?>>Data (Descendente)</option>
+                                <option value="data_asc" <?php echo ($order == 'data_asc') ? 'selected' : ''; ?>>Data (Ascendente)</option>
+                                <option value="alfabetico_asc" <?php echo ($order == 'alfabetico_asc') ? 'selected' : ''; ?>>Alfabetico (Ascendente)</option>
+                                <option value="alfabetico_desc" <?php echo ($order == 'alfabetico_desc') ? 'selected' : ''; ?>>Alfabetico (Discendente)</option>
+                            </select>
+                        </div>
+
+                        <!-- Risultati della ricerca -->
                         <?php if ($the_query->found_posts != 0) { ?>
                             <?php $categoria = $the_query->posts; ?>
                             <div class="row g-4" id="load-more">
@@ -109,6 +133,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 
                     <!-- Colonna destra: link utili -->
                     <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+
                     <div class="row my-4">
                         <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
                             <?php echo dci_bootstrap_pagination(); ?>
@@ -120,8 +145,17 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     <?php } ?>
     </div>
 </main>
+
 <?php
 get_template_part("template-parts/common/valuta-servizio");
 get_template_part("template-parts/common/assistenza-contatti");
 get_footer();
 ?>
+
+<script>
+    document.getElementById('order-select').addEventListener('change', function() {
+        setTimeout(function() {
+            document.getElementById('search-form').submit();
+        }, 100);
+    });
+</script>

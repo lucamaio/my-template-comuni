@@ -11,7 +11,7 @@ $url               = dci_get_meta('url', $prefix, $elemento->ID);
 
 $documenti         = dci_get_meta('file', $prefix, $elemento->ID);
 $documento = is_array($documenti) && !empty($documenti) ? get_permalink($elemento->ID) : $documenti;
-
+$data= get_the_date('j F Y', $elemento->ID);
 $arrayDataPubblicazione = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $elemento->ID); 
 
 // Mese scritto per intero con prima lettera maiuscola
@@ -53,7 +53,8 @@ if ($elemento->post_status === "publish") :
                 }?>
 
             <span class="data">
-                <?php echo $arrayDataPubblicazione[0] . ' ' . $monthNamePubblicazione . ' ' . $yearFull; ?>
+                <?php echo($data);?>
+                <?php //echo $arrayDataPubblicazione[0] . ' ' . $monthNamePubblicazione . ' ' . $yearFull; ?>
             </span>
             <!-- 
             <?php /* if($arrayDataPubblicazione[0]!=$arrayDataScadenza[0]) { ?>

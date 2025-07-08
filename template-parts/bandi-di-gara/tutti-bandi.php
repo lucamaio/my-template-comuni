@@ -169,21 +169,21 @@ $the_query = new WP_Query($args);
 $prefix = "_dci_bando_";
 ?>
 
-<div class="search-bar-container bg-light p-4 mb-4 rounded shadow-sm">
+<div class="search-bar-container bg-light p-4 mb-4 rounded shadow-sm" style="background-color: #f0f0f0 !important;">
     <form role="search" method="get" class="search-form" action="<?php // echo esc_url(home_url('/')); ?>">
         <input type="hidden" name="post_type" value="bando" />
         <div class="row g-3">
             <div class="col-md-6 col-lg-4">
-                <label for="oggetto" class="form-label visually-hidden"><?php _e('Oggetto', 'design_comuni_italia'); ?></label>
-                <input type="text" class="form-control" id="oggetto" name="oggetto" placeholder="<?php esc_attr_e('Oggetto', 'design_comuni_italia'); ?>" value="<?php echo esc_attr($current_oggetto); ?>">
+                <label for="oggetto" class="form-label visually-hidden" style="color: #333;"><?php _e('Oggetto', 'design_comuni_italia'); ?></label>
+                <input type="text" class="form-control" id="oggetto" name="oggetto" placeholder="<?php esc_attr_e('Oggetto', 'design_comuni_italia'); ?>" value="<?php echo esc_attr($current_oggetto); ?>" style="background-color: #ffffff; color: #333; border: 1px solid #ccc;">
             </div>
             <div class="col-md-6 col-lg-4">
-                <label for="cig" class="form-label visually-hidden"><?php _e('CIG', 'design_comuni_italia'); ?></label>
-                <input type="text" class="form-control" id="cig" name="cig" placeholder="<?php esc_attr_e('CIG', 'design_comuni_italia'); ?>" value="<?php echo esc_attr($current_cig); ?>">
+                <label for="cig" class="form-label visually-hidden" style="color: #333;"><?php _e('CIG', 'design_comuni_italia'); ?></label>
+                <input type="text" class="form-control" id="cig" name="cig" placeholder="<?php esc_attr_e('CIG', 'design_comuni_italia'); ?>" value="<?php echo esc_attr($current_cig); ?>" style="background-color: #ffffff; color: #333; border: 1px solid #ccc;">
             </div>
             <div class="col-md-6 col-lg-4">
-                <label for="procedura_contraente" class="form-label visually-hidden"><?php _e('Procedura scelta Contraente', 'design_comuni_italia'); ?></label>
-                <select class="form-select" id="procedura_contraente" name="procedura_contraente">
+                <label for="procedura_contraente" class="form-label visually-hidden" style="color: #333;"><?php _e('Procedura scelta Contraente', 'design_comuni_italia'); ?></label>
+                <select class="form-select" id="procedura_contraente" name="procedura_contraente" style="background-color: #ffffff; color: #333; border: 1px solid #ccc;">
                     <option value=""><?php _e('Procedura scelta Contraente', 'design_comuni_italia'); ?></option>
                     <?php
                     // Ora la funzione è definita qui sopra e può essere chiamata
@@ -195,8 +195,8 @@ $prefix = "_dci_bando_";
                 </select>
             </div>
             <div class="col-md-6 col-lg-4">
-                <label for="stato" class="form-label visually-hidden"><?php _e('Stato', 'design_comuni_italia'); ?></label>
-                <select class="form-select" id="stato" name="stato">
+                <label for="stato" class="form-label visually-hidden" style="color: #333;"><?php _e('Stato', 'design_comuni_italia'); ?></label>
+                <select class="form-select" id="stato" name="stato" style="background-color: #ffffff; color: #333; border: 1px solid #ccc;">
                     <option value=""><?php _e('Stato', 'design_comuni_italia'); ?></option>
                     <?php
                     $states = dci_get_available_states();
@@ -207,8 +207,8 @@ $prefix = "_dci_bando_";
                 </select>
             </div>
             <div class="col-md-6 col-lg-4">
-                <label for="anno" class="form-label visually-hidden"><?php _e('Anno', 'design_comuni_italia'); ?></label>
-                <select class="form-select" id="anno" name="anno">
+                <label for="anno" class="form-label visually-hidden" style="color: #333;"><?php _e('Anno', 'design_comuni_italia'); ?></label>
+                <select class="form-select" id="anno" name="anno" style="background-color: #ffffff; color: #333; border: 1px solid #ccc;">
                     <option value=""><?php _e('Anno', 'design_comuni_italia'); ?></option>
                     <?php
                     $years = dci_get_available_years();
@@ -219,13 +219,14 @@ $prefix = "_dci_bando_";
                 </select>
             </div>
             <div class="col-12 col-md-auto">
-                <button type="submit" class="btn btn-primary w-100">
-                    <svg class="icon"><use href="#it-search"></use></svg> <?php _e('Cerca', 'design_comuni_italia'); ?>
+                <button type="submit" class="btn btn-primary form-control" style="padding: 0.18rem 0.7rem; font-size: 0.875rem;">
+                    <svg class="icon" style="fill:#FFFFFF;"><use href="#it-search"></use></svg> <?php _e('Cerca', 'design_comuni_italia'); ?>
                 </button>
             </div>
         </div>
     </form>
 </div>
+
 
 
     <?php if ($the_query->have_posts()) : ?>

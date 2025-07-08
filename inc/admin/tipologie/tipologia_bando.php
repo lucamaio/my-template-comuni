@@ -216,7 +216,6 @@ function dci_add_bando_metaboxes()
         'type' => 'text',
     ));
     
-   
     // Checkbox: apri in nuova scheda
     $cmb_operatori->add_group_field($prefix . 'operatori_group', array(
         'name' => __('Codice fiscale/P.Iva', 'design_comuni_italia'),
@@ -252,13 +251,28 @@ function dci_add_bando_metaboxes()
         'type' => 'text',
     ));
     
-   
     // Checkbox: apri in nuova scheda
     $cmb_aggiudicatari->add_group_field($prefix . 'aggiudicatari_group', array(
         'name' => __('Codice fiscale/P.Iva', 'design_comuni_italia'),
         'id'   => 'codice_fiscale',
         'type' => 'text',
     ));
+
+    //DOCUMENTI
+    $cmb_documenti = new_cmb2_box( array(
+        'id'           => $prefix . 'box_documenti',
+        'title'        => __( 'Documenti', 'design_comuni_italia' ),
+        'object_types' => array('bando'),
+        'context'      => 'normal',
+        'priority'     => 'high',
+    ) );
+
+     $cmb_documenti->add_field( array(
+        'id' => $prefix . 'allegati',
+        'name'        => __( 'Allegati', 'design_comuni_italia' ),
+        'desc' => __( 'Elenco di documenti allegati al bando di gara' , 'design_comuni_italia' ),
+        'type' => 'file_list',
+    ) );
 }
 
 /**

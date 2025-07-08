@@ -361,7 +361,8 @@ class Breadcrumb_Trail {
 		    
                               //SINGLE PAGE
 
-	              
+
+		    
 				if (get_post_type() == 'commissario') {					
 			           $this->items[] =  "<a href='".home_url("amministrazione")."'>".__("Amministrazione", "design_comuni_italia")."</a>";				    
 				   $this->items[] =  "<a href='" . home_url("commissario") . "'>" . __("OSL", "design_comuni_italia") . "</a>";					
@@ -374,6 +375,17 @@ class Breadcrumb_Trail {
 					$this->items[] = get_the_title();
 					return;
 				}
+		    
+
+
+		    	   if (get_post_type() == 'bando') {					
+                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";			    
+				   $this->items[] =  "<a href='/tipi_cat_amm_trasp/contratti-pubblici'>" . __("Contratti Pubblici", "design_comuni_italia") . "</a>";	
+					
+                                   
+				   $this->items[] = get_the_title();
+				   return;
+			   }
               
               		    
 				if (get_post_type() == 'progetto') {					
@@ -402,6 +414,54 @@ class Breadcrumb_Trail {
 					$this->items[] = get_the_title();
 					return;
 				}
+
+
+		    
+
+				   if (get_post_type() == 'elemento_trasparenza') {
+					    $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
+					
+					    // Recupera i termini associati al post nella tassonomia 'tipi_cat_amm_trasp'
+					    $terms = get_the_terms(get_the_ID(), 'tipi_cat_amm_trasp');
+					    if ($terms) {
+					        foreach ($terms as $term) {
+					            // Verifica se il termine ha un termine padre
+					            if ($term->parent) {
+					                // Ottieni il termine padre
+					                $parent_term = get_term($term->parent, 'tipi_cat_amm_trasp');
+					                if ($parent_term) {
+					                    // Aggiungi il nome del termine padre prima
+					                    $this->items[] = sprintf('<a href="%s">%s</a>', esc_url(get_term_link($parent_term, 'tipi_cat_amm_trasp')), $parent_term->name);
+					                }
+					            }
+					
+					            // Aggiungi il termine figlio dopo il termine padre, tronca il nome del termine a 35 caratteri
+					            $term_name = $term->name;
+					            if (strlen($term_name) > 35) {
+					                $term_name = substr($term_name, 0, 35) . '...'; // Troncamento del nome
+					            }
+					            $this->items[] = sprintf('<a href="%s">%s</a>', esc_url(get_term_link($term, 'tipi_cat_amm_trasp')), $term_name);
+					        }
+					    }
+					
+					    // Recupera il titolo della pagina e troncalo a 35 caratteri
+					    $title = get_the_title();
+					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					    if (strlen($title) > 35) {
+					        $title = substr($title, 0, 35) . '...';
+					    }
+					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					    if (preg_match('/[A-Z]{5,}/', $title)) {
+					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+					        $title = ucfirst(strtolower($title));
+					    }
+					    // Aggiunge il titolo alla lista degli elementi
+					    $this->items[] = $title;
+					
+					    return;
+				 }
+
+
 
 		    
 				if (get_post_type() == 'dataset') {
@@ -777,8 +837,30 @@ class Breadcrumb_Trail {
 			
 		}
 
+
+			
+
                 elseif ( is_category() || is_tag() || is_tax() ){
 
+
+
+			  // PER RISALIRE AL NOME TASSONOMIA
+			    if (is_tax()) {
+			        // Ottieni l'oggetto del termine corrente
+			        $term = get_queried_object();
+			
+			        // Verifica che sia un oggetto di tipo WP_Term
+			        if ($term instanceof WP_Term) {
+			            // Ottieni il nome della tassonomia
+			            $taxonomy_name = $term->taxonomy;
+			
+			            // Stampa il nome della tassonomia
+			          //  echo "Nome della tassonomia: " . $taxonomy_name;
+			        }
+			    }
+
+
+			
                     if (is_tax(array("categorie_servizio"))){
                         $this->items[] = "<a href='".home_url("servizi")."'>".__("Servizi", "design_comuni_italia")."</a>";
                         $this->items[] = single_term_title( '', false );
@@ -794,14 +876,37 @@ class Breadcrumb_Trail {
                         $this->items[] = __(dci_get_breadcrumb_label($term_name), "design_comuni_italia");
 		
                     }
+		
+			else if (is_tax(array("tipi_cat_amm_trasp"))){
+			    $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
 			
-                    else if (is_tax(array("tipi_cat_amm_trasp"))){
+			    $term = get_queried_object();
+			    if ($term instanceof WP_Term) {
+			        $ancestors = get_ancestors($term->term_id, $term->taxonomy);
+			        $ancestors = array_reverse($ancestors);
+			
+			        foreach ($ancestors as $ancestor_id) {
+			            $ancestor = get_term($ancestor_id, $term->taxonomy);
+			            if (!is_wp_error($ancestor) && $ancestor) {
+			                $this->items[] = "<a href='" . esc_url(get_term_link($ancestor)) . "'>" . esc_html($ancestor->name) . "</a>";
+			            }
+			        }
+			
+			        $this->items[] = __(dci_get_breadcrumb_label($term->name), "design_comuni_italia");
+			    }
+			}
+     
+
+
+			    
+                    else if (is_tax(array("elemento_trasparenza"))){
 			//$this->items[] =  "<a href='".home_url("amministrazione")."'>".__("Amministrazione", "design_comuni_italia")."</a>";
                         $this->items[] =  "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
                         $term_name = single_term_title( '', false );
                         $this->items[] = __(dci_get_breadcrumb_label($term_name), "design_comuni_italia");
 		
-                    }                     else if (is_tax(array("tipi_evento"))) {	
+                    }       		    
+		    else if (is_tax(array("tipi_evento"))) {	
      
 			    // Link a "Vivere il Comune"
 			    $this->items[] = "<a href='" . home_url("vivere-il-comune") . "'>" . __("Vivere il Comune", "design_comuni_italia") . "</a>";	

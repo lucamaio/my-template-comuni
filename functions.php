@@ -90,7 +90,8 @@ require get_template_directory() . '/walkers/footer-info.php';
 /**
  *  Caricamento dati Trasparenza
  */
-require_once get_template_directory() . '/inc/activationTrasparenza.php';
+require get_template_directory() . '/inc/activationTrasparenza.php';
+
 
 /**
  * Filters
@@ -326,3 +327,38 @@ function my_custom_one_time_function() {
     }
 }
 add_action('init', 'my_custom_one_time_function');
+
+
+
+//Settare permessi Categorie Amministrazione Trasparente
+add_filter( 'get_terms', 'dci_filter_terms_by_role_permission', 10, 3 );
+function dci_filter_terms_by_role_permission( $terms, $taxonomies, $args ) {
+    if ( ! is_admin() || ! in_array( 'tipi_cat_amm_trasp', $taxonomies ) ) {
+        return $terms;
+    }
+
+    // Utente corrente
+    $user = wp_get_current_user();
+    if ( current_user_can( 'manage_options' ) ) {
+        return $terms; // Admin vede tutto
+    }
+
+    $user_roles = $user->roles;
+    $filtered_terms = [];
+
+    foreach ( $terms as $term ) {
+        $access_type = get_term_meta( $term->term_id, 'access_type', true );
+        $authorized_roles = (array) get_term_meta( $term->term_id, 'authorized_roles', true );
+
+        if ( $access_type === 'all' || empty( $access_type ) ) {
+            $filtered_terms[] = $term;
+            continue;
+        }
+
+        if ( array_intersect( $user_roles, $authorized_roles ) ) {
+            $filtered_terms[] = $term;
+        }
+    }
+
+    return $filtered_terms;
+}

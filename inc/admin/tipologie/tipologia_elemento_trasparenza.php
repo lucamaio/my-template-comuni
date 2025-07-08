@@ -253,6 +253,7 @@ function dci_add_elemento_trasparenza_metaboxes()
         'object_types'  => array('elemento_trasparenza'),
         'context'       => 'normal',
         'priority'      => 'high',
+        'closed'        => false,
     ));
 
     $cmb_apertura->add_field(array(
@@ -263,13 +264,6 @@ function dci_add_elemento_trasparenza_metaboxes()
         'date_format'   => 'd-m-Y',
     ));
 
-    $cmb_apertura->add_field(array(
-        'id'            => $prefix . 'data_scadenza',
-        'name'          => __('Data di scadenza', 'design_comuni_italia'),
-        'desc'          => __('Data oltre la quale il post non sarà più consultabile. Se lasciato vuoto, il post resterà sempre visibile.', 'design_comuni_italia'),
-        'type'          => 'text_date_timestamp',
-        'date_format'   => 'd-m-Y',
-    ));
 
     $cmb_apertura->add_field(array(
         'id'            => $prefix . 'descrizione_breve',
@@ -428,6 +422,12 @@ add_action('admin_print_scripts-post-new.php', 'dci_elemento_trasparenza_admin_s
 add_action('admin_print_scripts-post.php', 'dci_elemento_trasparenza_admin_script', 11);
 // Aggiungi l'hook per la tua pagina di amministrazione personalizzata
 add_action('admin_enqueue_scripts', 'dci_enqueue_multipost_transparency_scripts');
+
+
+
+
+
+
 
 function dci_elemento_trasparenza_admin_script()
 {

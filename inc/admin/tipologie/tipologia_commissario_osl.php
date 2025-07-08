@@ -25,6 +25,22 @@ function dci_register_post_type_commissario() {
         'has_archive'   => false,
         'rewrite' => array('slug' => 'Commissario','with_front' => false),
         'map_meta_cap'    => true,
+        'capabilities' => array(
+            'edit_post'             => 'edit_elemento_osl',
+            'read_post'             => 'read_elemento_osl',
+            'delete_post'           => 'delete_elemento_osl',
+            'edit_posts'            => 'edit_elementi_osl',
+            'edit_others_posts'     => 'edit_others_osl',
+            'publish_posts'         => 'publish_elementi_osl',
+            'read_private_posts'    => 'read_private_elementi_osl',
+            'delete_posts'          => 'delete_elementi_osl',
+            'delete_private_posts'  => 'delete_private_elementi_osl',
+            'delete_published_posts' => 'delete_published_elementi_osl',
+            'delete_others_posts' => 'delete_others_elementi_osl',
+            'edit_private_posts' => 'edit_private_elementi_osl',
+            'edit_published_posts' => 'edit_published_elementi_osl',
+            'create_posts'          => 'create_elementi_osl'
+        ),
         'description'    => __( "Tipologia che consente l'inserimento dei Documenti per la sezione OSL del comune", 'design_comuni_italia' ),
     );
     register_post_type('commissario', $args );

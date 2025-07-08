@@ -13,10 +13,17 @@ $documenti         = dci_get_meta('file', $prefix, $elemento->ID);
 $documento = is_array($documenti) && !empty($documenti) ? get_permalink($elemento->ID) : $documenti;
 
 $arrayDataPubblicazione = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $elemento->ID); 
-$monthNamePubblicazione = date_i18n('M', mktime(0, 0, 0, $arrayDataPubblicazione[1], 10));
 
-// $arrayDataScadenza = dci_get_data_pubblicazione_arr("data_scadenza", $prefix, $elemento->ID); 
-// $monthNameScadenza = date_i18n('M', mktime(0, 0, 0, $arrayDataScadenza[1], 10));
+// Mese scritto per intero con prima lettera maiuscola
+$monthNamePubblicazione = ucfirst(strtolower(date_i18n('F', mktime(0, 0, 0, $arrayDataPubblicazione[1], 10))));
+
+// Gestione anno a 4 cifre
+$yearTwoDigits = intval($arrayDataPubblicazione[2]);
+if ($yearTwoDigits < 100) {
+    $yearFull = 2000 + $yearTwoDigits;
+} else {
+    $yearFull = $yearTwoDigits;
+}
 
 $ck_sowh_section = dci_get_option("ck_show_section", "Trasparenza");
 
@@ -45,14 +52,15 @@ if ($elemento->post_status === "publish") :
                     }
                 }?>
 
-            <span
-                class="data"><?php echo $arrayDataPubblicazione[0].' '.strtoupper($monthNamePubblicazione).' '.$arrayDataPubblicazione[2] ?>
+            <span class="data">
+                <?php echo $arrayDataPubblicazione[0] . ' ' . $monthNamePubblicazione . ' ' . $yearFull; ?>
             </span>
-            <!-- <?php if($arrayDataPubblicazione[0]!=$arrayDataScadenza[0]) {?>
-                     - <span class="data"><?php echo $arrayDataScadenza[0].' '.strtoupper($monthNameScadenza).' '.$arrayDataScadenza[2] ?></span>
-                     <?php }?> -->
+            <!-- 
+            <?php /* if($arrayDataPubblicazione[0]!=$arrayDataScadenza[0]) { ?>
+                - <span class="data"><?php echo $arrayDataScadenza[0].' '.strtoupper($monthNameScadenza).' '.$arrayDataScadenza[2] ?></span>
+            <?php } */ ?>
+            -->
         </div>
-
 
         <div class="card-body p-0 my-2">
             <h3 class="green-title-big t-primary mb-8">
@@ -61,13 +69,13 @@ if ($elemento->post_status === "publish") :
                     data-element="service-link">
 
                     <?php
-           if (preg_match('/[A-Z]{5,}/', $title)) {
-               echo esc_html($url); // stampa solo il testo dell'URL
-               $titolo_documento = ucfirst(strtolower($title));
-           } else {
-               $titolo_documento = $title;
-           }
-           ?>
+                        if (preg_match('/[A-Z]{5,}/', $title)) {
+                            echo esc_html($url); // stampa solo il testo dell'URL
+                            $titolo_documento = ucfirst(strtolower($title));
+                        } else {
+                            $titolo_documento = $title;
+                        }
+                    ?>
 
                     <?php echo esc_html($titolo_documento); ?>
                 </a>

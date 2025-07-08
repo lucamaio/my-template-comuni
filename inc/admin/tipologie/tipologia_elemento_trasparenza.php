@@ -256,13 +256,13 @@ function dci_add_elemento_trasparenza_metaboxes()
         'closed'        => false,
     ));
 
-    $cmb_apertura->add_field(array(
-        'id'            => $prefix . 'data_pubblicazione',
-        'name'          => __('Data di pubblicazione', 'design_comuni_italia'),
-        'desc'          => __('Data in cui il post sarà reso visibile pubblicamente.', 'design_comuni_italia'),
-        'type'          => 'text_date_timestamp',
-        'date_format'   => 'd-m-Y',
-    ));
+    // $cmb_apertura->add_field(array(
+    //     'id'            => $prefix . 'data_pubblicazione',
+    //     'name'          => __('Data di pubblicazione', 'design_comuni_italia'),
+    //     'desc'          => __('Data in cui il post sarà reso visibile pubblicamente.', 'design_comuni_italia'),
+    //     'type'          => 'text_date_timestamp',
+    //     'date_format'   => 'd-m-Y',
+    // ));
 
 
     $cmb_apertura->add_field(array(

@@ -27,11 +27,14 @@ global $uo_id, $inline, $audio;
             $url1 = dci_get_meta("url", $prefix, $post->ID);
             $url_documento_group = get_post_meta(get_the_ID(), $prefix . 'url_documento_group', true);
             //var_dump($url_documento_group);
-            $data_pubblicazione_arr = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $post->ID);
-            $data_pubblicazione = date_i18n('d F Y', mktime(0, 0, 0, $data_pubblicazione_arr[1], $data_pubblicazione_arr[0], $data_pubblicazione_arr[2]));
+
+            $data= get_the_date('j F Y', $post->ID);
+            
+            //$data_pubblicazione_arr = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $post->ID);
+            //$data_pubblicazione = date_i18n('d F Y', mktime(0, 0, 0, $data_pubblicazione_arr[1], $data_pubblicazione_arr[0], $data_pubblicazione_arr[2]));
     
-            $data_scadenza_arr = dci_get_data_pubblicazione_arr("data_scadenza", $prefix, $post->ID);
-            $data_scadenza = date_i18n('d F Y', mktime(0, 0, 0, $data_scadenza_arr[1], $data_scadenza_arr[0], $data_scadenza_arr[2]));
+            //$data_scadenza_arr = dci_get_data_pubblicazione_arr("data_scadenza", $prefix, $post->ID);
+            //$data_scadenza = date_i18n('d F Y', mktime(0, 0, 0, $data_scadenza_arr[1], $data_scadenza_arr[0], $data_scadenza_arr[2]));
     
             
             $documenti_collegati = dci_get_meta("post_trasparenza", $prefix, $post->ID);
@@ -110,7 +113,7 @@ global $uo_id, $inline, $audio;
                 <div class="col-6">
                     <small>Data pubblicazione:</small>
                     <p class="fw-semibold font-monospace">
-                        <?php echo $data_pubblicazione; ?>
+                        <?php echo $data; ?>
                     </p>
                 </div>              
             </div>

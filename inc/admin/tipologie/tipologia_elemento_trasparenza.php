@@ -52,16 +52,42 @@ function dci_register_post_type_elemento_trasparenza()
     remove_post_type_support('elemento_trasparenza', 'editor');
 }
 
+
+
+
 add_action('edit_form_after_title', 'dci_elemento_trasparenza_add_content_after_title');
 function dci_elemento_trasparenza_add_content_after_title($post)
 {
-    if ($post->post_type === 'elemento_trasparenza') {
-        echo "<span><i>Il <b>Titolo</b> è il <b>Nome del elemento dell'amministrazione trasparente</b>.</i></span><br><br>";
+    if ($post->post_type !== 'elemento_trasparenza') {
+        return;
     }
+
+    if ($post->post_type === 'elemento_trasparenza') {
+        echo "<span><i>Il <b>Titolo</b> è il <b>Nome dell'elemento dell'amministrazione trasparente</b>.</i></span><br><br>";
+    }
+    
+    // Titolo sopra i pulsanti
+    echo '<h2 style="margin-top: 20px; margin-bottom: 10px;">Categorie personalizzate</h2>';
+    
+    // Pulsanti con URL fittizi
+    ?>
+    <div style="margin-bottom: 15px;">
+        <a href="edit.php?post_type=incarichi_dip" class="button button" style="margin-right: 10px;">
+            Personale - <b>Incarichi dirigenziali, a qualsiasi titolo conferiti</b>
+        </a>
+        <a href="edit.php?post_type=bando" class="button button-secondary" style="margin-right: 10px;">
+            Bandi di Gara e contratti - <b>Contratti Pubblici</b>
+        </a>
+        <a href="edit.php?post_type=atto_concessione" class="button button-secondary" style="margin-right: 10px;">
+            Sovvenzioni , contributi sussidi, vantaggi economici - <b>Atti di concessione</b>
+        </a>
+    </div>
+    <?php
 }
 
+
 // Aggiungi la nuova voce di sottomenu per la pagina "Multi-Post"
-add_action('admin_menu', 'dci_add_transparency_multipost_page');
+add_action('admin_menu', 'dci_add_transparency_multipost_page', 20);
 
 function dci_add_transparency_multipost_page() {
     // Aggiungi una sottovoce sotto "Amministrazione Trasparente"
@@ -71,9 +97,14 @@ function dci_add_transparency_multipost_page() {
         __('Multi-Elemento', 'design_comuni_italia'),
         'create_elementi_trasparenza',              
         'dci_transparency_multipost_page',              
-        'dci_render_transparency_multipost_page'
+        'dci_render_transparency_multipost_page',
+        7
     );
 }
+
+
+
+
 
 /**
  * Funzione di callback per renderizzare la pagina di amministrazione "Multi-Post Amministrazione Trasparente".
@@ -203,6 +234,20 @@ function dci_render_transparency_multipost_page() {
 
                                         update_post_meta( $post_id, '_dci_elemento_trasparenza_file', array( $attachment_id ) );
                                         update_post_meta( $post_id, '_dci_elemento_trasparenza_open_in_new_tab', $open_new_tab );
+
+                                        $cmb_extra->add_field(array(
+                                            'id'            => $prefix . 'ordinamento',
+                                            'name'          => __('Ordinamento', 'design_comuni_italia'),
+                                            'desc'          => __('Inserisci un valore numerico per l\'ordinamento', 'design_comuni_italia'),
+                                            'type'          => 'text',
+                                            'attributes'    => array(
+                                                'type' => 'number',
+                                                'min'  => 0,
+                                                'step' => 1,
+                                            ),
+                                        ));
+
+                                        
                                         update_post_meta( $post_id, '_dci_elemento_trasparenza_open_direct', $open_direct_tab ); 
 
                                         $uploaded_count++;
@@ -239,6 +284,54 @@ function dci_render_transparency_multipost_page() {
     </div>
     <?php
 }
+
+
+
+
+
+/**
+ * Esclude i termini con visualizza_elemento = 0
+ * → ma SOLO nella pagina di creazione di un Elemento Trasparenza
+ */
+add_filter( 'terms_clauses', 'dci_hide_invisible_terms', 10, 3 );
+function dci_hide_invisible_terms( $clauses, $taxonomies, $args ) {
+
+    // Applichiamo solo alla nostra tassonomia
+    if ( ! in_array( 'tipi_cat_amm_trasp', (array) $taxonomies, true ) ) {
+        return $clauses;
+    }
+
+    // Siamo in admin? Se no, esci.
+    if ( ! is_admin() ) {
+        return $clauses;
+    }
+
+    // Verifica la schermata corrente
+    $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+    if ( ! $screen ||                     // sicurezza
+         $screen->base !== 'post' ||      // schermate post-new.php / post.php
+         $screen->action !== 'add' ||     // solo “aggiungi nuovo”, non “modifica”
+         $screen->post_type !== 'elemento_trasparenza' ) { // solo il CPT desiderato
+        return $clauses; // esci senza toccare la query
+    }
+
+    // Siamo nella pagina giusta: aggiungiamo la JOIN + condizione
+    global $wpdb;
+
+    if ( false === strpos( $clauses['join'], 'termmeta' ) ) {
+        $clauses['join']  .= " LEFT JOIN {$wpdb->termmeta} tm_vis
+                               ON tm_vis.term_id = t.term_id
+                               AND tm_vis.meta_key = 'visualizza_elemento' ";
+    }
+
+    $clauses['where'] .= " AND ( tm_vis.meta_value IS NULL
+                                 OR tm_vis.meta_value = ''
+                                 OR tm_vis.meta_value = '1' ) ";
+
+    return $clauses;
+}
+
+
 
 
 // --- Funzioni CMB2 esistenti (rimangono invariate) ---
@@ -283,15 +376,17 @@ function dci_add_elemento_trasparenza_metaboxes()
         'priority'      => 'high',
     ));
 
-    $cmb_sezione->add_field(array(
-        'id'                => $prefix . 'tipo_cat_amm_trasp',
-        'name'              => __('Categoria Trasparenza *', 'design_comuni_italia'),
-        'desc'              => __('Selezionare una categoria per determinare la sezione dell’Amministrazione Trasparente in cui verrà posizionato l’elemento o il link.', 'design_comuni_italia'),
-        'type'              => 'taxonomy_radio_hierarchical',
-        'taxonomy'          => 'tipi_cat_amm_trasp',
-        'show_option_none'  => false,
-        'remove_default'    => true,
-    ));
+        $cmb_sezione->add_field( array(
+            'id'                => $prefix . 'tipo_cat_amm_trasp',
+            'name'              => __( 'Categoria Trasparenza *', 'design_comuni_italia' ),
+            'desc'              => __( 'Selezionare una categoria …', 'design_comuni_italia' ),
+            'type'              => 'taxonomy_radio_hierarchical',
+            'taxonomy'          => 'tipi_cat_amm_trasp',
+            'show_option_none'  => false,
+            'remove_default'    => true,
+            /* ↓↓↓ usa la callback che restituisce SOLO i termini “visibili” ↓↓↓ */
+            'options_cb'        => 'dci_get_visible_amministrazione_terms',
+        ) );
 
         $cmb_corpo = new_cmb2_box(array(
         'id'            => $prefix . 'box_corpo',

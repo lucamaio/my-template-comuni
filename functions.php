@@ -330,35 +330,58 @@ add_action('init', 'my_custom_one_time_function');
 
 
 
-//Settare permessi Categorie Amministrazione Trasparente
-add_filter( 'get_terms', 'dci_filter_terms_by_role_permission', 10, 3 );
-function dci_filter_terms_by_role_permission( $terms, $taxonomies, $args ) {
-    if ( ! is_admin() || ! in_array( 'tipi_cat_amm_trasp', $taxonomies ) ) {
-        return $terms;
+
+
+
+
+
+
+/**
+ * Evidenzia in grassetto le categorie di primo livello
+ * nel metabox CMB2 "Seleziona la sezione".
+ */
+add_action( 'admin_enqueue_scripts', 'dci_bold_parent_terms_cmb2', 20 );
+function dci_bold_parent_terms_cmb2( $hook ) {
+
+    // Applica solo su /wp-admin/post-new.php?post_type=elemento_trasparenza
+    if ( $hook !== 'post-new.php' || ( $_GET['post_type'] ?? '' ) !== 'elemento_trasparenza' ) {
+        return;
     }
 
-    // Utente corrente
-    $user = wp_get_current_user();
-    if ( current_user_can( 'manage_options' ) ) {
-        return $terms; // Admin vede tutto
-    }
+    /* ----------  CSS inline  ---------- */
+    wp_add_inline_style(
+        // usiamo un handle già presente, ad es. 'wp-admin'
+        'wp-admin',
+        '.cmb2-parent-term { font-weight:700; color:#000; }'
+    );
 
-    $user_roles = $user->roles;
-    $filtered_terms = [];
-
-    foreach ( $terms as $term ) {
-        $access_type = get_term_meta( $term->term_id, 'access_type', true );
-        $authorized_roles = (array) get_term_meta( $term->term_id, 'authorized_roles', true );
-
-        if ( $access_type === 'all' || empty( $access_type ) ) {
-            $filtered_terms[] = $term;
-            continue;
-        }
-
-        if ( array_intersect( $user_roles, $authorized_roles ) ) {
-            $filtered_terms[] = $term;
-        }
-    }
-
-    return $filtered_terms;
+    /* ----------  JS inline  ---------- */
+    wp_add_inline_script(
+        // carichiamo dopo jQuery core
+        'jquery-core',
+        <<<JS
+        (function($){
+            $(document).ready(function(){
+                // trova tutte le liste radio/checkbox di CMB2
+                $('.cmb2-radio-list, .cmb2-checkbox-list').each(function(){
+                    $(this).children('li').each(function(){
+                        var \$label = $(this).children('label').first();
+                        // se il label NON contiene &nbsp; => livello 0 (categoria principale)
+                        if ( \$label.length && \$label.html().indexOf('&nbsp;') === -1 ) {
+                            \$label.addClass('cmb2-parent-term');
+                        }
+                    });
+                });
+            });
+        })(jQuery);
+JS
+    );
 }
+
+
+
+
+
+
+
+e

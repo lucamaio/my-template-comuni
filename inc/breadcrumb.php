@@ -372,22 +372,100 @@ class Breadcrumb_Trail {
 				            $this->items[] = sprintf('<a href="%s">%s</a>', esc_url(get_term_link($term, 'tipi_commissario')), $term->name);
 				        }
 				    }
-					$this->items[] = get_the_title();
+				         // Recupera il titolo della pagina e troncalo a 35 caratteri
+					    $title = get_the_title();
+					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					    if (strlen($title) > 35) {
+					        $title = substr($title, 0, 35) . '...';
+					    }
+					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					    if (preg_match('/[A-Z]{5,}/', $title)) {
+					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+					        $title = ucfirst(strtolower($title));
+					    }
+					    // Aggiunge il titolo alla lista degli elementi
+					    $this->items[] = $title;
 					return;
 				}
 		    
 
+	
+			    	   if (get_post_type() == 'bando') {					
+	                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
+                                           $this->items[] =  "<a href='/tipi_cat_amm_trasp/bandi-di-gara-e-contratti'>" . __("Bandi di Gara e contratti", "design_comuni_italia") . "</a>";			   
 
-		    	   if (get_post_type() == 'bando') {					
-                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";			    
-				   $this->items[] =  "<a href='/tipi_cat_amm_trasp/contratti-pubblici'>" . __("Contratti Pubblici", "design_comuni_italia") . "</a>";	
+					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/contratti-pubblici'>" . __("Contratti Pubblici", "design_comuni_italia") . "</a>";	
+						
+	                           
+					   // Recupera il titolo della pagina e troncalo a 35 caratteri
+					    $title = get_the_title();
+					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					    if (strlen($title) > 35) {
+					        $title = substr($title, 0, 35) . '...';
+					    }
+					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					    if (preg_match('/[A-Z]{5,}/', $title)) {
+					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+					        $title = ucfirst(strtolower($title));
+					    }
+					    // Aggiunge il titolo alla lista degli elementi
+					    $this->items[] = $title;
+					   return;
+				   }
+
+
+
+		    
+			    	   if (get_post_type() == 'atto_concessione') {					
+	                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
+					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/sovvenzioni-contributi-sussidi-vantaggi-economici'>" . __("sovvenzioni contributi sussidi vantaggi economici", "design_comuni_italia") . "</a>";
+					   
+					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/atti-di-concessione-sovvenzioni-contributi-sussidi-vantaggi-economici/'>" . __("Atti di Concessione", "design_comuni_italia") . "</a>";	
 					
-                                   
-				   $this->items[] = get_the_title();
-				   return;
-			   }
-              
-              		    
+	            
+					   
+					    // Recupera il titolo della pagina e troncalo a 35 caratteri
+					    $title = get_the_title();
+					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					    if (strlen($title) > 35) {
+					        $title = substr($title, 0, 35) . '...';
+					    }
+					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					    if (preg_match('/[A-Z]{5,}/', $title)) {
+					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+					        $title = ucfirst(strtolower($title));
+					    }
+					    // Aggiunge il titolo alla lista degli elementi
+					    $this->items[] = $title;
+					   return;
+				   }
+	              
+		              
+			    	   if (get_post_type() == 'incarichi_dip') {					
+	                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
+					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/personale/'>" . __("Personale", "design_comuni_italia") . "</a>";
+					   
+					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/incarichi-conferiti-e-autorizzati-ai-dipendenti/'>" . __("Incarichi conferiti e autorizzati ai dipendenti", "design_comuni_italia") . "</a>";	
+					
+	            
+					   
+					   // Recupera il titolo della pagina e troncalo a 35 caratteri
+					    $title = get_the_title();
+					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					    if (strlen($title) > 35) {
+					        $title = substr($title, 0, 35) . '...';
+					    }
+					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					    if (preg_match('/[A-Z]{5,}/', $title)) {
+					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+					        $title = ucfirst(strtolower($title));
+					    }
+					    // Aggiunge il titolo alla lista degli elementi
+					    $this->items[] = $title;
+					   return;
+				   }      
+
+		    
 				if (get_post_type() == 'progetto') {					
 			          
                                     $this->items[] = "<a href='index.php/".home_url("progetti")."'>".__("Progetti PNRR", "design_comuni_italia")."</a>";						
@@ -877,7 +955,7 @@ class Breadcrumb_Trail {
 		
                     }
 		
-			else if (is_tax(array("tipi_cat_amm_trasp"))){
+  		  else if (is_tax(array("tipi_cat_amm_trasp"))){
 			    $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
 			
 			    $term = get_queried_object();
@@ -894,7 +972,7 @@ class Breadcrumb_Trail {
 			
 			        $this->items[] = __(dci_get_breadcrumb_label($term->name), "design_comuni_italia");
 			    }
-			}
+			}  
      
 
 
@@ -905,7 +983,14 @@ class Breadcrumb_Trail {
                         $term_name = single_term_title( '', false );
                         $this->items[] = __(dci_get_breadcrumb_label($term_name), "design_comuni_italia");
 		
-                    }       		    
+                    }    
+
+
+
+
+
+
+			    
 		    else if (is_tax(array("tipi_evento"))) {	
      
 			    // Link a "Vivere il Comune"

@@ -4,6 +4,9 @@ jQuery( document ).ready(function() {
      * gestione campi obbligatori
      */
 
+
+    
+
     // Gestione del campo Categoria Trasparenza (radio buttons)
     let inputCategoriaTrasparenza = jQuery('input[name^="_dci_elemento_trasparenza_tipo_cat_amm_trasp"]');
     inputCategoriaTrasparenza.each(function() {

@@ -16,6 +16,8 @@ $tipi_documento = get_terms( array(
 get_header();
 
 ?>
+
+
 	<main>
 		<?php
 		while ( have_posts() ) :
@@ -26,6 +28,7 @@ get_header();
 				$with_shadow = true;
 				get_template_part("template-parts/hero/hero"); 
 			?>
+			
 			<?php get_template_part("template-parts/bandi-di-gara/tutti-bandi"); ?>
 
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>

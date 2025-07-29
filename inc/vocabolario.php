@@ -410,7 +410,6 @@ if(!function_exists("dci_tipi_notizia_array")){
     }
 }
 
-
 if(!function_exists("dci_tipi_progetto_array")){
     function dci_tipi_progetto_array() {
         $tipi_progetto_arr = [
@@ -442,6 +441,9 @@ if(!function_exists("dci_tipi_commissario")){
         return $tipi_commissario_arr;
     }
 }
+
+
+
 
 
 /**

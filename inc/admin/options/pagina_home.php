@@ -133,7 +133,7 @@ $home_options->add_field( array(
     'type' => 'title',
 ) );
 
-$num_argomenti = 9; // Numero di argomenti
+$num_argomenti = 3; // Numero di argomenti
 
 for ($i = 1; $i <= $num_argomenti; $i++) {
     $argomenti_group_id = $home_options->add_field( array(
@@ -189,6 +189,31 @@ for ($i = 1; $i <= $num_argomenti; $i++) {
         'show_option_none' => false,
         'remove_default' => 'true',
     ) );
+
+
+    $home_options->add_field( array(
+    'id'   => $prefix . 'check_notizie',
+    'name' => __( 'Sezione Check', 'design_comuni_italia' ),
+    'desc' => __( 'Gestione stile home page.', 'design_comuni_italia' ),
+    'type' => 'title',
+) );
+
+
+   $home_options->add_field(array(
+    'id' => $prefix . 'ck_hide_notizie_old',
+    'name' => __('Nascondi notizie scadute', 'design_comuni_italia'),
+    'desc' => __('Se abilitata, questa opzione nasconderà automaticamente le notizie con data di scadenza antecedente a oggi.', 'design_comuni_italia'),
+    'type' => 'radio_inline',
+    'default' => 'false',
+    'options' => array(
+        'true' => __('Sì', 'design_comuni_italia'),
+        'false' => __('No', 'design_comuni_italia'),
+    ),
+    // 'attributes' => array(
+    //     'data-conditional-value' => "false",
+    // ),
+));
+
 
 
     }

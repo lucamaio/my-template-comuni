@@ -1,7 +1,7 @@
 <?php
 global $scheda, $count;
 
-$post = get_post($scheda['scheda_'.$count.'_contenuto'][0]);
+$post = get_post($scheda['scheda_' . $count . '_contenuto'][0]);
 $img = dci_get_meta('immagine');
 $descrizione_breve = dci_get_meta('descrizione_breve');
 $icon = dci_get_post_type_icon_by_id($post->ID);
@@ -16,129 +16,160 @@ $page_macro = get_page_by_path($page_macro_slug);
 $post_type = get_post_type($post->ID);
 $post_type_object = get_post_type_object($post_type);
 $post_type_label = $post_type_object->labels->singular_name;
-
+// var_dump($tipo->name);
 $tipo_name = '';
 $url_tipo = '#';
 
-if ($post_type_label == 'Servizio') {
-    $tipo_terms = get_the_terms($post->ID, 'categorie_servizio');
-    if ($tipo_terms && !is_wp_error($tipo_terms)) {
-        $tipo = $tipo_terms[0];
-        $tipo_name = 'Servizio';
-        $url_tipo = '/servizi-categoria/' . sanitize_title($tipo->name);
-    }
-} elseif ($post_type_label == 'Luogo') {
-    $tipo_terms = get_the_terms($post->ID, 'tipi_luogo');
-    if ($tipo_terms && !is_wp_error($tipo_terms)) {
-        $tipo = $tipo_terms[0];
-        $tipo_name = 'Luogo';
-        $url_tipo = '/tipi-luogo/' . sanitize_title($tipo->name);
-    }
-} elseif ($post_type_label == 'Evento') {
-    $tipo_terms = get_the_terms($post->ID, 'tipi_evento');
-    if ($tipo_terms && !is_wp_error($tipo_terms)) {
-        $tipo = $tipo_terms[0];
-        $tipo_name = 'Evento';
-        $url_tipo = '/vivere-il-comune/tipo-evento/' . sanitize_title($tipo->name);
-    }
-} elseif ($post_type_label == 'Documento Pubblico') {
-    $tipo_terms = get_the_terms($post->ID, 'tipi_documento');
-    if ($tipo_terms && !is_wp_error($tipo_terms)) {
-        $tipo = $tipo_terms[0];
-        $tipo_name = 'Documento Pubblico';
-        $url_tipo = '/tipi_documento/' . sanitize_title($tipo->name);
-    }
-} elseif ($post_type_label == 'Notizia') {
-    $tipo_terms = get_the_terms($post->ID, 'tipi_notizia');
-    if ($tipo_terms && !is_wp_error($tipo_terms)) {
-        $tipo = $tipo_terms[0];
-        $tipo_name = $tipo->name;
-        $url_tipo = '/tipi_notizia/' . sanitize_title($tipo->name);
-    } else {
-        $tipo = null;
+switch ($post_type_label) {
+    case 'Servizio':
+        $tipo_terms = get_the_terms($post->ID, 'categorie_servizio');
+        if ($tipo_terms && !is_wp_error($tipo_terms)) {
+            $tipo = $tipo_terms[0];
+            $tipo_name = 'Servizio';
+            $url_tipo = '/servizi-categoria/' . sanitize_title($tipo->name);
+        }
+        break;
+    case 'Luogo':
+        $tipo_terms = get_the_terms($post->ID, 'tipi_luogo');
+        if ($tipo_terms && !is_wp_error($tipo_terms)) {
+            $tipo = $tipo_terms[0];
+            $tipo_name = 'Luogo';
+            $url_tipo = '/tipi-luogo/' . sanitize_title($tipo->name);
+        }
+        break;
+    case 'Evento':
+        $tipo_terms = get_the_terms($post->ID, 'tipi_evento');
+        if ($tipo_terms && !is_wp_error($tipo_terms)) {
+            $tipo = $tipo_terms[0];
+            $tipo_name = 'Evento';
+            $url_tipo = '/vivere-il-comune/tipo-evento/' . sanitize_title($tipo->name);
+        }
+        break;
+    case 'Documento Pubblico':
+        $tipo_terms = get_the_terms($post->ID, 'tipi_documento');
+        if ($tipo_terms && !is_wp_error($tipo_terms)) {
+            $tipo = $tipo_terms[0];
+            $tipo_name = 'Documento Pubblico';
+            $url_tipo = '/tipi_documento/' . sanitize_title($tipo->name);
+        }
+        break;
+    case 'Unità Organizzativa':
+        $tipo_terms = get_the_terms($post->ID, 'tipi_unita_organizzativa');
+        if ($tipo_terms && !is_wp_error($tipo_terms)) {
+            $tipo = $tipo_terms[0];
+            $tipo_name = 'Unita Organizzativa';
+            $url_tipo = '/amministrazione/unita_organizzativa/';
+            if ($tipo->slug == "ufficio") {
+                $url_tipo = $url_tipo . "uffici";
+            } else if ($tipo->sulg == "area") {
+                $url_tipo = $url_tipo . "aree-amministrative";
+            } else if ($tipo->slug == "consiglio comunale") {
+                $url_tipo = $url_tipo . "consiglio-comunale";
+            }
+        }
+        break;
+    case 'Notizia':
+        $tipo_terms = get_the_terms($post->ID, 'tipi_notizia');
+        if ($tipo_terms && !is_wp_error($tipo_terms)) {
+            $tipo = $tipo_terms[0];
+            $tipo_name = $tipo->name;
+            $url_tipo = '/tipi_notizia/' . sanitize_title($tipo->name);
+        } else {
+            $tipo = null;
+            $url_tipo = '#';
+        }
+        break;
+        
+    case 'Dataset':
+        $tipo_name = 'Dataset';
+        $url_tipo = '/dataset';
+        break;
+
+    default:
+        $tipo_name = 'Novità';
         $url_tipo = '#';
-    }
-} else {
-    $tipo_name = 'Novità';
-    $url_tipo = '#';
-}
+} 
 ?>
 
 
-    <div class="card-wrapper border border-light rounded shadow-sm cmp-list-card-img cmp-list-card-img-hr h-100">
-        <div class="card no-after rounded h-100 d-flex flex-column">
-            <?php if ($img) { ?>
+<div class="card-wrapper border border-light rounded shadow-sm cmp-list-card-img cmp-list-card-img-hr h-100">
+    <div class="card no-after rounded h-100 d-flex flex-column">
+        <?php if ($img) { ?>
             <div class="d-flex flex-column">
                 <?php dci_get_img($img, 'rounded-top img-fluid img-responsive'); ?>
             </div>
-            <?php }?>
-            <div class="card-body d-flex flex-column">
-                <div class="category-top cmp-list-card-img__body mb-1">
-                    <?php if ($tipo) { ?>
-                        <a class="category text-decoration-none" href="<?php echo get_term_link($tipo->term_id); ?>">
-                            <?php echo strtoupper($tipo->name); ?>
-                        </a>
-                    <?php } ?>
-                    <span class="data"><?php echo esc_html($arrdata[0] . ' ' . strtoupper($monthName) . ' ' . $arrdata[2]); ?></span>
-                </div>
-            
-                    <h3 class="h5 card-title text-justify u-grey-light">
-                        <?php
-                        $title = get_the_title();
-                        if (strlen($title) > 100) {
-                            $title = substr($title, 0, 97) . '...';
-                        }
-                        if (preg_match('/[A-Z]{5,}/', $title)) {
-                            $title = ucfirst(strtolower($title));
-                        }
-                        echo esc_html($title);
-                        ?>
-                    </h3>
-                <?php if (preg_match('/[A-Z]{5,}/', $descrizione_breve)) {
-                    echo  '<p class="text-paragraph-card u-grey-light m-0 text-justify">'.ucfirst(strtolower($descrizione_breve)).'</p>';
-                } else {
-                    echo '<p class="text-paragraph-card u-grey-light m-0 text-justify">'.$descrizione_breve.'</p>';
-                }?>
+        <?php } ?>
+        <div class="card-body d-flex flex-column">
+            <div class="category-top cmp-list-card-img__body mb-1">
+                <?php if (isset($tipo)) { ?>
+                    <a class="category text-decoration-none" href="<?php echo get_term_link($tipo->term_id); ?>">
+                        <?php echo strtoupper($tipo->name); ?>
+                    </a>
+                <?php } else { ?>
+                     <a class="category text-decoration-none" href="<?php echo $url_tipo; ?>">
+                        <?php echo strtoupper($tipo_name); ?>
+                    </a>
+                <?php }?>
+                <span class="data"><?php echo esc_html($arrdata[0] . ' ' . strtoupper($monthName) . ' ' . $arrdata[2]); ?></span>
+            </div>
 
-                <?php if (is_array($luogo_notizia) && count($luogo_notizia)) { ?><br><br>
-                 <span class="data fw-normal"><i class="fas fa-map-marker-alt"></i>  
-                <?php 
-                foreach ($luogo_notizia as $luogo_id) {
-                    // Ottieni i dettagli del luogo
-                    $luogo_post = get_post($luogo_id);
-                    
-                    if ($luogo_post && !is_wp_error($luogo_post)) {
-                        // Stampa il nome del luogo come link
-                        echo '<a href="' . esc_url(get_permalink($luogo_post->ID)) . '" title="' . esc_attr($luogo_post->post_title) . '" class="card-text text-secondary text-uppercase pb-3">' . esc_html($luogo_post->post_title) . '</a> ';
-                    }
+            <h3 class="h5 card-title text-justify u-grey-light">
+                <?php
+                $title = get_the_title();
+                if (strlen($title) > 100) {
+                    $title = substr($title, 0, 97) . '...';
                 }
+                if (preg_match('/[A-Z]{5,}/', $title)) {
+                    $title = ucfirst(strtolower($title));
+                }
+                echo esc_html($title);
                 ?>
-            </span>
-          <?php } elseif (!empty($luogo_notizia)) { ?>
-            <span class="data fw-normal"> | <i class="fas fa-map-marker-alt"></i>  
-                <?php echo esc_html($luogo_notizia); ?>
-            </span>
-        <?php } ?>         
+            </h3>
+            <?php if (preg_match('/[A-Z]{5,}/', $descrizione_breve)) {
+                echo  '<p class="text-paragraph-card u-grey-light m-0 text-justify">' . ucfirst(strtolower($descrizione_breve)) . '</p>';
+            } else {
+                echo '<p class="text-paragraph-card u-grey-light m-0 text-justify">' . $descrizione_breve . '</p>';
+            } ?>
 
-         <?php if (has_term('', 'argomenti', $post)) { ?>
-    <hr style="margin-bottom: 20px; width: 100%; height: 1px; background-color: grey; border: none;">
-    <div class="card-body p-0" style="text-align: left; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">
-        Argomenti:
-        <?php get_template_part("template-parts/common/badges-argomenti"); ?>
-    </div>
-<?php } ?>       
+            <?php if (is_array($luogo_notizia) && count($luogo_notizia)) { ?><br><br>
+                <span class="data fw-normal"><i class="fas fa-map-marker-alt"></i>
+                    <?php
+                    foreach ($luogo_notizia as $luogo_id) {
+                        // Ottieni i dettagli del luogo
+                        $luogo_post = get_post($luogo_id);
+
+                        if ($luogo_post && !is_wp_error($luogo_post)) {
+                            // Stampa il nome del luogo come link
+                            echo '<a href="' . esc_url(get_permalink($luogo_post->ID)) . '" title="' . esc_attr($luogo_post->post_title) . '" class="card-text text-secondary text-uppercase pb-3">' . esc_html($luogo_post->post_title) . '</a> ';
+                        }
+                    }
+                    ?>
+                </span>
+            <?php } elseif (!empty($luogo_notizia)) { ?>
+                <span class="data fw-normal"> | <i class="fas fa-map-marker-alt"></i>
+                    <?php echo esc_html($luogo_notizia); ?>
+                </span>
+            <?php } ?>
+
+            <?php if (has_term('', 'argomenti', $post)) { ?>
+                <hr style="margin-bottom: 20px; width: 100%; height: 1px; background-color: grey; border: none;">
+                <div class="card-body p-0" style="text-align: left; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">
+                    Argomenti:
+                    <?php get_template_part("template-parts/common/badges-argomenti"); ?>
+                </div>
+            <?php } ?>
             <hr style="margin-bottom: 20px; width: 200px; height: 0px; background-color: grey; border: none;">
 
-        <a class="read-more ps-3"
-           href="<?php echo esc_url(get_permalink($post->ID)); ?>"
-           aria-label="Vai alla pagina <?php echo esc_attr($post->post_title); ?>" 
-           title="Vai alla pagina <?php echo esc_attr($post->post_title); ?>" 
-           style="display: inline-flex; align-items: center; margin-top: 30px;">
-            <span class="text">Vai alla pagina</span>
-            <svg class="icon">
-                <use xlink:href="#it-arrow-right"></use>
-            </svg>
-        </a>
-            </div>
+            <a class="read-more ps-3"
+                href="<?php echo esc_url(get_permalink($post->ID)); ?>"
+                aria-label="Vai alla pagina <?php echo esc_attr($post->post_title); ?>"
+                title="Vai alla pagina <?php echo esc_attr($post->post_title); ?>"
+                style="display: inline-flex; align-items: center; margin-top: 30px;">
+                <span class="text">Vai alla pagina</span>
+                <svg class="icon">
+                    <use xlink:href="#it-arrow-right"></use>
+                </svg>
+            </a>
         </div>
     </div>
+</div>

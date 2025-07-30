@@ -80,12 +80,9 @@ for ($i = 1; $i <= 20; $i++) {
                     <div class="row g-4">
                         <?php
                         $count = 1;
-                        $schede_mostrate=0;
                         foreach ($schede as $scheda) {
                             if ($scheda) {
-                                if($schede_mostrate%6 ==0 && $schede_mostrate > 0 && $count > $schede_mostrate) {
-                                    echo '$Multiplo: ' . $schede_mostrate . '<br>';
-                                }
+                            
                                 $post = get_post($scheda['scheda_' . $count . '_contenuto'][0]);
                                 $post_id = $post->ID;
                                 $typePost = $post->post_type;
@@ -137,15 +134,6 @@ for ($i = 1; $i <= 20; $i++) {
                                 if($dataPubblicazione == $dataScadenza && $date!=null){
                                     $dataScadenza=null;
                                 }
-                                // echo((empty($dataScadenza)));
-                                // var_dump($date);
-                                // echo 'date: ' . $date . '<br>';
-                                // echo 'Data di pubblicazione:  ' . $dataPubblicazione->format('d/m/Y') . ' ';
-                                // echo 'Data di scadenza: ' . ($dataScadenza ? $dataScadenza->format('d/m/Y') : 'Nessuna scadenza') . '<br>';
-                                // echo 'is empty: ' . (empty($dataScadenza) ? 'true' : 'false') . '<br>';
-                                // echo 'is null: ' . ($dataScadenza == null ? 'true' : 'false') . '<br>';
-                                // echo 'date is null: ' . ($date == null ? 'true' : 'false') . '<br>';
-                                // echo 'date is empty: ' . (empty($date) ? 'true' : 'false') . '<br>';
 
                                 $oggi = new DateTime(); 
                                 $mostra_scheda = false;
@@ -162,7 +150,6 @@ for ($i = 1; $i <= 20; $i++) {
                                 }
 
                                 if ($mostra_scheda) {
-                                    $schede_mostrate++;
                         ?>
                                     <div class="col-12 col-md-6 col-lg-4">
                                         <?php get_template_part("template-parts/home/scheda-evidenza"); ?>

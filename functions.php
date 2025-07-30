@@ -377,11 +377,3 @@ function dci_bold_parent_terms_cmb2( $hook ) {
 JS
     );
 }
-
-
-
-
-
-
-
-e

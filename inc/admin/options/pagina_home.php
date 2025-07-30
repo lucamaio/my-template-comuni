@@ -30,7 +30,8 @@ function dci_register_pagina_home_options(){
         'id' => $prefix . 'immagine',
         'name'=> __( 'Immagine', 'design_comuni_italia' ),
         'desc' => __( 'Immagine/ banner (in alto nella pagina)' , 'design_comuni_italia' ),
-        'type' => 'file',
+        'type' => 'file_list',
+        'preview_size' => array( 100, 100 ),
         'query_args' => array( 'type' => 'image' ),
     ) );
 

@@ -4,21 +4,44 @@ global $the_query, $load_posts, $load_card_type;
     $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 9; 
     $load_posts = 9;
     $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
-    $args = array(
-        's'         => $query,
-        'post_type' => 'notizia',
-        'meta_type' => 'text_date_timestamp',
-        'orderby'   => 'meta_value_num',
-        'order'     => 'desc',
-        
+
+    $hide_news_old = dci_get_option('ck_hide_notizie_old', 'novita', 'false');
+    $today = date('Y-m-d');
+
+// Costruisci la query
+$args = array(
+    's' => $query,
+    'post_type' => 'notizia',
+    'orderby' => 'date',
+    'order' => 'DESC',
+    'posts_per_page' => $max_posts,
+    'meta_query' => array(),
+);
+
+// Se il checkbox è true, filtra le notizie con data di scadenza >= oggi
+if ($hide_news_old === 'true') {
+    $args['meta_query'][] = array(
+        'relation' => 'OR',
+        array(
+            'key' => 'data_scadenza',
+            'value' => $today,
+            'compare' => '>=',
+            'type' => 'DATE'
+        ),
+        array(
+            'key' => 'data_scadenza',
+            'compare' => 'NOT EXISTS' // Per le notizie senza data di scadenza (null)
+        )
     );
+}
 
     $the_query = new WP_Query( $args );
     $posts = $the_query->posts;
 
-        // usort($posts, function($a, $b) {
-        //     return dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $b->ID) - dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $a->ID);
-        // });
+  //  usort($posts, function($a, $b) {
+  //      return dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $b->ID) - dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $a->ID);
+   // });
+
     $posts = array_slice($posts, 0, $max_posts);
 
     $args = array(

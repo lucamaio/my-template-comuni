@@ -10,14 +10,8 @@ get_header();
 ?>
 	    
        <main id="main-container" class="main-container redbrown">
-       <?php
-            $immagine = dci_get_option("immagine", "homepage");
-            if ($immagine != null) { ?>
-            <div class="bg-image">
-                <?php dci_get_img($immagine, 'immagine-home'); ?>
-            </div>
-        <?php } ?>
 
+        <?php get_template_part("template-parts/home/carosello2"); ?>
 
         <h1 class="visually-hidden">
             <?php echo dci_get_option("nome_comune"); ?>
@@ -30,6 +24,8 @@ get_header();
                 get_template_part("template-parts/home/messages");
             }
 		    ?>
+
+            
             
 	    <p></p>
             <?php get_template_part("template-parts/home/notizie"); ?>
@@ -69,11 +65,11 @@ get_header();
 <?php
 get_footer();
 ?>
-<style>
+<!-- <style>
     .bg-image img {
         width: 100%;
         height: 450px;
         object-fit: cover;
         object-position: center;
     }
-</style>
+</style> -->

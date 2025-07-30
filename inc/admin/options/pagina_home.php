@@ -215,7 +215,33 @@ for ($i = 1; $i <= $num_argomenti; $i++) {
     // ),
 ));
 
+    $home_options->add_field(array(
+        'id' => $prefix . 'ck_notizie_automatico',
+        'name' => __('Mostra le ultime notizie nella home', 'design_comuni_italia'),
+        'desc' => __('Se abilitata, questa opzione mostrera automaticamente le ultime notizie.', 'design_comuni_italia'),
+        'type' => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true' => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        // 'attributes' => array(
+        //     'data-conditional-value' => "false",
+        // ),
+    ));
 
-
-    }
+    $home_options->add_field(array(
+        'id' => $prefix . 'numero_notizie_home',
+        'name' => __('Numero di notizie', 'design_comuni_italia'),
+        'desc' => __('Seleziona il numero di notizie che vuoi vissualizzare nella home', 'design_comuni_italia'),
+        'type' => 'radio_inline',
+        'default' => 0,
+        'options' => array(
+            0 => __(0, 'design_comuni_italia'),
+            3 => __(3, 'design_comuni_italia'),
+            6 => __(6, 'design_comuni_italia'),
+            12=> __(12, 'design_comuni_italia'),
+        ),
+    ));
+}
 

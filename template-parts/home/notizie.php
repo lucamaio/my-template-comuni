@@ -30,6 +30,7 @@ $schede = [];
 for ($i = 1; $i <= 12; $i++) {
     $schede[] = dci_get_option("schede_evidenziate_$i", 'homepage', true)[0] ?? null;
 }
+$visualizza_pulsante=false; // Aggiungo questa variabile per verificare se devo visualizzare il pulsante 'Tutte le novità'
 ?>
 
 <style>
@@ -59,6 +60,7 @@ for ($i = 1; $i <= 12; $i++) {
                     <div class="row g-4">
                         <?php
                         $count = 1;
+                        $visualizza_pulsante=true;
                         foreach ($schede as $scheda) {
                             if ($scheda) {
 
@@ -123,8 +125,18 @@ for ($i = 1; $i <= 12; $i++) {
                         }
                         ?>
                     </div>
-
-                    <div class="row my-4 justify-content-md-center">
+            <?php } else if($notizie_automatiche ==='true' && $notizie_home >0){ 
+                 $visualizza_pulsante=true;
+                 ?>
+                    <div class="py-4">
+                        <div class="row g-4">
+                        <?php get_template_part("template-parts/home/notizie-auto"); ?>
+                        </div>
+                    </div>
+            <?php }
+            ?>
+            <?php if($visualizza_pulsante){?>
+                 <div class="row my-2 justify-content-md-center">
                         <a class="read-more pb-3" href="<?php echo dci_get_template_page_url("page-templates/novita.php"); ?>">
                             <button type="button" class="btn btn-outline-primary">
                                 Tutte le novità
@@ -134,15 +146,8 @@ for ($i = 1; $i <= 12; $i++) {
                             </button>
                         </a>
                     </div>
-                </div>
-            <?php } else if($notizie_automatiche ==='true' && $notizie_home >0){ ?>
-                    <div class="py-4">
-                        <div class="row g-4">
-                        <?php get_template_part("template-parts/home/notizie-auto"); ?>
-                        </div>
-                    </div>
-            <?php }
-            ?>
+                </div>  
+            <?php }?>
         </div>
     </div>
 </section>

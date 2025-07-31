@@ -1,7 +1,12 @@
 <?php
-global $scheda, $count;
+global $scheda, $count, $post;
 
-$post = get_post($scheda['scheda_' . $count . '_contenuto'][0]);
+// Verifico se la variabile globale $post se non essite ed diversa da null
+
+if(!isset($post) && !empty($post) && $post!=null){
+    $post = get_post($scheda['scheda_' . $count . '_contenuto'][0]);
+}
+
 $img = dci_get_meta('immagine');
 $descrizione_breve = dci_get_meta('descrizione_breve');
 $icon = dci_get_post_type_icon_by_id($post->ID);
@@ -16,7 +21,7 @@ $page_macro = get_page_by_path($page_macro_slug);
 $post_type = get_post_type($post->ID);
 $post_type_object = get_post_type_object($post_type);
 $post_type_label = $post_type_object->labels->singular_name;
-// var_dump($tipo->name);
+
 $tipo_name = '';
 $url_tipo = '#';
 

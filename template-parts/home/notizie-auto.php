@@ -63,7 +63,7 @@ foreach ($posts as $post) {
         $post_date_str = $post->post_date;
         $post_date=substr($post_date_str,0,10);
         $data_post = DateTime::createFromFormat('Y-m-d', $post_date);
-
+        
         // Verifica uguaglianza tra pubblicazione e scadenza
         if (
             ($dataPubblicazione instanceof DateTime && $dataScadenza instanceof DateTime && $dataPubblicazione == $dataScadenza) ||
@@ -82,16 +82,16 @@ foreach ($posts as $post) {
     } else {
         $mostra_scheda = true;
     }
+    
+         $hide_home = dci_get_meta("hide_home", '_dci_notizia_', $post->ID);
 
-
-             if ($mostra_scheda)
-               $count++; { ?>
-                                    <div class="col-12 col-md-6 col-lg-4">
-                                        <?php get_template_part("template-parts/home/scheda-evidenza"); ?>
-                                    </div>
+             if ($mostra_scheda && ($hide_home == null || $hide_home!='on'))
+               {  $count++;?>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <?php get_template_part("template-parts/home/scheda-evidenza"); ?>
+                    </div>
                <?php
                   }
-
             }
             wp_reset_postdata();
             ?>

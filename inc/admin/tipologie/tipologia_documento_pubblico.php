@@ -169,6 +169,7 @@ function dci_add_documento_pubblico_metaboxes()
     ));
 
     //DOCUMENTO
+    
     $cmb_documento = new_cmb2_box(array(
         'id' => $prefix . 'box_documento',
         'title' => __('Documento *', 'design_comuni_italia'),
@@ -177,27 +178,101 @@ function dci_add_documento_pubblico_metaboxes()
         'priority' => 'high',
     ));
 
+
+
+
     $cmb_documento->add_field(array(
         'id' => $prefix . 'url_documento',
         'name' => __('Documento: URL', 'design_comuni_italia'),
         'desc' => __('Link al documento vero e proprio', 'design_comuni_italia'),
         'type' => 'text_url'
     ));
+            
 
+
+    
+
+  add_action('cmb2_after_init', function () {
+    if (!is_admin()) return;
+
+    $prefix = '_dci_documento_pubblico_';
+    $post_id = isset($_GET['post']) ? absint($_GET['post']) : 0;
+    if (!$post_id) return;
+
+    // Migrate file_documento (da singolo a file_list)
+    $file_key = $prefix . 'file_documento';
+    $file_val = get_post_meta($post_id, $file_key, true);
+    if (!empty($file_val) && is_string($file_val)) {
+        $new_files = [];
+        $attachment_id = attachment_url_to_postid($file_val);
+        if ($attachment_id) {
+            $new_files[$attachment_id] = $file_val;
+        } else {
+            $new_files[] = $file_val;
+        }
+        update_post_meta($post_id, $file_key, $new_files);
+    }
+
+    // Ho rimosso la migrazione di url_documento da singolo a gruppo
+});
+
+
+
+    // Gruppo per URL multipli
     $cmb_documento->add_field(array(
-        'id' => $prefix . 'file_documento',
-        'name' => __('Documento: Carica file', 'design_comuni_italia'),
-        'desc' => __('Se non è presente un link a risorsa esterna, bisogna ricordarsi di allegare il documento vero e proprio, in un formato scaricabile e stampabile da parte dell\'utente', 'design_comuni_italia'),
-        'type' => 'file',
-        // 'preview_size' => array( 100, 100 ), // Default: array( 50, 50 )
-        // 'query_args' => array( 'type' => 'image' ), // Only images attachment
-        // Optional, override default text strings
-        'text' => array(
-            'add_upload_files_text' => __('Aggiungi un nuovo allegato', 'design_comuni_italia'), // default: "Add or Upload Files"
-            'remove_image_text' => __('Rimuovi allegato', 'design_comuni_italia'), // default: "Remove Image"
-            'remove_text' => __('Rimuovi', 'design_comuni_italia'), // default: "Remove"
+        'id'          => $prefix . 'url_documento_group',
+        'type'        => 'group',
+        'description' => __('Aggiungi uno o più link al documento', 'design_comuni_italia'),
+        'options'     => array(
+            'group_title'   => __('Link Documento {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi link', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi link', 'design_comuni_italia'),
+            'sortable'      => true,
+            'closed'        => true,
         ),
     ));
+    
+    // URL del documento
+    $cmb_documento->add_group_field($prefix . 'url_documento_group', array(
+        'name' => __('URL del documento', 'design_comuni_italia'),
+        'id'   => 'url_documento',
+        'type' => 'text_url',
+    ));
+    
+    // Titolo del documento
+    $cmb_documento->add_group_field($prefix . 'url_documento_group', array(
+        'name' => __('Titolo del link', 'design_comuni_italia'),
+        'id'   => 'titolo',
+        'type' => 'text',
+    ));
+    
+    // Checkbox: apri in nuova scheda
+    $cmb_documento->add_group_field($prefix . 'url_documento_group', array(
+        'name' => __('Apri in nuova scheda', 'design_comuni_italia'),
+        'id'   => 'target_blank',
+        'type' => 'checkbox',
+    ));
+
+
+    
+    
+    // CAMPO NUOVO - MULTIPLI
+        $cmb_documento->add_field(array(
+            'id' => $prefix . 'file_documento',
+            'name' => __('Documenti: Carica più file', 'design_comuni_italia'),
+            'desc' => __('Carica uno o più documenti. Devono essere scaricabili e stampabili.', 'design_comuni_italia'),
+            'type' => 'file_list',
+            'preview_size' => array(100, 100),
+            'text' => array(
+                'add_upload_files_text' => __('Aggiungi allegati', 'design_comuni_italia'),
+                'remove_image_text' => __('Rimuovi', 'design_comuni_italia'),
+               // 'file_text' => __('Allegato: %{file}', 'design_comuni_italia'),
+                'remove_text' => __('Rimuovi', 'design_comuni_italia'),
+            ),
+        ));
+
+
+
 
 
     //DESCRIZIONE
@@ -434,6 +509,9 @@ function dci_documento_pubblico_admin_script() {
         wp_enqueue_script( 'luogo-admin-script', get_template_directory_uri() . '/inc/admin-js/documento_pubblico.js' );
 }
 
+
+
+
 /**
  * Valorizzo il post content in base al contenuto dei campi custom
  * @param $data
@@ -465,6 +543,3 @@ function dci_documento_pubblico_set_post_content( $data ) {
     return $data;
 }
 add_filter( 'wp_insert_post_data' , 'dci_documento_pubblico_set_post_content' , '99', 1 );
-
-
-

@@ -25,24 +25,26 @@
 <?php endif; ?>
 
 <style>
-    .bg-image {
-        position: relative;
-        width: 100%;
-		padding-bottom: 10%;
-        padding-top: 30%; /* 16:9 ratio */
-        overflow: hidden;
-        margin-bottom: 0px; /* Assicurati che non ci siano margini */
-    }
+.bg-image {
+    position: relative;
+    width: 100%;
+    height: auto;
+    max-height: 450px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0; /* fallback */
+}
 
-    .bg-image img.img-gallery-custom {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        height: auto; /* Cambiato per mantenere il rapporto 16:9 */
-        object-fit: cover;
-        object-position: center;
-    }
+.bg-image img.img-gallery-custom {
+    max-height: 450px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+}
 
     /* Rimuovi margini e padding dalle slide */
     .splide__slide {
@@ -62,9 +64,39 @@
         new Splide('#gallery-carousel', {
             type: 'loop',
             autoplay: true,
-            interval: 2000, // 2 secondi
+            interval: 5000, // 5 secondi
             pauseOnHover: false,
             pauseOnFocus: false,
         }).mount();
     });
 </script>
+<style>
+/* Azzera margini e padding del contenitore carosello e parent */
+.carosello-section,
+#gallery-carousel,
+.it-carousel-wrapper,
+.it-full-carousel,
+.it-standard-image,
+.splide,
+.splide__track {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Previene margini collassati */
+.carosello-section {
+    overflow: hidden;
+    border-top: 0px solid transparent; /* forza il contenitore ad avere “dimensione” */
+}
+
+/* Sezione precedente che potrebbe avere margine inferiore */
+.carosello-section + * {
+    margin-top: 0 !important;
+}
+
+/* Body o main wrapper (per sicurezza) */
+body, main {
+    margin: 0;
+    padding: 0;
+}
+</style>

@@ -168,7 +168,7 @@ function dci_render_transparency_multipost_page() {
                 </tbody>
             </table>
 
-            <?php submit_button(__('Crea Elementi Trasparenza', 'design_comuni_italia')); ?>
+           <?php submit_button(__('Crea Elementi Trasparenza', 'design_comuni_italia')); ?>
         </form>
 
         <?php
@@ -290,46 +290,80 @@ function dci_render_transparency_multipost_page() {
 
 
 /**
- * Esclude i termini con visualizza_elemento = 0
- * → ma SOLO nella pagina di creazione di un Elemento Trasparenza
+ * Esclude i termini:
+ * - con visualizza_elemento = 0
+ * - o con ruoli dell'utente corrente presenti in excluded_roles
+ * SOLO nella pagina di creazione di un Elemento Trasparenza
  */
-add_filter( 'terms_clauses', 'dci_hide_invisible_terms', 10, 3 );
-function dci_hide_invisible_terms( $clauses, $taxonomies, $args ) {
+add_filter( 'terms_clauses', 'dci_hide_invisible_or_blocked_terms', 10, 3 );
+function dci_hide_invisible_or_blocked_terms( $clauses, $taxonomies, $args ) {
 
     // Applichiamo solo alla nostra tassonomia
     if ( ! in_array( 'tipi_cat_amm_trasp', (array) $taxonomies, true ) ) {
         return $clauses;
     }
 
-    // Siamo in admin? Se no, esci.
+    // Solo admin area
     if ( ! is_admin() ) {
         return $clauses;
     }
 
     // Verifica la schermata corrente
     $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-    if ( ! $screen ||                     // sicurezza
-         $screen->base !== 'post' ||      // schermate post-new.php / post.php
-         $screen->action !== 'add' ||     // solo “aggiungi nuovo”, non “modifica”
-         $screen->post_type !== 'elemento_trasparenza' ) { // solo il CPT desiderato
-        return $clauses; // esci senza toccare la query
+    if (
+        ! $screen ||
+        $screen->base !== 'post' ||
+        $screen->action !== 'add' ||
+        $screen->post_type !== 'elemento_trasparenza'
+    ) {
+        return $clauses;
     }
 
-    // Siamo nella pagina giusta: aggiungiamo la JOIN + condizione
     global $wpdb;
 
-    if ( false === strpos( $clauses['join'], 'termmeta' ) ) {
+    // JOIN per visualizza_elemento
+    if ( false === strpos( $clauses['join'], 'tm_vis' ) ) {
         $clauses['join']  .= " LEFT JOIN {$wpdb->termmeta} tm_vis
                                ON tm_vis.term_id = t.term_id
                                AND tm_vis.meta_key = 'visualizza_elemento' ";
     }
 
-    $clauses['where'] .= " AND ( tm_vis.meta_value IS NULL
-                                 OR tm_vis.meta_value = ''
-                                 OR tm_vis.meta_value = '1' ) ";
+    // JOIN per excluded_roles
+    if ( false === strpos( $clauses['join'], 'tm_roles' ) ) {
+        $clauses['join']  .= " LEFT JOIN {$wpdb->termmeta} tm_roles
+                               ON tm_roles.term_id = t.term_id
+                               AND tm_roles.meta_key = 'excluded_roles' ";
+    }
+
+    // Prendi i ruoli utente
+    $current_user = wp_get_current_user();
+    $user_roles = $current_user->roles;
+    $escaped_roles = array_map( [ $wpdb, 'esc_like' ], $user_roles );
+
+    $excluded_conditions = [];
+    foreach ( $escaped_roles as $role ) {
+        // Cerca valore serializzato contenente il ruolo
+        $excluded_conditions[] = $wpdb->prepare( "tm_roles.meta_value LIKE %s", '%' . $role . '%' );
+    }
+
+    $excluded_sql = '';
+    if ( ! empty( $excluded_conditions ) ) {
+        $excluded_sql = ' OR ( ' . implode( ' OR ', $excluded_conditions ) . ' ) ';
+    }
+
+    $clauses['where'] .= " AND (
+        tm_vis.meta_value IS NULL
+        OR tm_vis.meta_value = ''
+        OR tm_vis.meta_value = '1'
+    )
+    AND (
+        tm_roles.meta_value IS NULL
+        $excluded_sql
+    ) ";
 
     return $clauses;
 }
+
 
 
 
@@ -361,10 +395,10 @@ function dci_add_elemento_trasparenza_metaboxes()
     $cmb_apertura->add_field(array(
         'id'            => $prefix . 'descrizione_breve',
         'name'          => __('Descrizione breve ', 'design_comuni_italia'),
-        'desc'          => __('Indicare una sintetica descrizione (max 255 caratteri spazi inclusi)', 'design_comuni_italia'),
+        'desc'          => __('Indicare una sintetica descrizione (max 512 caratteri spazi inclusi)', 'design_comuni_italia'),
         'type'          => 'textarea',
         'attributes'    => array(
-            'maxlength' => '255',
+            'maxlength' => '512',
         ),
     ));
 

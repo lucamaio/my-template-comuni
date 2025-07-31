@@ -71,7 +71,7 @@ if ($elemento->post_status === "publish") :
 
                     <?php
                         if (preg_match('/[A-Z]{5,}/', $title)) {
-                            echo esc_html($url); // stampa solo il testo dell'URL
+                         //   echo esc_html($url); // stampa solo il testo dell'URL
                             $titolo_documento = ucfirst(strtolower($title));
                         } else {
                             $titolo_documento = $title;

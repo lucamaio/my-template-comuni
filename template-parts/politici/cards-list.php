@@ -6,7 +6,7 @@ $incarichi = dci_get_meta('incarichi'); // Assicurati che questo contenga tutti 
 
 // Array per tenere traccia delle persone già visualizzate
 $visualizzati = [];
-if(is_array($incarichi) && !empty($incarichi) && $incarichi!=null) {
+
 foreach ($incarichi as $incarico) {
     $arrdata = explode( '-', dci_get_meta("data_inizio_incarico") );
     $tipo = get_the_terms($incarico, 'tipi_incarico')[0];
@@ -74,6 +74,7 @@ foreach ($incarichi as $incarico) {
     }
 }
 ?>
+
 <style>
 /* Stile più leggero per la foto */
 .foto-soft-style {
@@ -85,5 +86,3 @@ foreach ($incarichi as $incarico) {
 }
 
 </style>
-
-<?php }?>

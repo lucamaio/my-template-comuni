@@ -39,4 +39,3 @@ if($servizio->post_status == "publish") {
                 </div>
     <?php
 }
-

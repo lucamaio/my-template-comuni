@@ -332,43 +332,65 @@ add_action('init', 'my_custom_one_time_function');
 
 
 
+add_action( 'admin_enqueue_scripts', 'dci_evidenzia_categorie_cmb2', 20 );
+function dci_evidenzia_categorie_cmb2( $hook ) {
 
+    // Applica solo su pagine nuovo/modifica post tipo 'elemento_trasparenza'
+    $tipo_post = $_GET['post_type'] ?? get_post_type( $_GET['post'] ?? 0 );
 
-
-
-/**
- * Evidenzia in grassetto le categorie di primo livello
- * nel metabox CMB2 "Seleziona la sezione".
- */
-add_action( 'admin_enqueue_scripts', 'dci_bold_parent_terms_cmb2', 20 );
-function dci_bold_parent_terms_cmb2( $hook ) {
-
-    // Applica solo su /wp-admin/post-new.php?post_type=elemento_trasparenza
-    if ( $hook !== 'post-new.php' || ( $_GET['post_type'] ?? '' ) !== 'elemento_trasparenza' ) {
+    if ( ! in_array( $hook, ['post-new.php', 'post.php'] ) || $tipo_post !== 'elemento_trasparenza' ) {
         return;
     }
 
-    /* ----------  CSS inline  ---------- */
+    // Aggiungo gli stili CSS inline
     wp_add_inline_style(
-        // usiamo un handle già presente, ad es. 'wp-admin'
         'wp-admin',
-        '.cmb2-parent-term { font-weight:700; color:#000; }'
+        "
+        .cmb2-categoria-principale {
+            font-weight: 700 !important;
+            color: #000000 !important;
+            text-transform: uppercase !important; /* Maiuscolo */
+        }
+        .cmb2-sottocategoria {
+            color: #343a40 !important;
+        }
+        .cmb2-radio-list input[type='checkbox']:disabled {
+            cursor: not-allowed; /* Cambia il cursore per la checkbox disabilitata */
+        }
+        .cmb2-radio-list input[type='checkbox'] {
+            display: inline-block;
+        }
+        .cmb2-radio-list input[type='checkbox'].disabled-checkbox {
+            display: none;
+        }
+        "
     );
 
-    /* ----------  JS inline  ---------- */
+    // Aggiungo lo script JS inline per disabilitare la checkbox nella categoria principale
     wp_add_inline_script(
-        // carichiamo dopo jQuery core
         'jquery-core',
         <<<JS
         (function($){
-            $(document).ready(function(){
-                // trova tutte le liste radio/checkbox di CMB2
+            $(function(){
                 $('.cmb2-radio-list, .cmb2-checkbox-list').each(function(){
                     $(this).children('li').each(function(){
-                        var \$label = $(this).children('label').first();
-                        // se il label NON contiene &nbsp; => livello 0 (categoria principale)
-                        if ( \$label.length && \$label.html().indexOf('&nbsp;') === -1 ) {
-                            \$label.addClass('cmb2-parent-term');
+                        var label = $(this).children('label').first();
+                        var checkbox = $(this).children('input[type="checkbox"]');
+                        
+                        if(label.length){
+                            // Se è la categoria principale
+                            if(label.html().indexOf('&nbsp;') === -1){
+                                label.addClass('cmb2-categoria-principale');
+                                
+                                // Disabilito la checkbox e aggiungo la classe per nasconderla
+                                checkbox.prop('disabled', true);  // Disabilita la checkbox
+                                checkbox.addClass('disabled-checkbox');  // Nasconde la checkbox
+
+                                // Se vuoi rimuovere la checkbox dal DOM, puoi farlo con il seguente codice:
+                                // checkbox.closest('li').remove(); 
+                            } else {
+                                label.addClass('cmb2-sottocategoria');
+                            }
                         }
                     });
                 });

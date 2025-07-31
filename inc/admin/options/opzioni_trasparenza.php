@@ -61,4 +61,62 @@ function dci_register_pagina_trasparenza_options()
             'data-conditional-value' => 'false',
         ),
     ));
+
+    
+    $trasparenza_options->add_field(array(
+        'id'    => $prefix . 'trasparente_options1',
+        'name'  => __('OPZIONI - Amministrazione Trasparente', 'design_comuni_italia'),
+        'desc'  => __('Visualizza le sezioni personalizzate dell amministrazione Trasparente', 'design_comuni_italia'),
+        'type'  => 'title',
+    ));
+
+    
+    $trasparenza_options->add_field(array(
+        'id'      => $prefix . 'ck_bandidigaratemplatepersonalizzato',
+        'name'    => __('Contratti Pubblici con template personalizzato da noi.', 'design_comuni_italia'),
+        'desc'    => __('Questa spunta consente di visualizzare gli elementi di Contratti Pubblici con una grafica personalizzata.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
+
+    $trasparenza_options->add_field(array(
+        'id'      => $prefix . 'ck_attidiconcessione',
+        'name'    => __('Atti di concessione con template personalizzato da noi.', 'design_comuni_italia'),
+        'desc'    => __('Questa spunta consente di visualizzare gli elementi di Atti di concessione con una grafica personalizzata.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
+
+
+    $trasparenza_options->add_field(array(
+        'id'      => $prefix . 'ck_incarichieautorizzazioniaidipendenti',
+        'name'    => __('Incarichi conferiti e autorizzati ai dipendenti con template personalizzato da noi.', 'design_comuni_italia'),
+        'desc'    => __('Questa spunta consente di visualizzare gli elementi di Incarichi conferiti e autorizzati ai dipendenti con una grafica personalizzata.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
+
+    
+    
 }?>

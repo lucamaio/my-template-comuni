@@ -3,50 +3,56 @@
 /**
  * Definisce post type commissario
  */
-add_action( 'init', 'dci_register_post_type_commissario');
+add_action('init', 'dci_register_post_type_commissario');
 function dci_register_post_type_commissario() {
 
     $labels = array(
-        'name'          => _x( 'OSL', 'Post Type General Name', 'design_comuni_italia' ),
-        'singular_name' => _x( 'commissario', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'add_new'       => _x( 'Aggiungi un Documento', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'add_new_item'  => _x( 'Aggiungi un nuovo Documento', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'edit_item'       => _x( 'Modifica il Documento', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'featured_image' => __( 'Immagine di riferimento', 'design_comuni_italia' ),
+        'name'               => _x('OSL', 'Post Type General Name', 'design_comuni_italia'),
+        'singular_name'      => _x('Commissario', 'Post Type Singular Name', 'design_comuni_italia'),
+        'add_new'            => _x('Aggiungi un Documento', 'Post Type', 'design_comuni_italia'),
+        'add_new_item'       => _x('Aggiungi un nuovo Documento', 'Post Type', 'design_comuni_italia'),
+        'edit_item'          => _x('Modifica il Documento', 'Post Type', 'design_comuni_italia'),
+        'featured_image'     => __('Immagine di riferimento', 'design_comuni_italia'),
     );
-    $args   = array(
-        'label'         => __( 'commissario', 'design_comuni_italia'),
-        'labels'        => $labels,
-        'supports'      => array( 'title', 'editor', 'author', 'thumbnail'),
-        'hierarchical'  => false,
-        'public'        => true,
-        'menu_position' => 5,
-        'menu_icon'     => 'dashicons-media-interactive',
-        'has_archive'   => false,
-        'rewrite' => array('slug' => 'Commissario','with_front' => false),
-        'map_meta_cap'    => true,
-        'capabilities' => array(
+
+    $args = array(
+        'label'               => __('Commissario', 'design_comuni_italia'),
+        'labels'              => $labels,
+        'supports'            => array('title', 'author', 'thumbnail'), // ho rimosso 'editor' dato che lo rimuovi dopo
+        'hierarchical'        => false,
+        'public'              => true,
+        'menu_position'       => 5,
+        'menu_icon'           => 'dashicons-media-interactive',
+        'has_archive'         => false,
+        'rewrite'             => array('slug' => 'commissario', 'with_front' => false),
+        'capability_type'     => array('elemento_osl', 'elementi_osl'), // singolare/plurale
+        'map_meta_cap'        => true,
+        'capabilities'        => array(
             'edit_post'             => 'edit_elemento_osl',
             'read_post'             => 'read_elemento_osl',
             'delete_post'           => 'delete_elemento_osl',
             'edit_posts'            => 'edit_elementi_osl',
-            'edit_others_posts'     => 'edit_others_osl',
+            'edit_others_posts'     => 'edit_others_elementi_osl',
             'publish_posts'         => 'publish_elementi_osl',
             'read_private_posts'    => 'read_private_elementi_osl',
             'delete_posts'          => 'delete_elementi_osl',
             'delete_private_posts'  => 'delete_private_elementi_osl',
-            'delete_published_posts' => 'delete_published_elementi_osl',
-            'delete_others_posts' => 'delete_others_elementi_osl',
-            'edit_private_posts' => 'edit_private_elementi_osl',
-            'edit_published_posts' => 'edit_published_elementi_osl',
+            'delete_published_posts'=> 'delete_published_elementi_osl',
+            'delete_others_posts'   => 'delete_others_elementi_osl',
+            'edit_private_posts'    => 'edit_private_elementi_osl',
+            'edit_published_posts'  => 'edit_published_elementi_osl',
             'create_posts'          => 'create_elementi_osl'
         ),
-        'description'    => __( "Tipologia che consente l'inserimento dei Documenti per la sezione OSL del comune", 'design_comuni_italia' ),
+        'description'         => __("Tipologia che consente l'inserimento dei Documenti per la sezione OSL del comune", 'design_comuni_italia'),
     );
-    register_post_type('commissario', $args );
 
-    remove_post_type_support( 'commissario', 'editor');
+    register_post_type('commissario', $args);
+
+    // Rimuove il supporto all'editor standard
+    remove_post_type_support('commissario', 'editor');
 }
+
+
 /**
  * Aggiungo label sotto il titolo
  */

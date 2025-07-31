@@ -13,7 +13,7 @@ $tipi_luogo = get_the_terms($post->ID,'tipi_luogo');
             <div class="img-responsive-wrapper cmp-list-card-img__wrapper">
                 <div class="img-responsive img-responsive-panoramic h-100">
                     <figure class="img-wrapper">
-                        <?php dci_get_img($img, 'rounded-top img-fluid'); ?>
+                        <?php dci_get_img($img, 'rounded img-fluid'); ?>
                     </figure>
                 </div>
             </div>

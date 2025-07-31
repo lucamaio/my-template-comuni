@@ -76,31 +76,37 @@ if ( ! isset( $prefix ) ) {
                     $allegati = get_post_meta(get_the_ID(), $prefix . 'allegati', true);
 
                     if (!empty($allegati) && is_array($allegati)) {
-                        // Inizializza la variabile $i
                         $i = 1;
                         foreach ($allegati as $file_id => $file_data) {
-                            $file_url = isset($file_data['url']) ? esc_url($file_data['url']) : '';
-                            // Puoi usare il titolo dell'allegato da CMB2 se vuoi, o mantenere "Allegato X"
-                            $file_title = isset($file_data['title']) ? esc_html($file_data['title']) : "Allegato " . $i;
-                            ?>
+                            // Forza l’uso dell’ID se disponibile
+                            $attachment_id = intval($file_data['id'] ?? $file_id);
+                            $file_url = wp_get_attachment_url($attachment_id);
+                            $file_title = get_the_title($attachment_id);
+
+                            if (!$file_url) continue; // Salta se l'allegato non ha URL
+
+                            // Fallback in caso di titolo vuoto
+                            if (empty($file_title)) {
+                                $file_title = 'Allegato ' . $i;
+                            }
+                    ?>
                             <span class="d-inline-flex align-items-center mb-2 me-3">
                                 <svg class="icon icon-sm me-1" aria-hidden="true">
                                     <use href="#it-file"></use>
                                 </svg>
                                 <span class="text fw-semibold">
-                                    <a class="text-decoration-none" href="<?php echo $file_url; ?>" target="_blank" rel="noopener noreferrer">
-                                        <?php echo $file_title; ?>
+                                    <a class="text-decoration-none" href="<?php echo esc_url($file_url); ?>" target="_blank" rel="noopener noreferrer">
+                                        <?php echo esc_html($file_title); ?>
                                     </a>
                                 </span>
                             </span>
-                            <?php
-                            // Incrementa $i ad ogni iterazione
+                    <?php
                             $i++;
                         }
                     } else {
                         echo 'Nessun Allegato';
                     }
-                    ?>      
+                    ?>
                 </p>
             </div>
             <div class="col-md-6 text-end">

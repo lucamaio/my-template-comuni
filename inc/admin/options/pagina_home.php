@@ -19,12 +19,12 @@ function dci_register_pagina_home_options(){
     }
     $home_options = new_cmb2_box( $args );
     // Immagine 
-    $home_options->add_field( array(
-        'id' => $prefix . 'home_image',
-        'name'        => __( 'Sezione Immagine Pagina Home', 'design_comuni_italia' ),
-        'desc' => __( 'Configurazione sezione immagine pagina Home.' , 'design_comuni_italia' ),
-        'type' => 'title',
-    ) );
+	$home_options->add_field( array(
+	    'id' => $prefix . 'home_image',
+	    'name' => __( 'Sezione Immagine Pagina Home', 'design_comuni_italia' ),
+	    'desc' => __( '<b><font color="#006400">Possibilità di poter impostare una o più immagini sotto il logo nella Home del sito.<br>Per una proporzione adeguata si consigliano foto in 16:9, esempio: 800×450 px o 1920×1080 px</font></b>', 'design_comuni_italia' ),
+	    'type' => 'title',
+	) );
 
     $home_options->add_field( array(
         'id' => $prefix . 'immagine',
@@ -56,7 +56,7 @@ function dci_register_pagina_home_options(){
                 ), // override the get_posts args
             ),
             'attributes' => array(
-                'data-max-items' => 1, //change the value here to how many posts may be attached.
+                'data-max-items' => 5, //change the value here to how many posts may be attached.
             ),
         )
     );
@@ -244,4 +244,3 @@ for ($i = 1; $i <= $num_argomenti; $i++) {
         ),
     ));
 }
-

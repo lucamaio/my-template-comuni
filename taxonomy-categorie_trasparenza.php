@@ -41,7 +41,11 @@ if ($order === 'alfabetico_asc' || $order === 'alfabetico_desc') {
     $args['order'] = ($order === 'data_desc') ? 'DESC' : 'ASC';
 }
 
+
+
 $the_query = new WP_Query($args);
+
+
 
 $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_get_option("siti_tematici", "trasparenza") : [];
 ?>
@@ -56,9 +60,11 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     ?>
 
     <div class="bg-grey-card">
-
         
-        <?php if ($obj->name == "Contratti Pubblici") { ?>
+      <?php 
+          if ($obj->name == "Contratti Pubblici" && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '') 
+               { 
+        ?>
             <div class="container my-5">
                 <div class="row">
                     <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
@@ -70,7 +76,8 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                 </div>
             </div>
         </div>
-    <?php }else if ($obj->name == "Atti di concessione") { ?>
+    
+    <?php }else if ($obj->name == "Atti di concessione" && dci_get_option("ck_attidiconcessione", "Trasparenza") !== 'false' && dci_get_option("ck_attidiconcessione", "Trasparenza") !== '') { ?>
             <div class="container my-5">
                 <div class="row">
                     <h2 class="visually-hidden">Esplora tutti gli Atti di Concessione</h2>
@@ -82,6 +89,18 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                 </div>
             </div>
         </div>
+     <?php }else if ($obj->name == "Incarichi conferiti e autorizzati ai dipendenti"  && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== 'false' && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== '') { ?>
+            <div class="container my-5">
+                <div class="row">
+                    <h2 class="visually-hidden">Esplora tutti gli Incarichi conferiti e autorizzati ai dipendenti</h2>
+                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
+                    <div class="row g-3" id="load-more">
+                        <?php get_template_part("template-parts/amministrazione-trasparente/incarichi-autorizzazioni/tutti-gli-incarichi"); ?>
+                    </div>
+                    <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> 
+                </div>
+            </div>
+        </div>		    
     <?php } else { ?>
         
         <form role="search" id="search-form" method="get" class="search-form">

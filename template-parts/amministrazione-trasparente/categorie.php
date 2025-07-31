@@ -295,23 +295,36 @@ function updateToggleAllButton() {
                                     ?>
                                     <ul class="link-list t-primary">
                                         <?php foreach ($sottocategorie as $sotto) {
-                                            $link = get_term_link($sotto);
-                                            $nome_sotto = esc_html($sotto->name); ?>
+                                                $link = get_term_link($sotto);
+                                                $nome_sotto = esc_html($sotto->name);
+
+
+                                                // Recupero i metadati dell'URL personalizzato e del flag per aprire in una nuova finestra
+                                                $term_url = get_term_meta($sotto->term_id, 'term_url', true);
+                                                $open_new_window = get_term_meta($sotto->term_id, 'open_new_window', true);
                                             
-                                            <li class="mb-3 mt-3">
-                                                <a class="list-item ps-0 title-medium underline" style="text-decoration:none;" href="<?= $link; ?>">
-                                                    <svg class="icon">                                                        
-                                                    </svg>
-                                                    <span><?= $nome_sotto; ?></span>
-                                                </a>
-                            
-                                                <?php
-                                                // Include sottocategorie 3° e 4° livello
-                                                $term_id = $sotto->term_id;
-                                                include locate_template('template-parts/amministrazione-trasparente/sottocategorie_list.php');
-                                                ?>
-                                            </li>
-                                        <?php } ?>
+                                                // Se c'è un URL personalizzato, sostituisco il link con l'URL fornito
+                                                if (!empty($term_url)) {
+                                                    $link = $term_url; // Imposto l'URL personalizzato
+                                                    $target = $open_new_window ? ' target="_blank"' : ''; // Se c'è la spunta "Apri in una nuova finestra"
+                                                } else {
+                                                    $target = ''; // Nessun target, se non c'è URL personalizzato
+                                                }
+                                            ?>
+                                                <li class="mb-3 mt-3">
+                                                    <a class="list-item ps-0 title-medium underline" style="text-decoration:none;" href="<?= esc_url($link); ?>"<?= $target; ?>>
+                                                        <svg class="icon"></svg>
+                                                        <span><?= $nome_sotto; ?></span>
+                                                    </a>
+                                            
+                                                    <?php
+                                                    // Include sottocategorie 3° e 4° livello
+                                                    $term_id = $sotto->term_id;
+                                                    include locate_template('template-parts/amministrazione-trasparente/sottocategorie_list.php');
+                                                    ?>
+                                                </li>
+                                            <?php } ?>
+
                                     </ul>
                                 </div>
                             <?php } ?>

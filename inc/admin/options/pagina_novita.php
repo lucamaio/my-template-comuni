@@ -65,25 +65,4 @@ function dci_register_pagina_novita_options(){
         'type'    => 'pw_multiselect',
         'options' => dci_get_terms_options('argomenti'),
     ) );
-
-     $novita_options->add_field( array(
-    'id'   => $prefix . 'check_notizie',
-    'name' => __( 'Sezione Check', 'design_comuni_italia' ),
-    'desc' => __( 'Gestione stile home page.', 'design_comuni_italia' ),
-    'type' => 'title',
-) );
-
-
-   $novita_options->add_field(array(
-    'id' => $prefix . 'ck_hide_notizie_old',
-    'name' => __('Nascondi notizie scadute', 'design_comuni_italia'),
-    'desc' => __('Se abilitata, questa opzione nasconderà automaticamente le notizie con data di scadenza antecedente a oggi nella pagina Novità.', 'design_comuni_italia'),
-    'type' => 'radio_inline',
-    'default' => 'false',
-    'options' => array(
-        'true' => __('Sì', 'design_comuni_italia'),
-        'false' => __('No', 'design_comuni_italia'),
-    ),
-));
 }
-

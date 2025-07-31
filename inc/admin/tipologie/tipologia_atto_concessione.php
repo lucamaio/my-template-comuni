@@ -6,6 +6,16 @@
 add_action('init', 'dci_register_post_type_atto_concessione');
 function dci_register_post_type_atto_concessione()
 {
+
+
+
+    // Controlla se l'opzione "ck_attidiconcessione" è impostata su 'false' o vuota
+    if (dci_get_option("ck_attidiconcessione", "Trasparenza") === 'false' || dci_get_option("ck_attidiconcessione", "Trasparenza") === '') {
+        return; // Non registrare il CPT se la condizione non è soddisfatta
+    }
+
+
+    
     $labels = array(
         'name'               => _x('Atti di Concessione', 'Post Type General Name', 'design_comuni_italia'),
         'singular_name'      => _x('Atto di Concessione', 'Post Type Singular Name', 'design_comuni_italia'),
@@ -25,23 +35,24 @@ function dci_register_post_type_atto_concessione()
         'menu_icon'           => 'dashicons-media-interactive',
         'has_archive'         => false,
         //'rewrite'             => array('slug' => 'atto-concessione', 'with_front' => false),
+        'capability_type' => array('atto_concessione', 'atti_concessione'),
         'map_meta_cap'        => true,
         'capabilities' => array(
-            'edit_post'             => 'edit_atto_concessione',
-            'read_post'             => 'read_atto_concessione',
-            'delete_post'           => 'delete_atto_concessione',
-            'edit_posts'            => 'edit_atto',
-            'edit_others_posts'     => 'edit_others_atti',
-            'publish_posts'         => 'publish_atto',
-            'read_private_posts'    => 'read_private_atto',
-            'delete_posts'          => 'delete_atto',
-            'delete_private_posts'  => 'delete_private_atto',
-            'delete_published_posts' => 'delete_published_atto',
-            'delete_others_posts' => 'delete_others_atto',
-            'edit_private_posts' => 'edit_private_atto',
-            'edit_published_posts' => 'edit_published_atto',
-            'create_posts'          => 'create_atto'
-        ),
+                'edit_post'             => 'edit_atto_concessione',
+                'read_post'             => 'read_atto_concessione',
+                'delete_post'           => 'delete_atto_concessione',
+                'edit_posts'            => 'edit_atti_concessione',
+                'edit_others_posts'     => 'edit_others_atti_concessione',
+                'publish_posts'         => 'publish_atti_concessione',
+                'read_private_posts'    => 'read_private_atti_concessione',
+                'delete_posts'          => 'delete_atti_concessione',
+                'delete_private_posts'  => 'delete_private_atti_concessione',
+                'delete_published_posts'=> 'delete_published_atti_concessione',
+                'delete_others_posts'   => 'delete_others_atti_concessione',
+                'edit_private_posts'    => 'edit_private_atti_concessione',
+                'edit_published_posts'  => 'edit_published_atti_concessione',
+                'create_posts'          => 'create_atti_concessione',
+            ),
         'description'         => __("Tipologia personalizzata per la pubblicazione dei atto di concessione del Comune.", 'design_comuni_italia'),
     );
 
@@ -50,6 +61,40 @@ function dci_register_post_type_atto_concessione()
     // Rimuove il supporto all'editor
     remove_post_type_support('atto_concessione', 'editor');
 }
+
+add_action('admin_init', function() {
+    // Prendi il ruolo amministratore
+    $role = get_role('administrator');
+
+    if ($role) {
+        $caps = [
+            'edit_attoconcessione',
+            'read_attoconcessione',
+            'delete_attoconcessione',
+            'edit_attoconcessione',
+            'edit_others_attoconcessione',
+            'publish_attoconcessione',
+            'read_private_attoconcessione',
+            'delete_attoconcessione',
+            'delete_private_attoconcessione',
+            'delete_published_attoconcessione',
+            'delete_others_att_concessione',
+            'edit_private_attoconcessione',
+            'edit_published_attoconcessione',
+            'create_attoconcessione',
+        ];
+
+        foreach ($caps as $cap) {
+            $role->add_cap($cap);
+        }
+    }
+});
+
+
+
+
+
+
 
 /**
  * Messaggio informativo sotto il titolo nel backend

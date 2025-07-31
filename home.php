@@ -44,9 +44,6 @@ get_header();
                 get_template_part("template-parts/home/accesso-rapido"); 
             ?>
         </section>
-
-
-	       
 		<?php 
 		    // Controlla se mostrare la galleria
                      $mostra_gallery = dci_get_option('mostra_gallery', 'galleria');
@@ -59,6 +56,14 @@ get_header();
 
 
         <?php get_template_part("template-parts/home/ricerca"); ?>
+
+         <?php 
+            $show_map = dci_get_option( "ck_show_map", "homepage" );
+            if($show_map === 'true'){
+                get_template_part("template-parts/vivere-comune/mappa");
+            }
+
+        ?>
         <?php get_template_part("template-parts/common/valuta-servizio"); ?>
         <?php get_template_part("template-parts/common/assistenza-contatti"); ?>
     </main>

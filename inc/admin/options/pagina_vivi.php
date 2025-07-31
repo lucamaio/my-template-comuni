@@ -84,7 +84,34 @@ function dci_register_pagina_vivi_options(){
         )
     );
 
+    $vivi_options->add_field( array(
+        'id' => $prefix . 'map_options',
+        'name'        => __( 'Mappa del comune', 'design_comuni_italia' ),
+        'desc' => __( 'Configurazione mappa del comune' , 'design_comuni_italia' ),
+        'type' => 'title',
+    ) );
 
-       
-    
+     $vivi_options->add_field( array(
+        'id' => $prefix . 'link_map',
+        'name'        => __( 'Link della mappa:', 'design_comuni_italia' ),
+        //'desc' => __( 'didascalia.' , 'design_comuni_italia' ),
+        'type' => 'text',
+    ) );
+  
+    $vivi_options->add_field(array(
+        'id' => $prefix . 'ck_show_map',
+        'name' => __('Mostra la mappa', 'design_comuni_italia'),
+        'desc' => __("Se abilitata, questa consente di visualizzare nella parte sotto la voce 'Esplora per categoria' della pagina vivere il comune una mappa del comune.", 'design_comuni_italia'),
+        'type' => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true' => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        // 'attributes' => array(
+        //     'data-conditional-value' => "false",
+        // ),
+    ));
+
+
 }

@@ -267,7 +267,26 @@ for ($i = 1; $i <= $num_argomenti; $i++) {
         'remove_default' => 'true',
     ) );
 
+    // Sezione mappa homepage
+    
+    $home_options->add_field( array(
+    'id'   => $prefix . 'map_section',
+    'name' => __( 'Sezione Mappa', 'design_comuni_italia' ),
+    'desc' => __( 'Gestione la visualizzazione della mappa', 'design_comuni_italia' ),
+    'type' => 'title',
+) );
 
+ $home_options->add_field(array(
+        'id' => $prefix . 'ck_show_map',
+        'name' => __('Mostra la mappa', 'design_comuni_italia'),
+        'desc' => __("Se abilitata, questa consente di visualizzare nella parte sotto la voce 'Link utili' della pagina homepage una mappa del comune.", 'design_comuni_italia'),
+        'type' => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true' => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+    ));
 
 
     

@@ -83,10 +83,15 @@ foreach ($posts as $post) {
         $mostra_scheda = true;
     }
 
-    if ($mostra_scheda) {
-        $count++;
-        get_template_part('template-parts/novita/cards-list');
-    }
-}
-wp_reset_postdata();
-?>
+
+             if ($mostra_scheda)
+               $count++; { ?>
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <?php get_template_part("template-parts/home/scheda-evidenza"); ?>
+                                    </div>
+               <?php
+                  }
+
+            }
+            wp_reset_postdata();
+            ?>

@@ -12,6 +12,7 @@
         if($currentMonth >= 12) $currentMonth = 0;
         $currentMonth++;
     }
+    $prefix="_dci_unita_organizzativa_";
 ?>
 
 <div class="it-page-sections-container">
@@ -78,9 +79,13 @@
                         <div class="card p-3">
                             <div class="card-body p-0">
                                 <div class="form-check m-0" >
-                                    <fieldset id="radio-appointment">
+                                    <?php
+                                        var_dump($ufficio->ID, $ufficio->post_title);
+                                      $orario = dci_get_meta("orario_uo", $prefix, $ufficio->ID);
+                                      var_dump($orario);?>
+                                    <!-- <fieldset id="radio-appointment">
                                         Nessunn appuntamento disponibile.
-                                    </fieldset>
+                                    </fieldset> -->
                                 </div>
                             </div>
                         </div>

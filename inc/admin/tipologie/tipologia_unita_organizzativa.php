@@ -304,6 +304,29 @@ function dci_add_unita_organizzativa_metaboxes() {
             'teeny' => false,
         ),
     ) );
+
+     $cmb_orario = new_cmb2_box( array(
+        'id'           => $prefix . 'box_orario',
+        'title'        => __( 'Orario apertura ufficio', 'design_comuni_italia' ),
+        'object_types' => array( 'unita_organizzativa' ),
+        'context'      => 'normal',
+        'priority'     => 'high',
+    ) );
+
+     $cmb_orario->add_field( array(
+        'id' => $prefix . 'orario_uo',
+        'name'        => __( 'Orario', 'design_comuni_italia' ),
+        'desc' => __( "Selezionare l'orario apertura ufficio comunale" , 'design_comuni_italia' ),
+        'type'    => 'pw_select',
+        'options' => dci_get_posts_options('orario'),
+        'attributes'    => array(
+            // 'required'    => 'required',
+            'placeholder' =>  __( "Seleziona orario", 'design_comuni_italia' ),
+        ),
+    ) );
+
+
+
 }
 
 /**

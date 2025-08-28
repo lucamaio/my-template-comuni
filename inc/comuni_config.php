@@ -258,6 +258,7 @@ function dci_get_admin_menu_order() {
         'edit.php?post_type=commissario',
         'edit.php?post_type=elemento_trasparenza',
         'edit.php?post_type=bando',
+        'edit.php?post_type=titolari_di_incarichi_collaborazione_consulenza',
         'edit.php?post_type=unita_organizzativa',
         'edit.php?post_type=persona_pubblica',
         'edit.php?post_type=punto_contatto',

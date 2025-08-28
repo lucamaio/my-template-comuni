@@ -339,3 +339,4 @@ function updateToggleAllButton() {
         </form>
     </div>
 </main>
+

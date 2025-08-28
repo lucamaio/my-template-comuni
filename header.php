@@ -45,7 +45,7 @@ $current_group = dci_get_current_group();
                       <?php get_template_part("template-parts/common/logo"); ?>
                       <div>
                         <div class="it-brand-title"><?php echo dci_get_option("nome_comune"); ?></div>
-                        <div class="it-brand-tagline d-none d-md-block">
+                       <div class="it-brand-tagline d-none d-md-block">
                           <?php echo dci_get_option("motto_comune"); ?>
                         </div>
                       </div>
@@ -117,13 +117,80 @@ $current_group = dci_get_current_group();
                     </svg>
                   </button>
                 </div>
-                <div class="menu-wrapper">
-                <a href="<?php echo home_url(); ?>" aria-label="Vai alla homepage" class="logo-hamburger">
-                    <?php get_template_part("template-parts/common/logo-mobile"); ?>
-                  <div class="it-brand-text">
-                    <div class="it-brand-title"><?php echo dci_get_option("nome_comune"); ?></div>
-                  </div>
-                </a>
+
+		      
+	                <div class="menu-wrapper">
+
+   <?php if (wp_is_mobile()) : ?>
+	  <div class="mobile-login-language-wrapper mt-3 mb-2 px-3">
+	    <div class="ente-name mb-2 fw-semibold">
+	      <?php echo esc_html(dci_get_option("nome_comune")); ?>
+	    </div>
+	
+	    <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+	     <div class="language-selector">
+	        <?php
+	          $shortcode_output = do_shortcode('[google-translator]');
+	          if (trim($shortcode_output) !== '[google-translator]') {
+	              echo $shortcode_output;
+	          }
+	        ?>
+	      </div>	
+	      <div class="login-area ms-auto">
+	        <?php
+	          if (!is_user_logged_in()) {
+	            get_template_part("template-parts/header/header-anon");
+	          } else {
+	            get_template_part("template-parts/header/header-logged");
+	          }
+	        ?>
+	      </div>	    
+	    </div>
+	  </div>
+	
+	  <ul class="navbar-nav mobile-extra-menu p-3 rounded">
+
+		    <?php if (dci_get_option('url_sito_regione') && dci_get_option('nome_regione')) : ?>
+		      <li class="nav-item mb-2">
+		        <a class="nav-link text-white"
+		           href="<?php echo esc_url(dci_get_option('url_sito_regione')); ?>"
+		           target="_blank"
+		           rel="noopener"
+		           aria-label="Vai al portale <?php echo esc_attr(dci_get_option('nome_regione')); ?>">
+		         <?php echo esc_html(dci_get_option('nome_regione')); ?>
+		        </a>
+		      </li>
+		    <?php endif; ?>
+
+				
+		    <?php if (dci_get_option('link_ammtrasparente')) : ?>
+		      <li class="nav-item mb-2">
+		        <a class="nav-link text-white"
+		           href="<?php echo esc_url(dci_get_option('link_ammtrasparente')); ?>"
+		           target="_blank"
+		           rel="noopener"
+		           aria-label="Amministrazione trasparente">
+		        Amministrazione trasparente
+		        </a>
+		      </li>
+		    <?php endif; ?>
+		
+		    <?php if (dci_get_option('link_albopretorio')) : ?>
+		      <li class="nav-item mb-2">
+		        <a class="nav-link text-white"
+		           href="<?php echo esc_url(dci_get_option('link_albopretorio')); ?>"
+		           target="_blank"
+		           rel="noopener"
+		           aria-label="Albo pretorio">
+		         Albo pretorio
+		        </a>
+		      </li>
+		    <?php endif; ?>
+		
+
+		  </ul>
+		<?php endif; ?>
+
                 <nav aria-label="Principale">
                   <?php
                       $location = "menu-header-main";
@@ -158,6 +225,10 @@ $current_group = dci_get_current_group();
                     }
                     ?>
                 </nav>
+
+
+	
+			
                   <?php
                     $show_socials = dci_get_option( "show_socials", "socials" );
                     if($show_socials == "true") : 
@@ -193,3 +264,50 @@ $current_group = dci_get_current_group();
 if(!is_user_logged_in())
     get_template_part("template-parts/common/access-modal");
 ?>
+	
+<style>
+@media (max-width: 767.98px) {
+  /* Riduce margine e padding tra voci menu mobile */
+  .navbar-nav > li.nav-item {
+    margin-bottom: 4px !important;
+  }
+
+  .navbar-nav > li.nav-item > a.nav-link {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Extra menu mobile */
+  .mobile-extra-menu .nav-item {
+    margin-bottom: 4px !important;
+  }
+
+  .mobile-extra-menu .nav-link {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Blocchi login + lingua + nome comune */
+  .mobile-login-language-wrapper {
+    background-color: transparent !important;
+  }
+
+  .mobile-login-language-wrapper .ente-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .mobile-login-language-wrapper .language-selector,
+  .mobile-login-language-wrapper .login-area {
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-login-language-wrapper .language-selector select {
+    max-width: 100px;
+  }
+}
+</style>
+

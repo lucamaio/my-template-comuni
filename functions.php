@@ -399,3 +399,34 @@ function dci_evidenzia_categorie_cmb2( $hook ) {
 JS
     );
 }
+
+
+function crea_pagina_sitemap_personalizzata() {
+    $slug = 'page-sitemap';
+    $pagina = get_page_by_path($slug);
+
+    if (!$pagina) {
+        $pagina_id = wp_insert_post(array(
+            'post_title'    => 'Mappa del Sito',
+            'post_name'     => $slug,
+            'post_content'  => '',
+            'post_status'   => 'publish',
+            'post_type'     => 'page',
+            'page_template' => 'page-templates/page-sitemap.php', // ✅ Con cartella
+        ));
+
+        if (!is_wp_error($pagina_id)) {
+            error_log('Pagina "Mappa del Sito" creata automaticamente.');
+        }
+    } else {
+        // Se esiste già, aggiorna il template se non è corretto
+        if (get_page_template_slug($pagina->ID) !== 'page-templates/page-sitemap.php') {
+            wp_update_post(array(
+                'ID'            => $pagina->ID,
+                'page_template' => 'page-templates/page-sitemap.php',
+            ));
+        }
+    }
+}
+add_action('after_setup_theme', 'crea_pagina_sitemap_personalizzata');
+

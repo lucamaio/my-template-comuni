@@ -74,7 +74,8 @@ get_header();
                 array_push($contatti, $contatto);
             }
         }
-
+        
+        
         $altre_cariche = dci_get_meta("altre_cariche") ?? [];
         
         function convertToPlain($text)

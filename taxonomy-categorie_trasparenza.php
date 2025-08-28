@@ -72,7 +72,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                     <div class="row g-3" id="load-more">
                         <?php get_template_part("template-parts/bandi-di-gara/tutti-bandi"); ?>
                     </div>
-                    <!-- <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> -->
+                 <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                 </div>
             </div>
         </div>
@@ -190,3 +190,4 @@ get_footer();
         }, 100);
     });
 </script>
+

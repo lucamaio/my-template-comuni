@@ -228,7 +228,7 @@
 						      <?php } 
 			                                else 
 			                              { ?>			    
-						         <a target="_blank" href="/index.php/page-sitemap.html">Mappa del sito</a>
+						         <a href="/page-sitemap">Mappa del sito</a>
                                                       <?php } ?>
 		    
 						<a href="<?php echo dci_get_option("servizi",'header'); ?>/index.php/servizi">Servizi</a>

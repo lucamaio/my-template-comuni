@@ -65,3 +65,4 @@ $page_macro = get_page_by_path($page_macro_slug);
 <?php } ?>
 
 <?php wp_reset_postdata(); ?>
+

@@ -7,7 +7,7 @@ if (is_array($siti_tematici) && count($siti_tematici)) {
 
   <div class="container mb-4">
     <div class="row">
-      <h2 class="text-black title-xlarge mb-2 mt-2">Siti Tematici</h2> 
+      <h2 class="mb-0">Siti tematici</h2>
     </div>
     <div class="pt-4 pt-lg-30">
       <div class="row gy-4">

@@ -36,3 +36,4 @@ function dci_register_taxonomy_tipi_stato_bando() {
 
     register_taxonomy( 'tipi_stato_bando', array( 'bando' ), $args );
 }
+

@@ -289,3 +289,4 @@ function dci_hide_invisible_or_restricted_terms( $clauses, $taxonomies, $args ) 
 	return $clauses;
 }
 ?> 
+

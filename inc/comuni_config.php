@@ -258,7 +258,6 @@ function dci_get_admin_menu_order() {
         'edit.php?post_type=commissario',
         'edit.php?post_type=elemento_trasparenza',
         'edit.php?post_type=bando',
-        'edit.php?post_type=orario',
         'edit.php?post_type=unita_organizzativa',
         'edit.php?post_type=persona_pubblica',
         'edit.php?post_type=punto_contatto',
@@ -309,3 +308,4 @@ function dci_get_all_values($array,$key){
     }
     return $result;
 }
+

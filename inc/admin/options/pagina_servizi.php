@@ -77,7 +77,7 @@ function dci_register_pagina_servizi_options(){
         'name' => __('Mostra tutte le categorie dei servizi', 'design_comuni_italia'),
         'desc' => __('Se abilitata, vengono mostrate tutte le categorie dei servizi', 'design_comuni_italia'),
         'type' => 'radio_inline',
-        'default' => 'false',
+        'default' => 'true',
         'options' => array(
             'true' => __('Si', 'design_comuni_italia'),
             'false' => __('No', 'design_comuni_italia'),

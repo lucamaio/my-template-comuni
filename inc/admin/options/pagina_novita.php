@@ -66,3 +66,4 @@ function dci_register_pagina_novita_options(){
         'options' => dci_get_terms_options('argomenti'),
     ) );
 }
+

@@ -11,12 +11,30 @@ $search_url = esc_url( home_url( '/' ));
 $link_amministrazione=dci_get_option("link_ammtrasparente");
 $url_img="https://saassipa.cultura.gov.it/wp-content/uploads/2020/04/amm_trasp-1024x381.png";
 
-if(isset($link_amministrazione) && !empty($link_amministrazione) && $link_amministrazione!=null ) {
-    header("Location: $link_amministrazione");
-     exit;
+
+//Indirizza se c'è un link personalizzato, ma ignora il redirect se riporta all'amministrazione trasparente interna al sito.
+if (
+    isset($link_amministrazione) &&
+    !empty($link_amministrazione) &&
+    $link_amministrazione != null
+) {
+    // Rimuove lo slash finale, se presente
+    $normalized_link = rtrim($link_amministrazione, '/');
+
+    // Costruisce dinamicamente il link da ignorare (senza slash finale)
+    $link_da_ignorare = rtrim(home_url('/amministrazione-trasparente'), '/');
+
+    // Confronto
+    if ($normalized_link !== $link_da_ignorare) {
+        header("Location: $link_amministrazione");
+       exit;
+    }
 }
 
+
+
 function info(){?>
+
 <section class="hero-img mb-20 mb-lg-50">
     <div class="container">
         <div class="row">
@@ -61,3 +79,11 @@ get_header();
 
 <?php
 get_footer();?>
+
+
+
+
+
+
+
+

@@ -52,7 +52,7 @@ if ($img) {
                                        ?>
                                     </h3>
                     </a>
-                              <p class="card-text d-none d-md-block">
+                              <p class="card-text">
                                     <?php 
                            
                     					$description1 = $description;			

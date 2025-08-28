@@ -16,9 +16,10 @@ global $the_query, $load_posts, $load_card_type;
     $the_query = new WP_Query( $args );
     $posts = $the_query->posts;
 
-    usort($posts, function($a, $b) {
-        return dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $b->ID) - dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $a->ID);
-    });
+  //  usort($posts, function($a, $b) {
+  //      return dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $b->ID) - dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $a->ID);
+   // });
+
     $posts = array_slice($posts, 0, $max_posts);
 
     $args = array(

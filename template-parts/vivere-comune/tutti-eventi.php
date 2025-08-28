@@ -13,7 +13,7 @@ global $the_query, $load_posts, $load_card_type;
     $posts = $the_query->posts;
 ?>
 
-<div class="bg-grey-card py-5">
+<div class="bg-card py-5">
     <form role="search" id="search-form" method="get" class="search-form">
         <button type="submit" class="d-none"></button>
         <div class="container">

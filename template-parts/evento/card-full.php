@@ -22,7 +22,9 @@ $is_evento_attivo = ($current_timestamp >= $start_timestamp && $current_timestam
 
 // if ($luogo_evento_id) $luogo_evento = get_post($luogo_evento_id);
 ?>
-
+<style>
+  
+</style>
 <div class="col-lg-6 col-xl-4">
     <div class="card-wrapper shadow-sm rounded border border-light pb-0">
         <div class="card no-after rounded">

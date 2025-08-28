@@ -1,8 +1,8 @@
 <?php
 global $the_query, $load_posts, $load_card_type;
 
-    $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 6;
-    $load_posts = 6;
+    $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 56;
+    $load_posts = 56;
     $count=0;
     $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
     $args = array(
@@ -76,7 +76,7 @@ global $the_query, $load_posts, $load_card_type;
                     foreach ($posts as $post) {get_template_part('template-parts/aree-amministrative/cards-list');$count++;
                 }?>
             </div>
-            <?php if($count>6){
+            <?php if($count>=$load_posts){
                 get_template_part("template-parts/search/more-results");
             } ?>
         </div>

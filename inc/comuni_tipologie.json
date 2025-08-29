@@ -234,14 +234,14 @@
                 "tipi_stato_bando"
             ]
         },
-        "titolari_di_incarichi_collaborazione_consulenza":{
+        "titolare_incarico":{
             "name": "Titolari di incarico",
-            "capability" : "titolari_di_incarichi_collaborazione_consulenza",
-            "prefix" : "_dci_titolari_di_incarichi_collaborazione_consulenza_", 
+            "capability" : "titolari_incarico",
+            "prefix" : "_dci_titolare_incarico_", 
             "singular_name" : "Titolare di incarico",
             "plural_name" : "Titolari di incarichi",
-            "group_id"   : "titolari_di_incarichi_collaborazione_consulenza",
-            "group_name"  : "Incarichi di collaborazione e consulenza",
+            "group_id"   : "titolare_incarico",
+            "group_name"  : "titolare_incarico",
             "taxonomy"    : []
         }
 

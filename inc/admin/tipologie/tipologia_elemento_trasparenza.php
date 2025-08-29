@@ -81,6 +81,10 @@ function dci_elemento_trasparenza_add_content_after_title($post)
         <a href="edit.php?post_type=atto_concessione" class="button button-secondary" style="margin-right: 10px;">
             Sovvenzioni , contributi sussidi, vantaggi economici - <b>Atti di concessione</b>
         </a>
+        <br>
+        <a href="edit.php?post_type=titolare_incarico" class="button button-secondary" style="margin-right: 10px;">
+            Titolari di incarichi di collaborazione o consulenza
+        </a>
     </div>
     <?php
 }

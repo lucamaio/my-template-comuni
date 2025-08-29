@@ -109,7 +109,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                     <h2 class="visually-hidden">Esplora tutti i Titolari di incarichi di collaborazione o consulenza</h2>
                     <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
                     <div class="row g-3" id="load-more">
-                        <?php get_template_part("template-parts/amministrazione-trasparente/titolari_di_incarichi_collaborazione_consulenza/tutti-titolari"); ?>
+                        <?php get_template_part("template-parts/amministrazione-trasparente/titolare_incarico/tutti-titolari"); ?>
                     </div>
                  <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                 </div>

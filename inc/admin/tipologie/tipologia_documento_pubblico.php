@@ -543,3 +543,7 @@ function dci_documento_pubblico_set_post_content( $data ) {
     return $data;
 }
 add_filter( 'wp_insert_post_data' , 'dci_documento_pubblico_set_post_content' , '99', 1 );
+
+new dci_bidirectional_cmb2("_dci_documento_pubblico_", "documento_pubblico", "servizi", "box_servizi", "_dci_servizio_documenti");
+
+new dci_bidirectional_cmb2("_dci_documento_pubblico_", "documento_pubblico", "servizi", "box_informazioni", "_dci_documento_pubblico_documenti_collegati");

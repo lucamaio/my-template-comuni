@@ -45,31 +45,31 @@ function dci_add_orario_metaboxes() {
     $prefix = '_dci_orario_';
 
     // Metabox per date inizio/fine
-    // $cmb_dati = new_cmb2_box( array(
-    //     'id'           => $prefix . 'box_dati',
-    //     'title'        => __( 'Periodo di validità', 'design_comuni_italia' ),
-    //     'object_types' => array( 'orario' ),
-    //     'context'      => 'normal',
-    //     'priority'     => 'high',
-    // ) );
+    $cmb_dati = new_cmb2_box( array(
+        'id'           => $prefix . 'box_dati',
+        'title'        => __( 'Periodo di validità', 'design_comuni_italia' ),
+        'object_types' => array( 'orario' ),
+        'context'      => 'normal',
+        'priority'     => 'high',
+    ) );
 
-    // $cmb_dati->add_field( array(
-    //     'id'         => $prefix . 'data_inizio',
-    //     'name'       => __('Data Inizio*', 'design_comuni_italia' ),
-    //     'desc'       => __('Inserisci la data di inizio validità', 'design_comuni_italia' ),
-    //     'type'       => 'text_date',
-    //     'date_format' => 'd-m-Y',
-    //     'attributes' => array( 'required' => true )
-    // ) );
+    $cmb_dati->add_field( array(
+        'id'         => $prefix . 'data_inizio',
+        'name'       => __('Data Inizio*', 'design_comuni_italia' ),
+        'desc'       => __('Inserisci la data di inizio validità', 'design_comuni_italia' ),
+        'type'       => 'text_date',
+        'date_format' => 'd-m-Y',
+        'attributes' => array( 'required' => true )
+    ) );
 
-    // $cmb_dati->add_field( array(
-    //     'id'         => $prefix . 'data_fine',
-    //     'name'       => __('Data Fine*', 'design_comuni_italia' ),
-    //     'desc'       => __('Inserisci la data di fine validità', 'design_comuni_italia' ),
-    //     'type'       => 'text_date',
-    //     'date_format' => 'd-m-Y',
-    //     'attributes' => array( 'required' => true )
-    // ) );
+    $cmb_dati->add_field( array(
+        'id'         => $prefix . 'data_fine',
+        'name'       => __('Data Fine*', 'design_comuni_italia' ),
+        'desc'       => __('Inserisci la data di fine validità', 'design_comuni_italia' ),
+        'type'       => 'text_date',
+        'date_format' => 'd-m-Y',
+        'attributes' => array( 'required' => true )
+    ) );
 
     // Metabox per orari settimanali
     $cmb_orari = new_cmb2_box( array(

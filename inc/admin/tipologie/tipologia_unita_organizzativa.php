@@ -364,6 +364,7 @@ add_filter( 'wp_insert_post_data' , 'dci_unita_organizzativa_set_post_content' ,
 
 new dci_bidirectional_cmb2("_dci_unita_organizzativa_", "unita_organizzativa", "persone_struttura", "box_persone", "_dci_persona_pubblica_organizzazioni");
 
+
 function set_to_current_unita_organizzativa_servizi($field_args, $field  ) {
 	return dci_get_meta("elenco_servizi_offerti", "_dci_unita_organizzativa_", $field->object_id) ?? [];
 }

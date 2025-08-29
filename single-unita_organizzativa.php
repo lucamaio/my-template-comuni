@@ -38,7 +38,8 @@ get_header();
         $servizi = dci_get_meta("elenco_servizi_offerti") ?? [];
         $descrizione = dci_get_wysiwyg_field("descrizione_estesa") ?? '';
         $punti_contatto = dci_get_meta("contatti") ?? [];
-
+        $orario_id = dci_get_meta("orario", $prefix, $post->ID) ?? '';
+        
         $contatti = [];
         foreach ($punti_contatto as $pc_id) {
             $contatto = dci_get_full_punto_contatto($pc_id);
@@ -257,6 +258,13 @@ get_header();
                                                         <li class="nav-item">
                                                             <a class="nav-link" href="#allegati">
                                                                 <span class="title-medium">Allegati</span>
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
+                                                     <?php if ($orario_id) { ?>
+                                                        <li class="nav-item">
+                                                            <a class="nav-link" href="#orario">
+                                                                <span class="title-medium">Orario</span>
                                                             </a>
                                                         </li>
                                                     <?php } ?>
@@ -493,7 +501,17 @@ get_header();
                         </div>
                     </section>
                 <?php } ?>
-
+                <?php if(isset($orario_id) && $orario_id != null){?>
+                    <section class="it-page-section mb-30">
+                        <h2 class="title-xxlarge mb-3" id="orario">Orario</h2>
+                        <div class="richtext-wrapper lora">
+                            <?php
+                                get_template_part('template-parts/single/orario');
+                            ?>
+                        </div>
+                    </section>
+                <?php } ?>
+                
                 <section class="it-page-section mb-30">
                     <h2 class="title-xxlarge mb-3" id="contatti">Contatti</h2>
                     <div class="richtext-wrapper lora">

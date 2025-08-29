@@ -215,3 +215,11 @@ function dci_add_incarico_metaboxes()
     ) );
 
 }
+
+new dci_bidirectional_cmb2("_dci_incarico_", "incarico", "incarico_unita_organizzative", "box_dati", "_dci_unita_organizzativa_incarichi");
+
+new dci_bidirectional_cmb2("_dci_incarico_", "incarico", "luoghi_incarico", "box_dati", "_dci_luogo_incarichi");
+
+new dci_bidirectional_cmb2("_dci_incarico_", "incarico", "persona", "box_dati", "_dci_persona_pubblica_incarichi");
+
+new dci_bidirectional_cmb2("_dci_incarico_", "incarico", "servizi_incarico", "box_dati", "_dci_servizio_incarico_servizi");

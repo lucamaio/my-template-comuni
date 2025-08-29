@@ -544,6 +544,11 @@ function dci_documento_pubblico_set_post_content( $data ) {
 }
 add_filter( 'wp_insert_post_data' , 'dci_documento_pubblico_set_post_content' , '99', 1 );
 
-new dci_bidirectional_cmb2("_dci_documento_pubblico_", "documento_pubblico", "servizi", "box_servizi", "_dci_servizio_documenti");
+add_action('cmb2_init', function() {
+    $check_contenuti = dci_get_option('_dci_ck_collegamenti_contenuti');
 
-new dci_bidirectional_cmb2("_dci_documento_pubblico_", "documento_pubblico", "servizi", "box_informazioni", "_dci_documento_pubblico_documenti_collegati");
+    if ($check_contenuti === 'true' || $check_contenuti === true) {
+        new dci_bidirectional_cmb2("_dci_documento_pubblico_", "documento_pubblico", "servizi", "box_servizi", "_dci_servizio_documenti");
+        new dci_bidirectional_cmb2("_dci_documento_pubblico_", "documento_pubblico", "servizi", "box_informazioni", "_dci_documento_pubblico_documenti_collegati");
+    }
+});

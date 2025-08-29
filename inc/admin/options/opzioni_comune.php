@@ -201,6 +201,22 @@ function dci_register_comune_options(){
             'data-conditional-value' => "false",
         ),
     ));
+
+    $header_options->add_field(array(
+        'id'      => $prefix . 'ck_collegamenti_contenuti',
+        'name'    => __('Collegamenti Contenuti', 'design_comuni_italia'),
+        'desc'    => __('Selezionando "Sì", verranno visualizzati i collegamenti tra i vari contenuti del sito web.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
+
   
 }
 add_action('cmb2_admin_init', 'dci_register_comune_options');

@@ -362,7 +362,13 @@ function dci_unita_organizzativa_set_post_content( $data ) {
 }
 add_filter( 'wp_insert_post_data' , 'dci_unita_organizzativa_set_post_content' , '99', 1 );
 
-new dci_bidirectional_cmb2("_dci_unita_organizzativa_", "unita_organizzativa", "persone_struttura", "box_persone", "_dci_persona_pubblica_organizzazioni");
+add_action('cmb2_init', function(){
+    $check_contenuti = dci_get_option('ck_collegamenti_contenuti');
+
+    if($check_contenuti === 'true' || $check_contenuti === true){
+        new dci_bidirectional_cmb2("_dci_unita_organizzativa_", "unita_organizzativa", "persone_struttura", "box_persone", "_dci_persona_pubblica_organizzazioni");
+    }
+});
 
 
 function set_to_current_unita_organizzativa_servizi($field_args, $field  ) {

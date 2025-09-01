@@ -53,6 +53,14 @@ function dci_add_orario_metaboxes() {
         'priority'     => 'high',
     ) );
 
+     $cmb_dati->add_field(array(
+        'id' => $prefix . 'descrizione',
+        'name'        => __('Descrizione:', 'design_comuni_italia'),
+        'desc' => __('Descrizione sintentica del orario di apartura, inferiore a 255 caratteri', 'design_comuni_italia'),
+        'type' => 'textarea',
+        'attributes'    => array( 'maxlength'  => '255' ),
+    ));
+
     $cmb_dati->add_field( array(
         'id'         => $prefix . 'data_inizio',
         'name'       => __('Data Inizio*', 'design_comuni_italia' ),

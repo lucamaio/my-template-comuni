@@ -3,6 +3,7 @@
  * Definisce post type Unità organizzativa
  */
 add_action( 'init', 'dci_register_post_type_unita_organizzativa', 60 );
+
 function dci_register_post_type_unita_organizzativa() {
     /** scheda **/
     $labels = array(
@@ -70,6 +71,44 @@ function dci_add_unita_organizzativa_metaboxes() {
         'show_option_none' => false,
         'remove_default' => 'true',
     ) );
+
+    // Check Collegamenti Bidirezionali
+
+    /*
+        Attivando questa opzione, i nuovi contenuto inseriti saranno automaticamente collegati tra loro, 
+        il sistema gestirà in modo automatico i collegamenti tra le pagine e i contenuto correlati.
+    */
+
+    // $check_contenuti = dci_get_option('ck_collegamenti_contenuti') ?: false;
+    
+    // if ($check_contenuti === 'true' || $check_contenuti === true) {
+    //     $cmb_check = new_cmb2_box( array(
+    //         'id'           => $prefix . 'box_check',
+    //         'title'        => __( 'Impostazioni collegamento', 'design_comuni_italia' ),
+    //         'object_types' => array( 'unita_organizzativa' ),
+    //         'context'      => 'side',
+    //         'priority'     => 'high',
+    //     ) );
+
+    //     $cmb_check->add_field( array(
+    //         'id'   => $prefix . 'collegamento_automatico',
+    //         'name' => __( 'Collegamento automatico', 'design_comuni_italia' ),
+    //         'desc' => __( 
+    //             'Attivando questa opzione, i nuovi contenuti non verranno collegati automaticamente a questa Unità Organizzativa. 
+    //             Per "nuovi contenuti" si intendono le persone associate a tale Unità Organizzativa.', 
+    //             'design_comuni_italia' 
+    //         ),
+    //        'type'    => 'radio_inline',
+    //         'default' => 'false',
+    //         'options' => array(
+    //             'true'  => __('Sì', 'design_comuni_italia'),
+    //             'false' => __('No', 'design_comuni_italia'),
+    //         ),
+    //         'attributes' => array(
+    //             'data-conditional-value' => 'false',
+    //         ),
+    //     ) );
+    // }
 
     //APERTURA
     $cmb_apertura = new_cmb2_box( array(
@@ -363,9 +402,20 @@ function dci_unita_organizzativa_set_post_content( $data ) {
 add_filter( 'wp_insert_post_data' , 'dci_unita_organizzativa_set_post_content' , '99', 1 );
 
 add_action('cmb2_init', function(){
-    $check_contenuti = dci_get_option('ck_collegamenti_contenuti');
+    // global $post;
+    // if (!isset($post->ID)) {
+    //     return;
+    // }
 
-    if($check_contenuti === 'true' || $check_contenuti === true){
+    // $hide_collegamenti = dci_get_meta("collegamento_automatico","_dci_unita_organizzativa_",$post->ID);
+
+    $hide_collegamenti = dci_get_meta("collegamento_automatico", "dci_unita_organizzativa_");
+    // var_dump($hide_collegamenti);
+
+    $check_contenuti = dci_get_option('ck_collegamenti_contenuti') ?: false;
+
+    // if(( $check_contenuti === 'true' || $check_contenuti === true ) && ( $hide_collegamenti === 'false' || $hide_collegamenti === false ) && $hide_collegamenti != null){
+    if( $check_contenuti === 'true' || $check_contenuti === true ){
         new dci_bidirectional_cmb2("_dci_unita_organizzativa_", "unita_organizzativa", "persone_struttura", "box_persone", "_dci_persona_pubblica_organizzazioni");
     }
 });

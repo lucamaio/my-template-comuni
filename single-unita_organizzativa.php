@@ -26,7 +26,7 @@ get_header();
         $descrizione_breve = dci_get_meta("descrizione_breve") ?? '';
         $competenze = dci_get_wysiwyg_field("competenze") ?? '';
         $responsabili = dci_get_meta("responsabile") ?? [];
-        $referente= dci_get_meta("assessore_riferimento") ?? [];
+        $referente= dci_get_meta("assessore_riferimento") ?? null;
 
         $tipologie = get_the_terms($post, 'tipi_unita_organizzativa') ?? [];
         $tipologia = !empty($tipologie) ? $tipologie[0]->name : '';
@@ -38,7 +38,7 @@ get_header();
         $servizi = dci_get_meta("elenco_servizi_offerti") ?? [];
         $descrizione = dci_get_wysiwyg_field("descrizione_estesa") ?? '';
         $punti_contatto = dci_get_meta("contatti") ?? [];
-        $orario_id = dci_get_meta("orario", $prefix, $post->ID) ?? '';
+        $orario_id = dci_get_meta("orario_uo", $prefix, $post->ID) ?? '';
         
         $contatti = [];
         foreach ($punti_contatto as $pc_id) {
@@ -47,9 +47,7 @@ get_header();
                 $contatti[] = $contatto;
             }
         }
-
-
-
+        
         $more_info = dci_get_wysiwyg_field("ulteriori_informazioni") ?? '';
         //$uo_id = intval(dci_get_meta("unita_responsabile")) ?? 0;
         $argomenti = get_the_terms($post, 'argomenti') ?? [];
@@ -79,7 +77,7 @@ get_header();
         // }
     ?>
 </main>
-
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 <script type="application/ld+json" data-element="metatag">
     {
         "name": "<?= $post->post_title; ?>",
@@ -326,41 +324,57 @@ get_header();
                     </section>
                 <?php } ?>
 
-                 <?php if ($responsabili) { ?>
+                <?php if ($responsabili) { ?>
                 <section class="it-page-section" id="responsabile">
                         <h2 class="mb-3">Responsabili</h2>
                         <div class="row">
-                            <?php foreach ($responsabili as $responsabile) { ?>
+                            <?php foreach ($responsabili as $responsabile_id) { ?>
                                 <div class="col-12 col-md-8 col-lg-6  mb-30">
                                     <div class="cmp-card-latest-messages mb-3 mb-30">
                                         <div class="card card-bg px-4 pt-4 pb-4 rounded">
                                             <div class="card-header border-0 p-0">
                                                 <?php
-
-                                                $incarichi = dci_get_meta("incarichi", '_dci_persona_pubblica_', $responsabile) ?? [];
-                                                $incarico = !empty($incarichi) ? get_the_title($incarichi[0]) : '';
                                                 
-                                                $responsabile_di=dci_get_meta("responsabile_di", '_dci_persona_pubblica_', $responsabile);
-                                                
-                                                $nome_incarico = !empty($incarico) ? $incarico : (!empty($responsabile_di) ? "Responsabile ".get_the_title($responsabile_di) : '');
+                                                $responsabile_post = get_post($responsabile_id);
+                                                if (!$responsabile_post) continue;
 
-                                                // Controlla se $nome_incarico non è vuoto prima di visualizzarlo
-                                                if (!empty($nome_incarico)) { ?>
-                                                    <a class="text-decoration-none title-xsmall-bold mb-2 category text-uppercase disabled-link" href="#">
-                                                        <?php echo esc_html($nome_incarico); ?>
+                                                $responsabile_nome = get_the_title($responsabile_post);
+                                                $responsabile_link = get_permalink($responsabile_post) ?? "#"; 
+                                                $responsabile_incarichi = dci_get_meta('incarichi', '_dci_persona_pubblica_', $responsabile_id);
+                                                $responsabile_descrizione =dci_get_meta('descrizione_breve', '_dci_persona_pubblica_', $responsabile_id);
+
+                                                
+                                                if (!empty($responsabile_incarichi) && is_array($responsabile_incarichi)) {
+                                                    foreach ($responsabile_incarichi as $incarico_id) {
+                                                        $incarico_post = get_post($incarico_id);
+                                                        if (!$incarico_post) continue;
+
+                                                        $incarico_nome = get_the_title($incarico_post);
+                                                        //$incarico_link = get_permalink($incarico_post) ?: "#";  // Disattivo il link coretto in quanto questa sezione si deve implementare
+                                                        $incarico_link = "#";
+                                                ?>
+                                                    <a class="text-decoration-none title-xsmall-bold category text-uppercase d-block disabled-link"
+                                                        href="<?php echo esc_url($incarico_link); ?>">
+                                                        <?= esc_html($incarico_nome); ?>
                                                     </a>
-                                                <?php } ?>
+                                                    <?php }
+                                                } 
+
+                                                // $incarichi = dci_get_meta("incarichi", '_dci_persona_pubblica_', $responsabile) ?? [];
+                                                // $incarico = !empty($incarichi) ? get_the_title($incarichi[0]) : '';
+                                                // $responsabile_di=dci_get_meta("responsabile_di", '_dci_persona_pubblica_', $responsabile);
+                                                // $nome_incarico = !empty($incarico) ? $incarico : (!empty($responsabile_di) ? "Responsabile ".get_the_title($responsabile_di) : '');
+                                            ?>
                                             </div>
                                             <div class="card-body p-0 my-2">
                                                 <div class="card-content">
                                                     <h4 class="h5">
-                                                        <a href="<?php echo get_permalink($responsabile); ?>">
-                                                            <?php echo dci_get_meta('nome', '_dci_persona_pubblica_', $responsabile); ?>
-                                                            <?php echo dci_get_meta('cognome', '_dci_persona_pubblica_', $responsabile); ?>
+                                                        <a href="<?php echo $responsabile_link ?>">
+                                                            <?php echo $responsabile_nome; ?>
                                                         </a>
                                                     </h4>
                                                     <p class="text-paragraph">
-                                                        <?php echo dci_get_meta('descrizione_breve', '_dci_persona_pubblica_', $responsabile); ?>
+                                                        <?php echo $responsabile_descrizione; ?>
                                                     </p>
                                                 </div>
                                             </div>
@@ -371,8 +385,10 @@ get_header();
                         </div>
                 </section>
                 <?php } ?>
-                <?php if ($referente) { ?>
-                 <section class="it-page-section" id="referente">
+
+                <!-- Sezione Assessore Referente -->
+                <?php if ($referente && $referente != null) { ?>
+                <section class="it-page-section" id="referente">
                         <h2 class="mb-3">Referente</h2>
                         <div class="row">
                                 <div class="col-12 col-md-8 col-lg-6 mb-30">
@@ -380,31 +396,41 @@ get_header();
                                         <div class="card card-bg px-4 pt-4 pb-4 rounded">
                                             <div class="card-header border-0 p-0">
                                                 <?php
+                                                $referente_id = $referente;
+                                                $referente_post = get_post($referente);
 
-                                                $incarichi = dci_get_meta("incarichi", '_dci_persona_pubblica_', $referente) ?? [];
-                                                $incarico = !empty($incarichi) ? get_the_title($incarichi[0]) : '';
-                                                
-                                                $responsabile_di=dci_get_meta("responsabile_di", '_dci_persona_pubblica_', $referente);
-                                                
-                                                $nome_incarico = !empty($incarico) ? $incarico : (!empty($responsabile_di) ? "Responsabile ".get_the_title($responsabile_di) : '');
+                                                $referente_nome = get_the_title($referente_post);
+                                                $referente_descrizione =dci_get_meta('descrizione_breve', '_dci_persona_pubblica_', $referente_id);
+                                                $referente_link = get_permalink($referente_post) ?? "#"; 
 
-                                                // Controlla se $nome_incarico non è vuoto prima di visualizzarlo
-                                                if (!empty($nome_incarico)) { ?>
-                                                    <a class="text-decoration-none title-xsmall-bold mb-2 category text-uppercase disabled-link" href="#">
-                                                        <?php echo esc_html($nome_incarico); ?>
-                                                    </a>
-                                                <?php } ?>
+                                                $referente_incarichi = dci_get_meta('incarichi', '_dci_persona_pubblica_', $referente_id);
+                                                // Stampo gli incarichi del referente
+                                                if (!empty($referente_incarichi) && is_array($referente_incarichi)) {
+                                                    foreach ($referente_incarichi as $incarico_id) {
+                                                        $incarico_post = get_post($incarico_id);
+                                                        if (!$incarico_post) continue;
+
+                                                        $incarico_nome = get_the_title($incarico_post);
+                                                        //$incarico_link = get_permalink($incarico_post) ?: "#";  // Disattivo il link coretto in quanto questa sezione si deve implementare
+                                                        $incarico_link = "#";
+                                                ?>
+                                                    <a class="text-decoration-none title-xsmall-bold category text-uppercase d-block disabled-link"
+                                                        href="<?php echo esc_url($incarico_link); ?>">
+                                                        <?php echo esc_html($incarico_nome); ?>
+                                                    </a> 
+                                                    <?php }
+                                                } 
+                                            ?>
                                             </div>
                                             <div class="card-body p-0 my-2">
                                                 <div class="card-content">
                                                     <h4 class="h5">
-                                                        <a href="<?php echo get_permalink($referente); ?>">
-                                                            <?php echo dci_get_meta('nome', '_dci_persona_pubblica_', $referente); ?>
-                                                            <?php echo dci_get_meta('cognome', '_dci_persona_pubblica_', $referente); ?>
+                                                        <a href="<?php echo $referente_link ?>">
+                                                            <?php echo $referente_nome; ?>
                                                         </a>
                                                     </h4>
                                                     <p class="text-paragraph">
-                                                        <?php echo dci_get_meta('descrizione_breve', '_dci_persona_pubblica_', $referente); ?>
+                                                        <?php echo $referente_descrizione; ?>
                                                     </p>
                                                 </div>
                                             </div>
@@ -415,6 +441,7 @@ get_header();
                 </section>
                 <?php } ?>
 
+                <!-- Sezione Persone -->
                 <section class="it-page-section" id="persone">
                     <h2 class="mb-3">Persone</h2>
                     <div class="row">
@@ -422,10 +449,11 @@ get_header();
                         $with_border = true;
                         get_template_part("template-parts/single/persone");
                         ?>
-
                         <br>
                     </div>
                 </section>
+
+                <!-- Sezione Servizi -->
                 <?php
                 if (strlen(dci_get_option('servizi_maggioli_url', 'servizi')) < 5 && ($mostra_servizi=='true' || !$mostra_servizi) ) {
                     if ($servizi && is_array($servizi) && count($servizi) > 0) { ?>
@@ -449,6 +477,8 @@ get_header();
                     }
                 }
                 ?>
+
+                <!-- Sezione Ulteriori Informazioni -->
 
                 <?php if ($more_info) {  ?>
                     <section class="it-page-section mb-30">
@@ -486,6 +516,7 @@ get_header();
                     </section>
                 <?php } ?>
 
+                <!-- Sezione Allegati -->
                 <?php if ($allegati && is_array($allegati) && count($allegati) > 0) { ?>
                     <section id="allegati" class="it-page-section mb-4">
                         <h2 class="h3 my-2">Documenti</h2>
@@ -501,9 +532,12 @@ get_header();
                         </div>
                     </section>
                 <?php } ?>
+
+                <!-- Sezione Orario -->
+                
                 <?php if(isset($orario_id) && $orario_id != null){?>
                     <section class="it-page-section mb-30">
-                        <h2 class="title-xxlarge mb-3" id="orario">Orario</h2>
+                        <h3 class="title-xlarge mb-3" id="orario">Orario</h3>
                         <div class="richtext-wrapper lora">
                             <?php
                                 get_template_part('template-parts/single/orario');

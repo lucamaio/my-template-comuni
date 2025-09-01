@@ -5,6 +5,7 @@ if ($persone && is_array($persone) && count($persone) > 0) { ?>
     $prefix = '_dci_persona_pubblica_';
     $nome = dci_get_meta('nome', $prefix, $person_id);
     $cognome = dci_get_meta('cognome', $prefix, $person_id); 
+    $descrizione = dci_get_meta('descrizione_breve', $prefix,  $person_id);
       // Recupera gli incarichi utilizzando la funzione dci_get_meta
       $incarichi = dci_get_meta("incarichi", $prefix, $person_id);
       
@@ -28,7 +29,7 @@ if ($persone && is_array($persone) && count($persone) > 0) { ?>
               </p>
               <div class="card-text">
                 <div class="richtext-wrapper lora">
-                  <?php echo $incarico; ?>
+                  <?php echo $descrizione; ?>
                 </div>
               </div>
             </div>
@@ -51,7 +52,7 @@ if ($persone && is_array($persone) && count($persone) > 0) { ?>
               </p>
               <div class="card-text">
                 <div class="richtext-wrapper lora">
-                  <?php echo $incarico; ?>
+                  <?php echo $descrizione; ?>
                 </div>
               </div>
             </div>    

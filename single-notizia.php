@@ -335,7 +335,9 @@ get_header();
                                 <?php if(is_array($persone) && count($persone)) { ?>     
                                     <article class="it-page-section anchor-offset mt-5">
                                     <h4 id="idpersone">Persone</h4>
-                                    <?php get_template_part("template-parts/single/persone"); ?>
+                                    <div class="row">
+                                        <?php get_template_part("template-parts/single/persone"); ?>
+                                    </div>
                                    </article>
                                 <?php } ?>
                     

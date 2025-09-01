@@ -185,7 +185,9 @@ get_header();
               <?php if(is_array($persone) && count($persone)) {?>
               <div class="pt-3 mb-4">
                 <h3 class="h4">Parteciperanno</h3>
-                <?php get_template_part("template-parts/single/persone"); ?>
+                <div class="row">
+                    <?php get_template_part("template-parts/single/persone"); ?>
+                </div>
               </div>
               <?php  } ?>
              

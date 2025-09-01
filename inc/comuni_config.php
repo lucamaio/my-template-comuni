@@ -91,6 +91,7 @@ function dci_get_tassonomie_names(){
         'categorie_servizio',
         'tipi_evento',
         'tipi_notizia',
+        'tipi_galleria',
         'tipi_progetto',
         'tipi_commissario',
         'tipi_luogo',
@@ -106,7 +107,8 @@ function dci_get_tassonomie_names(){
         'tipi_incarico',
         'stati_pratica',
         'tipi_documento',
-        'tipi_cat_amm_trasp'
+        'tipi_cat_amm_trasp',
+        
     );
     return $tassonomie;
 }

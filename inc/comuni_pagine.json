@@ -136,6 +136,13 @@
         }        
       }
     },
+    "Galleria": {
+          "title": "Galleria",
+          "slug": "galleria",
+          "description": "Esplora l'ente.",
+          "template_name": "galleria",
+          "children": {}
+        },
     "Argomenti": {
       "title": "Argomenti",
       "slug": "argomenti",

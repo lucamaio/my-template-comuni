@@ -425,6 +425,17 @@ if(!function_exists("dci_tipi_progetto_array")){
     }
 }
 
+if(!function_exists("dci_tipi_galleria_array")){
+    function dci_tipi_galleria_array() {
+        $tipi_galleria_arr = [
+            'Fotografica',
+            'Video-Gallery'
+        ];
+        return $tipi_galleria_arr;
+    }
+}
+
+
 if(!function_exists("dci_tipi_commissario")){
     function dci_tipi_commissario_array() {
         $tipi_commissario_arr = [
@@ -441,9 +452,6 @@ if(!function_exists("dci_tipi_commissario")){
         return $tipi_commissario_arr;
     }
 }
-
-
-
 
 
 /**

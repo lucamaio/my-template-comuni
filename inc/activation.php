@@ -112,6 +112,12 @@ function insertCustomTaxonomyTerms() {
     $tipi_notizia_array = dci_tipi_notizia_array();
     recursionInsertTaxonomy($tipi_notizia_array, 'tipi_notizia');
 
+      /**
+     * Tipi di Galleria
+     */
+    $tipi_galleria_array = dci_tipi_galleria_array();
+    recursionInsertTaxonomy($tipi_galleria_array, 'tipi_galleria');
+
 
      /**
      * Tipi di progetto

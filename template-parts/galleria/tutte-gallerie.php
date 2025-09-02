@@ -11,8 +11,8 @@ $args = array(
 );
 $the_query = new WP_Query($args);
 $posts = $the_query->posts;
-// var_dump($posts);
 ?>
+
 <div class="bg-grey-dsk">
     <div class="gallery-container mb-3">
         <br><br>
@@ -141,12 +141,28 @@ $posts = $the_query->posts;
     }
 
     .gallery-title {
-        transition-delay: 0.1s;
+        transition-delay: 0.05s;
     }
 
     .gallery-description {
-        transition-delay: 0.2s;
+        transition-delay: 0.1s;
     }
+    
+   .gallery-type {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: #e63946;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
 
     @media (max-width: 768px) {
         .gallery-grid {

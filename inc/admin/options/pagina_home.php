@@ -41,6 +41,7 @@ function dci_register_pagina_home_options(){
         'desc' => __( 'Configurazione sezione Schede in Evidenza.' , 'design_comuni_italia' ),
         'type' => 'title',
     ) );
+
     $home_options->add_field( array(
             'name' => __('<h5>Selezione notizia in evidenza</h5>', 'design_comuni_italia'),
             'desc' => __('Seleziona una notizia da mostrare in homepage ', 'design_comuni_italia'),
@@ -60,9 +61,6 @@ function dci_register_pagina_home_options(){
             ),
         )
     );
-
-
-
 
 
 $home_options->add_field( array(
@@ -280,8 +278,5 @@ for ($i = 1; $i <= $num_argomenti; $i++) {
             'false' => __('No', 'design_comuni_italia'),
         ),
     ));
-
-
-    
 
 }

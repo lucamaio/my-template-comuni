@@ -27,9 +27,13 @@ if ($post_id) {
 }
 
 $schede = [];
-for ($i = 1; $i <= 12; $i++) {
-    $schede[] = dci_get_option("schede_evidenziate_$i", 'homepage', true)[0] ?? null;
+
+if($notizie_automatiche ==='false'){
+    for ($i = 1; $i <= 12; $i++) {
+        $schede[] = dci_get_option("schede_evidenziate_$i", 'homepage', true)[0] ?? null;
+    }
 }
+
 $visualizza_pulsante=false; // Aggiungo questa variabile per verificare se devo visualizzare il pulsante 'Tutte le novità'
 ?>
 

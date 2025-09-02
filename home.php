@@ -44,14 +44,20 @@ get_header();
                 get_template_part("template-parts/home/accesso-rapido"); 
             ?>
         </section>
+        
 		<?php 
 		    // Controlla se mostrare la galleria
-                     $mostra_gallery = dci_get_option('mostra_gallery', 'galleria');
-                     if ($mostra_gallery) {
-		?>  
-		<?php get_template_part("template-parts/vivere-comune/galleria-foto"); ?>
-		<?php 
-		    } // Fine controllo se mostrare la galleria 
+            $mostra_gallery = dci_get_option('mostra_gallery', 'galleria');
+            if ($mostra_gallery) {
+                $stile_galleria = dci_get_option('stile_galleria','galleria') ?: null;
+                if($stile_galleria === "solo-foto" || $stile_galleria ==="Solo foto"){
+                     // Vecchia Galleria fotografica
+                    get_template_part("template-parts/vivere-comune/galleria-foto");
+                }else if($stile_galleria === "foto-gallery" || $stile_galleria ==="foto-gallery"){
+                    // Nuova galleria
+                    get_template_part("template-parts/galleria/home-gallery");
+                }
+		    }
 		?>
 
 

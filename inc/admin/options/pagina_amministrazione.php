@@ -51,11 +51,10 @@ function dci_register_pagina_amministrazione_options(){
                 ), // override the get_posts args
             ),
             'attributes' => array(
-                'data-max-items' => 3, //change the value here to how many posts may be attached.
+                'data-max-items' => 9, //change the value here to how many posts may be attached.
             ),
         )
     );
-
     
         $amministrazione_options->add_field(array(
             'id'      => $prefix . 'ck_dataset',

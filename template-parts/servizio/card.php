@@ -50,6 +50,13 @@ if($servizio->post_status == "publish") {
                         $stato_attivo = ($oggi >= $startDate && $oggi <= $endDate);
                     }
 
+
+                    // Verifico lo stato del pulsante generale, se è false lo segnalo 
+                    $checkbox_stato = get_post_meta($servizio->ID, '_dci_servizio_stato', true);
+                       if ($checkbox_stato == 'false') {
+                            $stato_attivo = false;
+                       }
+
                     // Mostra badge di stato
                     echo '<div class="mt-2">';  // Maggiore margine per separarlo dal resto
                     echo '<span class="badge ' . ($stato_attivo ? 'bg-success' : 'bg-danger') . ' text-white">';

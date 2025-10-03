@@ -455,3 +455,4 @@ class dci_bidirectional_cmb2 {
 		}
 	}
 }
+

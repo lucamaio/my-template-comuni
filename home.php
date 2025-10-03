@@ -6,7 +6,23 @@
  *
  * @package Design_Comuni_Italia
  */
+	
+//Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.
+$portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");
+
+
+if ($portalesoloperusoesterno==='true') {
+    wp_redirect(dci_get_option("url_homesoloesterno"));
+    exit;
+}
+
+
+
+
+
 get_header();
+
+
 ?>
 	    
        <main id="main-container" class="main-container redbrown">
@@ -30,13 +46,21 @@ get_header();
 	    <p></p>
             <?php get_template_part("template-parts/home/notizie"); ?>
             <?php get_template_part("template-parts/home/calendario"); ?>
+
         </section>
+
+
+		   
         <section id="evidenza" class="evidence-section">
             <div class="section py-5 pb-lg-80 px-lg-5 position-relative">
                 <?php get_template_part("template-parts/home/argomenti"); ?>
+		        <?php get_template_part("template-parts/servizio/evidenza"); ?>
                 <?php get_template_part("template-parts/home/siti","tematici"); ?>
             </div>
         </section>
+		   
+      
+		   
         <section id="accesso-rapido" class="quick-access-section">
 
             <?php 
@@ -84,3 +108,63 @@ get_footer();
         object-position: center;
     }
 </style> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

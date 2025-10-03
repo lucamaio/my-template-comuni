@@ -55,8 +55,19 @@ get_header();
                         <?php info();?>
 			<?php get_template_part("template-parts/progetti/categorie"); ?>
 			<?php get_template_part("template-parts/progetti/tutti"); ?>
-			<?php get_template_part("template-parts/common/valuta-servizio"); ?>
-			<?php get_template_part("template-parts/common/assistenza-contatti"); ?>
+
+		           <?php 
+			//Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.
+			$portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");
+
+			if ($portalesoloperusoesterno !== 'true') {				
+			
+			            get_template_part("template-parts/common/valuta-servizio");
+			            get_template_part("template-parts/common/assistenza-contatti");
+			 } ?>
+
+		
+
 		<?php 
 			endwhile; // End of the loop.
 		?>
@@ -64,3 +75,5 @@ get_header();
 
 <?php
 get_footer();
+
+

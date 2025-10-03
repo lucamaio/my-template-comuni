@@ -465,6 +465,31 @@ class Breadcrumb_Trail {
 					   return;
 				   }      
 
+
+			    	   if (get_post_type() == 'titolare_incarico') {					
+	                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
+					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/consulenti-e-collaboratori/'>" . __("Consulenti e collaboratori", "design_comuni_italia") . "</a>";					   
+					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/titolari-di-incarichi-di-collaborazione-o-consulenza/'>" . __("Titolari di incarichi di collaborazione o consulenza", "design_comuni_italia") . "</a>";	
+					
+	        
+					   
+					   // Recupera il titolo della pagina e troncalo a 35 caratteri
+					    $title = get_the_title();
+					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					    if (strlen($title) > 35) {
+					        $title = substr($title, 0, 35) . '...';
+					    }
+					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					    if (preg_match('/[A-Z]{5,}/', $title)) {
+					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+					        $title = ucfirst(strtolower($title));
+					    }
+					    // Aggiunge il titolo alla lista degli elementi
+					    $this->items[] = $title;
+					   return;
+				   }     
+
+				
 		    
 				if (get_post_type() == 'progetto') {					
 			          
@@ -497,8 +522,8 @@ class Breadcrumb_Trail {
 		    
 
 				   if (get_post_type() == 'elemento_trasparenza') {
-					    $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
-					
+					   $this->items[] = "<a href='" . esc_url(home_url('index.php/amministrazione-trasparente') ) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
+					   
 					    // Recupera i termini associati al post nella tassonomia 'tipi_cat_amm_trasp'
 					    $terms = get_the_terms(get_the_ID(), 'tipi_cat_amm_trasp');
 					    if ($terms) {
@@ -956,8 +981,8 @@ class Breadcrumb_Trail {
                     }
 		
   		  else if (is_tax(array("tipi_cat_amm_trasp"))){
-			    $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
 			
+			    $this->items[] = "<a href='" . esc_url(home_url('index.php/amministrazione-trasparente') ) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
 			    $term = get_queried_object();
 			    if ($term instanceof WP_Term) {
 			        $ancestors = get_ancestors($term->term_id, $term->taxonomy);
@@ -979,7 +1004,7 @@ class Breadcrumb_Trail {
 			    
                     else if (is_tax(array("elemento_trasparenza"))){
 			//$this->items[] =  "<a href='".home_url("amministrazione")."'>".__("Amministrazione", "design_comuni_italia")."</a>";
-                        $this->items[] =  "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
+                          $this->items[] = "<a href='" . esc_url(home_url('index.php/amministrazione-trasparente') ) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
                         $term_name = single_term_title( '', false );
                         $this->items[] = __(dci_get_breadcrumb_label($term_name), "design_comuni_italia");
 		

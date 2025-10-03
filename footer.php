@@ -216,28 +216,31 @@
 						<?php } ?>
 
 			    
-				                    <?php
-						     /**
-	                                             Se trovo più di 3 caratteri nel modulo Footer/Mappa del sito richiamo quel link, altrimenti indirizzo al link del plugin XML Sitemap Generator for Google
-						      */
-	                                             ?>	
+				          <?php
 
-						     <?php if (strlen(dci_get_option("sitemap",'footer')) > 3) { 
-				                      ?>
-				                         <a target="_blank" href="<?php echo dci_get_option("sitemap",'footer'); ?>">Mappa del sito</a>				
-						      <?php } 
-			                                else 
-			                              { ?>			    
-						         <a href="/page-sitemap">Mappa del sito</a>
-                                                      <?php } ?>
-		    
-						<a href="<?php echo dci_get_option("servizi",'header'); ?>/index.php/servizi">Servizi</a>
-			          
+								//Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.
+								$portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");
+
+							
+							if ($portalesoloperusoesterno !== 'true') :
+							    $custom_sitemap_url = dci_get_option("sitemap", 'footer');
+							    $has_custom_sitemap = strlen(trim($custom_sitemap_url)) > 3;
+							    ?>
+							    
+							    <a target="_blank" href="<?php echo esc_url($has_custom_sitemap ? $custom_sitemap_url : home_url('/page-sitemap')); ?>">
+							        Mappa del sito
+							    </a>
+							
+							    <a href="<?php echo esc_url(site_url('/servizi')); ?>">Servizi</a>
+							
+							<?php endif; ?>
+
+						
 						<a id="area_personale_admin" href="<?php echo get_admin_url(); ?>">Area Riservata</a>
 								                      
 				
 
-			  <ul class="it-footer-small-prints-list list-inline mb-0 d-flex flex-column flex-md-row" style="float: right;">
+			         <ul class="it-footer-small-prints-list list-inline mb-0 d-flex flex-column flex-md-row" style="float: right;">
 	                            <li class="list-inline-item d-flex">
 	                                <small>  © <?php echo dci_get_option("nome_comune"); ?>                                        
 					 <?php

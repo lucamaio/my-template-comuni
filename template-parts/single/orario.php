@@ -44,7 +44,7 @@ if (!empty($orario_id)) :
                     </span>
                 <?php endif; ?>
                 <?php if ($data_fine): ?>
-                    <span class="badge   rounded-pill d-flex align-items-center">
+                    <span class="badge bg-warning rounded-pill d-flex align-items-center">
                         <i class="bi bi-calendar2-x me-1"></i> Fine: <?php echo $data_fine; ?>
                     </span>
                 <?php endif; ?>
@@ -94,3 +94,4 @@ if (!empty($orario_id)) :
     endif; 
 endif; 
 ?>
+

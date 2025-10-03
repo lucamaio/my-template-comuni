@@ -6,12 +6,7 @@
 add_action('init', 'dci_register_post_type_titolare_incarico');
 function dci_register_post_type_titolare_incarico()
 {
-    // Verifica se l'opzione è attiva
-    $show_in_menu = ((current_user_can('gestione_permessi_trasparenza')) && 
-            dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") === 'false' 
-        && dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") === '') 
-        ? 'edit.php?post_type=elemento_trasparenza' 
-        : false;
+
 
     $labels = array(
         'name'               => _x('Titolari di incarichi di collaborazione o consulenza', 'Post Type General Name', 'design_comuni_italia'),
@@ -28,7 +23,7 @@ function dci_register_post_type_titolare_incarico()
         'supports'            => array('title', 'author'),
         'hierarchical'        => true,
         'public'              => true,
-        'show_in_menu' => $show_in_menu,
+        'show_in_menu'        => false,
         'menu_icon'           => 'dashicons-media-interactive',
         'has_archive'         => false,
         // 'rewrite'             => array('slug' => 'titolari_incarico', 'with_front' => false),
@@ -91,6 +86,94 @@ add_action('admin_init', function() {
         }
     }
 });
+
+
+
+// Aggiungi voce al menu admin con "Aggiungi nuovo" nascosta
+add_action('admin_menu', 'dci_add_titolare_incarico_submenu', 9);
+function dci_add_titolare_incarico_submenu() {
+
+    
+
+    if (dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") === 'false' || dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") === '') {
+        return; // Non registrare il CPT se la condizione non è soddisfatta
+    }
+
+
+    
+    $parent_slug = 'edit.php?post_type=elemento_trasparenza';
+    $menu_slug   = 'edit.php?post_type=titolare_incarico';
+
+    if ( current_user_can('edit_titolari_incarichi') ) {
+        // Lista dei titolari
+        add_submenu_page(
+            $parent_slug,
+            __('Titolari Incarichi', 'design_comuni_italia'),
+            __('Titolari Incarichi', 'design_comuni_italia'),
+            'edit_titolari_incarichi',
+            $menu_slug
+        );
+
+        // Aggiungi nuovo (necessario per permessi, poi nascosto)
+        add_submenu_page(
+            $parent_slug,
+            __('Aggiungi Nuovo Titolare', 'design_comuni_italia'),
+            __('Aggiungi Nuovo', 'design_comuni_italia'),
+            'edit_titolari_incarichi',
+            'post-new.php?post_type=titolare_incarico'
+        );
+    }
+}
+
+// Nascondere la voce "Aggiungi nuovo" dal menu
+add_action('admin_head', function() {
+
+        if (dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") === 'false' || dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") === '') {
+        return; // Non registrare il CPT se la condizione non è soddisfatta
+    }
+    
+    global $submenu;
+    $parent_slug = 'edit.php?post_type=elemento_trasparenza';
+    if (isset($submenu[$parent_slug])) {
+        foreach ($submenu[$parent_slug] as $key => $item) {
+            if ($item[2] === 'post-new.php?post_type=titolare_incarico') {
+                unset($submenu[$parent_slug][$key]);
+            }
+        }
+    }
+});
+
+
+
+// Aggiunge la voce "Aggiungi Titolare incarico" nella Admin Bar sotto "+ Nuovo"
+add_action('admin_bar_menu', 'dci_add_admin_bar_new_titolare_incarico', 999);
+function dci_add_admin_bar_new_titolare_incarico($wp_admin_bar) {
+
+    // Controlla l'opzione
+    if (dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") === 'false' 
+        || dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") === '') {
+        return; // Non aggiungere la voce
+    }
+
+    // Controlla permessi
+    if (!current_user_can('edit_titolari_incarichi')) {
+        return;
+    }
+
+    // Aggiunge la voce sotto "+ Nuovo"
+    $wp_admin_bar->add_node(array(
+        'id'     => 'new-titolare-incarico',
+        'title'  => 'Titolare incarico',
+        'href'   => admin_url('post-new.php?post_type=titolare_incarico'),
+        'parent' => 'new-content'
+    ));
+}
+
+
+
+
+
+
 
 /**
  * Messaggio informativo sotto il titolo nel backend
@@ -276,17 +359,10 @@ function dci_titolare_incarico_set_post_content($data)
 }
 
 
-// Aggiungi voce al menu admin
-add_action('admin_menu', 'dci_add_titolare_incarico_submenu');
-function dci_add_titolare_incarico_submenu() {
-    // Usa una capability esistente (gli admin la possiedono già)
-    if ( current_user_can('edit_titolari_incarichi') ) {
-        add_submenu_page(
-            'edit.php?post_type=elemento_trasparenza', // Slug del menu padre
-            __('Titolari Incarichi', 'design_comuni_italia'), // Titolo pagina
-            __('Titolari Incarichi', 'design_comuni_italia'), // Titolo nel menu
-            'edit_titolari_incarichi', // Capability richiesta
-            'edit.php?post_type=titolare_incarico' // Link diretto al CPT
-        );
-    }
-}
+
+
+
+
+
+
+

@@ -10,7 +10,7 @@
         <div class="img-responsive">
           <div class="img-wrapper">
             <!-- <?php dci_get_img($img); ?> -->
-            <img src="/wp-content/themes/design-comuni-wordpress-theme/assets/img/pnnr_sfo.png">
+            <img src="<?php echo get_template_directory_uri(); ?>/assets/img/pnnr_sfo.png">
           </div>
         </div>
       </div>

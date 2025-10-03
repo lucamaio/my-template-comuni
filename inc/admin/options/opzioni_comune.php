@@ -217,6 +217,59 @@ function dci_register_comune_options(){
         ),
     ));
 
-  
+
+    $header_options->add_field( array(
+        'id'    => $prefix . 'portalesoloperusoesterno',
+        'name'  => __('<br><br><center>Portale personalizzato per uso Esterno. <br> (Questa sezione viene visualizzata solo agli utenti Administrator.)</center>', 'design_comuni_italia'),
+        'desc'  => __('<center>Opzione per chi usa solo la nostra trasparenza e pnnr https://amministrazionetrasparente.servizipa.cloud.</center><br><br>', 'design_comuni_italia'),
+        'type'  => 'title',
+        'show_on_cb' => 'dci_show_only_admin_field',
+    ));
+
+    $header_options->add_field( array(
+        'id'      => $prefix . 'ck_portalesoloperusoesterno',
+        'name'    => __('Portale Personalizzato per uso esterno.', 'design_comuni_italia'),
+        'desc'    => __('Con questa opzione abiliti il portale solo per uso PNNR e Amminsitrazione Trasparente', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'false',
+        ),
+        'show_on_cb' => 'dci_show_only_admin_field',
+    ));
+
+    $header_options->add_field( array(
+        'id'    => $prefix . 'url_homesoloesterno',
+        'name'  => __( 'Url Home Page Personalizzato', 'design_comuni_italia' ),
+        'desc'  => __( 'Inserisci url del portale del comune in modo da indirizzare allo loro homepage.' , 'design_comuni_italia' ),
+        'type'  => 'text_url',
+        'attributes' => array(
+            'required' => 'required'
+        ),
+        'show_on_cb' => 'dci_show_only_admin_field',
+    ));
 }
+
 add_action('cmb2_admin_init', 'dci_register_comune_options');
+
+/**
+ * Callback per mostrare campo solo se l’utente è amministratore
+ *
+ * @param CMB2_Field|array $field (dipende versione)
+ * @return bool
+ */
+function dci_show_only_super_admin_field( $field ) {
+    // Ottieni l'ID dell'utente corrente
+    $user_id = get_current_user_id();
+    
+    // Controlla se l'ID dell'utente corrente è 1 (super admin)
+    if ( $user_id == 1 ) {
+        return true;
+    }
+    
+    return false;
+}

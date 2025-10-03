@@ -54,7 +54,6 @@ function dci_register_post_type_elemento_trasparenza()
 
 
 
-
 add_action('edit_form_after_title', 'dci_elemento_trasparenza_add_content_after_title');
 function dci_elemento_trasparenza_add_content_after_title($post)
 {
@@ -62,36 +61,96 @@ function dci_elemento_trasparenza_add_content_after_title($post)
         return;
     }
 
-    if ($post->post_type === 'elemento_trasparenza') {
-        echo "<span><i>Il <b>Titolo</b> è il <b>Nome dell'elemento dell'amministrazione trasparente</b>.</i></span><br><br>";
-    }
-    
-    // Titolo sopra i pulsanti
-    echo '<h2 style="margin-top: 20px; margin-bottom: 10px;">Categorie personalizzate</h2>';
-    
-    // Pulsanti con URL fittizi
+    echo "<span><i>Il <b>Titolo</b> è il <b>Nome dell'elemento dell'amministrazione trasparente</b>.</i></span><br><br>";
+
     ?>
-    <div style="margin-bottom: 15px;">
-        <a href="edit.php?post_type=incarichi_dip" class="button button" style="margin-right: 10px;">
-            Personale - <b>Incarichi dirigenziali, a qualsiasi titolo conferiti</b>
-        </a>
-        <a href="edit.php?post_type=bando" class="button button-secondary" style="margin-right: 10px;">
-            Bandi di Gara e contratti - <b>Contratti Pubblici</b>
-        </a>
-        <a href="edit.php?post_type=atto_concessione" class="button button-secondary" style="margin-right: 10px;">
-            Sovvenzioni , contributi sussidi, vantaggi economici - <b>Atti di concessione</b>
-        </a>
-        <br>
-        <a href="edit.php?post_type=titolare_incarico" class="button button-secondary" style="margin-right: 10px;">
-            Titolari di incarichi di collaborazione o consulenza
-        </a>
+    <style>
+        .dci-section-box {
+            background: #f0f6fc;
+            border-left: 4px solid #0073aa;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+            box-shadow: inset 0 -1px 0 rgba(0,0,0,0.05);
+        }
+        .dci-section-box h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 20px;
+            color: #1d2327;
+        }
+        .dci-menu-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .dci-menu-btn {
+            display: inline-block;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid #ddd;
+            color: #1d2327;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            min-width: 240px;
+        }
+        .dci-menu-btn:hover {
+            background: #fff;
+            border-color: #0073aa;
+            color: #0073aa;
+            box-shadow: 0 4px 10px rgba(0,115,170,0.15);
+        }
+        .dci-menu-btn b {
+            display: block;
+            font-weight: 700;
+            margin-top: 5px;
+            color: #0073aa;
+        }
+    </style>
+
+    <div class="dci-section-box">
+        <h2>Categorie personalizzate</h2>
+        <div class="dci-menu-container">
+
+            <?php if (dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== 'false' && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== ''): ?>
+                <a href="edit.php?post_type=incarichi_dip" class="dci-menu-btn">
+                    Personale <b>Incarichi conferiti e autorizzati</b>
+                </a>
+            <?php endif; ?>
+
+            <?php if (dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== ''): ?>
+                <a href="edit.php?post_type=bando" class="dci-menu-btn">
+                    Bandi di Gara e contratti <b>Contratti Pubblici</b>
+                </a>
+            <?php endif; ?>
+
+            <?php if (dci_get_option("ck_attidiconcessione", "Trasparenza") !== 'false' && dci_get_option("ck_attidiconcessione", "Trasparenza") !== ''): ?>
+                <a href="edit.php?post_type=atto_concessione" class="dci-menu-btn">
+                    Sovvenzioni, contributi <b>Atti di concessione</b>
+                </a>
+            <?php endif; ?>
+
+            <?php if (dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_titolariincarico", "Trasparenza") !== ''): ?>
+                <a href="edit.php?post_type=titolare_incarico" class="dci-menu-btn">
+                    Titolari di incarichi <b>Consulenze e Collaborazioni</b>
+                </a>
+            <?php endif; ?>
+
+        </div>
     </div>
     <?php
 }
 
 
+
+
+
 // Aggiungi la nuova voce di sottomenu per la pagina "Multi-Post"
-add_action('admin_menu', 'dci_add_transparency_multipost_page', 20);
+add_action('admin_menu', 'dci_add_transparency_multipost_page');
 
 function dci_add_transparency_multipost_page() {
     // Aggiungi una sottovoce sotto "Amministrazione Trasparente"
@@ -607,4 +666,14 @@ function dci_set_default_cmb2_values_for_type_2( $value, $object_id, $field_args
         $value = 'ID_DELLA_CATEGORIA_PREDEFINITA'; // Ricorda di mettere l'ID effettivo qui!
     }
     return $value;
+
 }
+
+
+
+
+
+
+
+
+

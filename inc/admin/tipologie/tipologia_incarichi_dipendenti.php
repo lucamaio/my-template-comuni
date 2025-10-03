@@ -10,13 +10,9 @@
 add_action( 'init', 'dci_register_post_type_icad' );
 function dci_register_post_type_icad() {
 
-    // Verifica se l'utente ha il permesso per vedere il menu
-    $show_in_menu = (current_user_can('gestione_permessi_trasparenza') && 
-                     dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== 'false' && 
-                     dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== '') 
-        ? 'edit.php?post_type=elemento_trasparenza' 
-        : false; // Nasconde il menu se la condizione non è soddisfatta o permessi insufficienti
 
+
+	
     $labels = array(
         'name'           => _x( 'Incarichi conferiti e autorizzati', 'Post Type General Name', 'design_comuni_italia' ),
         'singular_name'  => _x( 'Incarico conferito', 'Post Type Singular Name', 'design_comuni_italia' ),
@@ -32,7 +28,7 @@ function dci_register_post_type_icad() {
         'supports'        => array( 'title', 'author' ),
         'hierarchical'    => true,
         'public'          => true,
-        'show_in_menu'    => $show_in_menu,  // Mostra il menu solo se la condizione è soddisfatta
+        'show_in_menu'    => false, // non mostra menu principale
         'menu_icon'       => 'dashicons-media-interactive',
         'has_archive'     => false, 
         'rewrite'         => array(
@@ -60,14 +56,98 @@ function dci_register_post_type_icad() {
         'description'     => __( 'Incarichi conferiti ai dipendenti del Comune.', 'design_comuni_italia' ),
     );
 
-	
+    register_post_type( 'incarichi_dip', $args );
 
-     register_post_type( 'incarichi_dip', $args );
-
-	
     // Rimuove l'editor standard
     remove_post_type_support( 'incarichi_dip', 'editor' );
 }
+
+/* -------------------------------------------------
+   Sottomenu sotto elemento_trasparenza
+--------------------------------------------------*/
+add_action('admin_menu', 'dci_add_incarichi_dipendenti_submenu', 9);
+function dci_add_incarichi_dipendenti_submenu() {
+
+
+
+    // Controllo dell'opzione
+    if (dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") === 'false' 
+        || dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") === '') {
+        return; // Non aggiunge il menu se opzione falsa
+    }
+	
+    $parent_slug = 'edit.php?post_type=elemento_trasparenza';
+    $menu_slug   = 'edit.php?post_type=incarichi_dip';
+
+    if (current_user_can('edit_incarichi_dip')) {
+        // Lista dei post
+        add_submenu_page(
+            $parent_slug,
+            __('Incarichi conferiti e autorizzati', 'design_comuni_italia'),
+            __('Incarichi conferiti e autorizzati', 'design_comuni_italia'),
+            'edit_incarichi_dip',
+            $menu_slug
+        );
+
+        // Aggiungi nuovo (necessario per permessi) ma lo nascondiamo via CSS
+        add_submenu_page(
+            $parent_slug,
+            __('Aggiungi Nuovo Incarico', 'design_comuni_italia'),
+            __('Aggiungi Nuovo', 'design_comuni_italia'),
+            'edit_incarichi_dip',
+            'post-new.php?post_type=incarichi_dip'
+        );
+    }
+}
+
+/* -------------------------------------------------
+   Nascondere la voce "Aggiungi Nuovo" dal menu
+--------------------------------------------------*/
+add_action('admin_head', function() {
+	
+	    // Controllo dell'opzione
+    if (dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") === 'false' 
+        || dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") === '') {
+        return; // Non aggiunge il menu se opzione falsa
+    }
+	
+    global $submenu;
+    if (isset($submenu['edit.php?post_type=elemento_trasparenza'])) {
+        foreach ($submenu['edit.php?post_type=elemento_trasparenza'] as $key => $item) {
+            if ($item[2] === 'post-new.php?post_type=incarichi_dip') {
+                unset($submenu['edit.php?post_type=elemento_trasparenza'][$key]);
+            }
+        }
+    }
+});
+
+
+
+// Aggiunge la voce "Aggiungi Incarico conferito" nella Admin Bar sotto "+ Nuovo"
+add_action('admin_bar_menu', 'dci_add_admin_bar_new_incarico_dip', 999);
+function dci_add_admin_bar_new_incarico_dip($wp_admin_bar) {
+
+    // Controlla se l'opzione è false o vuota
+    if (dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") === 'false' 
+        || dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") === '') {
+        return; // Non aggiungere la voce
+    }
+
+    // Controlla se l'utente ha i permessi
+    if (!current_user_can('edit_incarichi_dip')) {
+        return;
+    }
+
+    // Aggiunge la voce sotto "+ Nuovo" (ID: new-content)
+    $wp_admin_bar->add_node(array(
+        'id'     => 'new-incarico-dip', // ID unico
+        'title'  => 'Incarico conferito',
+        'href'   => admin_url('post-new.php?post_type=incarichi_dip'),
+        'parent' => 'new-content' // Sotto "+ Nuovo"
+    ));
+}
+
+
 
 /* -------------------------------------------------
    Messaggio informativo nel backend
@@ -206,3 +286,6 @@ function dci_icad_set_post_content( $data ) {
 
 	return $data;
 }
+
+
+

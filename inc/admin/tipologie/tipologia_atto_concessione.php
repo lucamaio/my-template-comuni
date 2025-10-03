@@ -9,10 +9,6 @@ function dci_register_post_type_atto_concessione()
 
 
 
-    // Controlla se l'opzione "ck_attidiconcessione" è impostata su 'false' o vuota
-    if (dci_get_option("ck_attidiconcessione", "Trasparenza") === 'false' || dci_get_option("ck_attidiconcessione", "Trasparenza") === '') {
-        return; // Non registrare il CPT se la condizione non è soddisfatta
-    }
 
 
     
@@ -31,7 +27,7 @@ function dci_register_post_type_atto_concessione()
         'supports'            => array('title', 'author'),
         'hierarchical'        => true,
         'public'              => true,
-        'show_in_menu'        => 'edit.php?post_type=elemento_trasparenza', // <‑‑ cambio qui
+        'show_in_menu'        => False,
         'menu_icon'           => 'dashicons-media-interactive',
         'has_archive'         => false,
         //'rewrite'             => array('slug' => 'atto-concessione', 'with_front' => false),
@@ -91,6 +87,86 @@ add_action('admin_init', function() {
 });
 
 
+
+
+// Aggiungi voce al menu admin per Atti di Concessione, con "Aggiungi nuovo" nascosta
+add_action('admin_menu', 'dci_add_atto_concessione_submenu', 9);
+function dci_add_atto_concessione_submenu() {
+
+        // Controlla se l'opzione "ck_attidiconcessione" è impostata su 'false' o vuota
+    if (dci_get_option("ck_attidiconcessione", "Trasparenza") === 'false' || dci_get_option("ck_attidiconcessione", "Trasparenza") === '') {
+        return; // Non registrare il CPT se la condizione non è soddisfatta
+    }
+
+    
+    $parent_slug = 'edit.php?post_type=elemento_trasparenza';
+    $menu_slug   = 'edit.php?post_type=atto_concessione';
+
+    if ( current_user_can('edit_atti_concessione') ) {
+        // Lista degli atti
+        add_submenu_page(
+            $parent_slug,
+            __('Atti di Concessione', 'design_comuni_italia'),
+            __('Atti di Concessione', 'design_comuni_italia'),
+            'edit_atti_concessione',
+            $menu_slug
+        );
+
+        // Aggiungi nuovo (necessario per permessi, poi nascosto)
+        add_submenu_page(
+            $parent_slug,
+            __('Aggiungi Nuovo Atto', 'design_comuni_italia'),
+            __('Aggiungi Nuovo', 'design_comuni_italia'),
+            'edit_atti_concessione',
+            'post-new.php?post_type=atto_concessione'
+        );
+    }
+}
+
+// Nascondere la voce "Aggiungi nuovo" dal menu
+add_action('admin_head', function() {
+        // Controlla se l'opzione "ck_attidiconcessione" è impostata su 'false' o vuota
+    if (dci_get_option("ck_attidiconcessione", "Trasparenza") === 'false' || dci_get_option("ck_attidiconcessione", "Trasparenza") === '') {
+        return; // Non registrare il CPT se la condizione non è soddisfatta
+    }
+
+    global $submenu;
+    $parent_slug = 'edit.php?post_type=elemento_trasparenza';
+    if (isset($submenu[$parent_slug])) {
+        foreach ($submenu[$parent_slug] as $key => $item) {
+            if ($item[2] === 'post-new.php?post_type=atto_concessione') {
+                unset($submenu[$parent_slug][$key]);
+            }
+        }
+    }
+});
+
+
+
+
+
+// Aggiunge la voce "Aggiungi Atto di Concessione" nella Admin Bar
+add_action('admin_bar_menu', 'dci_add_admin_bar_new_atto_concessione', 999);
+function dci_add_admin_bar_new_atto_concessione($wp_admin_bar) {
+
+    // Controlla se l'opzione è false o vuota
+    if (dci_get_option("ck_attidiconcessione", "Trasparenza") === 'false' || dci_get_option("ck_attidiconcessione", "Trasparenza") === '') {
+        return; // Non aggiungere la voce
+    }
+
+    // Controlla se l'utente ha i permessi
+    if (!current_user_can('edit_atti_concessione')) {
+        return; // Non aggiungere la voce
+    }
+
+    // Aggiunge la voce sotto il menu "Nuovo" (ID: new-content)
+    $wp_admin_bar->add_node(array(
+        'id'     => 'new-atto_concessione', // ID unico
+        'title'  => 'Atto di Concessione',
+        'href'   => admin_url('post-new.php?post_type=atto_concessione'),
+        'parent' => 'new-content' // Sotto "+ Nuovo"
+    ));
+}
 
 
 
@@ -244,3 +320,6 @@ function dci_atto_concessione_set_post_content($data)
 
     return $data;
 }
+
+
+

@@ -412,3 +412,6 @@ function dci_edit_permission_check() {
 
 }
 add_filter( 'admin_head', 'dci_edit_permission_check', 1, 4 );
+
+
+

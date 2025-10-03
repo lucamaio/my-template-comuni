@@ -43,24 +43,32 @@ while ( have_posts() ) :
     $total_items = count($all_items);
     $paged_items = array_slice($all_items, $offset, $per_page);
 ?>
+<div class="container" id="main-container">
+                <div class="row">
+                    <div class="col px-lg-4">
+                        <?php get_template_part("template-parts/common/breadcrumb"); ?>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8 px-lg-4 py-lg-2">
+                        <h1><?php the_title(); ?></h1>
+                        <h3 class="visually-hidden">Dettagli galleria</h3>
+                        <p>
+                            <?= esc_html($descrizione);?>
+                        </p>
+                    </div>
+                    <div class="col-lg-3 offset-lg-1">
+                        <?php
+                        $inline = true;
+                        get_template_part('template-parts/single/actions');
+                        ?>
+                    </div>
+                </div>
+</div>
+
 
 <main class="gallery-page">
-    <div class="container" id="main-container">
-        <div class="row">
-            <div class="col px-lg-4">
-                <?php get_template_part("template-parts/common/breadcrumb"); ?>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-8 px-lg-4 py-lg-2">
-                <h1 data-audio><?php the_title(); ?></h1>
-                <h2 class="visually-hidden" data-audio>Dettagli galleria</h2>
-                <span>
-                    <?= esc_html($descrizione);?>
-                </span>
-            </div>
-        </div>
-    </div>
+  
     <br>
     <div class="container mb-5">
         <div class="gallery-grid">

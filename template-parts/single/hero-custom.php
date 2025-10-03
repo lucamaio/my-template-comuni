@@ -8,9 +8,8 @@
 <div class="it-hero-wrapper it-wrapped-container" id="main-container" style="margin-bottom:100px">
     <div class="img-responsive-wrapper">
         <div class="img-responsive">
-          <div class="img-wrapper">
-            <!-- <?php dci_get_img($img); ?> -->
-            <img src="/wp-content/themes/design-comuni-wordpress-theme/assets/img/pnnr_sfo.png">
+          <div class="img-wrapper">         
+            <img src="<?php echo get_template_directory_uri(); ?>/assets/img/pnnr_sfo.png">
           </div>
         </div>
       </div>
@@ -49,4 +48,5 @@
         </div> 
     </div> 
 </div>
+
 

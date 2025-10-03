@@ -9,8 +9,12 @@ $servizi_evidenza = dci_get_option('servizi_evidenziati', 'servizi');
     <div class="row">
         <?php if (is_array($servizi_evidenza) && count($servizi_evidenza) > 0) { ?>
             <div class="col-12">
+                    <div class="row"> 
+                        <h2 class="text-black title-xlarge mb-3">Servizi in evidenza</h2> 
+                    </div>
+               
                 <div class="card shadow-sm px-4 pt-4 pb-4 rounded border border-light">
-                    <h3 class="title-large mb-4">Servizi in evidenza</h3>
+                    <h3 class="title-large mb-4"></h3>
                     <table class="table table-striped table-hover table-soft">
                         <thead>
                             <tr>
@@ -34,12 +38,23 @@ $servizi_evidenza = dci_get_option('servizi_evidenziati', 'servizi');
                                 $endDate = $data_fine_servizio ? DateTime::createFromFormat('d/m/Y', $data_fine_servizio) : null;
                                 $oggi = new DateTime();
 
+
+
+
+    
                                 // Valutazione stato
                                 $stato_attivo = true;
                                 if ($startDate && $endDate && $startDate < $endDate) {
                                     $stato_attivo = ($oggi >= $startDate && $oggi <= $endDate);
                                 }
 
+
+                                // Verifico lo stato del pulsante generale, se è false lo segnalo 
+                                 $checkbox_stato = get_post_meta($post->ID, '_dci_servizio_stato', true);
+                                if ($checkbox_stato == 'false') {
+                                    $stato_attivo = false;
+                                }
+    
                                 // Recupero le categorie del servizio
                                 $categorie = get_the_terms($post->ID, 'categorie_servizio');
                                 $categoria = is_array($categorie) ? implode(", ", array_map(function($cat) {

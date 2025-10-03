@@ -127,6 +127,17 @@ function dci_add_persona_pubblica_metaboxes()
     if ($modifica_UO !== 'true') {
         $attributes['disabled'] = 'disabled';
     }
+
+     $check_contenuti = dci_get_option('ck_collegamenti_contenuti');
+    if($check_contenuti === 'true' || $check_contenuti === true){
+       $attributes['disabled'] = 'disabled';
+        
+    } else{
+       unset($attributes['disabled']);
+    }
+
+
+    
     $cmb_competenze->add_field(array(
         'id'       => $prefix . 'organizzazioni',
         'name'     => __('Organizzazione', 'design_comuni_italia'),
@@ -329,3 +340,5 @@ function dci_persona_pubblica_set_post_title($data)
     return $data;
 }
 add_filter('wp_insert_post_data', 'dci_persona_pubblica_set_post_title', '99', 1);
+
+

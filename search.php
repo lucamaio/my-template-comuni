@@ -8,6 +8,34 @@
  */
 global $load_card_type;
 
+
+
+
+//Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.
+$portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");
+
+if ($portalesoloperusoesterno==='true') {
+
+    // Se siamo sulla pagina di ricerca (quindi c'è un parametro ?s=...)
+    if ( isset($_GET['s']) && !is_admin() ) {
+
+        // Recupera il termine di ricerca
+        $search_query = trim($_GET['s']);
+
+        // Costruisci l’URL pulito
+        $redirect_url = dci_get_option("url_homesoloesterno");
+
+        // Aggiungi il parametro di ricerca all’URL
+        $redirect_url = trailingslashit($redirect_url) . '?s=' . urlencode($search_query);
+
+        // Fai il redirect
+        wp_redirect($redirect_url);
+        exit;
+    }
+}
+
+
+
 get_header();
 ?>
     <main>

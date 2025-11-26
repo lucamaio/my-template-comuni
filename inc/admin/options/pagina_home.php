@@ -41,26 +41,27 @@ function dci_register_pagina_home_options(){
         'desc' => __( 'Configurazione sezione Schede in Evidenza.' , 'design_comuni_italia' ),
         'type' => 'title',
     ) );
+	
 
-    $home_options->add_field( array(
-            'name' => __('<h5>Selezione notizia in evidenza</h5>', 'design_comuni_italia'),
-            'desc' => __('Seleziona una notizia da mostrare in homepage ', 'design_comuni_italia'),
-            'id' => $prefix . 'notizia_evidenziata',
-            'type'    => 'custom_attached_posts',
-            'column'  => true, // Output in the admin post-listing as a custom column. https://github.com/CMB2/CMB2/wiki/Field-Parameters#column
-            'options' => array(
-                'show_thumbnails' => false, // Show thumbnails on the left
-                'filter_boxes'    => true, // Show a text box for filtering the results
-                'query_args'      => array(
-                    'posts_per_page' => -1,
-                    'post_type'      => array('notizia'),
-                ), // override the get_posts args
-            ),
-            'attributes' => array(
-                'data-max-items' => 5, //change the value here to how many posts may be attached.
-            ),
-        )
-    );
+	$home_options->add_field( array(
+	    'name' => __('<h5>Selezione notizia in evidenza</h5>', 'design_comuni_italia'),
+	    'desc' => __('Seleziona una notizia da mostrare in homepage ', 'design_comuni_italia'),
+	    'id' => $prefix . 'notizia_evidenziata',
+	    'type'    => 'custom_attached_posts',
+	    'column'  => true,
+	    'options' => array(
+	        'show_thumbnails' => false,
+	        'filter_boxes'    => true,
+	        'query_args'      => array(
+	            'posts_per_page' => -1,
+	            'post_type'      => array('notizia', 'commissario'),
+	        ),
+	    ),
+	    'attributes' => array(
+	        'data-max-items' => 5,
+	    ),
+	));
+
 
 
 $home_options->add_field( array(
@@ -119,7 +120,7 @@ $home_options->add_field( array(
                 'closed'        => !$is_active, // Chiudi il gruppo se non c'è contenuto attivo
             )
         ));      
-        
+    
         $home_options->add_group_field($schede_group_id, array(
             'name'       => __('<h5>Selezione contenuto</h5>', 'design_comuni_italia'),
             'desc'       => __('Seleziona il contenuto da mostrare nella Scheda.', 'design_comuni_italia'),
@@ -131,7 +132,7 @@ $home_options->add_field( array(
                 'filter_boxes'    => true, // Show a text box for filtering the results
                 'query_args'      => array(
                     'posts_per_page' => -1,
-                    'post_type'      => array('evento', 'luogo', 'unita_organizzativa', 'documento_pubblico', 'servizio', 'notizia', 'dataset'),
+                    'post_type'      => array('evento', 'luogo', 'unita_organizzativa', 'documento_pubblico', 'servizio', 'notizia', 'dataset', 'commissario'),
                 ), // override the get_posts args
             ),
             'attributes' => array(
@@ -279,4 +280,7 @@ for ($i = 1; $i <= $num_argomenti; $i++) {
         ),
     ));
 
+
 }
+
+

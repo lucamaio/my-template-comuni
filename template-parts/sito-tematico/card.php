@@ -10,9 +10,11 @@ $st_img = dci_get_meta('immagine',$prefix, $sito_tematico->ID);
 
 $colore_sfondo = dci_get_meta('colore',$prefix, $sito_tematico->ID) ?: false;
 $sfondo_scuro = $colore_sfondo ? is_this_dark_hex($colore_sfondo) : true;
-?>
 
-<a href="<?php echo $st_link ?>" style="<?= ($colore_sfondo) ? 'background-color:'.$colore_sfondo : '' ?>" class="card card-teaser <?= $colore_sfondo ? '' : 'bg-primary' ?> rounded mt-0 p-3 shadow-sm border border-light sito-tematico-card" target="_blank">
+$mostra_pagina = get_post_meta($sito_tematico->ID, $prefix . 'mostra_pagina', true);
+$link_pagina = ((!empty($mostra_pagina) && $mostra_pagina) || empty($st_link)) ? get_permalink($sito_tematico->ID) : $st_link;
+?>
+<a href="<?php echo $link_pagina ?>" style="<?= ($colore_sfondo) ? 'background-color:'.$colore_sfondo : '' ?>" class="card card-teaser <?= $colore_sfondo ? '' : 'bg-primary' ?> rounded mt-0 p-3 shadow-sm border border-light sito-tematico-card" target="_blank">
     <?php if($st_img) { ?>
         <div class="avatar size-lg me-3">
             <?php dci_get_img($st_img); ?>

@@ -10,9 +10,12 @@ $st_img = dci_get_meta('immagine',$prefix, $sito_tematico->ID);
 
 $colore_sfondo = dci_get_meta('colore',$prefix, $sito_tematico->ID) ?: false;
 $sfondo_scuro = $colore_sfondo ? is_this_dark_hex($colore_sfondo) : false;
+
+$mostra_pagina = get_post_meta($sito_tematico->ID, $prefix . 'mostra_pagina', true);
+$link_pagina = ((!empty($mostra_pagina) && $mostra_pagina) || empty($st_link)) ? get_permalink($sito_tematico->ID) : $st_link;
 ?>
 
-<a href="<?php echo $st_link ?>" 
+<a href="<?php echo $link_pagina ?>" 
    style="<?= ($colore_sfondo) ? 'background-color:'.$colore_sfondo : 'background-color:#f7f7f7;' ?>; border-radius: 1px;" 
    class="card card-teaser sito-tematico-page mt-0 p-2 shadow-sm" 
    target="_blank">

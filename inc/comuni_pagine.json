@@ -184,6 +184,13 @@
           "description": "Sezione istituzionale che raccoglie e rende pubblici i dati, le informazioni e i documenti relativi all’organizzazione e all’attività dell’Ente, in ottemperanza agli obblighi di trasparenza previsti dalla normativa vigente. L’obiettivo è garantire l’accessibilità totale alle informazioni di pubblico interesse, promuovendo la legalità, la prevenzione della corruzione e il controllo diffuso da parte dei cittadini.",
           "template_name": "amministrazione-trasparente",
           "children": {}
+        },
+      "Elenco Consigli Comunali": {
+          "title": "Elenco Consigli Comunali",
+          "slug": "elenco-consigli-comunali",
+          "description": "Sezione dedicata all'elenco dei consigli comunali tenutisi nell'ente, con informazioni dettagliate su ciascuna seduta, inclusi i partecipanti, gli argomenti trattati e le decisioni prese.",
+          "template_name": "consiglio",
+          "children": {}
         }
 
   }

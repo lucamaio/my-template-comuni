@@ -20,7 +20,7 @@ else if($obj->taxonomy == "argomenti"){
 	get_template_part( "taxonomy-tipi_commissario" );
 }else if($obj->post_type=="tipi_cat_amm_trasp" ||  $obj->taxonomy == "tipi_cat_amm_trasp"){
 	get_template_part( "taxonomy-categorie_trasparenza" );
-}else if(f($obj->post_type=="tipi_galleria" ||  $obj->taxonomy == "tipi_galleria")){
+}else if($obj->post_type=="tipi_galleria" ||  $obj->taxonomy == "tipi_galleria"){
 	get_template_part( "taxonomy-tipi_galleria" );
 }
 else{

@@ -250,6 +250,23 @@ function dci_register_comune_options(){
             'show_on_cb' => 'dci_show_only_super_admin_field', // Usa la funzione per mostrare il campo solo al super admin
         ));
 
+    $header_options->add_field( array(
+        'id'      => $prefix . 'ck_portaleElencoConsigliComunali',
+        'name'    => __('Portale Elenco Consigli Comunali', 'design_comuni_italia'),
+        'desc'    => __('Abilitando questa opzione rendi accessibile la sezione dedicata all\'elenco dei Consigli Comunali. Per attivare tutte le funzionalità correlate è necessario assicurarsi che le autorizzazioni richieste dal plugin siano abilitate.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'false',
+        ),
+        'show_on_cb' => 'dci_show_only_admin_field',
+    ));
+
+
 }
 
 add_action('cmb2_admin_init', 'dci_register_comune_options');

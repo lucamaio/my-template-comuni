@@ -79,6 +79,9 @@ $base_url = add_query_arg([
 
 <div class="bg-grey-card py-5">
     <div class="container">
+        <h2 class="title-xxlarge mb-4">
+                Esplora tutti i Consigli Comunali
+        </h2>
         <!-- Form di ricerca e filtri -->
         <form method="get" class="mb-3 filter-form" role="search" aria-label="Filtri per ricerca">
             <div class="form-row d-flex align-items-center justify-content-center gap-2 flex-wrap">
@@ -114,7 +117,7 @@ $base_url = add_query_arg([
 
                 <label for="max-posts" class="form-label mb-0 me-2">Elementi per pagina:</label>
                 <select id="max-posts" name="max_posts" class="form-select w-auto me-3" aria-label="Seleziona numero di elementi per pagina">
-                    <?php foreach ([3,6,9,12,18,21,30,60] as $num) : ?>
+                    <?php foreach ([3,6,9,12,18,30,60,90] as $num) : ?>
                         <option value="<?php echo esc_attr($num); ?>" <?php selected($max_posts, $num); ?>><?php echo esc_html($num); ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -136,6 +139,9 @@ $base_url = add_query_arg([
                 </button>
             </div>
         </form>
+        <p id="autocomplete-label" class="u-grey-light text-paragraph-card mt-2 mb-30 mt-lg-3 mb-lg-40">
+            <?php echo $the_query->found_posts; ?> consigli comunali trovati in ordine di data pubblicazione.
+        </p>
 
         <div class="row g-4">
             <?php if ($the_query->have_posts()) : ?>
@@ -190,7 +196,6 @@ $base_url = add_query_arg([
 /* Sfondo grigio per la sezione */
 .bg-grey-card {
     background-color: #f8f9fa;
-    min-height: 75vh;
 }
 
 /* Form centrato, moderno e responsivo */

@@ -78,28 +78,37 @@ function dci_add_consiglio_metaboxes()
     // Data del consiglio
     $cmb_apertura->add_field(array(
         'id'           => $prefix . 'data',
-        'name'         => __('Data del Consiglio Comunale', 'design_comuni_italia'),
+        'name'         => __('Data del Consiglio Comunale *', 'design_comuni_italia'),
         'desc'         => __('Seleziona la data in cui si terrà il Consiglio Comunale.', 'design_comuni_italia'),
         'type'         => 'text_date_timestamp',
         'date_format'  => 'd-m-Y',
+        'attributes'    => array(
+            'required'    => 'required'
+        ),
     ));
 
     // Ora di inizio
     $cmb_apertura->add_field(array(
         'id'           => $prefix . 'ora_inizio',
-        'name'         => __('Ora di inizio', 'design_comuni_italia'),
+        'name'         => __('Ora di inizio *', 'design_comuni_italia'),
         'desc'         => __('Inserisci l’orario di inizio del Consiglio Comunale.', 'design_comuni_italia'),
         'type'         => 'text_time',
         'time_format'  => 'H:i',
+        'attributes'    => array(
+            'required'    => 'required'
+        ),
     ));
 
     // Ora di fine
     $cmb_apertura->add_field(array(
         'id'           => $prefix . 'ora_fine',
-        'name'         => __('Ora di fine', 'design_comuni_italia'),
+        'name'         => __('Ora di fine *', 'design_comuni_italia'),
         'desc'         => __('Inserisci l’orario previsto di conclusione del Consiglio Comunale.', 'design_comuni_italia'),
         'type'         => 'text_time',
         'time_format'  => 'H:i',
+        'attributes'    => array(
+            'required'    => 'required'
+        ),
     ));
 
 

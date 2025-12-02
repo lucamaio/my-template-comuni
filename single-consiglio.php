@@ -40,6 +40,8 @@ get_header();
     $persone = dci_get_meta("partecipanti", $prefix, $post->ID);  // Partecipanti al consiglio NB: Non cambiare il nome della variabile
     $more_info = dci_get_meta("more_info", $prefix, $post->ID);
     $link_streaming = dci_get_meta("link_streaming", $prefix, $post->ID);
+    $img = dci_get_meta("immagine", $prefix, $post->ID) ?? '';
+    $links  = dci_get_meta("url_link", $prefix, $post->ID);
 ?>
 
     <div class="container py-4" id="main-container">
@@ -66,35 +68,40 @@ get_header();
                 <!-- Data e orari con icone -->
                 <div class="row g-3 mb-0 align-items-center">
                     <!-- Data -->
-                    <div class="col-12 col-md-auto d-flex align-items-center mb-2 mb-md-0">
+                    <div class="col-12 col-md-auto d-flex align-items-center mb-2 mb-md-0 text-primary">
                         <svg class="icon me-2" aria-hidden="true">
                             <use xlink:href="#it-calendar"></use>
                         </svg>
-                        <p class="fw-semibold font-monospace mb-0">
+                        <span class="fw-semibold font-monospace small mb-0">
                             <?php echo !empty($date) ? '<time datetime="'.date('Y-m-d', strtotime($date)).'">'.esc_html($date).'</time>' : '—'; ?>
-                        </p>
+                        </span>
                     </div>
 
                     <!-- Ora inizio -->
-                    <div class="col-6 col-md-auto d-flex align-items-center">
+                    <div class="col-6 col-md-auto d-flex align-items-center text-success">
                         <svg class="icon me-2" aria-hidden="true">
                             <use xlink:href="#it-clock"></use>
                         </svg>
-                        <p class="fw-semibold mb-0">
+                        <span class="fw-semibold small mb-0">
                             <?php echo !empty($ora_inizio) ? date_i18n('H:i', strtotime($ora_inizio)) : '—'; ?>
-                        </p>
+                        </span>
                     </div>
 
                     <!-- Ora fine -->
-                    <div class="col-6 col-md-auto d-flex align-items-center">
+                    <div class="col-6 col-md-auto d-flex align-items-center text-danger">
                         <svg class="icon me-2" aria-hidden="true">
                             <use xlink:href="#it-clock"></use>
                         </svg>
-                        <p class="fw-semibold mb-0">
+                        <span class="fw-semibold small mb-0">
                             <?php echo !empty($ora_fine) ? date_i18n('H:i', strtotime($ora_fine)) : '—'; ?>
-                        </p>
+                        </span>
                     </div>
                 </div>
+                <?php if(!empty($link_streaming)) : ?>
+                    <button type="button" class="btn btn-primary fw-bold mt-3 mb-0" target="_blank" onclick="location.href='<?php echo $link_streaming; ?>';">
+                        <span>Vai alla diretta</span>
+                    </button>
+                <?php endif; ?>
 
             </div>
 
@@ -116,6 +123,27 @@ get_header();
                                     <div class="accordion">
                                         <div class="accordion-item">
                                             <span class="accordion-header" id="accordion-title-one">
+                                                <!-- Visualizza eventuale immagine se presente -->
+                                                <?php if ($img) { 
+                                                    // Estensioni consentite
+                                                    $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif','webp', 'svg'];
+
+                                                    // Ottieni l’estensione del file (in minuscolo)
+                                                    $extension = strtolower(pathinfo($img, PATHINFO_EXTENSION));
+
+                                                    // Controlla se l’estensione è consentita
+                                                    if (in_array($extension, $allowed_extensions)){
+                                                ?>
+                                                        <section class="hero-img mb-20 mb-lg-50 align-items-center">
+                                                            <center>
+                                                                <div class="img-wrapper">
+                                                                    <!-- Applica la classe CSS img-resized per ridimensionare l'immagine -->
+                                                                    <?php dci_get_img($img, 'rounded img-fluid img-responsive foto-soft-style img-resized'); ?>
+                                                                </div>
+                                                            </center>
+                                                        </section>
+                                               
+                                                <?php } } ?>
                                                 <button class="accordion-button pb-10 px-3 text-uppercase" type="button"
                                                     aria-controls="collapse-one" aria-expanded="true"
                                                     data-bs-toggle="collapse" data-bs-target="#collapse-one">
@@ -144,6 +172,10 @@ get_header();
                                                         <li class="nav-item"><a class="nav-link" href="#allegati"><span
                                                                     class="title-medium">Allegati</span></a></li>
                                                         <?php endif; ?>
+                                                         <?php if (!empty($links)) {?>
+                                                            <li class="nav-item"><a class="nav-link" href="#links">
+                                                                <span class="title-medium">Link correlati</span></a></li>
+                                                        <?php } ?>
                                                         <?php if(is_array($persone) && count($persone)) { ?>
                                                         <li class="nav-item"><a class="nav-link"
                                                                 href="#partecipanti"><span
@@ -154,10 +186,10 @@ get_header();
                                                                     class="title-medium">Ulteriori
                                                                     Informazioni</span></a></li>
                                                         <?php } ?>
-                                                        <?php if(!empty($link_streaming)) { ?>
-                                                            <li class="nav-item"><a class="nav-link" href="#link_streaming"><span
-                                                                    class="title-medium">Consiglio in Streaming</span></a></li>
-                                                        <?php } ?>
+                                                        <?php // if(!empty($link_streaming)) { ?>
+                                                            <!-- <li class="nav-item"><a class="nav-link" href="#link_streaming"><span
+                                                                    class="title-medium">Consiglio in Streaming</span></a></li> -->
+                                                        <?php //} ?>
                                                         <li class="nav-item"><a class="nav-link" href="#a-cura-di"><span
                                                                     class="title-medium">A cura di</span></a></li>
                                                     </ul>
@@ -239,6 +271,40 @@ get_header();
                     </div>
                 </article>
                 <?php endif; ?>
+                <?php if (!empty($links)) : ?>
+                <article class="it-page-section anchor-offset mb-5" id="links">
+                    <h4>Link correlati</h4>
+                    <div class="card-wrapper card-teaser-wrapper">
+                        <?php foreach ($links as $link_data) :
+                            // Se stai usando il gruppo CMB2, $link_data dovrebbe contenere 'url' e 'titolo'
+                            $link_url   = isset($link_data['url']) ? esc_url($link_data['url']) : '';
+                            $title_link = isset($link_data['titolo']) ? sanitize_text_field($link_data['titolo']) : $link_url;
+
+                            // Limita la lunghezza del titolo a 50 caratteri
+                            if (strlen($title_link) > 50) $title_link = substr($title_link, 0, 50) . '...';
+
+                            // Normalizza eventuali titoli in maiuscolo
+                            if (preg_match('/[A-Z]{5,}/', $title_link)) $title_link = ucfirst(strtolower($title_link));
+
+                            if (empty($link_url)) continue;
+                        ?>
+                        <div class="card card-teaser shadow-sm p-3 mt-3 rounded border border-light flex-nowrap">
+                            <svg class="icon" aria-hidden="true">
+                                <use xlink:href="#it-clip"></use>
+                            </svg>
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a class="text-decoration-none" href="<?php echo $link_url; ?>" target="_blank" alt="<?php echo esc_attr($title_link); ?>" rel="noopener noreferrer">
+                                        <?php echo esc_html($title_link); ?>
+                                    </a>
+                                </h5>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </article>
+                <?php endif; ?>
+
 
                 <?php if(is_array($persone) && count($persone)) { ?>
                 <article class="it-page-section anchor-offset mt-5">
@@ -259,8 +325,8 @@ get_header();
                 <?php } ?>
 
                 <!-- // link consiglio streaming -->
-                <?php if(!empty($link_streaming)) { ?>
-                <article class="it-page-section anchor-offset mt-5 mb-30">
+                <?php //if(!empty($link_streaming)) { ?>
+                <!-- <article class="it-page-section anchor-offset mt-5 mb-30">
                     <h4 id="link_streaming">Link streaming</h4>
                     <div class="card card-teaser shadow-sm p-3 mt-3 rounded border border-light flex-nowrap">
                             <svg class="icon" aria-hidden="true">
@@ -274,8 +340,8 @@ get_header();
                                 </h5>
                             </div>
                         </div>
-                </article>
-                <?php } ?>
+                </article> -->
+                <?php // } ?>
 
                 <!-- A cura di -->
                 <article class="it-page-section anchor-offset mb-5" id="a-cura-di">
@@ -301,3 +367,14 @@ get_header();
 </main>
 
 <?php get_footer(); ?>
+<style>
+    /* Stile più leggero per la foto */
+    .img-resized {
+        border: 1px solid #ddd;              /* Bordo molto leggero */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Ombra quasi impercettibile */
+        padding: 2px;
+        background-color: #fff;              /* Sfondo bianco per risalto se su sfondo grigio */
+        border-radius: 6px;                  /* Angoli leggermente arrotondati */
+    }
+    
+    </style>

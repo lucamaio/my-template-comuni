@@ -1,78 +1,86 @@
 <?php
+// Inizializzazione delle variabili globali per la query e il caricamento dei post
 global $the_query, $load_posts, $load_card_type;
 
-    $max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 12;
-    $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
-    $paged = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-    $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
+// Recupero e sanitizzazione dei parametri GET con valori di default
+$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 12; // Numero massimo di post per pagina (default 12)
+$main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : ''; // Query di ricerca sanitizzata
+$paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1; // Pagina corrente (minimo 1) - CAMBIATO DA 'page' A 'paged'
+$selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0; // Anno selezionato (0 = tutti)
+$selected_month = isset($_GET['filter_month']) ? intval($_GET['filter_month']) : 0; // Mese selezionato (0 = tutti)
 
-    // Anni disponibili basati sulla data di pubblicazione
-    $years = $wpdb->get_col("
-        SELECT DISTINCT YEAR(post_date)
-        FROM {$wpdb->posts}
-        WHERE post_type = 'consiglio'
-        AND post_status = 'publish'
-        ORDER BY post_date DESC
-    ");
+// Recupero degli anni disponibili basati sulla data di pubblicazione dei post di tipo 'consiglio' pubblicati
+$years = $wpdb->get_col($wpdb->prepare("
+    SELECT DISTINCT YEAR(post_date)
+    FROM {$wpdb->posts}
+    WHERE post_type = %s
+    AND post_status = %s
+    ORDER BY post_date DESC
+", 'consiglio', 'publish'));
 
+// Recupero dei mesi disponibili, filtrati per anno se selezionato, per ottimizzare le opzioni
+$month_query = "
+    SELECT DISTINCT MONTH(post_date)
+    FROM {$wpdb->posts}
+    WHERE post_type = %s
+    AND post_status = %s
+";
+$month_params = ['consiglio', 'publish'];
+if ($selected_year > 0) {
+    $month_query .= " AND YEAR(post_date) = %d";
+    $month_params[] = $selected_year;
+}
+$month_query .= " ORDER BY post_date DESC";
+$months = $wpdb->get_col($wpdb->prepare($month_query, ...$month_params));
 
-    $months = $wpdb->get_col("
-        SELECT DISTINCT MONTH(post_date)
-        FROM {$wpdb->posts}
-        WHERE post_type = 'consiglio'
-        AND post_status = 'publish'
-        ORDER BY post_date DESC
-    ");
-    // $months = range(1, 12);
-    $selected_month = isset($_GET['filter_month']) ? intval($_GET['filter_month']) : 0;
+// Array per mappare numeri mesi a nomi italiani (per UX migliore)
+$month_names = [
+    1 => 'Gennaio', 2 => 'Febbraio', 3 => 'Marzo', 4 => 'Aprile', 5 => 'Maggio', 6 => 'Giugno',
+    7 => 'Luglio', 8 => 'Agosto', 9 => 'Settembre', 10 => 'Ottobre', 11 => 'Novembre', 12 => 'Dicembre'
+];
 
-    // Costruzione argomenti WP_Query
-    $args = [
-        'post_type'      => 'consiglio',
-        'posts_per_page' => $max_posts,
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'paged'          => $paged,
-    ];
+// Costruzione degli argomenti per WP_Query
+$args = [
+    'post_type'      => 'consiglio', // Tipo di post personalizzato
+    'posts_per_page' => $max_posts, // Numero di post per pagina
+    'orderby'        => 'date', // Ordinamento per data
+    'order'          => 'DESC', // Ordine decrescente
+    'paged'          => $paged, // Pagina corrente per paginazione
+];
 
-    // Ordinamento per data di pubblicazione
-    if (!empty($main_search_query)) {
-        $args['s'] = $main_search_query;
-    }
+// Aggiunta della ricerca se presente
+if (!empty($main_search_query)) {
+    $args['s'] = $main_search_query;
+}
 
-    // Filtro per anno e mese basato sulla data di pubblicazione
-    if ($selected_year > 0) {
-        $args['date_query'][] = [
-            'year' => $selected_year,
-        ];
-    }
-    if ($selected_month > 0) {
-        $args['date_query'][] = [
-            'month' => $selected_month,
-        ];
-    }
+// Filtro per anno e mese basato sulla data di pubblicazione
+if ($selected_year > 0) {
+    $args['date_query'][] = ['year' => $selected_year];
+}
+if ($selected_month > 0) {
+    $args['date_query'][] = ['month' => $selected_month];
+}
 
-    $the_query = new WP_Query($args);
+// Esecuzione della query
+$the_query = new WP_Query($args);
 
-    // Prendi permalink pagina corrente (senza query string)
-    $current_url = get_permalink();
+// Recupero del permalink della pagina corrente senza query string
+$current_url = get_permalink();
 
-    // Costruiamo la base URL per paginazione mantenendo tutti i parametri
-    $base_url = add_query_arg(array(
-        'search'      => $main_search_query ? $main_search_query : '',
-        'filter_year' => $selected_year > 0 ? $selected_year : 0,
-        'filter_month'=> $selected_month > 0 ? $selected_month : 0,
-        'max_posts'   => $max_posts,
-        'page'        => '%#%',
-    ), $current_url);
-    
+// Costruzione della base URL per la paginazione, mantenendo tutti i parametri
+$base_url = add_query_arg([
+    'search'      => $main_search_query ?: '',
+    'filter_year' => $selected_year > 0 ? $selected_year : '',
+    'filter_month'=> $selected_month > 0 ? $selected_month : '',
+    'max_posts'   => $max_posts,
+    'paged'        => '%#%', // Placeholder per paginate_links - CAMBIATO DA 'page' A 'paged'
+], $current_url);
 ?>
-
 
 <div class="bg-grey-card py-5">
     <div class="container">
-        <!-- Barra di ricerca e filtri -->
-        <form method="get" class="mb-3 incarichi-filtro-form">
+        <!-- Form di ricerca e filtri -->
+        <form method="get" class="mb-3 filter-form" role="search" aria-label="Filtri per ricerca">
             <div class="form-row d-flex align-items-center justify-content-center gap-2 flex-wrap">
                 <label for="search" class="form-label mb-0 me-2">Cerca:</label>
                 <input
@@ -93,27 +101,38 @@ global $the_query, $load_posts, $load_card_type;
                         </option>
                     <?php endforeach; ?>
                 </select>
-                
+
                 <label for="filter-month" class="form-label mb-0 me-2">Mese:</label>
                 <select id="filter-month" name="filter_month" class="form-select w-auto me-3">
                     <option value="0" <?php selected($selected_month, 0); ?>>Tutti i mesi</option>
                     <?php foreach ($months as $m) : ?>
                         <option value="<?php echo esc_attr($m); ?>" <?php selected($selected_month, $m); ?>>
-                            <?php echo esc_html($m); ?>
+                            <?php echo esc_html($month_names[$m] ?? $m); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
 
                 <label for="max-posts" class="form-label mb-0 me-2">Elementi per pagina:</label>
-                <select id="max-posts" name="max_posts" class="form-select w-auto me-3">
-                    <?php foreach ([5, 10, 12, 20, 50, 100] as $num) : ?>
-                        <option value="<?php echo $num; ?>" <?php selected($max_posts, $num); ?>><?php echo $num; ?></option>
+                <select id="max-posts" name="max_posts" class="form-select w-auto me-3" aria-label="Seleziona numero di elementi per pagina">
+                    <?php foreach ([3,6,9,12,18,21,30,60] as $num) : ?>
+                        <option value="<?php echo esc_attr($num); ?>" <?php selected($max_posts, $num); ?>><?php echo esc_html($num); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="btn-row d-flex justify-content-center mt-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-search me-2"></i>Filtra
+            <!-- Pulsanti Filtra e Reset -->
+            <div class="btn-row d-flex justify-content-center mt-3 gap-2">
+                <button type="submit" class="btn btn-primary btn-filter-reset" aria-label="Applica i filtri di ricerca">
+                    <svg class="icon flex-shrink-0 me-2" aria-hidden="true" width="12" height="12" style="fill: #fff">
+                        <use xlink:href="#it-search"></use>
+                    </svg>
+                    Filtra
+                </button>
+
+                <button type="reset" class="btn btn-danger btn-filter-reset" aria-label="Resetta tutti i filtri">
+                    <svg class="icon flex-shrink-0 me-2" aria-hidden="true" width="12" height="12" style="fill: #fff">
+                        <use xlink:href="#it-delete"></use>
+                    </svg>
+                    Reset
                 </button>
             </div>
         </form>
@@ -121,18 +140,19 @@ global $the_query, $load_posts, $load_card_type;
         <div class="row g-4">
             <?php if ($the_query->have_posts()) : ?>
                 <?php while ($the_query->have_posts()) : $the_query->the_post(); ?>
-                  
-                        <?php $load_card_type = 'consiglio';
-                        get_template_part('template-parts/consigli/cards-list');
-                        ?>
-                    
+                    <?php 
+                    // Caricamento del template part per le card dei consigli
+                    $load_card_type = 'consiglio';
+                    get_template_part('template-parts/consigli/cards-list');
+                    ?>
                 <?php endwhile; ?>
                 <?php wp_reset_postdata(); ?>
 
+                <!-- Paginazione -->
                 <div class="row my-4">
-                    <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
+                    <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine risultati">
                         <?php
-                        $pagination_links = paginate_links(array(
+                        $pagination_links = paginate_links([
                             'base'      => $base_url,
                             'format'    => '',
                             'current'   => $paged,
@@ -140,8 +160,7 @@ global $the_query, $load_posts, $load_card_type;
                             'prev_text' => __('&laquo; Precedente'),
                             'next_text' => __('Successivo &raquo;'),
                             'type'      => 'array',
-                        ));
-
+                        ]);
                         if ($pagination_links) : ?>
                             <ul class="pagination justify-content-center">
                                 <?php foreach ($pagination_links as $link) :
@@ -149,16 +168,15 @@ global $the_query, $load_posts, $load_card_type;
                                     $link = str_replace('<a ', '<a class="page-link" ', $link);
                                     $link = str_replace('<span class="current">', '<span class="page-link active" aria-current="page">', $link);
                                 ?>
-                                    <li class="page-item<?php echo $active; ?>"><?php echo $link; ?></li>
+                                    <li class="page-item<?php echo esc_attr($active); ?>"><?php echo $link; ?></li>
                                 <?php endforeach; ?>
                             </ul>
                         <?php endif; ?>
                     </nav>
                 </div>
-
             <?php else : ?>
                 <div class="alert alert-info text-center" role="alert">
-                    Nessun consiglio trovato.
+                    <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Nessun consiglio trovato con i filtri applicati.
                 </div>
             <?php endif; ?>
         </div>
@@ -166,16 +184,17 @@ global $the_query, $load_posts, $load_card_type;
 </div>
 <?php wp_reset_query(); ?>
 
-<!-- STILE -->
+
+<!-- STILE Migliorato -->
 <style>
-/* Sfondo grigio precedente ripristinato */
+/* Sfondo grigio per la sezione */
 .bg-grey-card {
     background-color: #f8f9fa;
-    min-height: vh;
+    min-height: 75vh;
 }
 
-/* Form centrato e moderno */
-form.incarichi-filtro-form {
+/* Form centrato, moderno e responsivo */
+form.filter-form {
     padding: 1.5rem;
     background: rgba(255, 255, 255, 0.9);
     border-radius: 1rem;
@@ -186,10 +205,12 @@ form.incarichi-filtro-form {
     margin-bottom: 2rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-form.incarichi-filtro-form:hover {
+/* form.filter-form:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
+} */
+
+/* Layout del form */
 .form-row {
     display: flex;
     flex-wrap: wrap;
@@ -197,62 +218,86 @@ form.incarichi-filtro-form:hover {
     justify-content: center;
     gap: 1rem;
 }
-.btn-row {
-    margin-top: 1rem;
-}
-form.incarichi-filtro-form label {
+
+/* Etichette */
+form.filter-form label {
     font-weight: 600;
     color: #333;
     margin-bottom: 0;
     font-size: 1rem;
 }
-form.incarichi-filtro-form input[type="search"] {
+
+/* Input e select stilizzati */
+form.filter-form input[type="search"],
+form.filter-form select {
     border: 2px solid #e0e0e0;
     border-radius: 0.5rem;
+    padding: 0.5rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    min-width: 120px;
+}
+form.filter-form input[type="search"] {
     min-width: 200px;
     max-width: 400px;
-    padding: 0.5rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-form.incarichi-filtro-form select {
-    border: 2px solid #e0e0e0;
-    border-radius: 0.5rem;
-    min-width: 120px;
-    max-width: 250px;
-    padding: 0.5rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-form.incarichi-filtro-form input[type="search"]:focus,
-form.incarichi-filtro-form select:focus {
+form.filter-form input[type="search"]:focus,
+form.filter-form select:focus {
     border-color: #007bff;
     box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
     outline: none;
 }
-/* Usa colori del tema per il pulsante (assumendo Bootstrap o simili) */
-form.incarichi-filtro-form button.btn-primary {
-    padding: 0.75rem 2rem;
+
+/* Pulsanti Filtra e Reset uniformi */
+.btn-row {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-filter-reset {
+    padding: 0.75rem 1.75rem;
     font-weight: 600;
     border-radius: 0.5rem;
-    cursor: pointer;
-    border: none;
-    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Rimossi gradienti hardcoded per usare quelli del tema */
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
-form.incarichi-filtro-form button.btn-primary:hover {
-    /* Usa stili hover del tema */
+
+.btn-filter-reset:hover {
     transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Contenuto centrato */
-.row.justify-content-center .col-12.col-md-6.col-lg-4 {
-    display: flex;
-    justify-content: center;
+.btn-filter-reset.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #fff;
 }
 
-/* Paginazione con colori del tema (rimossi gradienti personalizzati) */
+.btn-filter-reset.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    color: #fff;
+}
+
+.btn-filter-reset.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.btn-filter-reset.btn-danger:hover {
+    background-color: #a71d2a;
+    border-color: #a71d2a;
+    color: #fff;
+}
+
+/* Paginazione centrata e responsiva */
 .pagination-wrapper .pagination {
     display: flex;
     justify-content: center;
@@ -267,34 +312,50 @@ form.incarichi-filtro-form button.btn-primary:hover {
     padding: 0.75rem 1.25rem;
     color: #007bff;
     border: 2px solid #007bff;
-    border-radius: 0.5rem; /* Mantenuto arrotondato ma non pill */
+    border-radius: 0.5rem;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.3s ease;
     min-width: 50px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.8); /* Sfondo leggero, ma usa colori tema */
+    background: rgba(255, 255, 255, 0.8);
     box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
-    position: relative;
-    overflow: hidden;
 }
 .pagination-wrapper .page-link:hover {
-    background-color: #007bff; /* Usa colori tema */
+    background-color: #007bff;
     color: white;
     box-shadow: 0 6px 25px rgba(0, 123, 255, 0.4);
     transform: translateY(-3px);
 }
 .pagination-wrapper .page-item.active .page-link {
-    background-color: #007bff; /* Usa colori tema */
+    background-color: #007bff;
     border-color: #007bff;
     color: white;
     cursor: default;
     box-shadow: 0 8px 30px rgba(0, 123, 255, 0.5);
 }
 
-/* Alert centrato */
+/* Alert centrato e stilizzato */
 .alert {
     border-radius: 0.5rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsività per dispositivi mobili */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    form.filter-form input[type="search"] {
+        min-width: unset;
+        max-width: unset;
+    }
+    .btn-row {
+        flex-direction: column;
+    }
+}
+.card-rounded {
+    border-radius: 0.47rem; /* Puoi aumentare a 1.5rem o 2rem per arrotondare ancora di più */
 }
 </style>

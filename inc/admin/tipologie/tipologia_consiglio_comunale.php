@@ -74,7 +74,6 @@ function dci_add_consiglio_metaboxes()
         'priority'     => 'high',
     ));
 
-
     // Data del consiglio
     $cmb_apertura->add_field(array(
         'id'           => $prefix . 'data',
@@ -146,6 +145,35 @@ function dci_add_consiglio_metaboxes()
         ),
     ));
 
+    // Immagine
+    $cmb_apertura->add_field(array(
+    'name'       => __('Immagine', 'design_comuni_italia'),
+    'desc'       => __('Eventuale Immagine da visualizzare nella scheda', 'design_comuni_italia'),
+    'id'         => $prefix . 'immagine',
+    'type'       => 'file',
+    'options'    => array(
+        'url' => false, // Nasconde il campo URL se vuoi
+    ),
+    'text'       => array(
+        'add_upload_file_text' => __('Seleziona immagine'), // Testo del pulsante
+    ),
+    'query_args' => array(
+        'type' => array(
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'image/svg+xml',
+            'image/bmp',
+            'image/tiff',
+            'image/x-icon',
+            'image/svg'
+        ),
+    ),
+));
+
+
+
     //CORPO
     $cmb_corpo = new_cmb2_box(array(
         'id'           => $prefix . 'box_corpo',
@@ -188,12 +216,18 @@ function dci_add_consiglio_metaboxes()
         ),
     ));
 
-    $cmb_documenti->add_field(array(
-        'id' => $prefix . 'allegati',
-        'name'        => __('Allegati', 'design_comuni_italia'),
-        'desc' => __('Elenco di documenti allegati alla struttura', 'design_comuni_italia'),
-        'type' => 'file_list',
-    ));
+   $cmb_documenti->add_field(array(
+    'id'   => $prefix . 'allegati',
+    'name' => __('Allegati', 'design_comuni_italia'),
+    'desc' => __('Elenco di documenti allegati alla struttura', 'design_comuni_italia'),
+    'type' => 'file_list',
+    'text' => array(
+        'add_upload_file_text' => __('Seleziona allegati', 'design_comuni_italia'), // Testo del pulsante
+        'remove_image_text'    => __('Rimuovi', 'design_comuni_italia'),           // Testo per rimuovere
+        'file_text'            => __('File:', 'design_comuni_italia')
+    ),
+));
+
 
 
     $cmb_extra_info = new_cmb2_box(array(
@@ -223,6 +257,42 @@ function dci_add_consiglio_metaboxes()
         'attributes'    => array(
             'placeholder' =>  __('https://esempio.com/streaming-consiglio', 'design_comuni_italia'),
         ),
+    ));
+
+    $cmb_links = new_cmb2_box(array(
+        'id'           => $prefix . 'box_links',
+        'title'        => __('Link', 'design_comuni_italia'),
+        'object_types' => array('consiglio'),
+        'context'      => 'normal',
+        'priority'     => 'low',
+    ));
+
+    // Gruppo link
+    $cmb_links->add_field(array(
+        'id'          => $prefix . 'url_link',
+        'type'        => 'group',
+        'description' => __('Aggiungi uno o più link da mostrare nella scheda', 'design_comuni_italia'),
+        'options'     => array(
+            'group_title'   => __('Link {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi link', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi link', 'design_comuni_italia'),
+            'sortable'      => true,
+            'closed'        => true,
+        ),
+    ));
+
+    // URL del collegamento
+    $cmb_links->add_group_field($prefix . 'url_link', array(
+        'name' => __('URL', 'design_comuni_italia'),
+        'id'   => 'url',
+        'type' => 'text_url',
+    ));
+
+    // Titolo del collegamento
+    $cmb_links->add_group_field($prefix . 'url_link', array(
+        'name' => __('Titolo del link', 'design_comuni_italia'),
+        'id'   => 'titolo',
+        'type' => 'text',
     ));
 
 }

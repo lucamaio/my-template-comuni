@@ -16,6 +16,14 @@ get_header();
     <?php while ( have_posts() ) : the_post(); 
     $prefix = '_dci_consiglio_';
 
+        // Controllo opzione portale
+        $check_portale = dci_get_option("ck_portaleElencoConsigliComunali");
+        if ($check_portale !== 'true') {
+            wp_safe_redirect( home_url('/') );
+            exit;
+        }
+
+    
     $ordini_giorno     = dci_get_meta("ordini_giorno", $prefix, $post->ID);
     $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $post->ID);
     $data_arr          = dci_get_data_pubblicazione_arr("data", $prefix, $post->ID);

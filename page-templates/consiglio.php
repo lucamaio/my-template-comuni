@@ -25,7 +25,7 @@ function info() { ?>
         <div class="container">
             <div class="row">
                 <p class="text-justify">
-                    Benvenuti nella sezione dedicata al Consiglio Comunale, il luogo istituzionale in cui vengono discusse e deliberate le questioni di interesse pubblico per il nostro Comune.
+                    <br>Benvenuti nella sezione dedicata al Consiglio Comunale, il luogo istituzionale in cui vengono discusse e deliberate le questioni di interesse pubblico per il nostro Comune.
                     Qui troverete informazioni aggiornate sulle sedute consiliari, compresi ordini del giorno, verbali, documenti ufficiali e allegati relativi alle decisioni adottate.
                 </p>
                 <p class="text-justify">
@@ -65,3 +65,7 @@ get_header();
 </main>
 
 <?php get_footer(); ?>
+
+
+
+

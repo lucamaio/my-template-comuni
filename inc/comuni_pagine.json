@@ -185,7 +185,7 @@
           "template_name": "amministrazione-trasparente",
           "children": {}
         },
-      "Elenco Consigli Comunali": {
+    "Elenco Consigli Comunali": {
           "title": "Elenco Consigli Comunali",
           "slug": "elenco-consigli-comunali",
           "description": "Sezione dedicata all'elenco dei consigli comunali tenutisi nell'ente, con informazioni dettagliate su ciascuna seduta, inclusi i partecipanti, gli argomenti trattati e le decisioni prese.",

@@ -83,62 +83,54 @@ $base_url = add_query_arg([
                 Esplora tutti i Consigli Comunali
         </h2>
         <!-- Form di ricerca e filtri -->
-        <form method="get" class="mb-3 filter-form" role="search" aria-label="Filtri per ricerca">
-            <div class="form-row d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                <label for="search" class="form-label mb-0 me-2">Cerca:</label>
-                <input
-                    type="search"
-                    id="search"
-                    name="search"
-                    class="form-control me-3"
-                    placeholder="Cerca..."
-                    value="<?php echo esc_attr($main_search_query); ?>"
-                >
+<!-- FORM FILTRO (STILE INCARICHI) -->
+<form method="get" class="mb-3 d-flex align-items-center flex-wrap gap-2 consigli-filtro-form">
 
-                <label for="filter-year" class="form-label mb-0 me-2">Anno:</label>
-                <select id="filter-year" name="filter_year" class="form-select w-auto me-3">
-                    <option value="0" <?php selected($selected_year, 0); ?>>Tutti gli anni</option>
-                    <?php foreach ($years as $y) : ?>
-                        <option value="<?php echo esc_attr($y); ?>" <?php selected($selected_year, $y); ?>>
-                            <?php echo esc_html($y); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+    <label for="search" class="form-label mb-0 me-2">Cerca:</label>
+    <input
+        type="search"
+        id="search"
+        name="search"
+        class="form-control me-3"
+        placeholder="Cerca..."
+        value="<?php echo esc_attr($main_search_query); ?>"
+    >
 
-                <label for="filter-month" class="form-label mb-0 me-2">Mese:</label>
-                <select id="filter-month" name="filter_month" class="form-select w-auto me-3">
-                    <option value="0" <?php selected($selected_month, 0); ?>>Tutti i mesi</option>
-                    <?php foreach ($months as $m) : ?>
-                        <option value="<?php echo esc_attr($m); ?>" <?php selected($selected_month, $m); ?>>
-                            <?php echo esc_html($month_names[$m] ?? $m); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+    <label for="filter-year" class="form-label mb-0 me-2">Anno:</label>
+    <select id="filter-year" name="filter_year" class="form-select w-auto me-3">
+        <option value="0" <?php selected($selected_year, 0); ?>>Tutti gli anni</option>
+        <?php foreach ($years as $y) : ?>
+            <option value="<?php echo esc_attr($y); ?>" <?php selected($selected_year, $y); ?>>
+                <?php echo esc_html($y); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
 
-                <label for="max-posts" class="form-label mb-0 me-2">Elementi per pagina:</label>
-                <select id="max-posts" name="max_posts" class="form-select w-auto me-3" aria-label="Seleziona numero di elementi per pagina">
-                    <?php foreach ([3,6,9,12,18,30,60,90] as $num) : ?>
-                        <option value="<?php echo esc_attr($num); ?>" <?php selected($max_posts, $num); ?>><?php echo esc_html($num); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <!-- Pulsanti Filtra e Reset -->
-            <div class="btn-row d-flex justify-content-center mt-3 gap-2">
-                <button type="submit" class="btn btn-primary btn-filter-reset" aria-label="Applica i filtri di ricerca">
-                    <svg class="icon flex-shrink-0 me-2" aria-hidden="true" width="12" height="12" style="fill: #fff">
-                        <use xlink:href="#it-search"></use>
-                    </svg>
-                    Filtra
-                </button>
+    <label for="filter-month" class="form-label mb-0 me-2">Mese:</label>
+    <select id="filter-month" name="filter_month" class="form-select w-auto me-3">
+        <option value="0" <?php selected($selected_month, 0); ?>>Tutti i mesi</option>
+        <?php foreach ($months as $m) : ?>
+            <option value="<?php echo esc_attr($m); ?>" <?php selected($selected_month, $m); ?>>
+                <?php echo esc_html($month_names[$m] ?? $m); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
 
-                <button type="reset" class="btn btn-danger btn-filter-reset" aria-label="Resetta tutti i filtri">
-                    <svg class="icon flex-shrink-0 me-2" aria-hidden="true" width="12" height="12" style="fill: #fff">
-                        <use xlink:href="#it-delete"></use>
-                    </svg>
-                    Reset
-                </button>
-            </div>
-        </form>
+    <label for="max-posts" class="form-label mb-0 me-2">Elementi per pagina:</label>
+    <select id="max-posts" name="max_posts" class="form-select w-auto me-3">
+        <?php foreach ([3,6,9,12,18,30] as $num) : ?>
+            <option value="<?php echo esc_attr($num); ?>" <?php selected($max_posts, $num); ?>>
+                <?php echo esc_html($num); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <div class="btn-wrapper">
+        <button type="submit" class="btn btn-primary">Filtra</button>
+    </div>
+
+</form>
+
         <p id="autocomplete-label" class="u-grey-light text-paragraph-card mt-2 mb-30 mt-lg-3 mb-lg-40">
             <?php echo $the_query->found_posts; ?> consigli comunali trovati in ordine di data pubblicazione.
         </p>
@@ -191,176 +183,143 @@ $base_url = add_query_arg([
 <?php wp_reset_query(); ?>
 
 
-<!-- STILE Migliorato -->
 <style>
-/* Sfondo grigio per la sezione */
-.bg-grey-card {
-    background-color: #f8f9fa;
-}
 
-/* Form centrato, moderno e responsivo */
-form.filter-form {
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 1rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    max-width: 100%;
-    margin-bottom: 2rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-/* form.filter-form:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-} */
+/* ================================
+   FORM FILTRO CONSIGLI – STILE INCARICHI
+   ================================ */
 
-/* Layout del form */
-.form-row {
+form.consigli-filtro-form {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
     gap: 1rem;
-}
-
-/* Etichette */
-form.filter-form label {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0;
-    font-size: 1rem;
-}
-
-/* Input e select stilizzati */
-form.filter-form input[type="search"],
-form.filter-form select {
-    border: 2px solid #e0e0e0;
+    padding: 1rem;
+    background: #f8f9fa;
     border-radius: 0.5rem;
-    padding: 0.5rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin: 0 0 2rem 0;
+}
+
+form.consigli-filtro-form label.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0;
+    align-self: center;
+}
+
+form.consigli-filtro-form input[type="search"],
+form.consigli-filtro-form select.form-select {
+    flex-grow: 1;
     min-width: 120px;
+    max-width: 250px;
+    border: 1.5px solid #ced4da;
+    transition: border-color 0.3s ease;
+    border-radius: 0.35rem;
+    padding: 0.45rem 0.65rem;
 }
-form.filter-form input[type="search"] {
-    min-width: 200px;
-    max-width: 400px;
-}
-form.filter-form input[type="search"]:focus,
-form.filter-form select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+
+form.consigli-filtro-form input[type="search"]:focus,
+form.consigli-filtro-form select.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 6px rgba(13, 110, 253, 0.3);
     outline: none;
 }
 
-/* Pulsanti Filtra e Reset uniformi */
-.btn-row {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
+/* Pulsante Filtra */
+.btn-wrapper {
+    flex-shrink: 0;
+    margin-left: auto;
+    align-self: flex-start;
 }
 
-.btn-filter-reset {
-    padding: 0.75rem 1.75rem;
+form.consigli-filtro-form button.btn-primary {
+    padding: 0.45rem 1.5rem;
     font-weight: 600;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
+    border-radius: 0.4rem;
+    height: 38px;
     cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-filter-reset:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+form.consigli-filtro-form button.btn-primary:hover {
+    background-color: #0b5ed7;
+    box-shadow: 0 4px 8px rgba(11, 94, 215, 0.4);
 }
 
-.btn-filter-reset.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-    color: #fff;
-}
+/* ================================
+   PAGINAZIONE (in stile incarichi)
+   ================================ */
 
-.btn-filter-reset.btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-    color: #fff;
-}
-
-.btn-filter-reset.btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
-    color: #fff;
-}
-
-.btn-filter-reset.btn-danger:hover {
-    background-color: #a71d2a;
-    border-color: #a71d2a;
-    color: #fff;
-}
-
-/* Paginazione centrata e responsiva */
 .pagination-wrapper .pagination {
     display: flex;
     justify-content: center;
     list-style: none;
     padding-left: 0;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     gap: 0.5rem;
-    flex-wrap: wrap;
 }
+
 .pagination-wrapper .page-link {
     display: block;
-    padding: 0.75rem 1.25rem;
-    color: #007bff;
-    border: 2px solid #007bff;
-    border-radius: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    color: #0d6efd;
+    border: 1.5px solid #0d6efd;
+    border-radius: 0.4rem;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.3s ease;
-    min-width: 50px;
+    transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+    min-width: 40px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
 }
+
 .pagination-wrapper .page-link:hover {
-    background-color: #007bff;
+    background-color: #0d6efd;
     color: white;
-    box-shadow: 0 6px 25px rgba(0, 123, 255, 0.4);
-    transform: translateY(-3px);
+    box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
+    text-decoration: none;
 }
-.pagination-wrapper .page-item.active .page-link {
-    background-color: #007bff;
-    border-color: #007bff;
+
+.pagination-wrapper .page-item.active .page-link,
+.pagination-wrapper .page-link[aria-current="page"] {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
     color: white;
     cursor: default;
-    box-shadow: 0 8px 30px rgba(0, 123, 255, 0.5);
+    box-shadow: 0 0 12px rgba(13, 110, 253, 0.75);
 }
 
-/* Alert centrato e stilizzato */
-.alert {
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+.pagination-wrapper .page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: transparent;
+    border-color: transparent;
+    cursor: default;
 }
 
-/* Responsività per dispositivi mobili */
-@media (max-width: 768px) {
-    .form-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    form.filter-form input[type="search"] {
-        min-width: unset;
-        max-width: unset;
-    }
-    .btn-row {
+/* ================================
+   RESPONSIVE
+   ================================ */
+
+@media (max-width: 576px) {
+    form.consigli-filtro-form {
         flex-direction: column;
     }
+
+    .btn-wrapper {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 0.5rem;
+        align-self: stretch;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    form.consigli-filtro-form button.btn-primary {
+        width: auto;
+        height: 38px;
+    }
 }
-.card-rounded {
-    border-radius: 0.47rem; /* Puoi aumentare a 1.5rem o 2rem per arrotondare ancora di più */
-}
+
 </style>
+

@@ -520,7 +520,7 @@ class Breadcrumb_Trail {
 				
 	
 					if (get_post_type() == 'consiglio') {
-						$this->items[] =  "<a href='".home_url("elenco-consigli-comunali")."'>".__("Consigli Comunale", "design_comuni_italia")."</a>";
+						$this->items[] =  "<a href='".home_url("index.php/elenco-consigli-comunali")."'>".__("Consigli Comunale", "design_comuni_italia")."</a>";
 			         //   $this->items[] =  "<a href='/consiglio/'>" . __("Consiglio", "design_comuni_italia") . "</a>";		
 						$this->items[] = get_the_title();
 						return;

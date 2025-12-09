@@ -108,7 +108,8 @@ function dci_get_tassonomie_names(){
         'stati_pratica',
         'tipi_documento',
         'tipi_cat_amm_trasp',
-        
+        'tipi_procedura_contraente',
+        'tipi_commissario'
     );
     return $tassonomie;
 }
@@ -143,18 +144,20 @@ function dci_get_sercheable_tipologie() {
         'unita_organizzativa',
         'evento',
         'luogo',
-        'documento_pubblico',
         'notizia',
         'servizio',
         'persona_pubblica',
+        'documento_pubblico',
         'dataset',
         'page',
         'post',
         'organi_governo',
+        'sito_tematico',
         'aree_amministrative',
         'uffici',
-        'progetti',
+        'progetto',
         'commissario',
+        'consiglio'
     );
 }
 

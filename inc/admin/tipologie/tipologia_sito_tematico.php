@@ -212,44 +212,38 @@ function dci_add_sito_tematico_metaboxes()
 add_action('admin_print_footer_scripts', 'dci_sito_tematico_inline_script');
 function dci_sito_tematico_inline_script()
 {
-
     global $post;
 
-    // Mostra lo script solo nel CPT corretto
     if (!isset($post) || $post->post_type !== 'sito_tematico') {
         return;
     }
 ?>
+<script>
+jQuery(document).ready(function($) {
 
-    <script>
-        jQuery(document).ready(function($) {
+    function toggleUrlRequired() {
+        const checkbox = $('#_dci_sito_tematico_mostra_pagina');
+        const urlField = $('#_dci_sito_tematico_link');
 
-            function toggleUrlRequired() {
-                const checkbox = $('#_dci_sito_tematico_mostra_pagina');
-                const urlField = $('#_dci_sito_tematico_link');
+        if (checkbox.is(':checked')) {
+            // Checkbox attiva → URL NON obbligatorio
+            urlField.removeAttr('required');
+        } else {
+            // Checkbox non attiva → URL obbligatorio
+            urlField.attr('required', 'required');
+        }
+    }
 
-                if (checkbox.length && urlField.length) {
-                    if (checkbox.is(':checked')) {
-                        // Checkbox attiva → campo NON obbligatorio
-                        urlField.removeAttr('required');
-                    } else {
-                        // Checkbox non attiva → campo OBBLIGATORIO
-                        urlField.attr('required', 'required');
-                    }
-                }
-            }
+    // Controllo al caricamento
+    toggleUrlRequired();
 
-            // Controllo al caricamento
-            toggleUrlRequired();
+    // Listener corretto
+    $(document).on('change', '#_dci_sito_tematico_mostra_pagina', function() {
+        toggleUrlRequired();
+    });
 
-            // Controllo quando cambia il valore della checkbox
-            $(document).on('change', '#_dci_sito_tematico_mostra_link', function() {
-                toggleUrlRequired();
-            });
-
-        });
-    </script>
-
+});
+</script>
 <?php
 }
 ?>

@@ -254,7 +254,7 @@ function dci_add_Progetto_metaboxes() {
 
     $cmb_avanzamento->add_field( array(
         'id' => $prefix . 'avanzamento_allegati',
-        'name'        => __( 'Allegati Avanzamento del ptogegtto', 'design_comuni_italia' ),
+        'name'        => __( 'Allegati Avanzamento del progetto', 'design_comuni_italia' ),
         'type' => 'file_list',
     ) );
 

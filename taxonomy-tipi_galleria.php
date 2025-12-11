@@ -44,14 +44,19 @@ get_header();
   $data_element = 'data-element="page-name"';
   get_template_part("template-parts/hero/hero");
   ?>
-  <div class="bg-grey-card">
-    <div class="gallery-container mb-10">
-      <br><br>
-      <div class="gallery-grid">
-        <?php foreach ($posts as $post) {
-          get_template_part('template-parts/galleria/cards-list');
-        } ?>
+  <div class="bg-grey-card py-5">
+    <div class="gallery-container">
+        <?php if(count($posts) > 0){?>
+        <div class="gallery-grid">
+          <?php foreach ($posts as $post) {
+            get_template_part('template-parts/galleria/cards-list');
+          } ?>
       </div>
+    <?php }else{ ?>
+      <div class="alert alert-info text-center" role="alert">
+          <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Nessun elemento è presente.
+      </div>
+    <?php } ?>
     </div>
   </div>
 
@@ -66,42 +71,11 @@ get_header();
 get_footer(); ?>
 
 <style>
-  /* * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-            color: #333;
-        } */
 
   .gallery-container {
     max-width: 1200px;
     margin: 0 auto;
   }
-
-  /* .header {
-            text-align: center;
-            margin-bottom: 50px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 300;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        } */
 
   .gallery-grid {
     display: grid;

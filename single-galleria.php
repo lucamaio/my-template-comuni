@@ -20,7 +20,6 @@ while ( have_posts() ) :
     // --- PAGINAZIONE ---
     $paged     = ( get_query_var('page') ) ? get_query_var('page') : 1;
     $per_page  = -1;
-    $offset    = ( $paged - 1 ) * $per_page;
 
     // Unisco foto e video in un unico array
     $all_items = [];
@@ -41,7 +40,9 @@ while ( have_posts() ) :
     }
 
     $total_items = count($all_items);
-    $paged_items = array_slice($all_items, $offset, $per_page);
+   
+    $paged_items = array_slice($all_items, $total_items, $per_page);
+    $paged_items = $all_items;
 ?>
 <div class="container" id="main-container">
                 <div class="row">

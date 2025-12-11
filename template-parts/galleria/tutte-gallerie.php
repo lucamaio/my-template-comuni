@@ -13,63 +13,39 @@ $the_query = new WP_Query($args);
 $posts = $the_query->posts;
 ?>
 
-<div class="bg-grey-dsk">
-    <div class="gallery-container mb-3">
-        <br><br>
+<div class="bg-grey-dsk py-5">
+    <div class="gallery-container">
+        <h2 class="title-xxlarge mb-4">
+                Esplora le nostre gallerie
+        </h2>
+        <?php if(count($posts) > 0){?>
         <div class="gallery-grid">
             <?php foreach ($posts as $post) {
                 get_template_part('template-parts/galleria/cards-list');
             } ?>
         </div>
+        <?php }else{ ?>
+            <div class="alert alert-info text-center" role="alert">
+                <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Nessun elemento è presente.
+            </div>
+        <?php } ?>
     </div>
 </div>
 
-
-
-
 <style>
-    /* * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-            color: #333;
-        } */
-
     .gallery-container {
         max-width: 1200px;
+        height: auto;
         margin: 0 auto;
+        padding: 0 20px; /* Aggiunto padding per margini laterali su schermi piccoli */
     }
-
-    /* .header {
-            text-align: center;
-            margin-bottom: 50px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 300;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        } */
 
     .gallery-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
         gap: 30px;
-        justify-content: center;
+        justify-content: center; /* Centra le colonne nel contenitore, utile per 1 o 2 elementi */
+        align-items: start; /* Allinea gli elementi in alto per uniformità */
     }
 
     .gallery-item {
@@ -81,6 +57,9 @@ $posts = $the_query->posts;
         cursor: pointer;
         aspect-ratio: 4/3;
         background: #000;
+        width: 100%; /* Assicura che l'elemento occupi tutta la larghezza della colonna */
+        max-width: 400px; /* Limita la larghezza massima per uniformità */
+        margin: 0 auto; /* Centra l'elemento nella colonna */
     }
 
     .gallery-item:hover {
@@ -148,26 +127,30 @@ $posts = $the_query->posts;
         transition-delay: 0.1s;
     }
     
-   .gallery-type {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: #e63946;
-            color: #fff;
-            font-size: 0.8rem;
-            font-weight: 600;
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
+    .gallery-type {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: #0651c2ff;
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+    }
 
     @media (max-width: 768px) {
         .gallery-grid {
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
+        }
+
+        .gallery-item {
+            max-width: 320px; /* Riduce leggermente la larghezza massima su tablet */
         }
 
         .header h1 {
@@ -177,7 +160,12 @@ $posts = $the_query->posts;
 
     @media (max-width: 480px) {
         .gallery-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr; /* Una colonna su mobile per semplicità */
+            gap: 20px;
+        }
+
+        .gallery-item {
+            max-width: 100%; /* Occupa tutta la larghezza su mobile */
         }
 
         .header h1 {

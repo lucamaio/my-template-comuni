@@ -67,3 +67,24 @@ function dci_register_pagina_novita_options(){
     ) );
 }
 
+// Risolve il problema dello svutamento dell'array contente le notizie in evidenza
+
+add_action('cmb2_save_options-page_fields', function ($object_id, $cmb_id, $updated) {
+
+    if ($cmb_id !== 'dci_options_novita') {
+        return;
+    }
+
+    $option_key = 'novita';
+    $field_id   = 'notizia_evidenziata';
+
+    $options = get_option($option_key);
+
+    if (!isset($_POST[$field_id]) || empty($_POST[$field_id])) {
+        $options[$field_id] = [];
+        update_option($option_key, $options);
+    }
+
+}, 10, 3);
+
+

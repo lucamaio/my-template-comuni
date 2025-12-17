@@ -52,8 +52,8 @@ get_header();
 
 		   
         <section id="evidenza" class="evidence-section">
-            <div class="section py-5 pb-lg-80 px-lg-5 position-relative">
                 <?php get_template_part("template-parts/home/argomenti"); ?>
+            <div class="section py-5 pb-lg-80 px-lg-5 position-relative">
 		        <?php get_template_part("template-parts/servizio/evidenza"); ?>
                 <?php get_template_part("template-parts/home/siti","tematici"); ?>
             </div>
@@ -100,71 +100,3 @@ get_header();
 <?php
 get_footer();
 ?>
-<!-- <style>
-    .bg-image img {
-        width: 100%;
-        height: 450px;
-        object-fit: cover;
-        object-position: center;
-    }
-</style> -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

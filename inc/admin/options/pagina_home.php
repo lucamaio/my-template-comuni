@@ -247,8 +247,6 @@ for ($i = 1; $i <= $num_argomenti; $i++) {
         )
     ) );
 }
-
-	
     $home_options->add_field( array(
         'id' => $prefix . 'argomenti_altri',
         'name'        => __( 'Altri argomenti', 'design_comuni_italia' ),
@@ -258,6 +256,34 @@ for ($i = 1; $i <= $num_argomenti; $i++) {
         'show_option_none' => false,
         'remove_default' => 'true',
     ) );
+
+    $home_options->add_field( array(
+        'id'   => $prefix . 'sez-immagine-argomenti',
+        'name' => __( 'Sezione Immagine sezione Argomenti in evidenza', 'design_comuni_italia' ),
+        'desc' => __( '<strong style="color:#006400;">Puoi inserire un\'immagine da visualizzare nella sezione "Argomenti in evidenza" nella pagina Home del comune.<br>Per una proporzione adeguata si consigliano immagini in 16:9, ad esempio 800×450 px o 1920×1080 px.</strong><br><strong>ATTENZIONE:</strong> Questa immagine sarà visibile solo se abilitata tramite il check sottostante.', 'design_comuni_italia' ),
+        'type' => 'title',
+    ) );
+
+    $home_options->add_field( array(
+        'id' => $prefix . 'immagine-argomenti',
+        'name'=> __( 'Immagine Sezione Argomenti', 'design_comuni_italia' ),
+        'desc' => __( 'Immagine/ banner (nella sezione Argomenti in evidenza)' , 'design_comuni_italia' ),
+        'type' => 'file',
+        'preview_size' => array( 100, 100 ),
+        'query_args' => array( 'type' => 'image' ),
+    ) );
+
+    $home_options->add_field(array(
+        'id'      => $prefix . 'ch_show_sfondo_argomenti',
+        'name'    => __('Mostra sfondo sezione Argomenti in evidenza', 'design_comuni_italia'),
+        'desc'    => __("Se abilitata, questa opzione permette di visualizzare lo sfondo di default nella sezione 'Argomenti in evidenza' qualora non venga inserita alcuna immagine. Altrimenti sarà visibile l'immagine selezionata.", 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+    ));
 
     // Sezione mappa homepage
     

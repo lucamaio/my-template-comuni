@@ -16,6 +16,10 @@ function dci_theme_activation() {
     //inserisco le descrizioni di default per la tassonomia Categorie di Servizio
     updateCategorieServizio();
 
+    // inserisco le descrizioni di default per la tassonomia Tipi di Notizia
+    updateTipiNotizia();
+
+
     //creo le pagine
     insertPages($pagine = dci_get_pagine_obj());
 
@@ -231,6 +235,30 @@ function updateArgomentiDescription() {
     }
 }
 
+/**
+ * inserimento descrizioni per la tassonomia Tipi di Notizia
+ */
+function updateTipiNotizia() {
+    $terms = get_terms(array(
+        'taxonomy'   => 'tipi_notizia',
+        'hide_empty' => false,
+    ));
+
+    $descriptions = dci_get_tipi_notizia_descriptions_array();
+
+    foreach ($terms as $term) {
+        if (isset($descriptions[$term->name])) {
+            wp_update_term(
+                $term->term_id,
+                'tipi_notizia',
+                array(
+                    'description' => $descriptions[$term->name]
+                )
+            );
+        }
+    }
+}
+
 function updateCategorieServizio() {
     $terms =  get_terms(array(
         'taxonomy' =>'categorie_servizio',
@@ -238,7 +266,6 @@ function updateCategorieServizio() {
     ));
     $descriptions = dci_get_categorie_servizio_descriptions_array();
     foreach($terms as $term){
-
         $args = array(
             'description' => $descriptions[$term->name]
         );

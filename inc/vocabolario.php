@@ -741,3 +741,18 @@ if(!function_exists('dci_get_categorie_servizio_descriptions_array')){
         return $categorie_servizio_descriptions_arr;
     }
 }
+
+/**
+ * Descrizioni dei termini della tassonomia Tipi di Notizia
+ */
+if (!function_exists('dci_get_tipi_notizia_descriptions_array')) {
+    function dci_get_tipi_notizia_descriptions_array() {
+        $tipi_notizia_descriptions_arr = [
+            'Avvisi' => 'Informazioni urgenti o di pubblico interesse che richiedono attenzione immediata da parte dei cittadini, come scadenze, allerte o comunicazioni operative.',
+            'Notizie' => 'Aggiornamenti e informazioni di carattere generale sull’attività dell’amministrazione, eventi, iniziative e fatti rilevanti per la comunità.',
+            'Comunicati' => 'Comunicazioni ufficiali dell’amministrazione volte a informare cittadini e media su decisioni, provvedimenti o prese di posizione istituzionali.'
+        ];
+
+        return $tipi_notizia_descriptions_arr;
+    }
+}

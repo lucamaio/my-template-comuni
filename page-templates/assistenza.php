@@ -7,6 +7,7 @@
  */
 
 function dci_enqueue_dci_assistence_script()  {
+    wp_enqueue_script( 'dci-utils', get_template_directory_uri() . '/assets/js/utils.js', array(), false, true);
     wp_enqueue_script( 'dci-assistenza', get_template_directory_uri() . '/assets/js/assistenza.js', array('jquery'), null, true );
     $variables = array(
         'url' => admin_url( 'admin-ajax.php' )
@@ -49,17 +50,14 @@ get_header();
                         </p>
                     </div>
                     <p class="subtitle-small pb-40 mb-0">
-                        Hai un’identità digitale SPID o CIE?			    
-			    <?php if(dci_get_option("area_riservata")) { ?>
-				<a class="title-small-semi-bold t-primary text-decoration-none" href="<?php echo dci_get_option("area_riservata"); ?>">Accedi</a>				
-			       <?php } else { ?>
-			      <a class="title-small-semi-bold t-primary text-decoration-none" href="#">Accedi</a>
-			    <?php } ?>
-
+                        Hai un’identità digitale SPID o CIE?
+                        <a href="#">Accedi</a>
                     </p>
                 </div>
             </div>
         </div>
+        
+		<?php get_template_part('template-parts/single/image-large'); ?>
         <div class="container container-assistenza">
             <div class="row mt-lg-50">
                 <div class="col-12 col-lg-3 d-lg-block mb-4 d-none">
@@ -285,10 +283,14 @@ get_header();
         <?php get_template_part("template-parts/common/valuta-servizio"); ?>
     </div>
 
-    <?php get_template_part("template-parts/common/assistenza-contatti"); ?>
+    <?php 
+        $visualizza_contatto = dci_get_option('visualizzaContatto', 'footer');
+        if($visualizza_contatto == 'visible')
+            get_template_part("template-parts/common/assistenza-contatti"); 
+    ?>
     <?php
-			endwhile; // End of the loop.
-		?>
+		endwhile; // End of the loop.
+	?>
 </main>
 
 <?php

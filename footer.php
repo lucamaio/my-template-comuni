@@ -208,7 +208,25 @@
 				    echo $shortcode_output;
 				}
 			     ?>
+				<?php 
+				echo do_shortcode('[home_counter]');
+				
+				$daily_counts = get_option('wpc_home_daily_counts', array());
+				$today = date('Y-m-d');
+				$accessi_oggi = isset($daily_counts[$today]) ? $daily_counts[$today] : 0;
+				?>
+				
+				<div class="home-counter" style="text-align:left; font-size:14px; color:white; display:flex; align-items:center; justify-content:flex-start; gap:5px;">
+				    <i class="fas fa-user-clock" style="color:white; font-size:16px;"></i>
+				    <span>Accessi oggi: <?php echo $accessi_oggi; ?></span>
+				</div>
+				
+				
+								
 
+
+
+					
                     <div class="footer-bottom">
 
 						<?php if(dci_get_option("media_policy",'footer')) { ?>
@@ -239,6 +257,8 @@
 						<a id="area_personale_admin" href="<?php echo get_admin_url(); ?>">Area Riservata</a>
 								                      
 				
+
+
 
 			         <ul class="it-footer-small-prints-list list-inline mb-0 d-flex flex-column flex-md-row" style="float: right;">
 	                            <li class="list-inline-item d-flex">

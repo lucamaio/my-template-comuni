@@ -173,3 +173,4 @@ $posts = $the_query->posts;
         }
     }
 </style>
+

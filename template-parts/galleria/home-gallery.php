@@ -185,3 +185,4 @@ if (is_array($gallery_ids) && count($gallery_ids) >= 1) { ?>
             }
         </style>
     <?php } ?>
+

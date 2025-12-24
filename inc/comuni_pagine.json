@@ -191,7 +191,16 @@
           "description": "Sezione dedicata all'elenco dei consigli comunali tenutisi nell'ente, con informazioni dettagliate su ciascuna seduta, inclusi i partecipanti, gli argomenti trattati e le decisioni prese.",
           "template_name": "consiglio",
           "children": {}
-        }
+        },
+      "Contatti": {
+        "title": "Contatti",
+        "slug": "contatti",
+        "description": "Sezione dedicata ai recapiti ufficiali del Comune, attraverso la quale cittadini, imprese ed enti possono mettersi in contatto con l’Amministrazione comunale. La pagina fornisce informazioni utili quali indirizzi, numeri telefonici, indirizzi di posta elettronica e altri canali di comunicazione, al fine di garantire trasparenza, accessibilità e un dialogo diretto con gli uffici competenti.",
+        "template_name": "contatti",
+        "children": {}
+      }
+
+
 
   }
 }

@@ -14,33 +14,21 @@ get_header();
 
 <!-- Stile moderno per la pagina contatti -->
 <style>
-    :root {
-        --primary-color: #007bff; /* Blu moderno */
-        --secondary-color: #f8f9fa; /* Grigio chiaro */
-        --accent-color: #28a745; /* Verde per link attivi */
-        --shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Ombra morbida */
-        --border-radius: 12px; /* Bordi arrotondati */
-        --transition: all 0.3s ease; /* Transizioni fluide */
-    }
 
+    /* Card principale */
     .contact-card {
-        background: linear-gradient(135deg, var(--secondary-color) 0%, #ffffff 100%); /* Gradiente sottile */
-        border-radius: var(--border-radius);
+        /* background-color: #f0f0f0ff; */
+        border: 1px solid var(--border-color);
+        border-radius: 0; /* BORDI NON ARROTONDATI */
         box-shadow: var(--shadow);
         overflow: hidden;
-        transition: var(--transition);
     }
 
-    .contact-card:hover {
-        transform: translateY(-2px); /* Effetto sollevamento al hover */
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    }
-
+    /* Header card */
     .contact-header {
-        background: linear-gradient(90deg, var(--primary-color), #0056b3); /* Gradiente header */
-        color: white;
-        padding: 1.5rem;
-        border-bottom: none;
+        color: #ffffff;
+        padding: 1.25rem 1.5rem;
+        border-radius: 0;
     }
 
     .contact-header h2 {
@@ -49,59 +37,59 @@ get_header();
         margin: 0;
     }
 
+    /* Corpo card */
     .contact-body {
         padding: 0;
     }
 
+    /* Elementi elenco */
     .contact-list-item {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #e9ecef;
-        transition: var(--transition);
         display: flex;
         align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        /* border-bottom: 1px solid var(--border-color); */
+        background-color: #ffffff;
+        /* transition: var(--transition); */
     }
 
-    .contact-list-item:last-child {
-        border-bottom: none;
+    .contact-list-item {
+        border-left: 3px solid transparent;
     }
 
     .contact-list-item:hover {
-        background-color: rgba(0, 123, 255, 0.05); /* Sfondo leggero al hover */
+        background-color: rgba(0, 0, 0, 0.04);
+        border-left-color: var(--bs-primary);
     }
 
+
+
+    /* Icone */
     .contact-icon {
-        color: var(--primary-color);
-        font-size: 1.5rem;
-        margin-right: 1rem;
+        font-size: 1.4rem;
+        line-height: 1.4;
         flex-shrink: 0;
-        transition: var(--transition);
     }
 
-    .contact-icon:hover {
-        color: var(--accent-color);
-        transform: scale(1.1); /* Icona cresce leggermente */
-    }
-
+    /* Link */
     .contact-link {
-        color: var(--primary-color);
-        text-decoration: none;
         font-weight: 500;
-        transition: var(--transition);
+        text-decoration: none;
     }
 
     .contact-link:hover {
-        color: var(--accent-color);
         text-decoration: underline;
     }
 
-    /* Responsive per mobile */
+    /* Responsive mobile */
     @media (max-width: 768px) {
         .contact-list-item {
             flex-direction: column;
-            align-items: flex-start;
+            gap: 0.5rem;
         }
+
         .contact-icon {
-            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
         }
     }
 </style>
@@ -121,21 +109,21 @@ get_header();
             <div class="col-lg-10 offset-lg-1 px-lg-4">
                 <div class="card contact-card mb-4" role="region" aria-labelledby="contact-header">
 
-                    <div class="card-header contact-header" id="contact-header">
+                    <div class="card-header contact-header bg-primary" id="contact-header">
                         <h2 class="h5 mb-0">
                             <i class="fa-solid fa-address-book me-2" aria-hidden="true"></i>
                             Contatti istituzionali
                         </h2>
                     </div>
 
-                    <div class="card-body contact-body">
+                    <div class="card-body contact-body bg-grey-dsk">
                         <ul class="list-group list-group-flush">
 
                             <?php
                             $indirizzo = dci_get_option("contatti_indirizzo", 'footer');
                             if (!empty($indirizzo)) {
                                 echo '<li class="list-group-item contact-list-item">
-                                        <i class="fa-solid fa-location-dot contact-icon" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-location-dot contact-icon text-decoration-none" aria-hidden="true"></i>
                                         <div>
                                             <strong>Indirizzo:</strong><br>
                                             ' . esc_html($indirizzo) . '
@@ -146,7 +134,7 @@ get_header();
                             $cf_piva = dci_get_option("contatti_CF_PIVA", 'footer');
                             if (!empty($cf_piva)) {
                                 echo '<li class="list-group-item contact-list-item">
-                                        <i class="fa-solid fa-id-card contact-icon" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-id-card contact-icon text-decoration-none" aria-hidden="true"></i>
                                         <div>
                                             <strong>Codice fiscale / Partita IVA:</strong><br>
                                             ' . esc_html($cf_piva) . '
@@ -159,10 +147,10 @@ get_header();
                                 $ufficio = get_post($ufficio_id);
                                 if ($ufficio) {
                                     echo '<li class="list-group-item contact-list-item">
-                                            <i class="fa-solid fa-building-user contact-icon" aria-hidden="true"></i>
+                                            <i class="fa-solid fa-building-user contact-icon text-decoration-none" aria-hidden="true"></i>
                                             <div>
                                                 <strong>Ufficio Relazioni con il Pubblico (URP):</strong><br>
-                                                <a href="' . esc_url(get_permalink($ufficio_id)) . '" class="contact-link">
+                                                <a href="' . esc_url(get_permalink($ufficio_id)) . '" class="text-decoration-none">
                                                     ' . esc_html($ufficio->post_title) . '
                                                 </a>
                                             </div>
@@ -173,10 +161,10 @@ get_header();
                             $numero_verde = dci_get_option("numero_verde", 'footer');
                             if (!empty($numero_verde)) {
                                 echo '<li class="list-group-item contact-list-item">
-                                        <i class="fa-solid fa-phone-volume contact-icon" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-phone-volume contact-icon text-decoration-none" aria-hidden="true"></i>
                                         <div>
                                             <strong>Numero verde:</strong><br>
-                                            <a href="tel:' . esc_html($numero_verde) . '" class="contact-link">
+                                            <a href="tel:' . esc_html($numero_verde) . '" class="text-decoration-none">
                                                 ' . esc_html($numero_verde) . '
                                             </a>
                                         </div>
@@ -186,7 +174,7 @@ get_header();
                             $sms_whatsapp = dci_get_option("SMS_Whatsapp", 'footer');
                             if (!empty($sms_whatsapp)) {
                                 echo '<li class="list-group-item contact-list-item">
-                                        <i class="fa-brands fa-whatsapp contact-icon" aria-hidden="true"></i>
+                                        <i class="fa-brands fa-whatsapp contact-icon text-decoration-none" aria-hidden="true"></i>
                                         <div>
                                             <strong>SMS e WhatsApp:</strong><br>
                                             ' . esc_html($sms_whatsapp) . '
@@ -197,10 +185,10 @@ get_header();
                             $pec = dci_get_option("contatti_PEC", 'footer');
                             if (!empty($pec)) {
                                 echo '<li class="list-group-item contact-list-item">
-                                        <i class="fa-solid fa-envelope-circle-check contact-icon" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-envelope-circle-check contact-icon text-decoration-none" aria-hidden="true"></i>
                                         <div>
                                             <strong>Posta Elettronica Certificata (PEC):</strong><br>
-                                            <a href="mailto:' . esc_attr($pec) . '" class="contact-link">
+                                            <a href="mailto:' . esc_attr($pec) . '" class="text-decoration-none">
                                                 ' . esc_html($pec) . '
                                             </a>
                                         </div>
@@ -210,10 +198,10 @@ get_header();
                             $centralino = dci_get_option("centralino_unico", 'footer');
                             if (!empty($centralino)) {
                                 echo '<li class="list-group-item contact-list-item">
-                                        <i class="fa-solid fa-headset contact-icon" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-headset contact-icon text-decoration-none" aria-hidden="true"></i>
                                         <div>
                                             <strong>Centralino unico:</strong><br>
-                                            <a href="tel:' . esc_html($centralino) . '" class="contact-link">
+                                            <a href="tel:' . esc_html($centralino) . '" class="text-decoration-none">
                                                 ' . esc_html($centralino) . '
                                             </a>
                                         </div>

@@ -208,18 +208,11 @@
 				    echo $shortcode_output;
 				}
 			     ?>
-				<?php 
-				echo do_shortcode('[home_counter]');
-				
-				$daily_counts = get_option('wpc_home_daily_counts', array());
-				$today = date('Y-m-d');
-				$accessi_oggi = isset($daily_counts[$today]) ? $daily_counts[$today] : 0;
-				?>
-				
-				<div class="home-counter" style="text-align:left; font-size:14px; color:white; display:flex; align-items:center; justify-content:flex-start; gap:5px;">
-				    <i class="fas fa-user-clock" style="color:white; font-size:16px;"></i>
-				    <span>Accessi oggi: <?php echo $accessi_oggi; ?></span>
-				</div>
+						<?php 
+					// Contatore accessi
+					echo do_shortcode('[home_counter]');
+					?>
+
 				
 				
 								
@@ -305,6 +298,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+
+
+	document.addEventListener('keydown', function(e) {
+	  const editable = e.target.isContentEditable || e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea';
+	
+	  if (editable && e.key.toLowerCase() === 'm') {
+	    e.stopPropagation(); // blocca la M solo negli elementi editabili
+		  }
+	}, true);
+
+	
 </script>
 
 

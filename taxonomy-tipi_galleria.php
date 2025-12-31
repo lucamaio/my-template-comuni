@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Archivio Tassonomia Tipi Evento
+ * Archivio Tassonomia Tipi Galleria
  *
  * @link https://developer.wordpress.org/themes/basics/template-hierarchy/#custom-taxonomies
  * @link https://italia.github.io/design-comuni-pagine-statiche/sito/tipi_evento.html
@@ -46,17 +46,17 @@ get_header();
   ?>
   <div class="bg-grey-card py-5">
     <div class="gallery-container">
-        <?php if(count($posts) > 0){?>
+      <?php if (count($posts) > 0) { ?>
         <div class="gallery-grid">
           <?php foreach ($posts as $post) {
             get_template_part('template-parts/galleria/cards-list');
           } ?>
-      </div>
-    <?php }else{ ?>
-      <div class="alert alert-info text-center" role="alert">
+        </div>
+      <?php } else { ?>
+        <div class="alert alert-info text-center" role="alert">
           <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Nessun elemento è presente.
-      </div>
-    <?php } ?>
+        </div>
+      <?php } ?>
     </div>
   </div>
 
@@ -71,10 +71,12 @@ get_header();
 get_footer(); ?>
 
 <style>
-
   .gallery-container {
     max-width: 1200px;
+    height: auto;
     margin: 0 auto;
+    padding: 0 20px;
+    /* Aggiunto padding per margini laterali su schermi piccoli */
   }
 
   .gallery-grid {
@@ -82,6 +84,17 @@ get_footer(); ?>
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 30px;
     justify-content: center;
+    /* Centra le colonne nel contenitore, utile per 1 o 2 elementi */
+    align-items: start;
+    /* Allinea gli elementi in alto per uniformità */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease;
+  }
+
+  .gallery-grid.is-loaded {
+    opacity: 1;
+    visibility: visible;
   }
 
   .gallery-item {
@@ -93,6 +106,12 @@ get_footer(); ?>
     cursor: pointer;
     aspect-ratio: 4/3;
     background: #000;
+    width: 100%;
+    /* Assicura che l'elemento occupi tutta la larghezza della colonna */
+    max-width: 400px;
+    /* Limita la larghezza massima per uniformità */
+    margin: 0 auto;
+    /* Centra l'elemento nella colonna */
   }
 
   .gallery-item:hover {
@@ -153,26 +172,26 @@ get_footer(); ?>
   }
 
   .gallery-title {
-    transition-delay: 0.1s;
+    transition-delay: 0.05s;
   }
 
   .gallery-description {
-    transition-delay: 0.2s;
+    transition-delay: 0.1s;
   }
 
   .gallery-type {
     position: absolute;
-    top: 15px;
-    left: 15px;
-    background: linear-gradient(135deg, #ff6a00, #ee0979);
+    top: 1rem;
+    left: 1rem;
+    background: #0651c2ff;
     color: #fff;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 12px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.05em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 10;
   }
 
@@ -180,6 +199,11 @@ get_footer(); ?>
     .gallery-grid {
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
+    }
+
+    .gallery-item {
+      max-width: 320px;
+      /* Riduce leggermente la larghezza massima su tablet */
     }
 
     .header h1 {
@@ -190,6 +214,13 @@ get_footer(); ?>
   @media (max-width: 480px) {
     .gallery-grid {
       grid-template-columns: 1fr;
+      /* Una colonna su mobile per semplicità */
+      gap: 20px;
+    }
+
+    .gallery-item {
+      max-width: 100%;
+      /* Occupa tutta la larghezza su mobile */
     }
 
     .header h1 {
@@ -197,3 +228,36 @@ get_footer(); ?>
     }
   }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const galleryGrid = document.querySelector('.gallery-grid');
+    if (!galleryGrid) return;
+
+    const images = galleryGrid.querySelectorAll('img');
+
+    if (images.length === 0) {
+      galleryGrid.classList.add('is-loaded');
+      return;
+    }
+
+    let loadedImages = 0;
+    const totalImages = images.length;
+
+    function imageLoaded() {
+      loadedImages++;
+      if (loadedImages === totalImages) {
+        galleryGrid.classList.add('is-loaded');
+      }
+    }
+
+    images.forEach(img => {
+      if (img.complete && img.naturalHeight !== 0) {
+        imageLoaded();
+      } else {
+        img.addEventListener('load', imageLoaded);
+        img.addEventListener('error', imageLoaded);
+      }
+    });
+  });
+</script>

@@ -100,12 +100,12 @@ get_footer(); ?>
   .gallery-item {
     position: relative;
     overflow: hidden;
-    border-radius: 20px;
+    border-radius: 10px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
     aspect-ratio: 4/3;
-    background: #000;
+    background: #fff;
     width: 100%;
     /* Assicura che l'elemento occupi tutta la larghezza della colonna */
     max-width: 400px;

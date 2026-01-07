@@ -6,7 +6,7 @@ $prefix = '_dci_galleria_';
 // Mostra la sezione se esiste almeno una galleria selezionata
 if (is_array($gallery_ids) && count($gallery_ids) >= 1) { ?>
     <section id="galleria" class="py-5">
-        <div class="container">
+        <div class="gallery-container">
             <h2 class="title-xxlarge mb-4">Gallerie in evidenza</h2>
 
             <div class="gallery-grid">
@@ -33,6 +33,14 @@ if (is_array($gallery_ids) && count($gallery_ids) >= 1) { ?>
         </div>
     </section>
             <style>
+            .gallery-container {
+                max-width: 1300px; /* Limita la larghezza massima */
+                width: 100%;       /* Occupa tutta la larghezza disponibile fino al max-width */
+                margin: 0 auto;    /* Centra il contenitore orizzontalmente */
+                padding: 0 15px;   /* Padding laterale per spazi su schermi piccoli */
+                display: block;    /* Garantisce il comportamento standard del blocco */
+                text-align: left; 
+            }
             .gallery-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -44,12 +52,12 @@ if (is_array($gallery_ids) && count($gallery_ids) >= 1) { ?>
             .gallery-item {
                 position: relative;
                 overflow: hidden;
-                border-radius: 20px;
+                border-radius: 10px;
                 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
                 transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
                 cursor: pointer;
                 aspect-ratio: 4/3;
-                background: #000;
+                background: #fff;
                 width: 100%; /* Assicura che l'elemento occupi tutta la larghezza della colonna */
                 max-width: 400px; /* Limita la larghezza massima per uniformità */
                 margin: 0 auto; /* Centra l'elemento nella colonna */
@@ -124,17 +132,18 @@ if (is_array($gallery_ids) && count($gallery_ids) >= 1) { ?>
                 position: absolute;
                 top: 1rem;
                 left: 1rem;
-                background: #0651c2ff; /* Colore primario del sito per lo sfondo della scritta "Fotografica" */
-                color: #fff; /* Testo bianco per contrasto */
+                background: #0651c2ff;
+                color: #fff;
                 font-size: 0.8rem;
                 font-weight: 600;
                 padding: 0.4rem 0.8rem;
-                border-radius: 999px;
+                border-radius: 0.75rem;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                z-index: 10;
+                z-index: 2;
             }
+    
 
             /* Stili per il nuovo pulsante */
             .custom-btn {

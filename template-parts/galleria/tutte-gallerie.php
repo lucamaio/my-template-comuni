@@ -152,16 +152,12 @@ $posts = $the_query->posts;
     font-size: 0.8rem;
     font-weight: 600;
     padding: 0.4rem 0.8rem;
-    border-radius: 999px;
+    border-radius: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 2;
   }
-
-
-
-
     
   @media (max-width: 768px) {
     .gallery-grid {

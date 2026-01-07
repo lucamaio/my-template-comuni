@@ -201,8 +201,8 @@ document.addEventListener('DOMContentLoaded', function () {
 .gallery-item {
     position: relative;
     overflow: hidden;
-    border-radius: 15px;
-    background: #000;
+    border-radius: 10px;
+    background: #fff;
     box-shadow: 0 6px 18px rgba(0,0,0,.1);
 }
 
@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
 .gallery-info {
     position: absolute;
     inset: 0;
+    z-index: 10;
     background: rgba(0,0,0,.6);
     display: flex;
     flex-direction: column;
@@ -236,6 +237,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 .gallery-info i,
 .gallery-info p {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
     color: #fff;
     transform: translateY(20px);
     transition: transform .4s ease;

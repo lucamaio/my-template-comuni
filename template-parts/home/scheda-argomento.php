@@ -35,10 +35,16 @@ if (isset($argomento_full['argomento_'.$count.'_contenuti']))
     <p class="card-text text-muted" style="font-size:0.95rem; line-height:1.4;">
       <?php echo $argomento->description ?>
     </p>
-
+  
     <!-- sito tematico -->
     <?php if($sito_tematico_id) { ?>
-      <p class="card-text pb-3 mt-3 fw-bold">🌐 Visita il sito:</p>
+     <p class="card-text pb-3 mt-3 fw-bold">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="15" height="15" style="vertical-align:middle; margin-right:5px;">
+            <path d="M288.6 76.8C344.8 20.6 436 20.6 492.2 76.8C548.4 133 548.4 224.2 492.2 280.4L328.2 444.4C293.8 478.8 238.1 478.8 203.7 444.4C169.3 410 169.3 354.3 203.7 319.9L356.5 167.3C369 154.8 389.3 154.8 401.8 167.3C414.3 179.8 414.3 200.1 401.8 212.6L249 365.3C239.6 374.7 239.6 389.9 249 399.2C258.4 408.5 273.6 408.6 282.9 399.2L446.9 235.2C478.1 204 478.1 153.3 446.9 122.1C415.7 90.9 365 90.9 333.8 122.1L169.8 286.1C116.7 339.2 116.7 425.3 169.8 478.4C222.9 531.5 309 531.5 362.1 478.4L492.3 348.3C504.8 335.8 525.1 335.8 537.6 348.3C550.1 360.8 550.1 381.1 537.6 393.6L407.4 523.6C329.3 601.7 202.7 601.7 124.6 523.6C46.5 445.5 46.5 318.9 124.6 240.8L288.6 76.8z"/>
+        </svg>
+        Visita il sito:
+    </p>
+
       <?php 
         $custom_class = "no-after mt-0";
         get_template_part("template-parts/sito-tematico/card_argomento");
@@ -51,7 +57,19 @@ if (isset($argomento_full['argomento_'.$count.'_contenuti']))
         <ul class="link-list" style="padding-left:0; list-style:none; margin:0;">
           <?php foreach ($links as $link_id) { 
             $link_obj = get_post($link_id);
+            $title = $link_obj->post_title;
+
+            // Formattazione link
+            if (strlen($title) > 100) {
+                $title = substr($title, 0, 97) . '...';
+            }					
+            // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+            if (preg_match('/[A-Z]{5,}/', $title)) {
+                // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+                $title = ucfirst(strtolower($title));
+                  }				
           ?>
+          
             <li style="margin-bottom:10px;">
               <a class="list-item icon-left d-flex align-items-center"
                  href="<?php echo get_permalink(intval($link_id)); ?>"
@@ -62,7 +80,7 @@ if (isset($argomento_full['argomento_'.$count.'_contenuti']))
                 <svg class="icon text-secondary me-2" style="width:18px; height:18px; margin-right:8px;">
                   <use xlink:href="#it-link"></use>
                 </svg>
-                <span style="font-size:0.95rem; font-weight:500;"><?php echo $link_obj->post_title; ?></span>
+                <span style="font-size:0.95rem; font-weight:500;"><?= $title; ?></span>
               </a>
             </li>
           <?php } ?>

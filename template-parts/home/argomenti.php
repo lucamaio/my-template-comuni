@@ -124,8 +124,8 @@ $img = isset($img_ricavata) && !empty($img_ricavata) & $img_ricavata !==  null ?
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.4); /* Opacità nera: 0.4 puoi regolare */
-    backdrop-filter: blur(4px); 
+    background-color: rgba(0, 0, 0, 0.2); /* Opacità nera: 0.4 puoi regolare */
+    /* backdrop-filter: blur(0.1rem);  */
     z-index: 1;
 }
 

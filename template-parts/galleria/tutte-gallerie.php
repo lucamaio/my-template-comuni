@@ -13,7 +13,7 @@ $the_query = new WP_Query($args);
 $posts = $the_query->posts;
 ?>
 
-<div class="bg-grey-dsk py-5">
+
     <div class="gallery-container">
         <h2 class="title-xxlarge mb-4">
                 Esplora le nostre gallerie
@@ -30,16 +30,18 @@ $posts = $the_query->posts;
             </div>
         <?php } ?>
     </div>
-</div>
+
 
 <style>
-  .gallery-container {
-    max-width: 1200px;
-    height: auto;
-    margin: 0 auto;
-    padding: 0 20px;
-    /* Aggiunto padding per margini laterali su schermi piccoli */
-  }
+.gallery-container {
+    max-width: 1300px; /* Limita la larghezza massima */
+    width: 100%;       /* Occupa tutta la larghezza disponibile fino al max-width */
+    margin: 0 auto;    /* Centra il contenitore orizzontalmente */
+    padding: 0 15px;   /* Padding laterale per spazi su schermi piccoli */
+    display: block;    /* Garantisce il comportamento standard del blocco */
+    text-align: left; 
+ }
+
 
   .gallery-grid {
     display: grid;
@@ -62,12 +64,12 @@ $posts = $the_query->posts;
   .gallery-item {
     position: relative;
     overflow: hidden;
-    border-radius: 20px;
+    border-radius: 10px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
     aspect-ratio: 4/3;
-    background: #000;
+    background: #fff;
     width: 100%;
     /* Assicura che l'elemento occupi tutta la larghezza della colonna */
     max-width: 400px;
@@ -154,9 +156,13 @@ $posts = $the_query->posts;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 10;
+    z-index: 2;
   }
 
+
+
+
+    
   @media (max-width: 768px) {
     .gallery-grid {
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -222,4 +228,13 @@ $posts = $the_query->posts;
       }
     });
   });
+
 </script>
+
+
+
+
+
+
+
+

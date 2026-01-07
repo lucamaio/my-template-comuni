@@ -76,6 +76,7 @@ get_header();
         //     return trim(strip_tags($text));
         // }
     ?>
+
 </main>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 <script type="application/ld+json" data-element="metatag">
@@ -571,3 +572,4 @@ get_header();
 get_footer();
 
 ?>
+

@@ -23,7 +23,7 @@ foreach ($date as $data) {
 
 $url_eventi = dci_get_template_page_url("page-templates/eventi.php");
 
-if($total_eventi>0){
+
 ?>
 	<div class="section section-muted pb-90 pb-lg-50 px-lg-5 pt-0">
 		<div class="container">
@@ -77,7 +77,7 @@ if($total_eventi>0){
 						</div>
 					</div>
 				<?php } else { ?>					
-					<div class="h4 mt-4"> Nessun evento in programma. </div>
+					<div class="h4 mt-4"> Nessun evento in programma in questo periodo. </div>
 				<?php } ?>
 			</div>
 			<?php if ( is_home() ) {?>
@@ -92,4 +92,4 @@ if($total_eventi>0){
 			<?php } ?>
 		</div>
 	</div>
-<?php } ?>
+

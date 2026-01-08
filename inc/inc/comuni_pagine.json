@@ -1,0 +1,206 @@
+{
+  "pagine": {
+    "Amministrazione": {
+      "title": "Amministrazione",
+      "slug": "amministrazione",
+      "description": "Tutte le informazioni sulla struttura amministrativa del Comune. Scopri gli organi politici, gli uffici e il personale e consulta i documenti pubblici, le statistiche e i bandi di gara.",
+      "template_name": "amministrazione",
+      "children": {
+        "Aree amministrative": {
+          "title": "Aree amministrative",
+          "slug": "aree-amministrative",
+          "description": "La struttura organizzativa è suddivisa in aree di competenze che gestiscono i servizi erogati alla comunità.",
+          "template_name": "aree_amministrative",
+          "children": {}
+        },       
+        "Enti e fondazioni": {
+          "title": "Enti e fondazioni",
+          "slug": "enti-e-fondazioni",
+          "description": "I consorzi, gli enti e le società partecipate di cui il Comune fa parte per rappresentare al meglio gli interessi della comunità.",
+          "template_name": "enti-e-fondazioni",
+          "children": {}
+        },
+        "Organi di Governo": {
+          "title": "Organi di Governo",
+          "slug": "organi-di-governo",
+          "description": "Le informazioni sulla Giunta e il Consiglio comunale, incluse le convocazioni, le registrazioni delle sedute e i verbali.",
+          "template_name": "organi-governo",
+          "children": {}
+        },
+        "Personale amministrativo": {
+          "title": "Personale amministrativo",
+          "slug": "personale-amministrativo",
+          "description": "Personale da contattare per informazioni e supporto ai servizi erogati dagli uffici.",
+          "template_name": "personale-amministrativo",
+          "children": {}
+        },
+        "Politici": {
+          "title": "Politici",
+          "slug": "politici",
+          "description": "Tutti i rappresentanti dei cittadini che compongono gli organi di indirizzo politico del Comune.",
+          "template_name": "politici",
+          "children": {}
+        },
+        "Uffici": {
+          "title": "Uffici",
+          "slug": "uffici",
+          "description": "Le informazioni e i contatti degli Uffici di Città, gli uffici aperti al pubblico e gli uffici assistenziali.",
+          "template_name": "uffici",
+          "children": {}
+        },
+        "Documenti e dati": {
+          "title": "Documenti e dati",
+          "slug": "documenti-e-dati",
+          "description": "Bandi di concorso, avvisi, graduatorie, statistiche e documenti pubblici.",
+          "template_name": "documenti-e-dati",
+          "children": {}
+        },
+        "Commissario OSL": {
+          "title": "Organo Straordinario di Liquidazione",
+          "slug": "commissario-osl",
+          "description": "Il Commissario OSL (Organo Straordinario di Liquidazione) è una figura istituzionale nominata per gestire il risanamento finanziario degli enti locali in dissesto. Il suo compito principale è quello di amministrare la massa passiva dell’ente, provvedendo.",
+          "template_name": "commissario_osl",
+          "children": {}
+        }
+      }
+    },
+    "Novità": {
+      "title": "Novità",
+      "slug": "novita",
+      "description": "Le notizie, i comunicati e gli avvisi per restare aggiornati sulle ultime novità, opportunità e cosa succede nel territorio comunale",
+      "template_name": "novita",
+      "children": {}
+    },
+    "Servizi": {
+      "title": "Servizi",
+      "slug": "servizi",
+      "description": "Tutti i servizi comunali per i cittadini, disponibili online o a sportello, per richiedere documenti e permessi, iscriversi a graduatorie ed effettuare pagamenti.",
+      "template_name": "servizi",
+      "children": {
+        "Assistenza": {
+          "title": "Assistenza",
+          "slug": "assistenza",
+          "description": "I campi contraddistinti dal simbolo asterisco sono obbligatori.",
+          "template_name": "assistenza",
+          "children": {}
+        },
+        "Prenotazioni": {
+          "title": "Prenotazioni",
+          "slug": "prenotazioni",
+          "description": "",
+          "template_name": "prenota-appuntamento",
+          "children": {}
+        }
+      }
+    },
+    "Vivere il Comune": {
+      "title": "Vivere il Comune",
+      "slug": "vivere-il-comune",
+      "description": "Tutti gli eventi, le iniziative e i luoghi d’interesse per scoprire e vivere il territorio comunale.",
+      "template_name": "vivere-il-comune",
+      "children": {
+        "Eventi": {
+          "title": "Eventi",
+          "slug": "eventi",
+          "description": "Tutti gli eventi proposti dall'Ente.",
+          "template_name": "eventi",
+          "children": {}
+        },
+        "Luoghi": {
+          "title": "Luoghi",
+          "slug": "luoghi",
+          "description": "Tutti i luoghi d'interesse dell'Ente.",
+          "template_name": "luoghi",
+          "children": {}
+        },
+        "Multimedia": {
+          "title": "Multimedia",
+          "slug": "multimedia",
+          "description": "Tutti i video del Comune.",
+          "template_name": "multimedia",
+          "children": {}
+        },
+        "Storia": {
+          "title": "Storia",
+          "slug": "storia",
+          "description": "La storia dell'Ente.",
+          "template_name": "",
+          "children": {}
+        },
+        "Valori e obiettivi": {
+          "title": "Valori e obiettivi",
+          "slug": "valori-obiettivi",
+          "description": "I valori dell'Ente.",
+          "template_name": "",
+          "children": {}
+        }        
+      }
+    },
+    "Galleria": {
+          "title": "Galleria",
+          "slug": "galleria",
+          "description": "Esplora l'ente.",
+          "template_name": "galleria",
+          "children": {}
+        },
+    "Argomenti": {
+      "title": "Argomenti",
+      "slug": "argomenti",
+      "description": "Gli argomenti rispondono a un'esigenza di organizzazione dei contenuti del sito istituzionale per temi e rappresentano le principali categorie di contenuti, informazioni e documenti specifici.",
+      "template_name": "argomenti",
+      "children": {}
+    },
+    "Domande frequenti": {
+      "title": "Domande frequenti",
+      "slug": "domande-frequenti",
+      "description": "Elenco di risposte alle domande più frequenti raccolte dalle richieste di assistenza dei cittadini.",
+      "template_name": "domande-frequenti",
+      "children": {}
+    },
+    "Segnala disservizio": {
+      "title": "Segnala disservizio",
+      "slug": "segnala-disservizio",
+      "description": "Un servizio aperto a tutti i cittadini per segnalare disservizi, guasti e criticità rilevati sul territorio comunale.",
+      "template_name": "segnala-disservizio",
+      "children": {}
+    },
+    "Piano di miglioramento del sito": {
+      "title": "Piano di miglioramento del sito",
+      "slug": "Piano-di-miglioramento-del-sito",
+      "description": "Consulta il Piano di Miglioramento approvato dal Comune, che definisce le linee strategiche e operative per efficienza e qualità dei servizi pubblici.",
+      "template_name": "piano-miglioramento",
+      "children": {}
+    },    
+    "Progetti PNRR": {
+          "title": "Progetti PNRR",
+          "slug": "progetti",
+          "description": "Elenco dei progetti PNRR del comune",
+          "template_name": "progetti",
+          "children": {}
+        },
+    "Amministrazione Trasparente": {
+          "title": "Amministrazione Trasparente",
+          "slug": "amministrazione-trasparente",
+          "description": "Sezione istituzionale che raccoglie e rende pubblici i dati, le informazioni e i documenti relativi all’organizzazione e all’attività dell’Ente, in ottemperanza agli obblighi di trasparenza previsti dalla normativa vigente. L’obiettivo è garantire l’accessibilità totale alle informazioni di pubblico interesse, promuovendo la legalità, la prevenzione della corruzione e il controllo diffuso da parte dei cittadini.",
+          "template_name": "amministrazione-trasparente",
+          "children": {}
+        },
+    "Elenco Consigli Comunali": {
+          "title": "Elenco Consigli Comunali",
+          "slug": "elenco-consigli-comunali",
+          "description": "Sezione dedicata all'elenco dei consigli comunali tenutisi nell'ente, con informazioni dettagliate su ciascuna seduta, inclusi i partecipanti, gli argomenti trattati e le decisioni prese.",
+          "template_name": "consiglio",
+          "children": {}
+        },
+      "Contatti": {
+        "title": "Contatti",
+        "slug": "contatti",
+        "description": "Sezione dedicata ai recapiti ufficiali del Comune, attraverso la quale cittadini, imprese ed enti possono mettersi in contatto con l’Amministrazione comunale. La pagina fornisce informazioni utili quali indirizzi, numeri telefonici, indirizzi di posta elettronica e altri canali di comunicazione, al fine di garantire trasparenza, accessibilità e un dialogo diretto con gli uffici competenti.",
+        "template_name": "contatti",
+        "children": {}
+      }
+
+
+
+  }
+}

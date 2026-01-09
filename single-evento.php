@@ -192,7 +192,7 @@ get_header();
               <?php  } ?>
              
               <?php if (is_array($gallery) && count($gallery)) {?>
-                    <h3 class="h4">Galleria Immagini</h3>
+                    <h3 class="mb-3">Galleria Immagini</h3>
                     <?php get_template_part("template-parts/single/gallery");
               } ?>
               <?php if ($video) {?>
@@ -282,9 +282,11 @@ get_header();
                           <?php echo $costo['prezzo_costo']; ?>
                       </p>
                       </h5>
-                      <p class="mt-4">
-                          <?php echo $costo['descrizione_costo']; ?>
-                      </p>
+                      <?php if(isset($costo['descrizione_costo']) & !empty($costo['descrizione_costo'])){?>
+                            <p class="mt-4">
+                                <?php echo $costo['descrizione_costo']; ?>
+                            </p>
+                      <?php } ?>
                   </div>
               </div>
           <?php } ?>
@@ -379,7 +381,7 @@ get_header();
     </div>
     <?php get_template_part("template-parts/common/valuta-servizio"); ?>
     
-    <!-- <?php get_template_part('template-parts/single/more-posts', 'carousel'); ?> -->
+    <?php //get_template_part('template-parts/single/more-posts', 'carousel'); ?>
 
   <?php
   endwhile; // End of the loop.

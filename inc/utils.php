@@ -406,12 +406,17 @@ function dci_get_empty_calendar_array($days) {
 
 function dci_get_eventi_calendar_array() {
     $args = array(
-        'post_type' => 'evento',
-        'fields' => 'ids',
+        'post_type'      => 'evento',
+        'posts_per_page' => -1, // Fondamentale per ricavare tutti gli eventi presenti. Se non specificato ne ricava solo 5
+        'fields'         => 'ids',
+        'post_status'    => 'publish',
+        'orderby'        => 'meta_value',
+        'order'          => 'ASC',
     );
+    
     $eventi = get_posts($args);
     $eventi_calendar_array = array();
-
+ 
     foreach( $eventi as $evento){
         $data_orario_inizio = dci_get_meta('data_orario_inizio','_dci_evento_',$evento);
         $data_orario_fine =   dci_get_meta('data_orario_fine','_dci_evento_',$evento);
@@ -431,7 +436,7 @@ function dci_get_eventi_calendar_array() {
 function dci_create_calendar($days = 7){
     $eventi = dci_get_eventi_calendar_array();
     $calendar = dci_get_empty_calendar_array($days);
-
+  
     foreach ($calendar as $key => $value){
         foreach ($eventi as $evento){
             $evento = dci_is_evento_in_calendar($evento,$key);

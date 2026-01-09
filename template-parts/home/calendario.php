@@ -17,7 +17,7 @@ $total_eventi = 0;
 foreach ($date as $data) {
 	if (is_array($calendario[$data]) && count($calendario[$data])) {
 		$eventi = $calendario[$data]['eventi'];
-		++$total_eventi;
+		$total_eventi += count($calendario[$data]['eventi']);
 	}
 }
 

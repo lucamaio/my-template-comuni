@@ -1,15 +1,17 @@
 <?php
 global $the_query, $load_posts, $load_card_type;
 
-    $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 3;
+    $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : -1;
     $load_posts = 3;
     $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
     $args = array(
         's'         => $query,
         'post_type' => 'evento',
+        'posts_per_page' => $max_posts,
         'orderby' => 'meta_value',
         'order' => 'ASC',
         'meta_key' => '_dci_evento_data_orario_inizio',
+        'post_status'    => 'publish',
     );
 
     $the_query = new WP_Query( $args );

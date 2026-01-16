@@ -1,27 +1,44 @@
 <?php
 global $the_query, $load_posts, $load_card_type;
 
-    $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 24;
-    $load_posts = 9;
+$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 1000000;
+$load_posts = 9;
 
-    $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
-    $args = array(
-        's' => $query,
-        'posts_per_page' => $max_posts,
-        'post_type'      => 'unita_organizzativa',
-        'orderby'        => 'post_title',
-        'order'          => 'ASC'
-     );
-     $the_query = new WP_Query($args);
+$query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 
-     $posts = $the_query->posts;
+/**
+ * 1) recupero termine padre "altra-struttura"
+ */
+$parent_term = get_term_by('slug', 'altra-struttura', 'tipi_unita_organizzativa');
 
+/**
+ * 2) WP_Query con include_children = true
+ */
+$args = array(
+    's'              => $query,
+    'posts_per_page' => $max_posts,
+    'post_type'      => 'unita_organizzativa',
+    'orderby'        => 'post_title',
+    'order'          => 'ASC',
+    'tax_query'      => array(
+        array(
+            'taxonomy'         => 'tipi_unita_organizzativa',
+            'field'            => 'term_id',
+            'terms'            => $parent_term->term_id,
+            'include_children' => true,   // 👈 prende ente, fondazione, ecc
+            'operator'         => 'IN',
+        ),
+    ),
+);
 
-     $posts = array_filter($posts, function($post, $key) {
-        $tipo = get_the_terms($post, 'tipi_unita_organizzativa')[0];
-        return $tipo->slug === "ente" || $tipo->slug === "fondazione";
-    }, ARRAY_FILTER_USE_BOTH);
+$the_query = new WP_Query($args);
+
+/**
+ * 3) estrai direttamente i post (niente array_filter)
+ */
+$posts = $the_query->posts;
 ?>
+
 
 
 <div class="bg-grey-card py-5">

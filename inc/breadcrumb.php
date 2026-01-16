@@ -614,57 +614,61 @@ class Breadcrumb_Trail {
 
 
 		    
-				if (get_post_type() == 'unita_organizzativa') {
-					    // Aggiungi il link alla pagina di amministrazione
-					    $this->items[] = "<a href='" . home_url("amministrazione") . "'>" . __("Amministrazione", "design_comuni_italia") . "</a>";
-					
-					    // Array per tracciare i link già aggiunti
-					    $added_links = [];
-					
-					    // Ottieni i termini della tassonomia 'tipi_unita_organizzativa'
-					    $terms = get_the_terms(get_the_ID(), 'tipi_unita_organizzativa');
-				
-					
-					    if ($terms && !is_wp_error($terms)) {
-
-						    
-					        // Cicla attraverso ogni termine e controlla se c'è una "struttura politica"
-					        foreach ($terms as $term) {
-
-							
-					            // Se trovi il termine "struttura politica", crea un link alla pagina "politici"
-					            if (strtoupper(esc_html($term->name)) == 'STRUTTURA POLITICA' || strtoupper(esc_html($term->name)) == 'CONSIGLIO COMUNALE' || strtoupper(esc_html($term->name)) == 'GIUNTA COMUNALE' || strtoupper(esc_html($term->name)) == 'COMMISSIONE') {
-
-
-							    
-					                // Controlliamo e aggiungiamo il link Politici solo se non è già presente
-					              //  $politici_link = home_url("amministrazione/politici");
-					              //  $politici_text = "Politici";
-					                
-					                // Controlliamo se il link è già stato aggiunto
-					             //   if (!in_array($politici_link, $added_links)) {
-					            //        $this->items[] = "<a href='" . esc_url($politici_link) . "'>$politici_text</a>";
-					            //        $added_links[] = $politici_link; // Aggiungiamo il link all'array dei link aggiunti
-					              //  }
-
-
-
-							    
-							    
-					                // Controlliamo e aggiungiamo il link Organi di Governo solo se non è già presente
-					                $organi_link = home_url("amministrazione/organi-di-governo");
-					                $organi_text = "Organi Di Governo";
-					                
-					                // Controlliamo se il link è già stato aggiunto
-					                if (!in_array($organi_link, $added_links)) {
-					                    $this->items[] = "<a href='" . esc_url($organi_link) . "'>$organi_text</a>";
-					                    $added_links[] = $organi_link; // Aggiungiamo il link all'array dei link aggiunti
-					                }
-					            }
-					        }
-					    }
-
-
+						if (get_post_type() == 'unita_organizzativa') {
+						    // Link alla pagina di amministrazione
+						    $this->items[] = "<a href='" . home_url("amministrazione") . "'>" . __("Amministrazione", "design_comuni_italia") . "</a>";
+						
+						    // Array per tracciare i link già aggiunti
+						    $added_links = [];
+						
+						    // Termini della tassonomia
+						    $terms = get_the_terms(get_the_ID(), 'tipi_unita_organizzativa');
+						
+						    if ($terms && !is_wp_error($terms)) {
+						
+						        foreach ($terms as $term) {
+						
+						            // Recupera tutti gli antenati una volta sola
+						            $ancestors = get_ancestors($term->term_id, 'tipi_unita_organizzativa');
+						
+						            // Flag
+						            $is_child_of_struttura_politica = false;
+						            $is_child_of_altra_struttura = false;
+						
+						            if (!empty($ancestors)) {
+						                foreach ($ancestors as $ancestor_id) {
+						                    $ancestor_term = get_term($ancestor_id, 'tipi_unita_organizzativa');
+						                    if ($ancestor_term && !is_wp_error($ancestor_term)) {
+						                        if ($ancestor_term->slug === 'struttura-politica') {
+						                            $is_child_of_struttura_politica = true;
+						                        }
+						                        if ($ancestor_term->slug === 'altra-struttura') {
+						                            $is_child_of_altra_struttura = true;
+						                        }
+						                    }
+						                }
+						            }
+						
+						            // Se è figlio di STRUTTURA POLITICA
+						            if ($is_child_of_struttura_politica) {
+						                $link = home_url("amministrazione/organi-di-governo");
+						                if (!in_array($link, $added_links)) {
+						                    $this->items[] = "<a href='" . esc_url($link) . "'>Organi di Governo</a>";
+						                    $added_links[] = $link;
+						                }
+						            }
+						
+						            // Se è figlio di ALTRA STRUTTURA
+						            if ($is_child_of_altra_struttura) {
+						                $link = home_url("amministrazione/enti-e-fondazioni");
+						                if (!in_array($link, $added_links)) {
+						                    $this->items[] = "<a href='" . esc_url($link) . "'>Enti e Fondazioni</a>";
+						                    $added_links[] = $link;
+						                }
+						            }
+						
+						        } // end foreach terms
+						    } // end if terms
 				
 
 				

@@ -5,6 +5,7 @@ $current_user = wp_get_current_user();
 $last_notification = get_user_meta($current_user->ID,"_dci_last_notification", true);
 
 // $link_notification = get_permalink($last_notification);
+// $link_notification = $last_notification ? get_permalink($last_notification) : "#";
 
 // if($last_notification){
     ?>

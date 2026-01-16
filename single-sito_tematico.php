@@ -69,7 +69,7 @@ get_header();
         </div>
         <?php
         $img_id = dci_get_meta('immagine', $prefix, $post_id);
-        $mostra_immagine = get_post_meta($post_id, $prefix . 'mostra_immagine', true) === '' ? true : get_post_meta($post_id, $prefix . 'mostra_immagine', true);
+        $mostra_immagine = get_post_meta($post_id, $prefix . 'mostra_immagine', true) === '' ? false : get_post_meta($post_id, $prefix . 'mostra_immagine', true);
         
          if ($mostra_immagine && $img_id) { ?>
                 <section class="hero-img mb-15ì2 mb-lg-30 aling-itmes-center">

@@ -3,7 +3,7 @@ global $argomento_full, $count, $sito_tematico_id;
 
 $argomento = get_term_by('slug', $argomento_full['argomento_'.$count.'_argomento'], 'argomenti');
 
-$icon = dci_get_term_meta('icona', "dci_term_", $argomento->term_id);
+// $icon = dci_get_term_meta('icona', "dci_term_", $argomento->term_id); // Questo campo non esiste
 
 if (isset($argomento_full['argomento_'.$count.'_siti_tematici']))
   $sito_tematico_id = $argomento_full['argomento_'.$count.'_siti_tematici'];
@@ -12,15 +12,15 @@ if (isset($argomento_full['argomento_'.$count.'_contenuti']))
 ?>
 
 <div class="card card-teaser no-after rounded shadow-sm border border-light" style="overflow:hidden; position:relative;">
-  
-  <!-- Icona posizionata sopra la card, in alto a sinistra -->
-<svg class="icon text-primary" style="position:absolute; top:7px; left:0px; width:18px; height:18px; z-index:1;">
-  <use xlink:href="#it-share"></use>
-</svg>
-  <div class="card-body pb-4" style="padding-top: 20px;">
+  <div class="card-body pb-4 mt-2">
     <!-- card head -->
     <div class="category-top d-flex align-items-center mb-2" style="text-align:left;">
-      <h3 class="card-title title-xlarge-card mb-0" style="font-size:1.3rem; font-weight:600;">
+      <h3 class="card-title title-xlarge-card mb-0" style="font-size:1.3rem; font-weight:600; text-transform: none !important;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="icon text-primary"
+              style="width:20px; height:20px; flex-shrink:0; fill: #A2A2A2">
+              <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+              <path d="M371.8 82.4C359.8 87.4 352 99 352 112L352 192L240 192C142.8 192 64 270.8 64 368C64 481.3 145.5 531.9 164.2 542.1C166.7 543.5 169.5 544 172.3 544C183.2 544 192 535.1 192 524.3C192 516.8 187.7 509.9 182.2 504.8C172.8 496 160 478.4 160 448.1C160 395.1 203 352.1 256 352.1L352 352.1L352 432.1C352 445 359.8 456.7 371.8 461.7C383.8 466.7 397.5 463.9 406.7 454.8L566.7 294.8C579.2 282.3 579.2 262 566.7 249.5L406.7 89.5C397.5 80.3 383.8 77.6 371.8 82.6z"/>
+          </svg>
         <?php echo $argomento->name ?>
       </h3>
     </div>
@@ -99,7 +99,7 @@ if (isset($argomento_full['argomento_'.$count.'_contenuti']))
        title="Esplora l'argomento <?php echo $argomento->name; ?>"
        data-focus-mouse="false"
     >
-        <span class="text" style="font-size:0.80rem;"><b>Esplora argomento</b></span>
+        <span class="text" style="font-size:0.85rem; text-transform: none !important;"><b>Esplora Argomento</b></span>
         <svg class="icon ms-1" style="width:18px; height:18px;">
             <use xlink:href="#it-arrow-right"></use>
         </svg>

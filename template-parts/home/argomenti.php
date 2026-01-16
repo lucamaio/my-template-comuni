@@ -12,7 +12,7 @@ $altri_argomenti = dci_get_option('argomenti_altri','homepage');
 // check visualizza immagine:
 $check_immagini = dci_get_option('ch_show_sfondo_argomenti','homepage');
 
-$img_default = get_template_directory_uri() . '/assets/img/pnnr_sfo.png';
+$img_default = get_template_directory_uri() . '/assets/img/bg_placeholder-blu.png';
 $img_ricavata = dci_get_option('immagine-argomenti','homepage');
 $img = isset($img_ricavata) && !empty($img_ricavata) & $img_ricavata !==  null ? $img_ricavata : $img_default;
 ?>

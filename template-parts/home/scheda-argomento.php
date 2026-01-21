@@ -3,7 +3,7 @@ global $argomento_full, $count, $sito_tematico_id;
 
 $argomento = get_term_by('slug', $argomento_full['argomento_'.$count.'_argomento'], 'argomenti');
 
-// $icon = dci_get_term_meta('icona', "dci_term_", $argomento->term_id); // Questo campo non esiste
+$icon = dci_get_term_meta('icona', "dci_term_", $argomento->term_id); // Questo campo non esiste
 
 if (isset($argomento_full['argomento_'.$count.'_siti_tematici']))
   $sito_tematico_id = $argomento_full['argomento_'.$count.'_siti_tematici'];

@@ -299,6 +299,37 @@ function dci_add_notizia_metaboxes()
         ),
         'type'  => 'checkbox',
     ));
+
+    $cmb_check->add_field(array(
+        'id'    => $prefix . 'evidenzia_home',
+        'name'  => __('Evidenzia nella Homepage', 'design_comuni_italia'),
+        'desc'  => __(
+            'Se selezionato, la notizia verrà visualizzata automaticamente nella sezione "Notizia in Evidenza" della homepage.<br>' .
+            'Questa opzione consente di selezionare manualmente quali notizie mostrare quando la visualizzazione automatica delle notizie in evidenza è attiva.',
+            'design_comuni_italia'
+        ),
+        'type'  => 'checkbox',
+    ));
+
+    // $cmb_check->add_field(array(
+    //     'id'    => $prefix . 'priorita',
+    //     'name'  => __('Priorità', 'design_comuni_italia'),
+    //     'desc'  => __(
+    //         'Indica la priorità di visualizzazione della notizia (da 0 a 5). ' .
+    //         'Valori più bassi indicano maggiore priorità (1 = massima priorità). ' .
+    //         'Il campo viene considerato solo se la notizia è evidenziata in homepage.',
+    //         'design_comuni_italia'
+    //     ),
+    //     'type'        => 'text_small',
+    //     'default'     => '0',
+    //     'attributes' => array(
+    //         'type'  => 'number',
+    //         'min'   => '0',
+    //         'max'   => '5',
+    //         'step'  => '1',
+    //     ),
+    // ));
+
 }
 
 }

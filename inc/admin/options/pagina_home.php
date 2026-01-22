@@ -64,11 +64,11 @@ function dci_register_pagina_home_options(){
 
 
 
-$home_options->add_field( array(
-    'id'   => $prefix . 'notizie_auto',
-    'name' => __( 'Notizie automatiche sull Home Page', 'design_comuni_italia' ),
-    'desc' => __( 'Con queste impostazioni è possibile attivare la pubblicazione delle notizie automatiche sull Home Page.', 'design_comuni_italia' ),
-    'type' => 'title',
+    $home_options->add_field( array(
+        'id'   => $prefix . 'notizie_auto',
+        'name' => __( 'Notizie automatiche sull Home Page', 'design_comuni_italia' ),
+        'desc' => __( 'Con queste impostazioni è possibile attivare la pubblicazione delle notizie automatiche sull Home Page.', 'design_comuni_italia' ),
+        'type' => 'title',
     ));	
 
     $home_options->add_field(array(
@@ -103,6 +103,43 @@ $home_options->add_field( array(
 	        12 => __('12', 'design_comuni_italia'),
 	    ),
 	));
+
+    $home_options->add_field(array(
+        'id' => $prefix . 'ck_notizie_evidenza',
+        'name' => __('Notizia Evidenziata automatica', 'design_comuni_italia'),
+        'desc' => __(
+            'Se abilitata, la sezione "Notizie in evidenza" della homepage verrà popolata automaticamente utilizzando le notizie che, nella tipologia "Notizia", sono contrassegnate come "Evidenzia nella Homepage". ' .
+            'In questo modo la selezione delle notizie in evidenza avviene direttamente dalla singola notizia, senza dover intervenire manualmente sulla homepage.',
+            'design_comuni_italia'
+        ),
+        'type' => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true' => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+    ));
+
+    $home_options->add_field(array(
+        'id' => $prefix . 'numero_notizie_evidenza',
+        'name' => __('Numero di notizie in evidenza', 'design_comuni_italia'),
+        'desc' => __(
+            'Seleziona il numero massimo di notizie da visualizzare nella sezione "Notizie in evidenza" della homepage. ' .
+            'Le notizie verranno mostrate in base alla priorità impostata e ai criteri di evidenziazione.',
+            'design_comuni_italia'
+        ),
+        'type' => 'radio_inline',
+        'default' => 0,
+        'options' => array(
+            0 => __('0', 'design_comuni_italia'),
+            1 => __('1', 'design_comuni_italia'),
+            3 => __('3', 'design_comuni_italia'),
+            5 => __('5', 'design_comuni_italia'),
+        ),
+    ));
+
+
+
 
 
 	$check_notizie_auto = dci_get_option('ck_notizie_automatico','homepage') ?: false;

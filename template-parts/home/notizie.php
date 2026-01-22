@@ -1,10 +1,14 @@
 <?php
-global $count, $scheda, $post;
+global $count, $scheda, $post, $numero_notizie_evidenziate;
 
 $post_id = dci_get_option('notizia_evidenziata', 'homepage', true)[0] ?? null;
 $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
 $notizie_automatiche = dci_get_option("ck_notizie_automatico", "homepage");
 $notizie_home= dci_get_option("numero_notizie_home", "homepage");
+
+
+$notizie_evidenziate_automatiche = dci_get_option("ck_notizie_evidenza", "homepage") ?? null;
+$numero_notizie_evidenziate = dci_get_option("numero_notizie_evidenza", "homepage") ?? 0;
 
 if ($post_id) {
     $post = get_post($post_id);
@@ -55,9 +59,11 @@ $visualizza_pulsante=false; // Aggiungo questa variabile per verificare se devo 
 <section id="notizie" aria-describedby="novita-in-evidenza">
     <div class="section-content">
         <div class="container">
-            <?php if ($post_id) {
+            <?php if ($post_id && ($notizie_evidenziate_automatiche === 'false' || !isset($notizie_evidenziate_automatiche) || empty($notizie_evidenziate_automatiche))) {
                 get_template_part("template-parts/home/notizia_in_evidenza");
-            } ?>
+            } else if($notizie_evidenziate_automatiche === 'true' && $numero_notizie_evidenziate > 0 ){
+                get_template_part("template-parts/home/notizie-auto-evidenza");
+            }?>
 
             <?php if (!empty(array_filter($schede))) { ?>
                 <div class="py-4">

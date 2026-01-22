@@ -67,7 +67,7 @@ if (is_array($servizi_evidenza) && count($servizi_evidenza) > 0) {
                      * - Diventa attivo solo se entrambe le date sono valide
                      *   e la data corrente è compresa tra inizio e fine.
                      */
-                    $stato_attivo = false;
+                    $stato_attivo = true;
 
                     if ($startDate && $endDate) {
                         $stato_attivo = ($oggi >= $startDate && $oggi <= $endDate);

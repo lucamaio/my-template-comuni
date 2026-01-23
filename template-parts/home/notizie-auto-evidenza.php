@@ -4,7 +4,9 @@ global $numero_notizie_evidenziate;
 $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 200;
 $load_posts = -1;
 $prefix = '_dci_notizia_';
+
 $numero_notizie_evidenziate = (int) $numero_notizie_evidenziate;
+$hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage") ?? null;
 // Recupero solo le notizie evidenziate ordinate per priorità
 $args = array(
     'post_type'      => 'notizia',
@@ -41,14 +43,41 @@ $count = 0;
             }
             setup_postdata($post);
 
+            // Dati principali
             $img               = dci_get_meta("immagine", $prefix, $post->ID);
-            $arrdata           = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $post->ID);
             $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $post->ID);
             $luogo_notizia     = dci_get_meta("luoghi", $prefix, $post->ID);
 
+            // Tipo termine
             $tipo_terms = wp_get_post_terms($post->ID, 'tipi_notizia');
             $tipo       = ($tipo_terms && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
+
+            // Data Pubblicazione
+            $arrdata           = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $post->ID);
+            $dayPubblicazione = $arrdata[0];
+            $monthPubblicazione = $arrdata[1];
             $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
+            $yearPubblicazione = strlen($arrdata[2]) == 2 ? '20' . $arrdata[2] : $arrdata[2];
+
+
+            // Data Scadenza
+            $arrayDataScadenza =  dci_get_data_pubblicazione_arr("data_scadenza", $prefix, $post->ID);
+            $dayScadenza = $arrayDataScadenza[0];
+            $monthScadenza = $arrayDataScadenza[1];
+            $monthScadenzaName  = date_i18n('M', mktime(0, 0, 0, $arrayDataScadenza[1], 10));
+            $yearScadenza = strlen($arrayDataScadenza[2]) == 2 ? '20' . $arrayDataScadenza[2] : $arrayDataScadenza[2];
+            
+            // Sitemo le date
+            $dayPubblicazione =  DateTime::createFromFormat('d/m/Y', "$$dayPubblicazione/$monthPubblicazione/$yearPubblicazione");
+            $dataScadenza = DateTime::createFromFormat('d/m/Y', "$dayScadenza/$monthScadenza/$yearScadenza");
+            
+            // Leggo la data odierna
+            $oggi = new DateTime();
+
+            // verifico se posso visualizzare la notizia
+            // if(isset($hide_notizie_old) && $hide_notizie_old === 'true' && $dataScadenza instanceof DateTime < $oggi instanceof DateTime){
+            //     continue;
+            // }
         ?>
 
         <div class="carousel-item <?php echo ($index === 0) ? 'active' : ''; ?>">

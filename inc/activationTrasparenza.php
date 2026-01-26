@@ -125,7 +125,9 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
             "Controlli e rilievi sull'amministrazione"=>[
                 "Organismi indipendenti di valutazione, nuclei di valutazione o altri organismi con funzioni analoghe",
                 "Organi di revisione amministrativa e contabile",
-                "Corte dei conti"
+                "Corte dei conti",
+                "Altri organismi",
+                "Stato dei rilievi"
             ],
             "Servizi Erogati"=>[
                 "Carta dei servizi e standard di qualità",
@@ -155,6 +157,12 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
             ],
             "Interventi straordinari e di emergenza" => [
                 "Interventi straordinari e di emergenza"
+            ],
+            "Utilizzo delle risorse pubbliche" => [
+                "Spese dell’ente",
+                "Costi dei servizi",
+                "Indicatori di pagamento",
+                "Dataset scaricabili"
             ],
             "Altri contenuti" => [
                 "Prevenzione della corruzione",
@@ -406,6 +414,12 @@ function insertTaxonomyTrasparenzaTerms() {
     "Corte dei conti" =>
         "Informazioni e documenti relativi ai controlli e alle decisioni della Corte dei conti sull’ente.",
 
+    "Altri organismi" =>
+        "Informazioni su eventuali altri organismi che esercitano funzioni di controllo o vigilanza sull’amministrazione.",
+
+    "Stato dei rilievi" =>
+        "Dettaglio dei rilievi emessi dagli organi di controllo e sullo stato di adempimento delle eventuali raccomandazioni.",
+
     // Servizi Erogati
     "Carta dei servizi e standard di qualità" =>
         "Documento che illustra i servizi offerti dall’amministrazione e gli standard di qualità garantiti.",
@@ -450,6 +464,39 @@ function insertTaxonomyTrasparenzaTerms() {
     "Informazioni ambientali" =>
         "Dati e documenti riguardanti la gestione ambientale e le politiche di sostenibilità adottate dall’ente.",
 
+    // Strutture sanitarie private accreditate
+    "Strutture sanitarie private accreditate" =>
+        "Elenco delle strutture sanitarie private accreditate dall’amministrazione con indicazione di servizi erogati e requisiti di qualità.",
+
+    // Interventi straordinari e di emergenza
+    "Interventi straordinari e di emergenza" =>
+        "Informazioni sugli interventi adottati in situazioni straordinarie o di emergenza, comprese modalità operative e destinatari.",
+
+    // Utilizzo delle risorse pubbliche
+    "Spese dell’ente" =>
+        "Dati sintetici e dettagliati sulle spese dell’amministrazione, suddivise per tipologia e missione.",
+
+    "Costi dei servizi" =>
+        "Informazioni sui costi sostenuti dall’amministrazione per i servizi erogati ai cittadini, con indicazione di eventuali tariffe e ripartizioni economiche.",
+
+    "Indicatori di pagamento" =>
+        "Dati e indicatori che mostrano la tempestività e regolarità dei pagamenti effettuati dall’ente.",
+
+    "Dataset scaricabili" =>
+        "File aperti (CSV, XLS, ODS) contenenti i dati pubblicati nella sezione, per permettere il riuso e la consultazione diretta.",
+
+    // Altri contenuti
+    "Prevenzione della corruzione" =>
+        "Informazioni e misure adottate per prevenire fenomeni di corruzione e garantire integrità e trasparenza delle attività amministrative.",
+
+    "Accesso civico" =>
+        "Indicazioni per i cittadini su come richiedere informazioni e documenti in base all’accesso civico.",
+
+    "Accessibilità e Catalogo di dati, metadati e banche dati" =>
+        "Dati, metadati e banche dati accessibili ai cittadini, con indicazioni sulla modalità di consultazione e utilizzo.",
+
+    "Dati ulteriori" =>
+        "Ulteriori dati pubblici e informazioni integrative utili alla piena trasparenza dell’ente, non classificabili nelle altre categorie."
 ];
 
     foreach ( $descrizioni as $term_name => $new_desc ) {

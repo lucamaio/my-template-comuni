@@ -44,59 +44,22 @@ get_header();
                     Se non dovesse aprirsi, puoi utilizzare il pulsante nella parte destra della pagina.
                 </p>
 
-                <!-- Pulsante chat centrato -->
-                <div class="text-center my-5">
-                    <p id="messagge" style="display:none; color:#842029; background-color:#f8d7da; border:1px solid #f5c2c7; padding:10px; border-radius:5px; margin-bottom:15px;"></p>
-                    <button id="btn-chat" class="btn btn-primary">Avvia chat con un operatore</button>
-                </div>
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
+                        <button id="btn-consolto" style="
+                          display:none;
+                          padding: 12px 22px;
+                          background: #0b5ed7;
+                          color: #ffffff;
+                          border: none;
+                          border-radius: 10px;
+                          font-size: 16px;
+                          font-weight: 600;
+                          cursor: pointer;
+                        ">
+                          🎥 Avvia video chat
+                        </button>
 
-                        // Funzione per aprire Consolto
-                        function apriChat() {
-                            if (typeof Consolto !== "undefined" && typeof Consolto.open === "function") {
-                                Consolto.open();
-                                return true;
-                            }
-                            return false;
-                        }
-
-                        // Carica lo script se non esiste
-                        if (!document.getElementById('et-iframe')) {
-                            const el = document.createElement('script');
-                            el.src = 'https://client.consolto.com/iframeApp/iframeApp.js';
-                            el.id = 'et-iframe';
-                            el.async = true;
-                            el.setAttribute('data-widgetId', '694140e7500355203a1be9a1');
-                            el.setAttribute('data-version', '0.5');
-                            el.setAttribute('data-test', 'false');
-                            document.body.appendChild(el);
-                        }
-
-                        // Tentativi di apertura automatica
-                        let tentativi = 0;
-                        const interval = setInterval(() => {
-                            if (apriChat()) {
-                                clearInterval(interval);
-                            }
-                            tentativi++;
-                            if (tentativi > 20) {
-                                clearInterval(interval);
-                                const messagge = document.getElementById('messagge');
-                                messagge.style.display = 'block'; // mostra il messaggio
-                                messagge.innerHTML = 'Il servizio di chat non è disponibile al momento. <strong>Provare ad accedere dal pulsante in basso a destra</strong>';
-                                console.warn("Il servizio di chat non è disponibile al momento.");
-                            }
-                        }, 300);
-
-                        // Event listener sul pulsante
-                        const btn = document.getElementById('btn-chat');
-                        if (btn) {
-                            btn.addEventListener('click', apriChat);
-                        }
-
-                    });
-                </script>
+                
+           
                 <!-- Box recapiti -->
                 <div class="card border-primary my-3 p-3">
                     <h5>Contatti</h5>
@@ -161,4 +124,7 @@ get_header();
 
 <?php
 get_footer();
+
 ?>
+
+

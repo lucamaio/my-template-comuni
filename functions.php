@@ -517,3 +517,88 @@ function wpc_contatore_homepage_shortcode() {
 add_shortcode('home_counter', 'wpc_contatore_homepage_shortcode');
 require_once get_stylesheet_directory() . '/inc/admin/tipologie/accessi.php';
 
+
+
+
+
+
+
+
+add_action('wp_footer', function () {
+  ?>
+  <script>
+  (function () {
+
+    var ALLOWED_HOST = "servizi.comune.mottacamastra.me.it";
+
+    function getBtn() {
+      return document.getElementById("btn-consolto");
+    }
+
+    function show(btn) {
+      btn.style.display = "inline-flex";
+      btn.style.alignItems = "center";
+      btn.style.gap = "8px";
+    }
+
+    function hide(btn) {
+      btn.style.display = "none";
+    }
+
+    function forceShowConsolto() {
+      var tries = 0;
+      var maxTries = 20; // ~10s
+
+      var interval = setInterval(function () {
+        tries++;
+
+        document.querySelectorAll('iframe[src*="client.consolto.com"]').forEach(function (f) {
+          f.style.setProperty("display", "block", "important");
+          f.style.setProperty("visibility", "visible", "important");
+          f.style.setProperty("opacity", "1", "important");
+        });
+
+        if (tries >= maxTries) clearInterval(interval);
+      }, 500);
+    }
+
+    function isAllowedReferrer() {
+      var ref = document.referrer || "";
+      if (!ref) return false;
+
+      try {
+        var u = new URL(ref);
+        return u.hostname === ALLOWED_HOST;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function init() {
+      var btn = getBtn();
+      if (!btn) return;
+
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = "1";
+
+      // ✅ Se ok -> mostra, altrimenti nascondi
+      if (isAllowedReferrer()) show(btn);
+      else hide(btn);
+
+      btn.addEventListener("click", function () {
+        forceShowConsolto();
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+
+  })();
+  </script>
+  <?php
+}, 999);
+
+

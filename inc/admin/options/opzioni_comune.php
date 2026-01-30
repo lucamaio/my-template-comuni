@@ -267,7 +267,29 @@ function dci_register_comune_options(){
     ));
 
 
+
+
+        $header_options->add_field( array(
+          'id'    => $prefix . 'abilitazionechat',
+          'name'  => __('<br><br><center>Chat usando il Plugin Consolto</center>', 'design_comuni_italia'),
+          'desc'  => __('<center>Se si vuole implementare e abilitare la chat interna usando il plugin Consolto inserire il link al servizio.</center><br><br>', 'design_comuni_italia'),
+          'type'  => 'title',
+          'show_on_cb' => 'dci_show_only_admin_field',
+        ));
+        
+        $header_options->add_field( array(
+          'id'   => $prefix . 'consolto_referrer_url',
+          'name' => __('Consolto – URL esterno abilitazione', 'design_comuni_italia' ),
+          'desc' => __('Incolla l’URL al servizio esterno che deve abilitare il tasto. Esempio: https://servizi.comune.../Login.aspx', 'design_comuni_italia' ),
+          'type' => 'text_url',
+        ));
+
+    
 }
+
+
+
+
 
 add_action('cmb2_admin_init', 'dci_register_comune_options');
 

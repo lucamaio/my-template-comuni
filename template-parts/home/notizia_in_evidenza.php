@@ -19,6 +19,7 @@ if (is_array($post_ids) && count($post_ids) > 1) {
             continue;
         }
 
+        // Dati notizia
         $img               = dci_get_meta("immagine", $prefix, $post->ID);
         $arrdata           = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $post->ID);
         $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $post->ID);
@@ -39,14 +40,18 @@ if (is_array($post_ids) && count($post_ids) > 1) {
                         <div class="card-body">
 
                             <div class="category-top d-flex align-items-center mb-2">
-                                <svg class="icon icon-sm me-2" aria-hidden="true">
+                                <!-- <svg class="icon icon-sm me-2" aria-hidden="true">
                                     <use xlink:href="#it-calendar"></use>
+                                </svg> -->
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="icon icon-md me-2" style="width:18px !important;height:18px !important;" aria-hidden="true">
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
                                 </svg>
 
                                 <?php if ($tipo) { ?>
                                 <span class="title-xsmall-semi-bold fw-semibold">
                                     <a href="<?php echo site_url('tipi_notizia/' . sanitize_title($tipo->name)); ?>"
-                                        class="category title-xsmall-semi-bold fw-semibold">
+                                        class="category text-decoration-none title-xsmall-semi-bold fw-semibold">
                                         <?php echo strtoupper($tipo->name); ?>
                                     </a>
                                 </span>
@@ -81,7 +86,11 @@ if (is_array($post_ids) && count($post_ids) > 1) {
 
                             <?php
               if (is_array($luogo_notizia) && count($luogo_notizia) > 0) {
-                  echo '<span class="data fw-normal"><i class="fas fa-map-marker-alt me-1"></i>';
+                  echo '<span class="data fw-normal" style="align-items: center !important;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
+                            <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                            <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
+                        </svg>';
                   foreach ($luogo_notizia as $luogo_id) {
                       $luogo_post = get_post($luogo_id);
                       if ($luogo_post && !is_wp_error($luogo_post)) {
@@ -91,7 +100,11 @@ if (is_array($post_ids) && count($post_ids) > 1) {
                   }
                   echo '</span>';
               } elseif (!empty($luogo_notizia)) {
-                  echo '<span class="data fw-normal"><i class="fas fa-map-marker-alt me-1"></i>'
+                  echo '<span class="data fw-normal" style="align-items: center !important;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
+                        <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                        <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
+                    </svg>'
                        . esc_html($luogo_notizia) . '</span>';
               }
               ?>
@@ -169,13 +182,18 @@ if (is_array($post_ids) && count($post_ids) > 1) {
             <div class="card mb-0">
                 <div class="card-body pb-2">
                     <div class="category-top d-flex align-items-center mb-2">
-                        <svg class="icon icon-sm me-2" aria-hidden="true">
+                        <!-- <svg class="icon icon-sm me-2" aria-hidden="true">
                             <use xlink:href="#it-calendar"></use>
+                        </svg> -->
+
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="icon icon-md me-2" style="width:18px !important;height:18px !important;" aria-hidden="true">
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
                         </svg>
+
                         <?php if ($tipo){ ?>
                         <span class="title-xsmall-semi-bold fw-semibold">
                             <a href="<?php echo site_url('tipi_notizia/' . sanitize_title($tipo->name)); ?>"
-                                class="category title-xsmall-semi-bold fw-semibold"><?php echo strtoupper($tipo->name); ?></a>
+                                class="category title-xsmall-semi-bold fw-semibold text-decoration-none pb-1"><?php echo strtoupper($tipo->name); ?></a>
                         </span>
                         <?php } ?>
                     </div>
@@ -192,17 +210,19 @@ if (is_array($post_ids) && count($post_ids) > 1) {
 
                     <!-- Luoghi -->
                     <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
-                    <span class="data fw-normal"><i class="fas fa-map-marker-alt me-1"></i>
-                        <?php foreach ($luogo_notizia as $luogo_id):
-                $luogo_post = get_post($luogo_id);
-                if ($luogo_post && !is_wp_error($luogo_post)) {
-                  echo '<a href="' . esc_url(get_permalink($luogo_post->ID)) . '" class="card-text text-secondary text-uppercase pb-1">' . esc_html($luogo_post->post_title) . '</a> ';
-                }
-              endforeach; ?>
-                    </span>
-                    <?php elseif (!empty($luogo_notizia)): ?>
-                    <span class="data fw-normal"><i
-                            class="fas fa-map-marker-alt me-1"></i><?php echo esc_html($luogo_notizia); ?></span>
+                        <span class="data fw-normal" style="align-items: center !important;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
+                                <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                                <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
+                            </svg>
+                            <?php foreach ($luogo_notizia as $luogo_id):
+                                $luogo_post = get_post($luogo_id);
+                                if ($luogo_post):
+                                    echo '<a href="' . esc_url(get_permalink($luogo_post->ID)) . '" class="card-text text-secondary text-uppercase text-decoration-none pb-1">'
+                                        . esc_html($luogo_post->post_title) . '</a> ';
+                                endif;
+                            endforeach; ?>
+                        </span>
                     <?php endif; ?>
 
                     <!-- Data -->

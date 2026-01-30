@@ -1,7 +1,7 @@
 <?php
 global $numero_notizie_evidenziate;
 
-$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 200;
+$numero_notizie_evidenziate = (int) $numero_notizie_evidenziate;
 $load_posts = -1;
 $prefix = '_dci_notizia_';
 $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
@@ -20,28 +20,33 @@ $args = array(
     ),
     'orderby'   => 'meta_value_num',
     'order'     => 'DESC',
-    'posts_per_page' => $max_posts,
+    'posts_per_page' => $load_posts,
 );
 
-$the_query = new WP_Query($args);
-$posts = $the_query->posts;
+$query = new WP_Query($args);
+$posts = $query->posts;
 
-if (!$posts || count($posts) === 0) {
+if (!$query->have_posts() || empty($posts)) {
     return;
 }
-$count = 0;
+
+$count = 0; // variabile di supporto per il conteggio delle notizie
+$oggi = new DateTime(); // Data odierna per confronto
 ?>
 
 <?php if (count($posts) > 1 && $numero_notizie_evidenziate > 1): ?>
+
 <h2 id="novita-in-evidenza" class="visually-hidden">Novità in evidenza</h2>
 
 <div id="carosello-evidenza" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-inner">
 
-        <?php foreach ($posts as $index => $post):
-            if($count > $numero_notizie_evidenziate){
-                continue;
+        <?php foreach ($posts as $post): ?>
+            <?php
+            if ($count >= $numero_notizie_evidenziate) {
+                break;
             }
+
             setup_postdata($post);
 
             // Dati principali
@@ -51,7 +56,7 @@ $count = 0;
 
             // Tipo termine
             $tipo_terms = wp_get_post_terms($post->ID, 'tipi_notizia');
-            $tipo       = ($tipo_terms && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
+            $tipo = (!empty($tipo_terms) && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
 
             // Data Pubblicazione
             $arrdata           = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $post->ID);
@@ -59,109 +64,115 @@ $count = 0;
             $monthPubblicazione = $arrdata[1];
             $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
             $yearPubblicazione = strlen($arrdata[2]) == 2 ? '20' . $arrdata[2] : $arrdata[2];
-
+            $dataPubblicazione = DateTime::createFromFormat('d/m/Y', "$dayPubblicazione/$monthPubblicazione/$yearPubblicazione");
 
             // Data Scadenza
-            $arrayDataScadenza =  dci_get_data_pubblicazione_arr("data_scadenza", $prefix, $post->ID);
-            $dayScadenza = $arrayDataScadenza[0];
-            $monthScadenza = $arrayDataScadenza[1];
-            $monthScadenzaName  = date_i18n('M', mktime(0, 0, 0, $arrayDataScadenza[1], 10));
-            $yearScadenza = strlen($arrayDataScadenza[2]) == 2 ? '20' . $arrayDataScadenza[2] : $arrayDataScadenza[2];
-            
-            // Sitemo le date
-            $dayPubblicazione =  DateTime::createFromFormat('d/m/Y', "$$dayPubblicazione/$monthPubblicazione/$yearPubblicazione");
+            $arrdataFine = dci_get_data_pubblicazione_arr("data_scadenza", $prefix, $post->ID);
+            $dayScadenza = $arrdataFine[0];
+            $monthScadenza = $arrdataFine[1];
+             $monthNameScadenza  = date_i18n('M', mktime(0, 0, 0, $monthScadenza, 10));
+            $yearScadenza = strlen($arrdataFine[2]) == 2 ? '20' . $arrdataFine[2] : $arrdataFine[2];
             $dataScadenza = DateTime::createFromFormat('d/m/Y', "$dayScadenza/$monthScadenza/$yearScadenza");
-            
-            // Leggo la data odierna
-            $oggi = new DateTime();
 
-            // verifico se posso visualizzare la notizia
-            // if(isset($hide_notizie_old) && $hide_notizie_old === 'true' && $dataScadenza instanceof DateTime < $oggi instanceof DateTime){
-            //     continue;
-            // }
-        ?>
+            // Salta notizie scadute
+           if ($hide_notizie_old === 'true' && $dataScadenza instanceof DateTime && $dataScadenza < $oggi && $dataScadenza != $dataPubblicazione) {
+                continue;
+            }
+            $is_active = ($count === 0);
+            $count++;
+            ?>
 
-        <div class="carousel-item <?php echo ($index === 0) ? 'active' : ''; ?>">
-            <div class="container">
-                <div class="row flex-column flex-lg-row align-items-center g-0">
+            <div class="carousel-item <?php echo $is_active ? 'active' : ''; ?>">
+                <div class="container">
+                    <div class="row flex-column flex-lg-row align-items-center g-0">
 
-                    <!-- Testo -->
-                    <div class="col-12 col-lg-6 order-2 order-lg-1 d-flex align-items-center">
-                        <div class="card-body">
+                        <!-- Testo -->
+                        <div class="col-12 col-lg-6 order-2 order-lg-1 d-flex align-items-center">
+                            <div class="card-body">
 
-                            <div class="category-top d-flex align-items-center mb-2">
-                                <svg class="icon icon-sm me-2" aria-hidden="true">
-                                    <use xlink:href="#it-calendar"></use>
-                                </svg>
+                                <div class="category-top d-flex align-items-center mb-2">
+                                    <!-- <svg class="icon icon-md icon-sm me-2" aria-hidden="true">
+                                        <use xlink:href="#it-calendar"></use>
+                                    </svg> -->
 
-                                <?php if ($tipo): ?>
-                                <span class="title-xsmall-semi-bold fw-semibold">
-                                    <a href="<?php echo site_url('tipi_notizia/' . sanitize_title($tipo->name)); ?>"
-                                        class="category title-xsmall-semi-bold fw-semibold">
-                                        <?php echo strtoupper($tipo->name); ?>
-                                    </a>
-                                </span>
-                                <?php endif; ?>
-                            </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="icon icon-md me-2" style="width:18px !important;height:18px !important;" aria-hidden="true">
+                                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                                    </svg>
 
-                            <a href="<?php echo get_permalink($post->ID); ?>" class="text-decoration-none">
-                                <h3 class="card-title"><?php echo esc_html($post->post_title); ?></h3>
-                            </a>
-
-                            <p class="mb-2 font-serif">
-                                <?php echo esc_html(wp_trim_words($descrizione_breve, 25, '...')); ?>
-                            </p>
-
-                            <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
-                            <span class="data fw-normal">
-                                <i class="fas fa-map-marker-alt me-1"></i>
-                                <?php foreach ($luogo_notizia as $luogo_id):
-                                    $luogo_post = get_post($luogo_id);
-                                    if ($luogo_post):
-                                        echo '<a href="' . esc_url(get_permalink($luogo_post->ID)) . '" class="card-text text-secondary text-uppercase pb-1">'
-                                             . esc_html($luogo_post->post_title) . '</a> ';
-                                    endif;
-                                endforeach; ?>
-                            </span>
-                            <?php endif; ?>
-
-                            <div class="row mt-2 mb-1">
-                                <div class="col-6">
-                                    <small>Data:</small>
-                                    <p class="fw-semibold font-monospace">
-                                        <?php echo esc_html($arrdata[0] . ' ' . $monthName . ' ' . $arrdata[2]); ?>
-                                    </p>
+                                    <?php if ($tipo): ?>
+                                        <span class="title-xsmall-semi-bold fw-semibold">
+                                            <a href="<?php echo esc_url(site_url('tipi_notizia/' . sanitize_title($tipo->name))); ?>"
+                                               class="category text-decoration-none">
+                                                <?php echo esc_html(strtoupper($tipo->name)); ?>
+                                            </a>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
+                                
+                                 
+                                <a href="<?php echo get_permalink($post->ID); ?>" class="text-decoration-none">
+                                    <h3 class="card-title"> <?= esc_html(preg_match('/[A-Z]{5,}/', $post->post_title) ? ucfirst(strtolower($post->post_title)) : $post->post_title); ?></h3>
+                                </a>
+
+                                <p class="mb-2 font-serif">
+                                    <?= esc_html(preg_match('/[A-Z]{5,}/', $descrizione_breve) ? ucfirst(strtolower($descrizione_breve)) : $descrizione_breve); ?>
+                                </p>
+
+                                <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
+                                    <span class="data fw-normal" style="align-items: center !important;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
+                                            <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                                            <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
+                                        </svg>
+                                        <?php foreach ($luogo_notizia as $luogo_id):
+                                            $luogo_post = get_post($luogo_id);
+                                            if ($luogo_post):
+                                                echo '<a href="' . esc_url(get_permalink($luogo_post->ID)) . '" class="card-text text-secondary text-uppercase text-decoration-none pb-1">'
+                                                    . esc_html($luogo_post->post_title) . '</a> ';
+                                            endif;
+                                        endforeach; ?>
+                                    </span>
+                                <?php endif; ?>
+
+                                <div class="row mt-2 mb-1">
+                                    <div class="col-6">
+                                        <small>Data:</small>
+                                        <p class="fw-semibold font-monospace">
+                                        <?php echo esc_html($arrdata[0] . ' ' . $monthName . ' ' . $arrdata[2]); ?>
+                                        </p>    
+                                    </div>
+                                </div>
+
+                                <small>Argomenti:</small>
+                                <?php get_template_part("template-parts/common/badges-argomenti"); ?>
+
+                                <a class="read-more mt-4 d-inline-flex align-items-center"
+                                   href="<?php echo get_permalink($post->ID); ?>">
+                                    <span class="text">Vai alla pagina</span>
+                                    <svg class="icon ms-1">
+                                        <use xlink:href="#it-arrow-right"></use>
+                                    </svg>
+                                </a>
+
                             </div>
-
-                            <small>Argomenti:</small>
-                            <?php get_template_part("template-parts/common/badges-argomenti"); ?>
-
-                            <a class="read-more mt-4 d-inline-flex align-items-center"
-                               href="<?php echo get_permalink($post->ID); ?>">
-                                <span class="text">Vai alla pagina</span>
-                                <svg class="icon ms-1">
-                                    <use xlink:href="#it-arrow-right"></use>
-                                </svg>
-                            </a>
-
                         </div>
-                    </div>
 
-                    <!-- Immagine -->
-                    <?php if ($img): ?>
-                    <div class="col-12 col-lg-6 order-1 order-lg-2 col-img d-none d-lg-flex">
-                        <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
-                    </div>
-                    <?php endif; ?>
+                        <!-- Immagine -->
+                        <?php if ($img): ?>
+                            <div class="col-12 col-lg-6 order-1 order-lg-2 col-img d-none d-lg-flex">
+                                <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
+                            </div>
+                        <?php endif; ?>
 
+                    </div>
                 </div>
             </div>
-        </div>
 
         <?php 
-            $count++;
-        endforeach; wp_reset_postdata(); ?>
+            $count++;   
+            endforeach; 
+            wp_reset_postdata(); 
+        ?>
 
     </div>
 
@@ -198,13 +209,17 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
             <div class="card mb-0">
                 <div class="card-body pb-2">
                     <div class="category-top d-flex align-items-center mb-2">
-                        <svg class="icon icon-sm me-2" aria-hidden="true">
+                        <!-- <svg class="icon icon-sm me-2" aria-hidden="true">
                             <use xlink:href="#it-calendar"></use>
+                        </svg> -->
+
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="icon icon-md me-2" style="width:18px !important;height:18px !important;" aria-hidden="true">
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
                         </svg>
                         <?php if ($tipo){ ?>
                         <span class="title-xsmall-semi-bold fw-semibold">
                             <a href="<?php echo site_url('tipi_notizia/' . sanitize_title($tipo->name)); ?>"
-                                class="category title-xsmall-semi-bold fw-semibold"><?php echo strtoupper($tipo->name); ?></a>
+                                class="category  text-decoration-none title-xsmall-semi-bold fw-semibold"><?php echo strtoupper($tipo->name); ?></a>
                         </span>
                         <?php } ?>
                     </div>
@@ -219,19 +234,22 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
                     </p>
 
                     <!-- Luoghi -->
-                    <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
-                    <span class="data fw-normal"><i class="fas fa-map-marker-alt me-1"></i>
-                        <?php foreach ($luogo_notizia as $luogo_id):
-                $luogo_post = get_post($luogo_id);
-                if ($luogo_post && !is_wp_error($luogo_post)) {
-                  echo '<a href="' . esc_url(get_permalink($luogo_post->ID)) . '" class="card-text text-secondary text-uppercase pb-1">' . esc_html($luogo_post->post_title) . '</a> ';
-                }
-              endforeach; ?>
-                    </span>
-                    <?php elseif (!empty($luogo_notizia)): ?>
-                    <span class="data fw-normal"><i
-                            class="fas fa-map-marker-alt me-1"></i><?php echo esc_html($luogo_notizia); ?></span>
+                   <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
+                        <span class="data fw-normal" style="align-items: center !important;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
+                                <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                                <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
+                            </svg>
+                            <?php foreach ($luogo_notizia as $luogo_id):
+                                $luogo_post = get_post($luogo_id);
+                                if ($luogo_post):
+                                    echo '<a href="' . esc_url(get_permalink($luogo_post->ID)) . '" class="card-text text-secondary text-uppercase text-decoration-none pb-1">'
+                                        . esc_html($luogo_post->post_title) . '</a> ';
+                                endif;
+                            endforeach; ?>
+                        </span>
                     <?php endif; ?>
+
 
                     <!-- Data -->
                     <div class="row mt-2 mb-1">

@@ -4,10 +4,11 @@ global $numero_notizie_evidenziate;
 $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 200;
 $load_posts = -1;
 $prefix = '_dci_notizia_';
+$hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
 
-$numero_notizie_evidenziate = (int) $numero_notizie_evidenziate;
-$hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage") ?? null;
-// Recupero solo le notizie evidenziate ordinate per priorità
+/**
+ * WP_Query – solo notizie evidenziate
+ */
 $args = array(
     'post_type'      => 'notizia',
     'meta_type' => 'text_date_timestamp',

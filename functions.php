@@ -520,16 +520,32 @@ require_once get_stylesheet_directory() . '/inc/admin/tipologie/accessi.php';
 
 
 
-
-
-
-
+// ================================
+// CHAT CONSOLTO
+// ================================
 add_action('wp_footer', function () {
+
+  // Legge l'URL salvato nella options page CMB2 (option_key = dci_options)
+  $opts    = get_option('dci_options', array());
+  $raw_url = isset($opts['consolto_referrer_url']) ? trim((string)$opts['consolto_referrer_url']) : '';
+
+  // Estrae host (DNS). Se vuoto/non valido => host vuoto => tasto nascosto.
+  $allowed_host = '';
+  if ($raw_url !== '') {
+    // se inseriscono solo il dominio senza schema, aggiunge https://
+    if (!preg_match('~^https?://~i', $raw_url)) {
+      $raw_url = 'https://' . $raw_url;
+    }
+    $allowed_host = (string) parse_url($raw_url, PHP_URL_HOST);
+    $allowed_host = preg_replace('/^www\./i', '', $allowed_host); // normalizza
+  }
+
   ?>
   <script>
   (function () {
 
-    var ALLOWED_HOST = "servizi.comune.mottacamastra.me.it";
+    // ✅ host dinamico letto da WordPress (può essere stringa vuota)
+    var ALLOWED_HOST = <?php echo json_encode($allowed_host); ?>;
 
     function getBtn() {
       return document.getElementById("btn-consolto");
@@ -563,12 +579,16 @@ add_action('wp_footer', function () {
     }
 
     function isAllowedReferrer() {
+      // Se l'admin non ha configurato l'URL => non abilitare mai
+      if (!ALLOWED_HOST) return false;
+
       var ref = document.referrer || "";
       if (!ref) return false;
 
       try {
         var u = new URL(ref);
-        return u.hostname === ALLOWED_HOST;
+        var h = (u.hostname || "").replace(/^www\./i, "");
+        return h === ALLOWED_HOST;
       } catch (e) {
         return false;
       }
@@ -600,5 +620,3 @@ add_action('wp_footer', function () {
   </script>
   <?php
 }, 999);
-
-

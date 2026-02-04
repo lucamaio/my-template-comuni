@@ -278,59 +278,69 @@ function dci_add_notizia_metaboxes()
         ),
     ));
 
-    $notizie_automatiche = dci_get_option("ck_notizie_automatico", "homepage");
+    //IMPOSTAZIONI HOMEPAGE NOTIZIA AUTOMATICA
+    $notizie_automatiche = dci_get_option("ck_notizie_automatico", "homepage") ?: false;  // valore opzione visualizzazione notizie automatiche in homepage
+    $check_notizie_evidenziate_auto = dci_get_option('ck_notizie_evidenza','homepage') ?: false;  // valore opzione visualizzazione notizie in evidenza automatiche in homepage
 
-   if ($notizie_automatiche === 'true') {
-    $cmb_check = new_cmb2_box(array(
-        'id'           => $prefix . 'box_check',
-        'title'        => __('Impostazioni di visualizzazione in homepage notizia', 'design_comuni_italia'),
-        'object_types' => array('notizia'),
-        'context'      => 'side',
-        'priority'     => 'high',
-    ));
+    // mostro la sezione solo se una delle due opzioni è attiva
+   if ($notizie_automatiche === 'true' || $notizie_automatiche === true || $check_notizie_evidenziate_auto === 'true' || $check_notizie_evidenziate_auto === true){
+        $cmb_check = new_cmb2_box(array(
+            'id'           => $prefix . 'box_check',
+            'title'        => __('Impostazioni di visualizzazione in homepage notizia', 'design_comuni_italia'),
+            'object_types' => array('notizia'),
+            'context'      => 'side',
+            'priority'     => 'high',
+        ));
+    
+        // Visualizzo le opzioni nascondi notizia in homepage solo se sono attivate nelle opzioni della homepage
+        if( $notizie_automatiche === 'true' || $notizie_automatiche === true ){
+            $cmb_check->add_field(array(
+                'id'    => $prefix . 'hide_home',
+                'name'  => __('Escludi dalla homepage', 'design_comuni_italia'),
+                'desc'  => __(
+                    'Se selezionato, la notizia non verrà visualizzata automaticamente nella sezione "Schede in evidenza" della homepage.<br>' .
+                    'Questa opzione consente di selezionare manualmente quali notizie mostrare quando la visualizzazione automatica è attiva.',
+                    'design_comuni_italia'
+                ),
+                'type'  => 'checkbox',
+            ));
+        }
+        
+        // Visualizzo le opzioni evidenzia notizia in homepage solo se sono attivate nelle opzioni della homepage
+        if( $check_notizie_evidenziate_auto === 'true' || $check_notizie_evidenziate_auto === true ){
+            $cmb_check->add_field(array(
+                'id'    => $prefix . 'evidenzia_home',
+                'name'  => __('Evidenzia nella Homepage', 'design_comuni_italia'),
+                'desc'  => __(
+                    'Se selezionato, la notizia verrà visualizzata automaticamente nella sezione "Notizia in Evidenza" della homepage.<br>' .
+                    'Questa opzione consente di selezionare manualmente quali notizie mostrare quando la visualizzazione automatica delle notizie in evidenza è attiva.',
+                    'design_comuni_italia'
+                ),
+                'type'  => 'checkbox',
+            ));
 
-    $cmb_check->add_field(array(
-        'id'    => $prefix . 'hide_home',
-        'name'  => __('Escludi dalla homepage', 'design_comuni_italia'),
-        'desc'  => __(
-            'Se selezionato, la notizia non verrà visualizzata automaticamente nella sezione "Schede in evidenza" della homepage.<br>' .
-            'Questa opzione consente di selezionare manualmente quali notizie mostrare quando la visualizzazione automatica è attiva.',
-            'design_comuni_italia'
-        ),
-        'type'  => 'checkbox',
-    ));
+            // Possibile futuro sviluppo: prioritizzazione delle notizie in evidenza
+            // $cmb_check->add_field(array(
+            //     'id'    => $prefix . 'priorita',
+            //     'name'  => __('Priorità', 'design_comuni_italia'),
+            //     'desc'  => __(
+            //         'Indica la priorità di visualizzazione della notizia (da 0 a 5). ' .
+            //         'Valori più bassi indicano maggiore priorità (1 = massima priorità). ' .
+            //         'Il campo viene considerato solo se la notizia è evidenziata in homepage.',
+            //         'design_comuni_italia'
+            //     ),
+            //     'type'        => 'text_small',
+            //     'default'     => '0',
+            //     'attributes' => array(
+            //         'type'  => 'number',
+            //         'min'   => '0',
+            //         'max'   => '5',
+            //         'step'  => '1',
+            //     ),
+            // ));
 
-    $cmb_check->add_field(array(
-        'id'    => $prefix . 'evidenzia_home',
-        'name'  => __('Evidenzia nella Homepage', 'design_comuni_italia'),
-        'desc'  => __(
-            'Se selezionato, la notizia verrà visualizzata automaticamente nella sezione "Notizia in Evidenza" della homepage.<br>' .
-            'Questa opzione consente di selezionare manualmente quali notizie mostrare quando la visualizzazione automatica delle notizie in evidenza è attiva.',
-            'design_comuni_italia'
-        ),
-        'type'  => 'checkbox',
-    ));
-
-    // $cmb_check->add_field(array(
-    //     'id'    => $prefix . 'priorita',
-    //     'name'  => __('Priorità', 'design_comuni_italia'),
-    //     'desc'  => __(
-    //         'Indica la priorità di visualizzazione della notizia (da 0 a 5). ' .
-    //         'Valori più bassi indicano maggiore priorità (1 = massima priorità). ' .
-    //         'Il campo viene considerato solo se la notizia è evidenziata in homepage.',
-    //         'design_comuni_italia'
-    //     ),
-    //     'type'        => 'text_small',
-    //     'default'     => '0',
-    //     'attributes' => array(
-    //         'type'  => 'number',
-    //         'min'   => '0',
-    //         'max'   => '5',
-    //         'step'  => '1',
-    //     ),
-    // ));
-
-}
+            }
+        }
 
 }
 

@@ -38,7 +38,7 @@ $oggi = new DateTime(); // Data odierna per confronto
 
 <h2 id="novita-in-evidenza" class="visually-hidden">Novità in evidenza</h2>
 
-<div id="carosello-evidenza" class="carousel slide" data-bs-ride="carousel">
+<div id="carosello-evidenza" class="carousel slide" data-bs-ride="carousel"  data-bs-interval="6000" >
     <div class="carousel-inner">
 
         <?php foreach ($posts as $post): ?>
@@ -277,7 +277,7 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
 
         <?php if ($img): ?>
         <div class="col-lg-6 offset-lg-1 order-1 order-lg-2 px-0 px-lg-2">
-            <?php dci_get_img($img, 'img-fluid'); ?>
+            <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
         </div>
         <?php endif; ?>
     </div>
@@ -298,6 +298,38 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     min-height: 500px;
 }
 
+/* Forza righe interne a occupare tutta l’altezza */
+#carosello-evidenza .carousel-item > .container,
+#carosello-evidenza .carousel-item .row {
+    height: 100%;
+}
+
+/* Titolo: massimo 3 righe (desktop) */
+#carosello-evidenza .card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Descrizione breve: massimo 3 righe */
+#carosello-evidenza .card-body p {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Mantiene l’immagine sempre visibile anche con testo lungo */
+#carosello-evidenza .col-img {
+    align-items: flex-start !important;
+}
+
+/* Limite dimensione immagine per evitare overflow */
+#carosello-evidenza img.img-evidenza{
+    max-height: 350px !important; /* Forzatura neccessaria per evitare l'oscuramento del testo e la descrizione della notizia */
+}
+
 /* Evita overflow visivo */
 #carosello-evidenza .carousel-inner {
     border-radius: 0;
@@ -311,13 +343,13 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     justify-content: center;
     /* centrato per mobile */
     padding: 0 1rem;
-    min-height: 300px;
+    min-height: 200px;
 }
 
 /* Immagine: stile base */
 #carosello-evidenza img.img-evidenza {
-    max-width: 90%;
-    max-height: 300px;
+    max-width: 80%;
+    max-height: 200px;
     width: auto;
     height: auto;
     object-fit: contain;
@@ -346,14 +378,14 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     #carosello-evidenza .col-img {
         justify-content: flex-end;
         /* spinge immagine a destra */
-        padding: 0 2rem;
+        padding: 0 1rem;
         min-height: 400px;
     }
 
     /* Immagine in desktop */
     #carosello-evidenza img.img-evidenza {
-        max-width: 100%;
-        max-height: 100%;
+        max-width: auto;
+        max-height: auto;
         margin-left: auto;
         margin-right: 0;
     }
@@ -364,19 +396,38 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    min-height: 400px;
-    padding-right: 5rem;
+    min-height: 500px;
+    padding-right: 3rem;
     /* margine più ampio a destra immagine */
 }
 
-.single-news.single-news-custom .row .col-lg-6.offset-lg-1.order-1.order-lg-2 img.img-fluid {
-    max-width: 90%;
+/* Immagine singola */
+.single-news.single-news-custom .col-lg-6.offset-lg-1 img.img-fluid.img-evidenza {
+    max-width: 100%;
     max-height: 400px;
     width: auto;
     height: auto;
     object-fit: contain;
     display: block;
     margin-left: auto;
+}
+
+/* Titolo notizia singola: massimo 3 righe */
+.single-news.single-news-custom h3.card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Descrizione breve notizia singola: massimo 3 righe */
+.single-news.single-news-custom p.font-serif {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .single-news.single-news-custom .row .col-lg-5.order-2.order-lg-1 {
@@ -390,20 +441,22 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    min-height: 400px;
+    min-height: 450px;
     padding-right: 7rem;
 }
 
-.single-news .row .col-lg-6.offset-lg-1.order-1.order-lg-2 img.img-fluid {
-    max-width: 90%;
-    max-height: 400px;
+/*  Vecchio stile immagine singola */
+/*
+    .single-news .row .col-lg-6.offset-lg-1.order-1.order-lg-2 img.img-fluid {
+    max-width: 80%;
+    max-height: 200px;
     width: auto;
     height: auto;
     object-fit: contain;
     display: block;
     margin-left: auto;
     transform: translateX(19px);
-}
+} */
 
 .single-news .row .col-lg-5.order-2.order-lg-1 {
     padding-left: 1.5rem;
@@ -425,8 +478,70 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     .single-news.single-news-custom .row .col-lg-6.offset-lg-1.order-1.order-lg-2 img.img-fluid {
         margin: 0 auto;
         /* Centra l'immagine */
-        max-width: 100%;
+        max-width: 80%;
         height: auto;
     }
+
+     #carosello-evidenza .carousel-item {
+        min-height: 480px;
+    }
+
+    #carosello-evidenza .card-title {
+        -webkit-line-clamp: 4;
+    }
+
+    /* #carosello-evidenza .carousel-control-prev-icon,
+    #carosello-evidenza .carousel-control-next-icon {
+        width: 36px;
+        height: 36px;
+        background-size: 16px 16px;
+    } */
 }
+
+/* Freccette di navigazione */
+/* #carosello-evidenza .carousel-control-prev,
+#carosello-evidenza .carousel-control-next {
+    width: 56px;
+    opacity: 1;
+    color: #000 !important;
+    fill: #000 !important;
+} */
+
+/* Posizionamento più elegante */
+/* #carosello-evidenza .carousel-control-prev {
+    left: 0.5rem;
+} */
+
+/* #carosello-evidenza .carousel-control-next {
+    right: 0.5rem;
+} */
+
+/* Icona freccia: cerchio moderno */    
+/* #carosello-evidenza .carousel-control-prev-icon,
+#carosello-evidenza .carousel-control-next-icon {
+    width: 44px;
+    height: 44px;
+    fill: #fff !important;
+    coloe: #fff !important;
+    background-color: rgba(0, 0, 0, 0.35); 
+    background-size: 20px 20px;
+    border-radius: 50%;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+} */
+
+/* Hover */
+/* #carosello-evidenza .carousel-control-prev:hover .carousel-control-prev-icon,
+#carosello-evidenza .carousel-control-next:hover .carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.6);
+    transform: scale(1.12);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+} */
+
+/* Focus accessibile */
+/* #carosello-evidenza .carousel-control-prev:focus-visible,
+#carosello-evidenza .carousel-control-next:focus-visible {
+    outline: 2px solid rgba(0, 0, 0, 0.6);
+    outline-offset: 3px;
+} */
 </style>

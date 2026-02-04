@@ -5,7 +5,7 @@ global $gallery;
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 
-<div class="gallery-grid">
+<div class="gallery-grid mb-2">
 <?php 
 $foto_counter = 1;
 foreach ($gallery as $photo): 

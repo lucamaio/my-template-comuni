@@ -188,7 +188,7 @@ get_header();
 
                        
                     <?php if(!empty($gallery) OR !empty($video) OR !empty($audio)){?>                        
-                            <article class="it-page-section it-grid-list-wrapper anchor-offset mt-5" id="madia">
+                            <article class="it-page-section it-grid-list-wrapper anchor-offset mt-5" id="media">
                                 <?php if (is_array($gallery) && count($gallery)) {?>
                                     <h3 class="h3">Multimedia</h3>
                                     <?php get_template_part("template-parts/single/gallery");

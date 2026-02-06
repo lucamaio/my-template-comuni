@@ -11,15 +11,15 @@ $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
  */
 $args = array(
     'post_type'      => 'notizia',
-    'meta_type' => 'text_date_timestamp',
+    // 'meta_type' => 'text_date_timestamp',
     'meta_query'     => array(
         array(
             'key'   => $prefix . 'evidenzia_home',
             'value' => 'on',
         ),
     ),
-    'orderby'   => 'meta_value_num',
-    'order'     => 'DESC',
+    // 'orderby'   => 'date',  // ordinamento rimosso per evitare problemi con il recupero delle notizie in evidenza (che potrebbero essere ordinate per data pubblicazione o data scadenza)
+    // 'order'     => 'DESC',
     'posts_per_page' => $load_posts,
 );
 
@@ -43,7 +43,7 @@ $oggi = new DateTime(); // Data odierna per confronto
 
         <?php foreach ($posts as $post): ?>
             <?php
-            if ($count >= $numero_notizie_evidenziate) {
+            if ($count > $numero_notizie_evidenziate) {
                 break;
             }
 
@@ -79,7 +79,6 @@ $oggi = new DateTime(); // Data odierna per confronto
                 continue;
             }
             $is_active = ($count === 0);
-            $count++;
             ?>
 
             <div class="carousel-item <?php echo $is_active ? 'active' : ''; ?>">
@@ -325,11 +324,6 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     align-items: flex-start !important;
 }
 
-/* Limite dimensione immagine per evitare overflow */
-#carosello-evidenza img.img-evidenza{
-    max-height: 350px !important; /* Forzatura neccessaria per evitare l'oscuramento del testo e la descrizione della notizia */
-}
-
 /* Evita overflow visivo */
 #carosello-evidenza .carousel-inner {
     border-radius: 0;
@@ -356,6 +350,9 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     display: block;
     margin: 0 auto;
     /* centrato per mobile */
+
+    /* Limite dimensione immagine per evitare overflow */
+    max-height: 350px !important; /* Forzatura neccessaria per evitare l'oscuramento del testo e la descrizione della notizia */
 }
 
 /* Testo della card */
@@ -385,7 +382,7 @@ $monthName  = date_i18n('M', mktime(0, 0, 0, $arrdata[1], 10));
     /* Immagine in desktop */
     #carosello-evidenza img.img-evidenza {
         max-width: auto;
-        max-height: auto;
+        /* max-height: auto; */
         margin-left: auto;
         margin-right: 0;
     }

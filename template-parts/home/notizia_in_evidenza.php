@@ -252,7 +252,7 @@ if (is_array($post_ids) && count($post_ids) > 1) {
         <!-- Immagine -->
         <?php if ($img) { ?>
         <div class="col-lg-6 offset-lg-1 order-1 order-lg-2 px-0 px-lg-2 col-img d-none d-lg-flex">
-            <?php dci_get_img($img, 'img-fluid'); ?>
+            <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
         </div>
         <?php } ?>
     </div>
@@ -301,11 +301,6 @@ if (is_array($post_ids) && count($post_ids) > 1) {
     align-items: flex-start !important;
 }
 
-/* Limite dimensione immagine per evitare overflow */
-#carosello-evidenza img.img-evidenza{
-    max-height: 350px !important; /* Forzatura neccessaria per evitare l'oscuramento del testo e la descrizione della notizia */
-}
-
 /* Evita overflow visivo */
 #carosello-evidenza .carousel-inner {
     border-radius: 0;
@@ -332,6 +327,9 @@ if (is_array($post_ids) && count($post_ids) > 1) {
     display: block;
     margin: 0 auto;
     /* centrato per mobile */
+
+    /* Limite dimensione immagine per evitare overflow */
+    max-height: 350px !important; /* Forzatura neccessaria per evitare l'oscuramento del testo e la descrizione della notizia */
 }
 
 /* Testo della card */
@@ -361,7 +359,7 @@ if (is_array($post_ids) && count($post_ids) > 1) {
     /* Immagine in desktop */
     #carosello-evidenza img.img-evidenza {
         max-width: auto;
-        max-height: auto;
+        /* max-height: auto; */
         margin-left: auto;
         margin-right: 0;
     }

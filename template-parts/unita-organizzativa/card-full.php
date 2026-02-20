@@ -72,7 +72,7 @@ if ($ufficio != null) {
                         <a target="_blank"
                             aria-label="Apri la mappa  <?php echo dci_get_meta("indirizzo", '_dci_luogo_', $sede_principale); ?>"
                             title="Indirizzo <?php echo dci_get_meta("indirizzo", '_dci_luogo_', $sede_principale); ?>"
-                            href="https://www.google.com/maps/search/?api=1&amp;query=<?php echo dci_get_meta("indirizzo", '_dci_luogo_', $sede_principale); ?>">
+                            href="https://www.google.com/maps/search/?api=1&amp;query=<?php echo dci_get_meta("indirizzo", '_dci_luogo_', $sede_principale); ?>" class ="text-decoration-none text-xsmall">
                             <svg class="icon" viewBox="0 0 24 24">
                                 <g>
                                     <g>
@@ -105,11 +105,11 @@ if ($ufficio != null) {
                 <?php if (array_key_exists('telefono', $full_contatto) && is_array($full_contatto['telefono']) && count($full_contatto['telefono'])) {
                                 foreach ($full_contatto['telefono'] as $value) {
                             ?>
-                <p><svg class="icon">
+                <p><svg class="icon" viewBox="0 0 24 24">
                         <use xlink:href="#it-telephone"></use>
                     </svg>
                     <a target="_blank" aria-label="contatta telefonicamente tramite il numero <?php echo $value; ?>"
-                        title="chiama <?php echo $value; ?>" href="tel:<?php echo $value; ?>">
+                        title="chiama <?php echo $value; ?>" href="tel:<?php echo $value; ?>" class ="text-decoration-none text-xsmall" class ="text-decoration-none text-xsmall">
                         <?php echo $value; ?>
                     </a>
                 </p>
@@ -121,7 +121,7 @@ if ($ufficio != null) {
                 <p>
                     <a target="_blank"
                         aria-label="scopri di pi첫 su <?php echo $value; ?> - link esterno - apertura nuova scheda"
-                        title="vai sul sito <?php echo $value; ?>" href="<?php echo $value; ?>">
+                        title="vai sul sito <?php echo $value; ?>" href="<?php echo $value; ?>" class ="text-decoration-none text-xsmall">
                         <?php echo $value; ?>
                     </a>
                 </p>
@@ -131,11 +131,11 @@ if ($ufficio != null) {
                 <?php if (array_key_exists('email', $full_contatto) && is_array($full_contatto['email']) && count($full_contatto['email'])) {
                                 foreach ($full_contatto['email'] as $value) { ?>
                 <p>
-                    <svg class="icon">
+                    <svg class="icon" viewBox="0 0 18 18">
                         <use xlink:href="#it-mail"></use>
                     </svg>
-                    <a target="_blank" aria-label="invia un'email <?php echo $value; ?>"
-                        title="invia un'email a  <?php echo $value; ?>" href="mailto:<?php echo $value; ?>">
+                        <a target="_blank" aria-label="invia un'email <?php echo $value; ?>"
+                            title="invia un'email a  <?php echo $value; ?>" href="mailto:<?php echo $value; ?>"class ="text-decoration-none text-xsmall">
                         <?php echo $value; ?>
                     </a>
                 </p>
@@ -146,11 +146,11 @@ if ($ufficio != null) {
                 <?php if (array_key_exists('pec', $full_contatto) && is_array($full_contatto['pec']) && count($full_contatto['pec'])) {
                                 foreach ($full_contatto['pec'] as $value) { ?>
                 <p>
-                    <svg class="icon">
+                    <svg class="icon" viewBox="0 0 24 24">
                         <use xlink:href="#it-mail"></use>
                     </svg>
                     <a target="_blank" aria-label="invia una pec a  <?php echo $value; ?>"
-                        title="invia una pec a  <?php echo $value; ?>" href="mailto:<?php echo $value; ?>">
+                        title="invia una pec a  <?php echo $value; ?>" href="mailto:<?php echo $value; ?>" class ="text-decoration-none text-xsmall">
                         <?php echo $value; ?>
                     </a>
                 </p>
@@ -159,7 +159,7 @@ if ($ufficio != null) {
                 <?php foreach ($other_contacts as $type) {
                                 if (isset($full_contatto[$type]) && is_array($full_contatto[$type]) && count($full_contatto[$type])) {
                                     foreach ($full_contatto[$type] as $value) {
-                                        echo '<p>' . $type . ': ' . $value . '</p>';
+                                        echo '<p class="text-decoration-none text-xsmall">' . $type . ': ' . $value . '</p>';
                                     }
                                 }
                             } ?>
@@ -187,7 +187,7 @@ if ($ufficio != null) {
                     <div class="col-12 col-md-8 col-lg-6 mb-3">
                         <div class="cmp-card-latest-messages">
                             <div class="card card-bg px-3 py-3 rounded">
-                                <div class="card-header border-0 p-0 mb-1">
+                                <div class="card-header border-0 p-0 mb-2"  style="flex-direction: column !important;">
                                     <?php
                                 if (!empty($responsabile_incarichi) && is_array($responsabile_incarichi)) {
                                     foreach ($responsabile_incarichi as $incarico_id) {
@@ -198,12 +198,13 @@ if ($ufficio != null) {
                                         //$incarico_link = get_permalink($incarico_post) ?: "#";  // Disattivo il link coretto in quanto questa sezione si deve implementare
                                         $incarico_link = "#";
                                 ?>
-                                    <a class="text-decoration-none title-xsmall-bold category text-uppercase d-block mb-1 disabled-link"
-                                        href="<?php echo esc_url($incarico_link); ?>">
+                                   <a class="text-decoration-none title-xsmall-bold category d-block disabled-link" style="color: var(--bs-secondary) !important; text-decoration: none !important; max-width: 92% !important;  pointer-events: none;"
+                                    href="<?php echo esc_url($incarico_link); ?>" disabled>
                                         <?= esc_html($incarico_nome); ?>
-                                    </a>
+                                    </a>               
                                     <?php }
                                 } ?>
+                            
                                 </div>
 
                                 <div class="card-body p-0">
@@ -218,6 +219,7 @@ if ($ufficio != null) {
                                     </p>
                                     <?php } ?>
                                 </div>
+
                             </div>
                         </div>
                     </div>

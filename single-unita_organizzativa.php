@@ -325,15 +325,15 @@ get_header();
                     </section>
                 <?php } ?>
 
-                <?php if ($responsabili) { ?>
+                <?php if (!empty($responsabili) && is_array($responsabili)) { ?>
                 <section class="it-page-section" id="responsabile">
                         <h2 class="mb-3">Responsabili</h2>
                         <div class="row">
                             <?php foreach ($responsabili as $responsabile_id) { ?>
-                                <div class="col-12 col-md-8 col-lg-6  mb-30">
-                                    <div class="cmp-card-latest-messages mb-3 mb-30">
+                                <div class="col-12 col-md-8 col-lg-6 mb-auto">
+                                    <div class="cmp-card-latest-messages mb-3 mb-25">
                                         <div class="card card-bg px-4 pt-4 pb-4 rounded">
-                                            <div class="card-header border-0 p-0">
+                                            <div class="card-header border-0 p-0 mb-2" style="flex-direction: column !important;">
                                                 <?php
                                                 
                                                 $responsabile_post = get_post($responsabile_id);
@@ -354,7 +354,7 @@ get_header();
                                                         //$incarico_link = get_permalink($incarico_post) ?: "#";  // Disattivo il link coretto in quanto questa sezione si deve implementare
                                                         $incarico_link = "#";
                                                 ?>
-                                                    <a class="text-decoration-none title-xsmall-bold category text-uppercase d-block disabled-link"
+                                                    <a class="text-decoration-none title-xsmall-bold category d-block disabled-link" style="color: var(--bs-secondary) !important; text-decoration: none !important; max-width: 92% !important;  pointer-events: none;"
                                                         href="<?php echo esc_url($incarico_link); ?>">
                                                         <?= esc_html($incarico_nome); ?>
                                                     </a>
@@ -366,19 +366,19 @@ get_header();
                                                 // $responsabile_di=dci_get_meta("responsabile_di", '_dci_persona_pubblica_', $responsabile);
                                                 // $nome_incarico = !empty($incarico) ? $incarico : (!empty($responsabile_di) ? "Responsabile ".get_the_title($responsabile_di) : '');
                                             ?>
-                                            </div>
-                                            <div class="card-body p-0 my-2">
-                                                <div class="card-content">
-                                                    <h4 class="h5">
-                                                        <a href="<?php echo $responsabile_link ?>">
-                                                            <?php echo $responsabile_nome; ?>
-                                                        </a>
-                                                    </h4>
-                                                    <p class="text-paragraph">
-                                                        <?php echo $responsabile_descrizione; ?>
-                                                    </p>
-                                                </div>
-                                            </div>
+                                            </div>   
+                                            <div class="card-body p-0">
+                                                <h4 class="h6 mb-1">
+                                                    <a href="<?= esc_url($responsabile_link); ?>" class="text-decoration-none">
+                                                        <?= esc_html($responsabile_nome); ?>
+                                                    </a>
+                                                </h4>
+                                                <?php if (!empty($responsabile_descrizione)) { ?>
+                                                <p class="text-paragraph text-justify mb-0">
+                                                    <?= esc_html($responsabile_descrizione); ?>
+                                                </p>
+                                                <?php } ?>
+                                            </div>                                        
                                         </div>
                                     </div>
                                 </div>

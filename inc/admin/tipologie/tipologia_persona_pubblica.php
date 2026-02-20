@@ -124,17 +124,17 @@ function dci_add_persona_pubblica_metaboxes()
     );
 
     // Se l'opzione non è "true", disabilita il campo
-    if ($modifica_UO !== 'true') {
-        $attributes['disabled'] = 'disabled';
-    }
+    // if ($modifica_UO !== 'true') {
+    //     $attributes['disabled'] = 'disabled';
+    // }
 
-     $check_contenuti = dci_get_option('ck_collegamenti_contenuti');
-    if($check_contenuti === 'true' || $check_contenuti === true){
-       $attributes['disabled'] = 'disabled';
+    //  $check_contenuti = dci_get_option('ck_collegamenti_contenuti');
+    // if($check_contenuti === 'true' || $check_contenuti === true){
+    //    $attributes['disabled'] = 'disabled';
         
-    } else{
-       unset($attributes['disabled']);
-    }
+    // } else{
+    //    unset($attributes['disabled']);
+    // }
 
 
     

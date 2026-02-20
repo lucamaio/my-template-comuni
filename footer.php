@@ -279,26 +279,35 @@
 <?php wp_footer(); ?>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const cookieBar = document.querySelector(".cookiebar");
-  const denyButton = document.querySelector(".denyAllCookie");
 
-  // Controlla se l'utente ha già negato i cookie
-  if (localStorage.getItem("cookieDenied") === "true") {
+  const cookieBar = document.querySelector(".cookiebar");
+  const acceptButton = document.querySelector(".acceptAllCookie");
+  const denyButton   = document.querySelector(".denyAllCookie");
+
+  // Se l'utente ha già scelto, nascondi la barra
+  if (localStorage.getItem("cookieChoice")) {
     if (cookieBar) {
-      cookieBar.style.display = "none"; // Nascondi la finestra se i cookie sono stati negati
+      cookieBar.style.display = "none";
     }
   }
 
-  if (denyButton) {
-    denyButton.addEventListener("click", function () {
-      if (cookieBar) {
-        cookieBar.style.display = "none"; // Nascondi la finestra
-        localStorage.setItem("cookieDenied", "true"); // Salva la scelta dell'utente
-      }
+  // ACCETTA
+  if (acceptButton) {
+    acceptButton.addEventListener("click", function () {
+      localStorage.setItem("cookieChoice", "accepted");
+      if (cookieBar) cookieBar.style.display = "none";
     });
   }
-});
 
+  // NEGA
+  if (denyButton) {
+    denyButton.addEventListener("click", function () {
+      localStorage.setItem("cookieChoice", "denied");
+      if (cookieBar) cookieBar.style.display = "none";
+    });
+  }
+
+});
 
 
 	document.addEventListener('keydown', function(e) {

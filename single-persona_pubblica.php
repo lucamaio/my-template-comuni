@@ -29,6 +29,7 @@ get_header();
         $img1 = dci_get_meta('foto'); // Foto associata all'incarico
         
         $data_insediamento = dci_get_meta("data_inizio_incarico") ?? '';
+        $data_conclusione_incarico = dci_get_meta("data_conclusione_incarico") ?? '';
 
         $responsabili = dci_get_meta("responsabile") ?? [];
         $responsabile = !empty($responsabili) ? $responsabili[0] : null;
@@ -54,6 +55,7 @@ get_header();
             $tipo_incarico = ''; // Valore di fallback se non ci sono incarichi
         }
 
+       // Recupero di altri metadati
         $compensi = !empty($incarichi) ? dci_get_meta("compensi", '_dci_incarico_', $incarichi[0]) : [];
 
         $organizzazioni = dci_get_meta("organizzazioni") ?? [];
@@ -65,6 +67,8 @@ get_header();
         $spese_elettorali = dci_get_meta("spese_elettorali") ?? '';
         $descrizione = dci_get_wysiwyg_field("descrizione_estesa") ?? '';
         $punti_contatto = dci_get_meta("punti_contatto") ?? [];
+        $deleghe = dci_get_meta("deleghe") ?? '';
+        $ulteriori_informazioni = dci_get_meta("ulteriori_informazioni") ?? '';
 
         $prefix = '_dci_punto_contatto_';
         $contatti = [];
@@ -153,7 +157,7 @@ get_header();
 </div>
 
     <div class="container">
-        <div class="row row-column-menu-left mt-4 mt-lg-80 pb-lg-80 pb-40">
+        <div class="row row-column-menu-left mt-4 mt-lg-80 pb-lg-30 pb-30">
             <div class="col-12 col-lg-3 mb-4 border-col">
                 <div class="cmp-navscroll sticky-top" aria-labelledby="accordion-title-one">
                     <nav class="navbar it-navscroll-wrapper navbar-expand-lg" aria-label="Indice della pagina"
@@ -229,7 +233,7 @@ get_header();
                                                         <?php } ?>
                                                         <?php if (isset($data_insediamento) and !empty($data_insediamento and $data_insediamento != NULL)) { ?>
                                                             <li class="nav-item">
-                                                                <a class="nav-link" href="#data">
+                                                                <a class="nav-link" href="#data-inizio">
                                                                     <span>Data di
                                                                         <?php if ($tipo_incarico == "politico") {
                                                                             echo 'Insediamento';
@@ -239,10 +243,20 @@ get_header();
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
+                                                        <?php if (isset($data_conclusione_incarico) and !empty($data_conclusione_incarico and $data_conclusione_incarico != NULL)) { ?>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" href="#data-fine">
+                                                                    <span>Data di
+                                                                        <?php  
+                                                                            echo 'conclusione incarico';
+                                                                        ?></span>
+                                                                </a>
+                                                            </li>
+                                                        <?php } ?>
                                                         <?php if ($organizzazioni) { ?>
                                                             <li class="nav-item">
                                                                 <a class="nav-link" href="#organizzazioni">
-                                                                    <span>Organizzazione</span>
+                                                                    <span>Organizzazione/i</span>
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
@@ -253,17 +267,17 @@ get_header();
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
+                                                        <?php if($deleghe) { ?>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" href="#deleghe">
+                                                                    <span>Deleghe</span>
+                                                                </a>
+                                                            </li>
+                                                        <?php } ?>
                                                         <?php if ($biografia) { ?>
                                                             <li class="nav-item">
                                                                 <a class="nav-link" href="#bio">
                                                                     <span>Biografia</span>
-                                                                </a>
-                                                            </li>
-                                                        <?php } ?>
-                                                        <?php if ($contatti) { ?>
-                                                            <li class="nav-item">
-                                                                <a class="nav-link" href="#contatti">
-                                                                    <span>Contatti</span>
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
@@ -274,17 +288,17 @@ get_header();
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
+                                                         <?php if ($dichiarazione_redditi) { ?>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" href="#dichiarazione-redditi">
+                                                                    <span>Dichiarazione dei redditi</span>
+                                                                </a>
+                                                            </li>
+                                                        <?php } ?>
                                                         <?php if ($situazione_patrimoniale) { ?>
                                                             <li class="nav-item">
                                                                 <a class="nav-link" href="#situazione-patrimoniale">
                                                                     <span>Situazione patrimoniale</span>
-                                                                </a>
-                                                            </li>
-                                                        <?php } ?>
-                                                        <?php if ($dichiarazione_redditi) { ?>
-                                                            <li class="nav-item">
-                                                                <a class="nav-link" href="#dichiarazione-redditi">
-                                                                    <span>Dichiarazione dei redditi</span>
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
@@ -295,21 +309,28 @@ get_header();
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
-                                                        <?php if (isset($allegati) && !empty($allegati)) { ?>
+                                                        <?php if (isset($altre_cariche) && !empty($altre_cariche)) { ?>
                                                             <li class="nav-item">
                                                                 <a class="nav-link" href="#altre-cariche">
-                                                                    <span>Allegati</span>
+                                                                    <span>Altre cariche</span>
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
 
-                                                        <?php if ($uo_id) { ?>
+                                                        <!-- Sposto la sezione contatti alla fine dell'indice, prima di ulteriori informazioni -->
+                                                        <?php if ($contatti) { ?>
                                                             <li class="nav-item">
-                                                                <a class="nav-link" href="#contacts">
+                                                                <a class="nav-link" href="#contatti">
                                                                     <span>Contatti</span>
                                                                 </a>
                                                             </li>
                                                         <?php } ?>
+                                                        <!-- Aggiungo la voce per ulteriori informazioni in fondo all'indice -->
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" href="#ulteriori-informazioni">
+                                                                    <span>Ulteriori informazioni</span>
+                                                                </a>
+                                                            </li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -322,50 +343,167 @@ get_header();
                 </div>
             </div>
             <div class="col-12 col-lg-8 offset-lg-1">
-
-                
                 <div class="it-page-sections-container">
                     <?php if (!empty($incarichi)) { ?>
-                        <section class="it-page-section mb-30">
-                            <h2 class="title-xxlarge mb-3" id="who-needs">Incarichi</h2>
+                        <section class="it-page-section mb-20">
+                            <h2 class="title-xlarge mb-3" id="incarichi">Incarichi</h2>
                             <div class="richtext-wrapper lora">
-                                <?php
-                                foreach ($incarichi as $incarico_id) {
-                                    // Ottieni il titolo dell'incarico
-                                    $incarico_title = get_the_title($incarico_id);
+                               <div class="incarichi-accordion">
+                                    <!-- Scripèt per gestire l'accordion degli incarichi -->
+                                    <script>
+                                        document.addEventListener("DOMContentLoaded", function () {
 
-                                    // Recupera i termini di tipo incarico
-                                    $tipo_incarico_terms = get_the_terms($incarico_id, 'tipi_incarico');
-                                    $tipo_incarico = (!empty($tipo_incarico_terms) && !is_wp_error($tipo_incarico_terms)) ? $tipo_incarico_terms[0]->name : 'N/A';
+                                            const headers = document.querySelectorAll(".accordion-header-incarico");
 
-                                    // Mostra ogni incarico                                                    
-                                    echo '<div class="richtext-wrapper lora">' . esc_html($incarico_title) . '</div>';
-                                    // Aggiungi ulteriori informazioni se necessario
-                        
-                                }
-                                ?>
+                                            headers.forEach(header => {
+                                                header.addEventListener("click", function () {
+
+                                                    const content = this.nextElementSibling;
+
+                                                    // Chiude eventuale sezione aperta
+                                                    document.querySelectorAll(".accordion-content").forEach(item => {
+                                                        if (item !== content) {
+                                                            item.style.display = "none";
+                                                        }
+                                                    });
+
+                                                    document.querySelectorAll(".accordion-header-incarico").forEach(h => {
+                                                        if (h !== this) {
+                                                            h.classList.remove("active");
+                                                        }
+                                                    });
+
+                                                    // Toggle
+                                                    if (content.style.display === "block") {
+                                                        content.style.display = "none";
+                                                        this.classList.remove("active");
+                                                    } else {
+                                                        content.style.display = "block";
+                                                        this.classList.add("active");
+                                                    }
+
+                                                });
+                                            });
+
+                                        });
+                                    </script>
+                                    <!-- Ciclo per mostrare gli incarichi -->
+                                    <?php
+                                    foreach ($incarichi as $incarico_id) :
+
+                                        $incarico_title = get_the_title($incarico_id);
+
+                                        // Recupera i termini di tipo incarico
+                                        $tipo_incarico_terms = get_the_terms($incarico_id, 'tipi_incarico');
+                                        $tipo_incarico = (!empty($tipo_incarico_terms) && !is_wp_error($tipo_incarico_terms))
+                                            ? $tipo_incarico_terms[0]->name
+                                            : 'N/A';
+
+                                        // Date
+                                        $data_inizio_incarico = dci_get_meta("data_inizio_incarico", '_dci_incarico_', $incarico_id) ?? '';
+                                        $data_insediamento = dci_get_meta("data_insediamento", '_dci_incarico_', $incarico_id) ?? ''; // Solo per i politici
+                                        $data_fine_incarico = dci_get_meta("data_conclusione_incarico", '_dci_incarico_', $incarico_id) ?? '';
+                                        
+                                        // Unità Organizzativa
+                                        $uo_id = dci_get_meta("unita_organizzativa", '_dci_incarico_', $incarico_id);
+                                        $titolo_uo = $uo_id ? get_the_title($uo_id) : '';
+                                        
+                                        // Respoinsabile
+                                        $resp_id = dci_get_meta("responsabile_struttura", '_dci_incarico_', $incarico_id);
+                                        $titolo_resp = $resp_id ? get_the_title($resp_id) : '';
+
+                                        // Compenso e Importi Viaggi spese
+                                        $compenso_incarico = dci_get_meta("compensi", '_dci_incarico_', $incarico_id);
+                                        $importi_viaggi_servizi = dci_get_meta("importi_viaggi_servizi", '_dci_incarico_', $incarico_id);
+                                        
+                                        // Atto di nomina
+                                        $atto_nomina = dci_get_meta("atto_nomina", '_dci_incarico_', $incarico_id);
+                                        $titolo_atto_nomina = $atto_nomina ? get_the_title(attachment_url_to_postid($atto_nomina)) : '';
+
+                                        // Formatto le date in formato italiano (gg/mm/aaaa) se sono presenti
+
+                                        if (!empty($data_inizio_incarico)) {
+                                            $data_inizio_incarico = date_i18n('d F Y', date($data_inizio_incarico));
+                                        }
+
+                                        if(!empty($data_insediamento)) {
+                                            $data_insediamento = date_i18n('d F Y', date($data_insediamento));
+                                        }
+
+                                        if (!empty($data_fine_incarico)) {
+                                            $data_fine_incarico = date_i18n('d F Y', date   ($data_fine_incarico));
+                                        }
+                                    ?>
+
+                                    <div class="accordion-item-incarico">
+                                        <button class="accordion-header-incarico" data-target="incarico-<?php echo esc_attr($incarico_id); ?>">
+                                            <span><?php echo esc_html($incarico_title); ?></span>
+                                            <span class="accordion-icon">+</span>
+                                        </button>
+
+                                        <div id="incarico-<?php echo esc_attr($incarico_id); ?>" class="accordion-content">
+                                            <p class="richtext-wrapper lora mt-0"><strong>Tipo di incarico:</strong> <?php echo esc_html($tipo_incarico); ?></p>
+                                            
+                                            <?php if(!empty($data_inizio_incarico)) { ?>
+                                                <p class="richtext-wrapper lora"><strong>Data inizio incarico:</strong> <?php echo esc_html($data_inizio_incarico); ?></p>
+                                            <?php } ?>
+
+                                            <?php if(!empty($data_insediamento)) { ?>
+                                                <p class="richtext-wrapper lora"><strong>Data insediamento:</strong> <?php echo esc_html($data_insediamento); ?></p>
+                                            <?php } ?>
+
+                                            <?php if (!empty($data_fine_incarico)) : ?>
+                                                <p class="richtext-wrapper lora"><strong>Data conclusione incarico:</strong> <?php echo esc_html($data_fine_incarico); ?></p>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($titolo_uo)) : ?>
+                                                <p class="richtext-wrapper lora"><strong>Unità Organizzativa:</strong> <a href="<?php echo get_permalink($uo_id); ?>" class="text-decoration-none" style="margin-bottom: 1px !important;"><?php echo esc_html($titolo_uo); ?></a></p>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($titolo_resp)) : ?>
+                                                <p class="richtext-wrapper lora"><strong>Responsabile della struttura:</strong> <a href="<?php echo get_permalink($resp_id); ?>" class="text-decoration-none" style="margin-bottom: 1px !important;"><?php echo esc_html($titolo_resp); ?></a></p>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($atto_nomina)) : ?>
+                                                <p class="richtext-wrapper lora"><strong>Atto di nomina:</strong> <a href="<?php echo esc_url($atto_nomina); ?>" class="text-decoration-none" style="margin-bottom: 1px !important;"><?php echo esc_html($titolo_atto_nomina); ?></a></p>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($compenso_incarico)) : ?>
+                                                <p class="richtext-wrapper lora"><strong>Compenso:</strong> <?php echo esc_html($compenso_incarico); ?></p>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($importi_viaggi_servizi)) : ?>
+                                                <p class="richtext-wrapper lora"><strong>Importi di viaggio e/o servizio:</strong> <?php echo esc_html($importi_viaggi_servizi); ?></p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                <?php endforeach; ?>
+
+                                </div>
                             </div>
                         </section>
                     <?php } ?>
-                    <?php if ($tipo_incarico) { ?>
-                        <section class="it-page-section mb-30">
+                    <!-- Nascondo tipo incarico perchè mostra un solo tipo anche qualora la persona abbia più incarichi di tipi diversi, creando confusione. Se si vuole mostrare il tipo di incarico, va mostrato all'interno dell'accordion di ogni incarico, così da essere chiaro a quale incarico si riferisce. -->
+                    <?php // if ($tipo_incarico) { ?>
+                        <!-- <section class="it-page-section mb-20">
                             <h2 class="title-xxlarge mb-3" id="incarichi">Tipo di Incarico</h2>
-                            <div class="richtext-wrapper lora"><?php echo $tipo_incarico ?></div>
-                        </section>
-                    <?php } ?>
+                            <div class="richtext-wrapper lora"><?php //echo $tipo_incarico ?></div>
+                        </section> -->
+                    <?php // } ?>
                     <?php if ($compensi) { ?>
-                        <section class="it-page-section mb-30">
-                            <h2 class="title-xxlarge mb-3" id="compensi">Compensi</h2>
+                         <section class="it-page-section mb-20">
+                            <h2 class="title-xlarge mb-3" id="compensi">Compensi</h2>
                             <div class="richtext-wrapper lora">
                                 <?php echo $compensi ?>
                             </div>
                         </section>
                     <?php } ?>
                     <?php if (isset($data_insediamento) && !empty($data_insediamento)) { ?>
-                        <section class="it-page-section mb-30">
-                            <h2 class="title-xxlarge mb-3" id="data">Data di
-                                <?php if ($tipo_incarico == "politico") {
-                                    echo 'Insediamento';
+                        <section class="it-page-section mb-20">
+                            <h2 class="title-xlarge mb-3" id="data-inizio">Data di
+                                <?php  if ($tipo_incarico == "politico") {
+                                    echo 'insediamento';
                                 } else {
                                     echo 'inizio incarico';
                                 } ?>
@@ -373,9 +511,21 @@ get_header();
                             <div class="richtext-wrapper lora"><?php echo $data_insediamento; ?></div>
                         </section>
                     <?php } ?>
+                    <!-- Aggiungo la sezione per la data di conclusione dell'incarico -->
+                    <?php if(isset($data_conclusione_incarico) && !empty($data_conclusione_incarico)) { ?>
+                        <section class="it-page-section mb-20">
+                            <h2 class="title-xlarge mb-3" id="data-fine">Data di
+                                <?php  
+                                    echo 'conclusione incarico';
+                                ?>
+                            </h2>
+                            <div class="richtext-wrapper lora"><?php echo $data_conclusione_incarico; ?></div>
+                        </section>
+                    <?php } ?>
+                    <!-- Mostro tutte le UO collegate alla persona -->
                     <?php if ($organizzazioni) { ?>
                         <section class="it-page-section mb-30">
-                            <h2 class="title-xxlarge mb-3" id="organizzazioni">Organizzazione</h2>
+                            <h2 class="title-xlarge mb-3" id="organizzazioni">Organizzazione/i</h2>
                             <div class="richtext-wrapper lora">
                                 <?php foreach ($organizzazioni as $uo_id) {
                                     get_template_part("template-parts/unita-organizzativa/card-full");
@@ -384,33 +534,34 @@ get_header();
                         </section>
                     <?php } ?>
                     <?php if ($competenze) { ?>
-                        <section class="it-page-section mb-30">
-                            <h2 class="title-xxlarge mb-3" id="competenze">Competenze</h2>
+                        <section class="it-page-section mb-20">
+                            <h2 class="title-xlarge mb-3" id="competenze">Competenze</h2>
                             <div class="richtext-wrapper lora">
-                                <?php echo $competenze ?>
+                                <?php echo $competenze; ?>
+                            </div>
+                        </section>
+                    <?php } ?>
+                    <!-- Aggiungo la sezione deleghe -->
+                    <?php if ($deleghe) { ?>
+                        <section class="it-page-section mb-20">
+                            <h2 class="title-xlarge mb-3" id="deleghe">Deleghe</h2>
+                            <div class="richtext-wrapper lora">
+                                <?php echo $deleghe; ?>
                             </div>
                         </section>
                     <?php } ?>
                     <?php if ($biografia) { ?>
-                        <section class="it-page-section mb-30">
-                            <h2 class="title-xxlarge mb-3" id="bio">Biografia</h2>
+                        <section class="it-page-section mb-20">
+                            <h2 class="title-xlarge mb-3" id="bio">Biografia</h2>
                             <div class="richtext-wrapper lora">
                                 <?php echo $biografia ?>
                             </div>
                         </section>
                     <?php } ?>
-                    <?php if ($punti_contatto) { ?>
-                        <section class="it-page-section mb-30">
-                            <h2 class="title-xxlarge mb-3" id="contatti">Contatti</h2>
-                            <div class="richtext-wrapper lora">
-                                <?php foreach ($punti_contatto as $pc_id) {
-                                    get_template_part('template-parts/single/punto-contatto');
-                                } ?>
-                            </div>
-                        </section>
+                   
                         <?php if ($curriculum_vitae) { ?>
                             <article id="documenti" class="it-page-section anchor-offset mt-5">
-                                <h3>Curriculum Vitae</h3>
+                                <h2 class="title-xlarge mb-3">Curriculum Vitae</h2>
                                 <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal" id="cv">
                                     <?php
                                     if ($curriculum_vitae) {
@@ -434,36 +585,18 @@ get_header();
                                     <?php } ?>
                                 </div>
                             </article>
+                        <?php } ?>
                             <?php if ($situazione_patrimoniale) { ?>
                                 <article id="situazione-patrimoniale" class="it-page-section anchor-offset mt-5">
-                                    <h3>Situazione patrimoniale</h3>
+                                    <h2 class="title-xlarge mb-3">Situazione patrimoniale</h2>
                                     <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-                                        <?php
-                                        if ($situazione_patrimoniale) {
-                                            $documento_id = attachment_url_to_postid($situazione_patrimoniale);
-                                            $documento = get_post($documento_id);
-                                            ?>
-                                            <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                                <svg class="icon" aria-hidden="true">
-                                                    <use xlink:href="#it-clip"></use>
-                                                </svg>
-                                                <div class="card-body">
-                                                    <h5 class="card-title">
-                                                        <a class="text-decoration-none" href="<?php echo $situazione_patrimoniale; ?>"
-                                                            aria-label="Visualizza il documento <?php echo $documento->post_title; ?>"
-                                                            title="Scarica il documento <?php echo $documento->post_title; ?>">
-                                                            <?php echo $documento->post_title; ?>
-                                                        </a>
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                        <?php } ?>
+                                       <?php echo $situazione_patrimoniale; ?>
                                     </div>
                                 </article>
                             <?php } ?>
                             <?php if ($dichiarazione_redditi) { ?>
                                 <article id="dichiarazione-redditi" class="it-page-section anchor-offset mt-5">
-                                    <h3>Dichiarazione dei redditi</h3>
+                                    <h2 class="title-xlarge mb-3">Dichiarazione dei redditi</h2>
                                     <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
                                         <?php
                                         if ($dichiarazione_redditi) {
@@ -486,11 +619,10 @@ get_header();
                                                     </div>
                                                 </div>
                                             <?php } ?>
-                                        <?php }
-                            } ?>
-
-                                </div>
-                            </article>
+                                        <?php } ?>
+                                    </div>
+                                </article>
+                            <?php } ?>
                             <?php
                             if ($spese_elettorali) {
                                 foreach ($spese_elettorali as $spesa) {
@@ -498,7 +630,7 @@ get_header();
                                     $documento = get_post($documento_id);
                                     ?>
                                     <article id="spese-elettorali" class="it-page-section anchor-offset mt-5">
-                                        <h3>Spese elettorali</h3>
+                                        <h2 class="title-xlarge mb-3">Spese elettorali</h2>
                                         <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
 
                                             <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
@@ -517,11 +649,12 @@ get_header();
                                             </div>
                                         <?php } ?>
                                     </div>
-                                <?php } ?>
-                            </article>
+                                    </article>
+                            <?php } ?>
+                            
                             <?php if ($altre_cariche) { ?>
                                 <article id="altre-cariche" class="it-page-section anchor-offset mt-5">
-                                    <h3>Altre cariche</h3>
+                                    <h2 class="title-xlarge mb-3">Altre cariche</h2>
                                     <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
                                         <div class="richtext-wrapper lora">
                                             <?php foreach ($altre_cariche as $documento) {
@@ -547,10 +680,29 @@ get_header();
                                         </div>
                                 </article>
                             <?php } ?>
+                            <!-- Sposto la sezione contatti in fondo alla pagina, prima di ulteriori informazioni -->
+                             <?php if ($punti_contatto) { ?>
+                                <section class="it-page-section mb-20 mt-5">
+                                    <h2 class="title-xlarge mb-3" id="contatti">Contatti</h2>
+                                    <div class="richtext-wrapper lora">
+                                        <?php foreach ($punti_contatto as $pc_id) {
+                                            get_template_part('template-parts/single/punto-contatto');
+                                        } ?>
+                                    </div>
+                                </section>
+                            <?php } ?>
 
-                        <?php } ?>
-                    <?php } ?>
-
+                            <!-- Aggiungo la sezione ulteriori informazioni in fondo alla pagina -->
+                            <section class="it-page-section anchor-offset mt-5">
+                                <h4 class="mb-auto" id="ulteriori-informazioni">Ulteriori informazioni</h4>
+                                <?php if ($ulteriori_informazioni) { ?>
+                                    <div class="richtext-wrapper lora">
+                                        <?php echo esc_html($ulteriori_informazioni); ?>
+                                    </div>
+                                <?php } ?>
+                                <!-- Visulizzo la data di ultima modifica della persona -->
+                                <?php get_template_part('template-parts/single/page_bottom'); ?>
+                            </section>
                 </div>
             </div>
         </div>
@@ -568,6 +720,64 @@ get_header();
 get_footer();
 
 ?>
+<!-- Stili per l'accordion degli incarichi -->
+<style>
+.incarichi-accordion {
+    width: 100%;
+    max-width: 100%;
+    margin: 20px 0 40px 0;
+}
 
+.accordion-item-incarico {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: #ffffff;
+    overflow: hidden;
+}
 
+.accordion-header-incarico {
+    width: 100%;
+    background: #ffffff;
+    border: none;
+    padding: 18px 22px;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s ease;
+}
 
+.accordion-header-incarico:hover {
+    background: #f3f4f6;
+}
+
+.accordion-icon {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.accordion-header-incarico.active .accordion-icon {
+    transform: rotate(45deg);
+}
+
+.accordion-content {
+    display: none;
+    padding: 18px 22px 22px 22px;
+    background: #fafafa;
+}
+
+.accordion-content p,
+.accordion-content a {
+    margin-bottom: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.accordion-content a {
+    display: inline-block;
+}
+</style>

@@ -1,21 +1,45 @@
 <?php
 global $the_query, $load_posts, $load_card_type;
-    $count=0;
-    $max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 1000000;
-    $load_posts = 6;
 
-    $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
-    $args = array(
-        's' => $query,
-        'posts_per_page' => $max_posts,
-        'post_type'      => 'unita_organizzativa',
-        'orderby'        => 'post_title',
-        'order'          => 'ASC'
-     );
-     $the_query = new WP_Query($args);
+$count = 0;
+$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 1000000;
+$load_posts = 6;
 
-     $posts = $the_query->posts;
+$query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
+
+/**
+ * 1) recupero termine padre "struttura-politica"
+ */
+$parent_term = get_term_by('slug', 'struttura-politica', 'tipi_unita_organizzativa');
+
+/**
+ * 2) WP_Query con include_children = true
+ */
+$args = array(
+    's'              => $query,
+    'posts_per_page' => $max_posts,
+    'post_type'      => 'unita_organizzativa',
+    'orderby'        => 'post_title',
+    'order'          => 'ASC',
+    'tax_query'      => array(
+        array(
+            'taxonomy'         => 'tipi_unita_organizzativa',
+            'field'            => 'term_id',
+            'terms'            => $parent_term ? $parent_term->term_id : 0,
+            'include_children' => true,   // 👈 prende tutti i figli
+            'operator'         => 'IN',
+        ),
+    ),
+);
+
+$the_query = new WP_Query($args);
+
+/**
+ * 3) lista post risultanti
+ */
+$posts = $the_query->posts;
 ?>
+
 
 
 <div class="bg-grey-card py-5">

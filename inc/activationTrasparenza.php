@@ -20,8 +20,16 @@ add_action('after_switch_theme', 'dci_trasparenza_activation');
 
 // ===========================
 // Pagina Admin per forzare la ricarica
+// SOLO per utente ID = 1
 // ===========================
+
 function dci_reload_trasparenza_option_page() {
+
+    // Sicurezza: blocca accesso diretto via URL
+    if (get_current_user_id() != 1) {
+        wp_die('Non hai i permessi per accedere a questa pagina.');
+    }
+
     if (isset($_GET["action"]) && $_GET["action"] === "reload") {
         dci_trasparenza_activation(); // Esegue nuovamente l'attivazione
         echo '<div class="notice notice-success is-dismissible"><p>Dati ricaricati con successo.</p></div>';
@@ -35,6 +43,12 @@ function dci_reload_trasparenza_option_page() {
 }
 
 function dci_add_trasparenza_theme_page() {
+
+    // Mostra la pagina SOLO se utente ID = 1
+    if (get_current_user_id() != 1) {
+        return;
+    }
+
     add_theme_page(
         'Ricarica Trasparenza',
         'Ricarica Trasparenza',
@@ -43,6 +57,7 @@ function dci_add_trasparenza_theme_page() {
         'dci_reload_trasparenza_option_page'
     );
 }
+
 add_action('admin_menu', 'dci_add_trasparenza_theme_page');
 
 
@@ -604,6 +619,8 @@ function dci_terms_to_hide() {
 
 
 ?>
+
+
 
 
 

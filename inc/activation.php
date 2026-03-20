@@ -50,21 +50,47 @@ function dci_theme_activation() {
 }
 add_action( 'after_switch_theme', 'dci_theme_activation' );
 
+// ===========================
+// Pagina Admin per ricarica dati tema
+// SOLO per utente ID = 1
+// ===========================
+
 function dci_reload_theme_option_page() {
-    if(isset($_GET["action"]) && $_GET["action"] == "reload"){
+
+    // Blocco sicurezza accesso diretto
+    if (get_current_user_id() != 1) {
+        wp_die('Non hai i permessi per accedere a questa pagina.');
+    }
+
+    if (isset($_GET["action"]) && $_GET["action"] == "reload") {
         dci_theme_activation();
+        echo '<div class="notice notice-success is-dismissible"><p>Dati ricaricati con successo.</p></div>';
     }
 
     echo "<div class='wrap'>";
     echo '<h1>Ricarica i dati di attivazione del tema</h1>';
 
-    echo '<a href="themes.php?page=reload-data-theme-options&action=reload" class="button button-primary">Ricarica i dati di attivazione (menu, tipologie, etc)</a>';
+    echo '<a href="' . esc_url(admin_url('themes.php?page=reload-data-theme-options&action=reload')) . '" class="button button-primary">Ricarica i dati di attivazione (menu, tipologie, etc)</a>';
     echo "</div>";
 }
+
 function dci_add_update_theme_page() {
-    add_theme_page( 'Ricarica i dati', 'Ricarica i dati', 'edit_theme_options', 'reload-data-theme-options', 'dci_reload_theme_option_page' );
+
+    // Mostra menu solo a ID = 1
+    if (get_current_user_id() != 1) {
+        return;
+    }
+
+    add_theme_page(
+        'Ricarica i dati',
+        'Ricarica i dati',
+        'edit_theme_options',
+        'reload-data-theme-options',
+        'dci_reload_theme_option_page'
+    );
 }
-add_action( 'admin_menu', 'dci_add_update_theme_page' );
+
+add_action('admin_menu', 'dci_add_update_theme_page');
 
 /**
  * inserimento ricorsivo dei termini di tassonomia

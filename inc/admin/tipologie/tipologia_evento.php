@@ -459,6 +459,12 @@ function dci_evento_admin_script() {
 }
 
 
+
+
+
+
+
+
 /**
  * Valorizzo il post content in base al contenuto dei campi custom
  * @param $data

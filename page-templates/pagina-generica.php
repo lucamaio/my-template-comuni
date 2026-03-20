@@ -122,10 +122,76 @@ get_header();
     endwhile; // End of the loop.
     ?>
 </main>
+
+<style>
+
+/* ===============================
+   FIX WEBVIEW GENERICO
+================================ */
+
+/* Passa click attraverso SVG */
+#main-container svg,
+#main-container use {
+    pointer-events: none !important;
+}
+
+/* Navscroll e accordion */
+.cmp-navscroll,
+.it-navscroll-wrapper,
+.navbar-custom,
+.menu-wrapper,
+.link-list-wrapper {
+    pointer-events: auto;
+}
+
+/* Figli non intercettano */
+.cmp-navscroll *:not(a):not(button) {
+    pointer-events: none;
+}
+
+/* Migliora tap */
+#main-container a,
+#main-container button {
+    touch-action: manipulation;
+}
+
+/* Evita overlay sticky */
+.sticky-top {
+    -webkit-transform: translateZ(0);
+}
+
+</style>
+
+
+<script>
+
+/* ===============================
+   FIX BOOTSTRAP TOUCH
+================================ */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Forza click sui link indice
+    document.querySelectorAll('.nav-link').forEach(el => {
+
+        el.addEventListener('touchend', function (e) {
+
+            e.preventDefault();
+            location.href = this.getAttribute('href');
+
+        }, { passive: false });
+
+    });
+
+});
+
+</script>
+
 <script>
     const descText = document.querySelector('#content')?.closest('article').innerText;
     const wordsNumber = descText.split(' ').length
     document.querySelector('#readingTime').innerHTML = `${Math.ceil(wordsNumber / 200)} min`;
 </script>
+
 <?php
 get_footer();

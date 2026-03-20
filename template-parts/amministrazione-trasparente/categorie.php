@@ -11,22 +11,26 @@ $categorie_genitori = get_terms('tipi_cat_amm_trasp', array(
 ));
 
 
+
+// 👉 FILTRO VISIBILITÀ (PRIMA)
+$categorie_genitori = array_filter($categorie_genitori, function($term) {
+    $visible = get_term_meta($term->term_id, 'visualizza_elemento', true);
+    return $visible == 1; // mostra solo se = 1
+});
+
+
 // Ordina ulteriormente per 'ordinamento' (campo meta) se presente
 usort($categorie_genitori, function($a, $b) {
-    // Ottieni i valori del campo meta 'ordinamento' o usa un fallback
-    $ordinamento_a = get_term_meta($a->term_id, 'ordinamento', true);
-    $ordinamento_b = get_term_meta($b->term_id, 'ordinamento', true);
 
-    // Se uno dei termini non ha un valore di 'ordinamento', usa un valore di fallback
-    if (empty($ordinamento_a)) {
-        $ordinamento_a = PHP_INT_MAX; // Usa un valore molto grande per mandarlo alla fine
-    }
-    if (empty($ordinamento_b)) {
-        $ordinamento_b = PHP_INT_MAX; // Lo stesso per il secondo termine
+    $ordinamento_a = (int) get_term_meta($a->term_id, 'ordinamento', true);
+    $ordinamento_b = (int) get_term_meta($b->term_id, 'ordinamento', true);
+
+    // se uguali → fallback alfabetico
+    if ($ordinamento_a === $ordinamento_b) {
+        return strcmp($a->name, $b->name);
     }
 
-    // Confronta i valori di ordinamento
-    return $ordinamento_a - $ordinamento_b;
+    return $ordinamento_a <=> $ordinamento_b;
 });
 
 
@@ -309,12 +313,33 @@ function updateToggleAllButton() {
                                 <h2 class="title-custom" onclick="toggleContent('<?= $id_genitore ?>')"><?= $nome_genitore ?></h2>
                                 
                                 <div id="<?= $id_genitore ?>" class="content">
-                                    <?php
-                                    $sottocategorie = get_terms('tipi_cat_amm_trasp', array(
-                                        'hide_empty' => false,
-                                        'parent' => $genitore->term_id
-                                    ));
-                                    ?>
+                                   <?php
+                                        $sottocategorie = get_terms('tipi_cat_amm_trasp', array(
+                                            'hide_empty' => false,
+                                            'parent' => $genitore->term_id
+                                        ));
+                                        
+                                        // 👉 FILTRO VISIBILITÀ (CORRETTO)
+                                        $sottocategorie = array_filter($sottocategorie, function($term) {
+                                            $visible = get_term_meta($term->term_id, 'visualizza_elemento', true);
+                                            return $visible == 1;
+                                        });
+                                        
+                                        // 👉 ORDINAMENTO
+                                        if (!empty($sottocategorie) && !is_wp_error($sottocategorie)) {
+                                            usort($sottocategorie, function($a, $b) {
+                                        
+                                                $ordinamento_a = (int) get_term_meta($a->term_id, 'ordinamento', true);
+                                                $ordinamento_b = (int) get_term_meta($b->term_id, 'ordinamento', true);
+                                        
+                                                if ($ordinamento_a === $ordinamento_b) {
+                                                    return strcmp($a->name, $b->name);
+                                                }
+                                        
+                                                return $ordinamento_a <=> $ordinamento_b;
+                                            });
+                                        }
+                                        ?>
                                     <ul class="link-list t-primary">
                                         <?php foreach ($sottocategorie as $sotto) {
                                                 $link = get_term_link($sotto);

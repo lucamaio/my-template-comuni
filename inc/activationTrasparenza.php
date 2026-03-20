@@ -120,9 +120,29 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                 "Provvedimenti dirigenti"
             ],
             "Bandi di Gara e contratti"=>[
-               "Informazioni sulle singole procedure in formato tabellare",
-               "Atti delle amministrazioni aggiudicatrici e degli enti aggiudicatori distintamente per ogni procedura",
-               "Contratti Pubblici",
+                "Atti e documenti di carattere generale riferiti a tutte le procedure" => [
+                    "Automatizzazione delle procedure",
+                    "Acqusizione interesse realizzazione opere incompiute",
+                    "Mancata redazione programmazione",
+                    "Documenti sul sistema di qualificazione",
+                    "Gravi illeciti professionali",
+                    "Progetti di investimento pubblico"
+                ],
+
+                //    "Contratti Pubblici", // Sezione non più necessaria per la trasparenza
+                // Sezioni che sostituiscono "Contratti Pubblici" per la trasparenza
+                "Pubblicazione",
+                "Affidamento",
+                "Esecutiva",
+                "Sponsorizzazioni",
+                "Procedure di somma urgenza e di protezione civile",
+                "Finanza di progetto",
+
+                 // Procedimenti fino al 31 / 12/2023
+                "Procedimenti fino al 31/12/2023" => [
+                    "Atti delle amministrazioni aggiudicatrici e degli enti aggiudicatori distintamente per ogni procedura",
+                    "Informazioni sulle singole procedure in formato tabellare"
+                ]
             ],
             "Sovvenzioni , contributi sussidi, vantaggi economici"=>[
                 "Criteri e modalità",
@@ -613,7 +633,11 @@ function dci_terms_to_hide() {
     return [
         'Incarichi conferiti e autorizzati ai dipendenti',
         'Contratti Pubblici',
-        'Atti di concessione',
+        // 'Pubblicazione',
+        // 'Affidamento',
+        // 'Esecutiva',
+        // 'Sponsorizzazioni',
+        // 'Atti di concessione',
     ];
 }
 

@@ -6,7 +6,7 @@
  * @package Design_Comuni_Italia
  */
 
-global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici;
+global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici, $tipo_personalizzato;
 
 get_header();
 $obj = get_queried_object();
@@ -65,17 +65,17 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
           if ($obj->name == "Contratti Pubblici" && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '') 
                { 
         ?>
-            <div class="container my-5">
-                <div class="row">
-                    <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
-                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
-                    <div class="row g-3" id="load-more">
-                        <?php get_template_part("template-parts/bandi-di-gara/tutti-bandi"); ?>
+                <div class="container my-5">
+                    <div class="row">
+                        <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
+                        <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
+                        <div class="row g-3" id="load-more">
+                            <?php get_template_part("template-parts/bandi-di-gara/tutti-bandi"); ?>
+                        </div>
+                    <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                     </div>
-                 <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                 </div>
             </div>
-        </div>
     
     <?php }else if ($obj->name == "Atti di concessione" && dci_get_option("ck_attidiconcessione", "Trasparenza") !== 'false' && dci_get_option("ck_attidiconcessione", "Trasparenza") !== '') { ?>
             <div class="container my-5">
@@ -116,7 +116,21 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
             </div>
         </div>
     
-    <?php }else { ?>
+    <?php }else if(($obj->name === "Pubblicazione" || $obj->name === "Affidamento" || $obj->name === "Esecutiva" || $obj->name === "Sponsorizzazioni") && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '' ){?>
+        <div class="container my-5">
+                    <div class="row">
+                        <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
+                        <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
+                        <div class="row g-3" id="load-more">
+                            <?php 
+                            $tipo_personalizzato = get_queried_object()->name;                       
+                            get_template_part("template-parts/bandi-di-gara/tipi-personalizzati"); ?>
+                        </div>
+                    <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+                    </div>
+                </div>
+            </div>
+   <?php } else { ?>
         
         <form role="search" id="search-form" method="get" class="search-form">
             <button type="submit" class="d-none"></button>

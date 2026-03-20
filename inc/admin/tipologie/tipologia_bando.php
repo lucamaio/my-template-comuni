@@ -247,12 +247,19 @@ function dci_add_bando_metaboxes()
         'attributes'  => array('required' => 'required'),
     ));
 
+    $cmb_apertura->add_field([
+        'id' => '_dci_bando_sezione',
+        'name' => 'Sezione trasparenza',
+        'type' => 'radio',
+        'options' => dci_get_sezioni_bando(),
+    ]);
     $cmb_apertura->add_field(array(
         'id'          => $prefix . 'data_inizio',
-        'name'        => __('Data di Pubblicazione', 'design_comuni_italia'),
+        'name'        => __('Data di Pubblicazione *', 'design_comuni_italia'),
         'desc'        => __('Seleziona la data in cui il bando è stato pubblicato.', 'design_comuni_italia'),
         'type'        => 'text_date_timestamp',
         'date_format' => 'd-m-Y',
+        'attributes'  => array('required' => 'required'),
     ));
 
     $cmb_apertura->add_field(array(
@@ -262,6 +269,15 @@ function dci_add_bando_metaboxes()
         'type'        => 'text_date_timestamp',
         'date_format' => 'd-m-Y',
     ));
+
+    $cmb_apertura->add_field(array(
+        'id'          => $prefix . 'cig',
+        'name'        => __('CIG *', 'design_comuni_italia'),
+        'desc'        => __('Indica la CIG', 'design_comuni_italia'),
+        'type'        => 'text',
+        'attributes'  => array('required' => 'required'),
+    ));
+
 
     $cmb_apertura->add_field(array(
         'id'          => $prefix . 'oggetto',
@@ -275,6 +291,156 @@ function dci_add_bando_metaboxes()
             'textarea_rows' => 8,
             'teeny'         => false,
         ),
+    ));
+
+    // ============================================================
+    // SEZIONE: LINK ALLE PIATTAFORME E ATTI
+    // ============================================================
+    $cmb_links = new_cmb2_box( array(
+        'id'           => $prefix . 'box_link_piattaforme',
+        'title'        => __( 'Link e riferimenti esterni', 'design_comuni_italia' ),
+        'object_types' => array('bando'),
+        'context'      => 'normal',
+        'priority'     => 'high',
+    ) );
+
+    // ============================================================
+    // LINK BDNCP (singolo - obbligatorio)
+    // ============================================================
+    $cmb_links->add_field(array(
+        'name' => __('BDNCP (Banca Dati Nazionale Contratti Pubblici) *', 'design_comuni_italia'),
+        'desc' => __('Collegamento alla scheda del bando pubblicata sulla piattaforma ANAC.', 'design_comuni_italia'),
+        'id'   => $prefix . 'link_bdncp',
+        'type' => 'text_url',
+        'attributes' => array(
+            'required' => 'required'
+        ),
+    ));
+
+    // ============================================================
+    // PIATTAFORMA DI APPROVVIGIONAMENTO (singolo - obbligatorio)
+    // ============================================================
+    $cmb_links->add_field(array(
+        'name' => __('Piattaforma di approvvigionamento *', 'design_comuni_italia'),
+        'desc' => __('Link alla piattaforma telematica utilizzata per la gestione della procedura (es. MEPA, piattaforme regionali, ecc.).', 'design_comuni_italia'),
+        'id'   => $prefix . 'link_piattaforma',
+        'type' => 'text_url',
+        'attributes' => array(
+            'required' => 'required'
+        ),
+    ));
+
+
+    // ============================================================
+    // ATTI DI INDIZIONE (MULTIPLI)
+    // ============================================================
+    $cmb_links->add_field(array(
+        'id'          => $prefix . 'atti_indizione_group',
+        'type'        => 'group',
+        'name'        => __('Atti di indizione (delibera/determina) *', 'design_comuni_italia'),
+        'description' => __('Inserire uno o più atti amministrativi che hanno avviato la procedura.', 'design_comuni_italia'),
+        'options'     => array(
+            'group_title'   => __('Atto {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi atto', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi atto', 'design_comuni_italia'),
+            'sortable'      => true,
+            'closed'        => true,
+        ),
+    ));
+
+    $cmb_links->add_group_field($prefix . 'atti_indizione_group', array(
+        'name' => __('Titolo atto *', 'design_comuni_italia'),
+        'desc' => __('Titolo dell’atto.', 'design_comuni_italia'),
+        'id'   => 'title',
+        'type' => 'text',
+        'attributes' => array(
+            'required' => 'required'
+        ),
+    ));
+
+    // Campo URL atto indizione
+    $cmb_links->add_group_field($prefix . 'atti_indizione_group', array(
+        'name' => __('Link atto *', 'design_comuni_italia'),
+        'desc' => __('Collegamento alla pubblicazione ufficiale dell’atto.', 'design_comuni_italia'),
+        'id'   => 'url',
+        'type' => 'text_url',
+        'attributes' => array(
+            'required' => 'required'
+        ),
+    ));
+
+
+
+
+    // ============================================================
+    // DETERMINE DI AGGIUDICAZIONE (MULTIPLE)
+    // ============================================================
+    $cmb_links->add_field(array(
+        'id'          => $prefix . 'determine_aggiudicazione_group',
+        'type'        => 'group',
+        'name'        => __('Determine di aggiudicazione *', 'design_comuni_italia'),
+        'description' => __('Inserire una o più determine relative all’aggiudicazione.', 'design_comuni_italia'),
+        'options'     => array(
+            'group_title'   => __('Determina {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi determina', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi determina', 'design_comuni_italia'),
+            'sortable'      => true,
+            'closed'        => true,
+        ),
+    ));
+
+    $cmb_links->add_group_field($prefix . 'determine_aggiudicazione_group', array(
+        'name' => __('Titolo determina *', 'design_comuni_italia'),
+        'desc' => __('Titolo della determina.', 'design_comuni_italia'),
+        'id'   => 'title',
+        'type' => 'text',
+        'attributes' => array(
+            'required' => 'required'
+        ),
+    ));
+
+    // Campo URL determina
+    $cmb_links->add_group_field($prefix . 'determine_aggiudicazione_group', array(
+        'name' => __('Link determina *', 'design_comuni_italia'),
+        'desc' => __('Collegamento alla determina di aggiudicazione.', 'design_comuni_italia'),
+        'id'   => 'url',
+        'type' => 'text_url',
+        'attributes' => array(
+            'required' => 'required'
+        ),
+    ));
+
+
+    // ============================================================
+    // ALTRI LINK (FACOLTATIVO - MULTIPLI)
+    // ============================================================
+    $cmb_links->add_field(array(
+        'id'          => $prefix . 'altri_link_group',
+        'type'        => 'group',
+        'name'        => __('Altri link utili', 'design_comuni_italia'),
+        'description' => __('Eventuali collegamenti aggiuntivi (es. documentazione integrativa, FAQ, chiarimenti, ecc.).', 'design_comuni_italia'),
+        'options'     => array(
+            'group_title'   => __('Link {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi link', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi link', 'design_comuni_italia'),
+            'sortable'      => true,
+            'closed'        => true,
+        ),
+    ));
+
+    // Label del link
+    $cmb_links->add_group_field($prefix . 'altri_link_group', array(
+        'name' => __('Titolo link', 'design_comuni_italia'),
+        'desc' => __('Descrizione breve del contenuto del link.', 'design_comuni_italia'),
+        'id'   => 'label',
+        'type' => 'text',
+    ));
+
+    // URL del link
+    $cmb_links->add_group_field($prefix . 'altri_link_group', array(
+        'name' => __('URL', 'design_comuni_italia'),
+        'id'   => 'url',
+        'type' => 'text_url',
     ));
 
     // Metabox: Dettagli
@@ -306,14 +472,6 @@ function dci_add_bando_metaboxes()
         'id'          => $prefix . 'struttura_proponente',
         'name'        => __('Struttura Proponente *', 'design_comuni_italia'),
         'desc'        => __('Indica la struttura o l’ufficio proponente.', 'design_comuni_italia'),
-        'type'        => 'text',
-        'attributes'  => array('required' => 'required'),
-    ));
-
-    $cmb_dettagli->add_field(array(
-        'id'          => $prefix . 'cig',
-        'name'        => __('CIG *', 'design_comuni_italia'),
-        'desc'        => __('Indica la CIG', 'design_comuni_italia'),
         'type'        => 'text',
         'attributes'  => array('required' => 'required'),
     ));
@@ -430,6 +588,7 @@ function dci_add_bando_metaboxes()
         'desc' => __( 'Elenco di documenti allegati al bando di gara' , 'design_comuni_italia' ),
         'type' => 'file_list',
     ) );
+
 }
 
 /**
@@ -462,7 +621,17 @@ function dci_bando_set_post_content($data)
     return $data;
 }
 
+// Funzione che mi restituisce le posizioni della trasparenza x pubblicare i bandi di gara
 
+
+function dci_get_sezioni_bando() {
+    return [
+        'pubblicazione' => 'Pubblicazione',
+        'affidamento' => 'Affidamento',
+        'esecutiva' =>'Esecutiva',
+        'sponsorizzazioni' => 'Sponsorizzazioni'
+    ];
+}
 
 
 

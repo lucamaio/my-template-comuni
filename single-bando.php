@@ -1,5 +1,4 @@
 <?php
-
 /**
  * bando template file
  *
@@ -23,10 +22,7 @@ get_header();
         $oggetto = dci_get_meta("oggetto", $prefix, $post->ID);
         $cig = dci_get_meta("cig", $prefix, $post->ID);
         $importo_aggiudicazione = dci_get_meta("importo_aggiudicazione", $prefix, $post->ID);
-
         $importo_liquidato = dci_get_meta("importo_somme_liquidate", $prefix, $post->ID);
-        //$importo_aggiudicazionedata_fine = dci_get_meta("importo_aggiudicazione", $prefix, $post->ID);
-    
         $struttura_proponente = dci_get_meta("struttura_proponente", $prefix, $post->ID);
         $cf_SA = dci_get_meta("cf_SA", $prefix, $post->ID);
         $scelta_contraente = dci_get_meta("scleta_contraente", $prefix, $post->ID);
@@ -34,13 +30,57 @@ get_header();
         $operatori_group = get_post_meta(get_the_ID(), $prefix . 'operatori_group', true);
         $aggiudicatari_group = get_post_meta(get_the_ID(), $prefix . 'aggiudicatari_group', true);
 
+        // --- DATA INIZIO ---
         $data_inizio_arr = dci_get_data_pubblicazione_arr("data_inizio", $prefix, $post->ID);
-        $data_inizio = date_i18n('d F Y', mktime(0, 0, 0, $data_inizio_arr[1], $data_inizio_arr[0], $data_inizio_arr[2]));
+        $data_inizio = '';
+        if (is_array($data_inizio_arr) && count($data_inizio_arr) === 3) {
+            // Verifica se l'array è [giorno, mese, anno] o [anno, mese, giorno]
+            $day   = (int) $data_inizio_arr[0];
+            $month = (int) $data_inizio_arr[1];
+            $year  = (int) $data_inizio_arr[2];
 
+            // Se anno > 31 probabilmente l'array è [anno, mese, giorno]
+            if ($year > 31) {
+                $tmp   = $day;
+                $day   = $data_inizio_arr[2];
+                $month = $data_inizio_arr[1];
+                $year  = $tmp;
+            }
+
+            if (checkdate($month, $day, $year)) {
+                $data_inizio = date_i18n('d F Y', mktime(0, 0, 0, $month, $day, $year));
+            }
+        }
+
+        // --- DATA FINE ---
         $data_fine_arr = dci_get_data_pubblicazione_arr("data_fine", $prefix, $post->ID);
-        $data_fine = date_i18n('d F Y', mktime(0, 0, 0, $data_fine_arr[1], $data_fine_arr[0], $data_fine_arr[2]));
+        $data_fine = '';
+        if (is_array($data_fine_arr) && count($data_fine_arr) === 3) {
+            $day   = (int) $data_fine_arr[0];
+            $month = (int) $data_fine_arr[1];
+            $year  = (int) $data_fine_arr[2];
+
+            if ($year > 31) {
+                $tmp   = $day;
+                $day   = $data_fine_arr[2];
+                $month = $data_fine_arr[1];
+                $year  = $tmp;
+            }
+
+            if (checkdate($month, $day, $year)) {
+                $data_fine = date_i18n('d F Y', mktime(0, 0, 0, $month, $day, $year));
+            }
+        }
+
         $documenti = dci_get_meta("allegati", $prefix, $post->ID);
-        ?>
+
+        // --- NUOVI LINK ---
+        $link_bdncp = dci_get_meta("link_bdncp", $prefix, $post->ID);
+        $link_piattaforma = dci_get_meta("link_piattaforma", $prefix, $post->ID);
+        $atti_indizione = get_post_meta(get_the_ID(), $prefix . 'atti_indizione_group', true);
+        $determine_aggiudicazione = get_post_meta(get_the_ID(), $prefix . 'determine_aggiudicazione_group', true);
+        $altri_link = get_post_meta(get_the_ID(), $prefix . 'altri_link_group', true);
+    ?>
         <div class="container" id="main-container">
             <div class="row">
                 <div class="col px-lg-4">
@@ -68,20 +108,21 @@ get_header();
                     ?>
                 </div>
             </div>
+
             <div class="row mt-5 mb-4">
                 <div class="col-6">
                     <small>Data Inizio:</small>
                     <p class="fw-semibold font-monospace">
-                        <?php echo $data_inizio; ?>
+                        <?php echo $data_inizio ?: 'Non definita'; ?>
                     </p>
                 </div>
                 <?php if (!empty($data_fine)) { ?>
-                    <div class="col-6">
-                        <small>Data fine:</small>
-                        <p class="fw-semibold font-monospace">
-                            <?php echo $data_fine; ?>
-                        </p>
-                    </div>
+                <div class="col-6">
+                    <small>Data Fine:</small>
+                    <p class="fw-semibold font-monospace">
+                        <?php echo $data_fine; ?>
+                    </p>
+                </div>
                 <?php } ?>
             </div>
         </div>
@@ -164,6 +205,15 @@ get_header();
                                                                     </a>
                                                                 </li>
                                                             <?php } ?>
+                                                            <?php if (
+                                                                !empty($link_bdncp) || !empty($link_piattaforma) || !empty($atti_indizione) || !empty($determine_aggiudicazione) || !empty($altri_link)
+                                                            ) { ?>
+                                                                <li class="nav-item">
+                                                                    <a class="nav-link" href="#link-esterni">
+                                                                        <span class="title-medium">Link e riferimenti</span>
+                                                                    </a>
+                                                                </li>
+                                                            <?php } ?>
                                                             <?php if (is_array($documenti) && !empty($documenti)) { ?>
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#documenti">
@@ -183,6 +233,8 @@ get_header();
                     </div>
                 </aside>
                 <section class="col-lg-8 it-page-sections-container border-light mb-5">
+
+                    <!-- OGGETTO -->
                     <?php if (!empty($oggetto)) { ?>
                         <article class="it-page-section anchor-offset" data-audio>
                             <h4 id="oggetto">Oggetto Bando</h4>
@@ -198,6 +250,7 @@ get_header();
                         </article>
                     <?php } ?>
 
+                    <!-- OPERATORI -->
                     <?php if (!empty($operatori_group) && is_array($operatori_group)) { ?>
                         <article class="it-page-section anchor-offset mt-5">
                             <h4 id="operatori-invitati">Operatori Invitati/Partecipanti</h4>
@@ -225,6 +278,7 @@ get_header();
                         </article>
                     <?php } ?>
 
+                    <!-- AGGIUDICATARI -->
                     <?php if (!empty($aggiudicatari_group) && is_array($aggiudicatari_group)) { ?>
                         <article class="it-page-section anchor-offset mt-1">
                             <h4 id="aggiudicatori">Aggiudicatari</h4>
@@ -251,40 +305,120 @@ get_header();
                         </article>
                     <?php } ?>
 
+                    <!-- CIG -->
                     <?php if (!empty($cig) && isset($cig)) { ?>
-                    <section class="it-page-section mb-3">
-                        <h5 id="cig">CIG</h5>
-                        <div class="richtext-wrapper lora" data-element="service-cost"><?php echo $cig ?>
-                        </div>
-                    </section>
+                        <section class="it-page-section mb-3">
+                            <h5 id="cig">CIG</h5>
+                            <div class="richtext-wrapper lora" data-element="service-cost"><?php echo $cig ?></div>
+                        </section>
                     <?php } ?>
 
+                    <!-- IMPORTI -->
                     <?php if (!empty($importo_aggiudicazione) && isset($importo_aggiudicazione)) { ?>
-                    <section class="it-page-section mb-3">
-                        <h5 id="aggiudicato">Importo Aggiudicazione</h5>
-                        <div class="richtext-wrapper lora" data-element="service-cost"><?php echo $importo_aggiudicazione ?>
-                        </div>
-                    </section>
+                        <section class="it-page-section mb-3">
+                            <h5 id="aggiudicato">Importo Aggiudicazione</h5>
+                            <div class="richtext-wrapper lora" data-element="service-cost"><?php echo $importo_aggiudicazione ?></div>
+                        </section>
                     <?php } ?>
 
                     <?php if (!empty($importo_liquidato) && isset($importo_liquidato)) { ?>
-                    <section class="it-page-section mb-3">
-                        <h5 id="liquidato">Importo Liquidato</h5>
-                        <div class="richtext-wrapper lora" data-element="service-cost"><?php echo $importo_liquidato ?>
-                        </div>
-                    </section>
+                        <section class="it-page-section mb-3">
+                            <h5 id="liquidato">Importo Liquidato</h5>
+                            <div class="richtext-wrapper lora" data-element="service-cost"><?php echo $importo_liquidato ?></div>
+                        </section>
                     <?php } ?>
 
+                    <!-- SCELTA CONTRAENTE -->
                     <?php if (!empty($scelta_contraente) && isset($scelta_contraente)) { ?>
-                    <section class="it-page-section mb-3">
-                         <h5 id="scelta-contraente">Procedura scelta contraente</h5>
-                        <div class="chip chip-simple" data-element="service-status">
-                        <span class="chip-label">
-                            <?php echo '<span class="text-primary">'.$scelta_contraente.'</span>' ?>
-                        </span>	
-                    </section>
+                        <section class="it-page-section mb-3">
+                            <h5 id="scelta-contraente">Procedura scelta contraente</h5>
+                            <div class="chip chip-simple" data-element="service-status">
+                                <span class="chip-label">
+                                    <?php echo '<span class="text-primary">'.$scelta_contraente.'</span>' ?>
+                                </span>  
+                            </div>
+                        </section>
                     <?php } ?>
 
+                    <!-- LINK ESTERNI -->
+                    <?php if (
+                        !empty($link_bdncp) || !empty($link_piattaforma) || (is_array($atti_indizione) && !empty($atti_indizione)) || 
+                        (is_array($determine_aggiudicazione) && !empty($determine_aggiudicazione)) || (is_array($altri_link) && !empty($altri_link))
+                    ) { ?>
+                        <article class="it-page-section anchor-offset mt-5">
+                            <h4 id="link-esterni">Link e riferimenti esterni</h4>
+                            <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
+
+                                <?php if(!empty($link_bdncp)) { ?>
+                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                        <svg class="icon"><use xlink:href="#it-link"></use></svg>
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a href="<?php echo esc_url($link_bdncp); ?>" target="_blank">BDNCP (ANAC)</a>
+                                            </h5>
+                                            <p class="card-text">Consulta la scheda del bando sulla Banca Dati Nazionale Contratti Pubblici.</p>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+
+                                <?php if(!empty($link_piattaforma)) { ?>
+                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                        <svg class="icon"><use xlink:href="#it-link"></use></svg>
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a href="<?php echo esc_url($link_piattaforma); ?>" target="_blank">Piattaforma di approvvigionamento</a>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+
+                                <?php if(is_array($atti_indizione) && !empty($atti_indizione)) {
+                                    foreach($atti_indizione as $atto){
+                                        $url = isset($atto['url']) ? esc_url($atto['url']) : '';
+                                        $title = isset($atto['title']) ? esc_html($atto['title']) : 'Atto di indizione';
+                                        if(!$url) continue;
+                                ?>
+                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                        <svg class="icon"><use xlink:href="#it-link"></use></svg>
+                                        <div class="card-body">
+                                            <h5 class="card-title"><a href="<?php echo $url; ?>" target="_blank"><?php echo $title; ?></a></h5>
+                                        </div>
+                                    </div>
+                                <?php }} ?>
+
+                                <?php if(is_array($determine_aggiudicazione) && !empty($determine_aggiudicazione)) {
+                                    foreach($determine_aggiudicazione as $det){
+                                        $url = isset($det['url']) ? esc_url($det['url']) : '';
+                                        $title = isset($det['title']) ? esc_html($det['title']) : 'Determina di aggiudicazione';
+                                        if(!$url) continue;
+                                ?>
+                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                        <svg class="icon"><use xlink:href="#it-link"></use></svg>
+                                        <div class="card-body">
+                                            <h5 class="card-title"><a href="<?php echo $url; ?>" target="_blank"><?php echo $title; ?></a></h5>
+                                        </div>
+                                    </div>
+                                <?php }} ?>
+
+                                <?php if(is_array($altri_link) && !empty($altri_link)) {
+                                    foreach($altri_link as $link){
+                                        $url = isset($link['url']) ? esc_url($link['url']) : '';
+                                        $label = isset($link['label']) ? esc_html($link['label']) : 'Link';
+                                        if(!$url) continue;
+                                ?>
+                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                        <svg class="icon"><use xlink:href="#it-link"></use></svg>
+                                        <div class="card-body">
+                                            <h5 class="card-title"><a href="<?php echo $url; ?>" target="_blank"><?php echo $label; ?></a></h5>
+                                        </div>
+                                    </div>
+                                <?php }} ?>
+
+                            </div>
+                        </article>
+                    <?php } ?>
+
+                    <!-- DOCUMENTI -->
                     <?php if (is_array($documenti) && count($documenti)) { ?>
                         <article class="it-page-section anchor-offset mt-5">
                             <h4 id="documenti">Documenti</h4>
@@ -303,20 +437,16 @@ get_header();
                                                     aria-label="Scarica l'allegato <?php echo $allegato->post_title; ?>"
                                                     title="Scarica l'allegato <?php echo $allegato->post_title; ?>">
 
-                                                    <?php  // Recupera il titolo della pagina
-                                                                $title_allegato = $allegato->post_title;
-
-                                                                if (strlen($title_allegato) > 50) {
-                                                                    $title_allegato = substr($title_allegato, 0, 50) . '...';
-                                                                }
-                                                                // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
-                                                                if (preg_match('/[A-Z]{5,}/', $title_allegato)) {
-                                                                    // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
-                                                                    $title_allegato = ucfirst(strtolower($title_allegato));
-                                                                }
-
-                                                                echo $title_allegato; ?>
-
+                                                    <?php
+                                                    $title_allegato = $allegato->post_title;
+                                                    if (strlen($title_allegato) > 50) {
+                                                        $title_allegato = substr($title_allegato, 0, 50) . '...';
+                                                    }
+                                                    if (preg_match('/[A-Z]{5,}/', $title_allegato)) {
+                                                        $title_allegato = ucfirst(strtolower($title_allegato));
+                                                    }
+                                                    echo $title_allegato;
+                                                    ?>
                                                 </a>
                                             </h5>
                                         </div>
@@ -324,11 +454,12 @@ get_header();
                                 <?php } ?>
                             </div>
                         </article>
-                    <?php } ?>		  
+                    <?php } ?>
 
                 </section>
             </div>
         </div>
+
         <?php get_template_part("template-parts/common/valuta-servizio"); ?>
         <?php get_template_part("template-parts/common/assistenza-contatti"); ?>
     </main>
@@ -336,4 +467,4 @@ get_header();
     <?php
     endwhile; // End of the loop.
     get_footer();
-    ?>
+?>

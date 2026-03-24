@@ -47,7 +47,7 @@ if (empty($city)) {
 
 /* CARD */
 .weather-card {
-  background: #f5f5f5;
+  background: #FFFFFF;
   border-radius: 12px;
   padding: 20px;
   text-align: center;

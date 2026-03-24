@@ -51,6 +51,15 @@ class Footer_Menu_Walker extends Walker_Nav_Menu {
             $item->url = home_url('/page-templates/privacy');
         }
 
+         // Sovrascrivi l'URL per "Segnala disservizio" se è vuoto
+        if ($item->title == 'Segnalazione disservizio') {
+            $email = dci_get_option("email_principale");
+            $item->url = (!empty($email) && strlen($email) > 4)
+                ? "mailto:" . $email
+                : dci_get_template_page_url('page-templates/segnala-disservizio.php');
+        }
+        
+
         // Sovrascrivi l'URL per "Prenota Appuntamento" se è vuoto
         if ($item->title == 'Prenota appuntamento' && $item->url == '/prenotazioni') {
             $item->url = home_url('/page-templates/prenotazioni');

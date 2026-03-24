@@ -148,6 +148,10 @@
                                     if (dci_get_option("contatti_PEC",'footer')) echo '<br />PEC: '; ?>
                                         <a href="mailto:<?php echo dci_get_option("contatti_PEC",'footer'); ?>" class="list-item" title="PEC <?php echo dci_get_option("nome_comune");?>"><?php echo dci_get_option("contatti_PEC",'footer'); ?></a>
 								<?php if(dci_get_option("centralino_unico",'footer')) echo '<br />Centralino unico: ' . dci_get_option("centralino_unico",'footer'); ?>
+								<br>
+								<?php if(dci_get_option("iban",'footer')) echo '<br />IBAN: ' . dci_get_option("iban",'footer'); ?>
+								<?php if(dci_get_option("Codice_Univoco_Fatturazione",'footer')) echo '<br />Codice Univoco Fatturazione: ' . dci_get_option("Codice_Univoco_Fatturazione",'footer'); ?>
+								<?php if(dci_get_option("dpo_email",'footer')) echo '<br />Email DPO: ' . dci_get_option("dpo_email",'footer'); ?>
                             </p>
                         </div>
                         <div class="col-md-4">

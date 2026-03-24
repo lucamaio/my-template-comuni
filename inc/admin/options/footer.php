@@ -96,4 +96,23 @@ function dci_register_footer_options(){
         'type' => 'text_medium',
     ) );
 
+
+    $footer_options->add_field( array(
+        'id' => $prefix . 'iban',
+        'name'        => __( 'IBAN', 'design_comuni_italia' ),
+        'type' => 'text_medium',
+    ) );
+
+    $footer_options->add_field( array(
+        'id' => $prefix . 'Codice_Univoco_Fatturazione',
+        'name'        => __( 'Codice Univoco Fatturazione', 'design_comuni_italia' ),
+        'type' => 'text_medium',
+    ) );
+
+    $footer_options->add_field( array(
+        'id' => $prefix . 'dpo_email',
+        'name'        => __( 'Email DPO', 'design_comuni_italia' ),
+        'type' => 'text_medium',
+    ) );
+    
 }

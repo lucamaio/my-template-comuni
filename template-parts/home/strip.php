@@ -150,17 +150,59 @@ if (!empty($strip['strip_items']) && count($strip['strip_items']) > 0) :
 
 /* MOBILE */
 @media (max-width: 768px) {
+
+  /* togli effetto slider */
+  .strip .strip-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: visible;
+    align-items: stretch;
+  }
+
+  /* ogni elemento full width */
   .strip .strip-item {
     flex: 0 0 100%;
     max-width: 100%;
   }
+
+  /* stile tipo card */
+  .strip .strip-item a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255,255,255,0.08);
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  /* icona a sinistra */
+  .strip .strip-icon {
+    font-size: 28px;
+    margin: 0;
+  }
+
+  /* testo a sinistra */
+  .strip .strip-text {
+    text-align: left;
+  }
+
+  /* NASCONDI FRECCE */
+  .strip-arrow {
+    display: none !important;
+  }
+
 }
 
 </style>
 
 
 <script>
+
 document.addEventListener("DOMContentLoaded", function() {
+
+  if (window.innerWidth <= 768) return; // 🔥 BLOCCA SU MOBILE
+
   const container = document.getElementById("stripScroll");
   const items = container?.querySelectorAll(".strip-item");
 
@@ -176,10 +218,10 @@ document.addEventListener("DOMContentLoaded", function() {
   left.onclick = () => container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
   right.onclick = () => container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 
-  // nasconde frecce se <= 4
   if (items.length <= 4) {
     left.style.display = "none";
     right.style.display = "none";
   }
+
 });
 </script>

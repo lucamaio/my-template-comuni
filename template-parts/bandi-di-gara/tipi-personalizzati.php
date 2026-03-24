@@ -137,9 +137,51 @@ if (count($meta_query_array) > 1) {
 $the_query = new WP_Query($args);
 ?>
 
-<div class="search-bar-container bg-light p-4 mb-4 rounded shadow-sm" style="background-color: #f0f0f0 !important;">
+<style>
+    .dci-filter-panel {
+        background: #ffffff;
+        border: 1px solid #dfe7f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(23, 50, 77, 0.07);
+        padding: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .dci-filter-panel__title {
+        margin-bottom: .35rem;
+        font-size: 1.2rem;
+    }
+
+    .dci-filter-panel__intro {
+        margin-bottom: 1rem;
+    }
+
+    .dci-filter-panel .form-control,
+    .dci-filter-panel .form-select {
+        min-height: 48px;
+        border: 1px solid #c7d4e2;
+        border-radius: 6px;
+        box-shadow: none;
+    }
+
+    .dci-filter-panel .form-control:focus,
+    .dci-filter-panel .form-select:focus {
+        border-color: var(--bs-primary, rgb(6, 62, 138));
+        box-shadow: 0 0 0 .2rem rgba(6, 62, 138, .12);
+    }
+
+    .dci-filter-panel .btn-primary {
+        min-height: 48px;
+        border-radius: 6px;
+        font-weight: 700;
+    }
+</style>
+
+<div class="search-bar-container dci-filter-panel">
     <form role="search" method="get" class="search-form">
         <input type="hidden" name="post_type" value="bando" />
+        <h3 class="dci-filter-panel__title text-decoration-none">Filtra i contenuti</h3>
+        <p class="dci-filter-panel__intro text-decoration-none">Affina la ricerca usando i filtri disponibili per questa sezione.</p>
         <div class="row g-3">
             <!-- Filtri come nel tuo codice originale -->
             <!-- Oggetto -->
@@ -178,8 +220,8 @@ $the_query = new WP_Query($args);
                 </select>
             </div>
             <!-- Submit -->
-            <div class="col-12 col-md-auto">
-                <button type="submit" class="btn btn-primary">Cerca</button>
+            <div class="col-12 col-md-4 col-lg-3">
+                <button type="submit" class="btn btn-primary w-100">Cerca</button>
             </div>
         </div>
     </form>

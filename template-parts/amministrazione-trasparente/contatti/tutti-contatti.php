@@ -8,6 +8,7 @@ $footer_sms = dci_get_option('SMS_Whatsapp', 'footer');
 $footer_dpo = dci_get_option('dpo_email', 'footer');
 $urp_office_id = dci_get_option('contatti_URP', 'footer');
 $ente_name = dci_get_option('nome_comune') ?: get_bloginfo('name');
+$contacts_page = isset($_GET['contatti_page']) ? max(1, (int) $_GET['contatti_page']) : 1;
 
 if (!function_exists('dci_organigramma_normalize_list')) {
     function dci_organigramma_normalize_list($value)
@@ -71,7 +72,8 @@ $urp_contacts = !empty($urp_office_id) ? dci_organigramma_collect_contacts($urp_
 
 $office_query = new WP_Query([
     'post_type' => 'unita_organizzativa',
-    'posts_per_page' => -1,
+    'posts_per_page' => 10,
+    'paged' => $contacts_page,
     'post_status' => 'publish',
     'orderby' => 'title',
     'order' => 'ASC',
@@ -138,6 +140,14 @@ $office_query = new WP_Query([
 
     .dci-organigramma__card-line strong {
         color: #17324d;
+    }
+
+    .dci-organigramma__pagination {
+        margin-top: 2rem;
+    }
+
+    .dci-organigramma__pagination .pagination {
+        justify-content: center;
     }
 
     @media (max-width: 991.98px) {
@@ -232,7 +242,25 @@ $office_query = new WP_Query([
                             </p>
                         <?php } ?>
 
-                        <?php if (empty($office_contacts['indirizzo']) && empty($office_contacts['telefono']) && empty($office_contacts['email'])) { ?>
+                        <?php if (!empty($office_contacts['pec'])) { ?>
+                            <p class="dci-organigramma__card-line">
+                                <strong>PEC:</strong>
+                                <a class="text-decoration-none" href="mailto:<?php echo esc_attr($office_contacts['pec'][0]); ?>">
+                                    <?php echo esc_html($office_contacts['pec'][0]); ?>
+                                </a>
+                            </p>
+                        <?php } ?>
+
+                        <?php if (!empty($office_contacts['url'])) { ?>
+                            <p class="dci-organigramma__card-line">
+                                <strong>Sito web:</strong>
+                                <a class="text-decoration-none" href="<?php echo esc_url($office_contacts['url'][0]); ?>" target="_blank" rel="noopener noreferrer">
+                                    <?php echo esc_html($office_contacts['url'][0]); ?>
+                                </a>
+                            </p>
+                        <?php } ?>
+
+                        <?php if (empty($office_contacts['indirizzo']) && empty($office_contacts['telefono']) && empty($office_contacts['email']) && empty($office_contacts['pec']) && empty($office_contacts['url'])) { ?>
                             <p class="dci-organigramma__card-line">Nessun contatto disponibile.</p>
                         <?php } ?>
                     </article>
@@ -241,6 +269,27 @@ $office_query = new WP_Query([
                 <p>Nessun ufficio disponibile.</p>
             <?php } ?>
         </div>
+        <?php if ((int) $office_query->max_num_pages > 1) { ?>
+            <nav class="pagination-wrapper justify-content-center dci-organigramma__pagination" aria-label="Paginazione contatti">
+                <div class="pagination">
+                    <ul class="pagination">
+                        <?php
+                        $current_url = get_term_link(get_queried_object());
+                        for ($page = 1; $page <= (int) $office_query->max_num_pages; $page++) {
+                            $page_url = add_query_arg('contatti_page', $page, $current_url);
+                            ?>
+                            <li class="page-item<?php echo $page === $contacts_page ? ' active' : ''; ?>">
+                                <?php if ($page === $contacts_page) { ?>
+                                    <span class="page-link" aria-current="page"><?php echo (int) $page; ?></span>
+                                <?php } else { ?>
+                                    <a class="page-link" href="<?php echo esc_url($page_url); ?>"><?php echo (int) $page; ?></a>
+                                <?php } ?>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                </div>
+            </nav>
+        <?php } ?>
     </section>
 </div>
 

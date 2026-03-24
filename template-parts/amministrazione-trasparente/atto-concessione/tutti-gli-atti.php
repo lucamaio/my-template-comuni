@@ -60,19 +60,20 @@ $base_url = add_query_arg(array(
 ?>
 
 <!-- FORM FILTRI -->
-<form method="get" class="mb-3 d-flex align-items-center gap-2 incarichi-filtro-form">
-    <label for="search" class="form-label mb-0 me-2">Cerca:</label>
-    <input
-        type="search"
-        id="search"
-        name="search"
-        class="form-control me-3"
-        placeholder="Cerca..."
-        value="<?php echo esc_attr($main_search_query); ?>"
-    >
+<form method="get" class="incarichi-filtro-form">
+    <div class="incarichi-filtro-form__head">
+        <h3 class="incarichi-filtro-form__title text-decoration-none">Filtra gli atti</h3>
+        <p class="incarichi-filtro-form__intro text-decoration-none">Cerca per parola chiave e limita i risultati per anno o numero di elementi.</p>
+    </div>
+    <div class="incarichi-filtro-form__grid">
+    <div class="incarichi-filtro-form__field incarichi-filtro-form__field--search">
+    <label for="search" class="form-label">Cerca</label>
+    <input type="search" id="search" name="search" class="form-control" placeholder="Cerca..." value="<?php echo esc_attr($main_search_query); ?>">
+    </div>
 
-    <label for="filter-year" class="form-label mb-0 me-2">Anno:</label>
-    <select id="filter-year" name="filter_year" class="form-select w-auto me-3">
+    <div class="incarichi-filtro-form__field">
+    <label for="filter-year" class="form-label">Anno</label>
+    <select id="filter-year" name="filter_year" class="form-select">
         <option value="0" <?php selected($selected_year, 0); ?>>Tutti gli anni</option>
         <?php foreach ($years as $y) : ?>
             <option value="<?php echo esc_attr($y); ?>" <?php selected($selected_year, $y); ?>>
@@ -80,16 +81,20 @@ $base_url = add_query_arg(array(
             </option>
         <?php endforeach; ?>
     </select>
+    </div>
 
-    <label for="max-posts" class="form-label mb-0 me-2">Elementi per pagina:</label>
-    <select id="max-posts" name="max_posts" class="form-select w-auto me-3">
+    <div class="incarichi-filtro-form__field">
+    <label for="max-posts" class="form-label">Elementi per pagina</label>
+    <select id="max-posts" name="max_posts" class="form-select">
         <?php foreach ([5, 10, 20, 50, 100] as $num) : ?>
             <option value="<?php echo $num; ?>" <?php selected($max_posts, $num); ?>><?php echo $num; ?></option>
         <?php endforeach; ?>
     </select>
+    </div>
 
-    <div class="btn-wrapper">
+    <div class="btn-wrapper incarichi-filtro-form__actions">
         <button type="submit" class="btn btn-primary">Filtra</button>
+    </div>
     </div>
 </form>
 
@@ -136,49 +141,65 @@ $base_url = add_query_arg(array(
 <!-- STILE -->
 <style>
 form.incarichi-filtro-form {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 1.1rem;
+    background: #fff;
+    border: 1px solid #dfe7f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(23,50,77,.07);
     max-width: 100%;
     margin-bottom: 2rem;
 }
+
+.incarichi-filtro-form__head {
+    margin-bottom: 1rem;
+}
+
+.incarichi-filtro-form__title {
+    margin-bottom: .35rem;
+    font-size: 1.2rem;
+}
+
+.incarichi-filtro-form__intro {
+    margin-bottom: 0;
+}
+
+.incarichi-filtro-form__grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(170px, 1fr)) auto;
+    gap: 1rem;
+    align-items: end;
+}
+
 form.incarichi-filtro-form label {
     font-weight: 600;
-    color: #495057;
-    margin-bottom: 0;
+    color: #17324d;
+    margin-bottom: .45rem;
 }
 form.incarichi-filtro-form input[type="search"],
 form.incarichi-filtro-form select {
-    border: 1.5px solid #ced4da;
-    min-width: 120px;
-    max-width: 250px;
+    border: 1px solid #c7d4e2;
+    min-height: 48px;
+    max-width: none;
+    width: 100%;
+    border-radius: 6px;
 }
 form.incarichi-filtro-form input[type="search"]:focus,
 form.incarichi-filtro-form select:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 6px rgba(13, 110, 253, 0.3);
+    border-color: var(--bs-primary, rgb(6, 62, 138));
+    box-shadow: 0 0 0 .2rem rgba(6, 62, 138, .12);
     outline: none;
 }
 .btn-wrapper {
-    margin-left: auto;
-    align-self: flex-start;
+    margin-left: 0;
+    align-self: end;
 }
 form.incarichi-filtro-form button.btn-primary {
-    padding: 0.45rem 1.5rem;
+    padding: 0.65rem 1.5rem;
     font-weight: 600;
-    border-radius: 0.4rem;
-    height: 38px;
+    border-radius: 6px;
+    min-height: 48px;
     cursor: pointer;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-form.incarichi-filtro-form button.btn-primary:hover {
-    background-color: #0b5ed7;
-    box-shadow: 0 4px 8px rgba(11, 94, 215, 0.4);
 }
 
 /* PAGINAZIONE */
@@ -193,8 +214,8 @@ form.incarichi-filtro-form button.btn-primary:hover {
 .pagination-wrapper .page-link {
     display: block;
     padding: 0.5rem 0.9rem;
-    color: #0d6efd;
-    border: 1.5px solid #0d6efd;
+    color: var(--bs-primary, rgb(6, 62, 138));
+    border: 1.5px solid var(--bs-primary, rgb(6, 62, 138));
     border-radius: 0.4rem;
     font-weight: 600;
     text-decoration: none;
@@ -203,15 +224,31 @@ form.incarichi-filtro-form button.btn-primary:hover {
     text-align: center;
 }
 .pagination-wrapper .page-link:hover {
-    background-color: #0d6efd;
+    background-color: var(--bs-primary, rgb(6, 62, 138));
     color: white;
     box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
 }
 .pagination-wrapper .page-item.active .page-link {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: var(--bs-primary, rgb(6, 62, 138));
+    border-color: var(--bs-primary, rgb(6, 62, 138));
     color: white;
     cursor: default;
     box-shadow: 0 0 12px rgba(13, 110, 253, 0.75);
 }
 </style>
+@media (max-width: 991.98px) {
+    .incarichi-filtro-form__grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .incarichi-filtro-form__field--search,
+    .incarichi-filtro-form__actions {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .incarichi-filtro-form__grid {
+        grid-template-columns: 1fr;
+    }
+}

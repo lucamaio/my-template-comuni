@@ -34,6 +34,11 @@ if ( ! isset( $prefix ) ) {
         font-size: .78rem !important;
     }
 
+    .dci-bando-card__oggetto {
+        font-size: .84rem;
+        line-height: 1.4;
+    }
+
     .dci-bando-card .btn.btn-link.btn-sm {
         font-size: .82rem;
         padding: .2rem 0;
@@ -70,7 +75,7 @@ if ( ! isset( $prefix ) ) {
                 <div class="row mb-3">
                     <div class="col-12">
                         <h6 class="text-uppercase text-muted small">Oggetto bando</h6>
-                        <p class="mb-0"><?php echo wp_kses_post(get_post_meta(get_the_ID(), $prefix . 'oggetto', true)); ?></p>
+                        <p class="mb-0 dci-bando-card__oggetto"><?php echo esc_html(wp_strip_all_tags((string) get_post_meta(get_the_ID(), $prefix . 'oggetto', true))); ?></p>
                     </div>
                 </div>
                 <div class="row">

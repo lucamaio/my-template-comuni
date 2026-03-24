@@ -33,21 +33,24 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     background-color: white;
     padding: 14px 20px;
     padding-right: 56px;
-    border: 1px solid #ddd;
+    border: 1px solid #cfd9e5;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     line-height: 1.3;
-    color: #222;
+    color: #17324d;
     user-select: none;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     margin-bottom: 8px;
     position: relative;
+    box-shadow: 0 1px 3px rgba(23, 50, 77, 0.04);
 }
 
 .title-custom:hover {
     background-color: color-mix(in srgb, var(--main-color-trasparenza) 85%, white);
     color: white;
+    border-color: color-mix(in srgb, var(--main-color-trasparenza) 55%, white);
+    box-shadow: 0 3px 8px rgba(23, 50, 77, 0.08);
 }
 
 .title-custom__inner {
@@ -84,6 +87,13 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 
 .title-custom.no-children::after {
     display: none;
+}
+
+.title-custom:not(.no-children).is-open,
+.title-custom:focus-visible {
+    border-color: color-mix(in srgb, var(--main-color-trasparenza) 45%, white);
+    box-shadow: 0 3px 8px rgba(23, 50, 77, 0.08);
+    outline: none;
 }
 
 .content {
@@ -507,11 +517,11 @@ document.addEventListener('click', function(event) {
         <form role="search" id="search-form" method="get" class="search-form">
             <button type="submit" class="d-none"></button>
             <div class="container">
-                <div class="row">
+                <div class="row align-items-start">
                     <h2 class="visually-hidden">Esplora tutti i servizi</h2>
 
                     <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">
-                        <div class="mycontainer p-3">
+                        <div class="mycontainer px-3 pb-3">
                             <div id="toggle-all-wrapper">
                                 <div>Elenco di tutte le voci</div>
                                 <div id="toggle-all-container" class="d-flex justify-content-end mb-3">

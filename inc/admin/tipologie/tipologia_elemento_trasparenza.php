@@ -199,6 +199,7 @@ function dci_render_transparency_multipost_page() {
                         <th scope="row"><label for="dci_default_category"><?php _e('Categoria Predefinita per i Nuovi Elementi:', 'design_comuni_italia'); ?></label></th>
                         <td>
                             <?php
+                            $excluded_term_ids = dci_elemento_trasparenza_get_excluded_term_ids_for_new_items();
                             wp_dropdown_categories( array(
                                 'taxonomy'            => 'tipi_cat_amm_trasp',
                                 'name'                => 'dci_default_category',
@@ -210,8 +211,10 @@ function dci_render_transparency_multipost_page() {
                                 'selected'            => '', // Puoi pre-selezionare una categoria se vuoi
                                 'show_option_none'    => __('Seleziona una categoria', 'design_comuni_italia'),
                                 'value_field'         => 'term_id',
-                                'orderby'             => 'name',
+                                'orderby'             => 'meta_value_num',
+                                'meta_key'            => 'ordinamento',
                                 'order'               => 'ASC',
+                                'exclude'             => $excluded_term_ids,
                             ) );
                             ?>
                             <p class="description"><?php _e('Questa categoria verrà assegnata a tutti i nuovi elementi creati da questa pagina.', 'design_comuni_italia'); ?></p>
@@ -358,11 +361,101 @@ function dci_render_transparency_multipost_page() {
 /**
  * Esclude i termini:
  * - con visualizza_elemento = 0
+ * - con term_url valorizzato
+ * - con template personalizzato attivo
  * - o con ruoli dell'utente corrente presenti in excluded_roles
  * SOLO nella pagina di creazione di un Elemento Trasparenza
  */
+if (!function_exists('dci_elemento_trasparenza_get_terms_hidden_for_new_items')) {
+    function dci_elemento_trasparenza_get_terms_hidden_for_new_items() {
+        $hidden = [];
+
+        if (dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== 'false' && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== '') {
+            $hidden[] = 'Incarichi conferiti e autorizzati ai dipendenti';
+        }
+
+        if (dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '') {
+            $hidden = array_merge($hidden, [
+                'Contratti Pubblici',
+                'Pubblicazione',
+                'Affidamento',
+                'Esecutiva',
+                'Sponsorizzazioni',
+            ]);
+        }
+
+        if (dci_get_option("ck_attidiconcessione", "Trasparenza") !== 'false' && dci_get_option("ck_attidiconcessione", "Trasparenza") !== '') {
+            $hidden[] = 'Atti di concessione';
+        }
+
+        if (dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") !== '') {
+            $hidden[] = 'Titolari di incarichi di collaborazione o consulenza';
+        }
+
+        return array_values(array_unique(array_filter(array_map('trim', $hidden))));
+    }
+}
+
+if (!function_exists('dci_elemento_trasparenza_get_excluded_term_ids_for_new_items')) {
+    function dci_elemento_trasparenza_get_excluded_term_ids_for_new_items() {
+        $excluded_ids = [];
+        $hidden_names = dci_elemento_trasparenza_get_terms_hidden_for_new_items();
+
+        $terms = get_terms([
+            'taxonomy' => 'tipi_cat_amm_trasp',
+            'hide_empty' => false,
+            'meta_key' => 'ordinamento',
+            'orderby' => 'meta_value_num',
+            'order' => 'ASC',
+        ]);
+
+        if (is_wp_error($terms) || empty($terms)) {
+            return [];
+        }
+
+        foreach ($terms as $term) {
+            $visible = (string) get_term_meta($term->term_id, 'visualizza_elemento', true);
+            $term_url = trim((string) get_term_meta($term->term_id, 'term_url', true));
+
+            if ($visible === '0' || $term_url !== '' || in_array($term->name, $hidden_names, true)) {
+                $excluded_ids[] = (int) $term->term_id;
+            }
+        }
+
+        return array_values(array_unique($excluded_ids));
+    }
+}
+
+if (!function_exists('dci_elemento_trasparenza_get_allowed_terms_for_new_items')) {
+    function dci_elemento_trasparenza_get_allowed_terms_for_new_items() {
+        $excluded_ids = dci_elemento_trasparenza_get_excluded_term_ids_for_new_items();
+
+        $terms = get_terms([
+            'taxonomy' => 'tipi_cat_amm_trasp',
+            'hide_empty' => false,
+            'meta_key' => 'ordinamento',
+            'orderby' => 'meta_value_num',
+            'order' => 'ASC',
+        ]);
+
+        if (is_wp_error($terms) || empty($terms)) {
+            return [];
+        }
+
+        $allowed_terms = [];
+        foreach ($terms as $term) {
+            if (!in_array((int) $term->term_id, $excluded_ids, true)) {
+                $allowed_terms[] = $term;
+            }
+        }
+
+        return $allowed_terms;
+    }
+}
+
 add_filter( 'terms_clauses', 'dci_hide_invisible_or_blocked_terms', 10, 3 );
 function dci_hide_invisible_or_blocked_terms( $clauses, $taxonomies, $args ) {
+    return $clauses;
 
     // Applichiamo solo alla nostra tassonomia
     if ( ! in_array( 'tipi_cat_amm_trasp', (array) $taxonomies, true ) ) {
@@ -401,6 +494,18 @@ function dci_hide_invisible_or_blocked_terms( $clauses, $taxonomies, $args ) {
                                AND tm_roles.meta_key = 'excluded_roles' ";
     }
 
+    if ( false === strpos( $clauses['join'], 'tm_url' ) ) {
+        $clauses['join']  .= " LEFT JOIN {$wpdb->termmeta} tm_url
+                               ON tm_url.term_id = t.term_id
+                               AND tm_url.meta_key = 'term_url' ";
+    }
+
+    if ( false === strpos( $clauses['join'], 'tm_ord' ) ) {
+        $clauses['join']  .= " LEFT JOIN {$wpdb->termmeta} tm_ord
+                               ON tm_ord.term_id = t.term_id
+                               AND tm_ord.meta_key = 'ordinamento' ";
+    }
+
     // Prendi i ruoli utente
     $current_user = wp_get_current_user();
     $user_roles = $current_user->roles;
@@ -417,15 +522,42 @@ function dci_hide_invisible_or_blocked_terms( $clauses, $taxonomies, $args ) {
         $excluded_sql = ' OR ( ' . implode( ' OR ', $excluded_conditions ) . ' ) ';
     }
 
+    $hidden_names = dci_elemento_trasparenza_get_terms_hidden_for_new_items();
+    $hidden_names_sql = '';
+    if (!empty($hidden_names)) {
+        $quoted_names = array_map(static function ($name) use ($wpdb) {
+            return "'" . esc_sql($name) . "'";
+        }, $hidden_names);
+
+        $hidden_names_sql = ' AND t.name NOT IN (' . implode(', ', $quoted_names) . ')';
+    }
+
+    $roles_where = " AND (
+        tm_roles.meta_value IS NULL
+        OR tm_roles.meta_value = ''
+    )";
+
+    if ( ! empty( $excluded_conditions ) ) {
+        $roles_where = " AND (
+            tm_roles.meta_value IS NULL
+            OR tm_roles.meta_value = ''
+            OR NOT ( " . implode( ' OR ', $excluded_conditions ) . " )
+        )";
+    }
+
     $clauses['where'] .= " AND (
         tm_vis.meta_value IS NULL
         OR tm_vis.meta_value = ''
         OR tm_vis.meta_value = '1'
     )
     AND (
-        tm_roles.meta_value IS NULL
-        $excluded_sql
-    ) ";
+        tm_url.meta_value IS NULL
+        OR tm_url.meta_value = ''
+    )"
+    . $roles_where
+    . $hidden_names_sql;
+
+    $clauses['orderby'] = " ORDER BY CAST(COALESCE(NULLIF(tm_ord.meta_value, ''), '0') AS UNSIGNED) ASC, t.name ASC ";
 
     return $clauses;
 }
@@ -485,7 +617,6 @@ function dci_add_elemento_trasparenza_metaboxes()
             'show_option_none'  => false,
             'remove_default'    => true,
             /* ↓↓↓ usa la callback che restituisce SOLO i termini “visibili” ↓↓↓ */
-            'options_cb'        => 'dci_get_visible_amministrazione_terms',
         ) );
 
         $cmb_corpo = new_cmb2_box(array(
@@ -629,6 +760,17 @@ function dci_elemento_trasparenza_admin_script()
     global $post_type;
     if ($post_type === 'elemento_trasparenza') {
         wp_enqueue_script('elemento-trasparenza-admin-script', get_template_directory_uri() . '/inc/admin-js/elemento_trasparenza.js', array('jquery'), null, true);
+
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        $allowed_terms = dci_elemento_trasparenza_get_allowed_terms_for_new_items();
+        $allowed_term_ids = array_map(static function ($term) {
+            return (int) $term->term_id;
+        }, $allowed_terms);
+
+        wp_localize_script('elemento-trasparenza-admin-script', 'dciElementoTrasparenzaConfig', [
+            'is_new_post' => ($screen && isset($screen->action) && $screen->action === 'add'),
+            'allowed_term_ids' => $allowed_term_ids,
+        ]);
     }
 }
 

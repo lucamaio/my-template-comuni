@@ -76,7 +76,10 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                 'Organi di indirizzo politico-amministrativo',
                 "Sanzioni per mancata comunicazione dei dati",
                 "Rendiconti gruppi consiliari regionali/provinciali",
-                "Articolazione degli uffici",
+                "Articolazione degli uffici" =>[ // Nuove sotto voci richieste dal ANAC
+                    "Articolazione uffici",
+                    "Organigramma"
+                ],
                 "Telefono e posta elettronica"
             ],
             'Consulenti e collaboratori' => [

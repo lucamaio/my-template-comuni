@@ -969,9 +969,24 @@ if(!function_exists("dci_get_full_punto_contatto")) {
         $voci = dci_get_meta('voci', $prefix, $pc_id);
         $arrdata = array();
 
+        if (!is_array($voci) || empty($voci)) {
+            return $arrdata;
+        }
+
         foreach ($voci as $voce) {
-            $tipo = $voce[$prefix.'tipo_punto_contatto'];
-            $valore = $voce[$prefix.'valore'];
+            if (!is_array($voce)) {
+                continue;
+            }
+
+            $tipo_key = $prefix.'tipo_punto_contatto';
+            $valore_key = $prefix.'valore';
+
+            if (!isset($voce[$tipo_key]) || !isset($voce[$valore_key])) {
+                continue;
+            }
+
+            $tipo = $voce[$tipo_key];
+            $valore = $voce[$valore_key];
             
             if ( !array_key_exists($tipo, $arrdata) ){
                 $arrdata[$tipo] = array();

@@ -7,7 +7,58 @@ if ( ! isset( $prefix ) ) {
 
 ?>
 
-<div class="card mb-2 rounded-3 bg-body-secondary shadow-sm">
+<style>
+    .dci-bando-card {
+        font-size: .93rem;
+    }
+
+    .dci-bando-card .card-body {
+        padding: 1rem 1.1rem;
+    }
+
+    .dci-bando-card h6.small {
+        font-size: .72rem;
+        letter-spacing: .04em;
+    }
+
+    .dci-bando-card p,
+    .dci-bando-card span,
+    .dci-bando-card small,
+    .dci-bando-card strong {
+        font-size: inherit;
+        line-height: 1.45;
+    }
+
+    .dci-bando-card .text-muted.small,
+    .dci-bando-card small.text-muted {
+        font-size: .78rem !important;
+    }
+
+    .dci-bando-card .btn.btn-link.btn-sm {
+        font-size: .82rem;
+        padding: .2rem 0;
+    }
+
+    @media (max-width: 767.98px) {
+        .dci-bando-card {
+            font-size: .9rem;
+        }
+
+        .dci-bando-card .col-md-10 {
+            padding-left: .75rem !important;
+        }
+
+        .dci-bando-card .col-md-2.border-end {
+            border-right: 0 !important;
+            border-bottom: 1px solid var(--bs-border-color-translucent);
+            padding-right: 0 !important;
+            padding-bottom: .75rem;
+            margin-bottom: .75rem;
+        }
+    }
+</style>
+
+<div class="card mb-2 rounded-3 bg-body-secondary shadow-sm dci-bando-card">
     <div class="card-body">
         <div class="row g-0">
             <div class="col-md-2 border-end border-light-subtle pe-3">

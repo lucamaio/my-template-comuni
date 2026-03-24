@@ -1,5 +1,39 @@
 jQuery( document ).ready(function() {
 
+    if (
+        typeof dciElementoTrasparenzaConfig !== 'undefined' &&
+        dciElementoTrasparenzaConfig.is_new_post &&
+        Array.isArray(dciElementoTrasparenzaConfig.allowed_term_ids)
+    ) {
+        let allowedIds = dciElementoTrasparenzaConfig.allowed_term_ids.map(function(id) {
+            return String(id);
+        });
+
+        let taxonomyField = jQuery('.cmb2-id--dci-elemento-trasparenza-tipo-cat-amm-trasp');
+        let checklist = taxonomyField.find('ul.cmb2-checkbox-list, ul.cmb2-list');
+
+        if (checklist.length) {
+            let itemsById = {};
+
+            checklist.find('input[type="radio"]').each(function() {
+                let input = jQuery(this);
+                let value = String(input.val());
+                let item = input.closest('li');
+                if (item.length) {
+                    itemsById[value] = item.detach();
+                }
+            });
+
+            checklist.empty();
+
+            allowedIds.forEach(function(id) {
+                if (itemsById[id]) {
+                    checklist.append(itemsById[id]);
+                }
+            });
+        }
+    }
+
     /**
      * gestione campi obbligatori
      */

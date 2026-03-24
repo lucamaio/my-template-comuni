@@ -8,8 +8,48 @@
 
 global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici, $tipo_personalizzato;
 
-get_header();
 $obj = get_queried_object();
+
+if ($obj instanceof WP_Term && isset($obj->taxonomy) && $obj->taxonomy === 'tipi_cat_amm_trasp') {
+    $term_url = trim((string) get_term_meta($obj->term_id, 'term_url', true));
+    $open_new_window = get_term_meta($obj->term_id, 'open_new_window', true);
+
+    if ($term_url !== '') {
+        $redirect_url = esc_url_raw($term_url);
+
+        if (!empty($redirect_url)) {
+            if (!empty($open_new_window)) {
+                $fallback_url = home_url('/amministrazione-trasparente');
+                ?>
+                <!doctype html>
+                <html <?php language_attributes(); ?>>
+                <head>
+                    <meta charset="<?php bloginfo('charset'); ?>">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <title><?php echo esc_html($obj->name); ?></title>
+                    <script>
+                        window.addEventListener('load', function () {
+                            window.open(<?php echo wp_json_encode($redirect_url); ?>, '_blank', 'noopener');
+                            window.location.replace(<?php echo wp_json_encode($fallback_url); ?>);
+                        });
+                    </script>
+                    <noscript>
+                        <meta http-equiv="refresh" content="0;url=<?php echo esc_url($redirect_url); ?>">
+                    </noscript>
+                </head>
+                <body></body>
+                </html>
+                <?php
+                exit;
+            }
+
+            wp_redirect($redirect_url, 302);
+            exit;
+        }
+    }
+}
+
+get_header();
 
 // Recupera il numero di pagina corrente.
 $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
@@ -56,7 +96,6 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     $description = $obj->description;
     $data_element = 'data-element="page-name"';
     get_template_part("template-parts/hero/hero");
-    get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
     ?>
 
     <div class="bg-grey-card">
@@ -66,38 +105,35 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                { 
         ?>
                 <div class="container my-5">
-                    <div class="row">
+                    <div class="row g-4">
                         <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
-                        <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
-                        <div class="row g-3" id="load-more">
+                        <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
                             <?php get_template_part("template-parts/bandi-di-gara/tutti-bandi"); ?>
                         </div>
-                    <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+                        <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                     </div>
                 </div>
             </div>
     
-    <?php }else if ($obj->name == "Atti di concessione" && dci_get_option("ck_attidiconcessione", "Trasparenza") !== 'false' && dci_get_option("ck_attidiconcessione", "Trasparenza") !== '') { ?>
+    <?php } else if ($obj->name == "Atti di concessione" && dci_get_option("ck_attidiconcessione", "Trasparenza") !== 'false' && dci_get_option("ck_attidiconcessione", "Trasparenza") !== '') { ?>
             <div class="container my-5">
-                <div class="row">
+                <div class="row g-4">
                     <h2 class="visually-hidden">Esplora tutti gli Atti di Concessione</h2>
-                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
-                    <div class="row g-3" id="load-more">
+                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
                         <?php get_template_part("template-parts/amministrazione-trasparente/atto-concessione/tutti-gli-atti"); ?>
                     </div>
-                    <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> 
+                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> 
                 </div>
             </div>
         </div>
-     <?php }else if ($obj->name == "Incarichi conferiti e autorizzati ai dipendenti"  && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== 'false' && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== '') { ?>
+     <?php } else if ($obj->name == "Incarichi conferiti e autorizzati ai dipendenti"  && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== 'false' && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== '') { ?>
             <div class="container my-5">
-                <div class="row">
+                <div class="row g-4">
                     <h2 class="visually-hidden">Esplora tutti gli Incarichi conferiti e autorizzati ai dipendenti</h2>
-                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
-                    <div class="row g-3" id="load-more">
+                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
                         <?php get_template_part("template-parts/amministrazione-trasparente/incarichi-autorizzazioni/tutti-gli-incarichi"); ?>
                     </div>
-                    <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> 
+                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> 
                 </div>
             </div>
         </div>		    
@@ -105,30 +141,44 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                { 
         ?>
             <div class="container my-5">
-                <div class="row">
+                <div class="row g-4">
                     <h2 class="visually-hidden">Esplora tutti i Titolari di incarichi di collaborazione o consulenza</h2>
-                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
-                    <div class="row g-3" id="load-more">
+                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
                         <?php get_template_part("template-parts/amministrazione-trasparente/titolare_incarico/tutti-titolari"); ?>
                     </div>
-                 <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                 </div>
             </div>
         </div>
     
-    <?php }else if(($obj->name === "Pubblicazione" || $obj->name === "Affidamento" || $obj->name === "Esecutiva" || $obj->name === "Sponsorizzazioni") && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '' ){?>
+    <?php }  else if(($obj->name === "Pubblicazione" || $obj->name === "Affidamento" || $obj->name === "Esecutiva" || $obj->name === "Sponsorizzazioni") && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '' ){?>
         <div class="container my-5">
-                    <div class="row">
+                    <div class="row g-4">
                         <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
-                        <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20"></div>
-                        <div class="row g-3" id="load-more">
+                        <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
                             <?php 
                             $tipo_personalizzato = get_queried_object()->name;                       
                             get_template_part("template-parts/bandi-di-gara/tipi-personalizzati"); ?>
                         </div>
-                    <?php // get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+                        <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                     </div>
                 </div>
+            </div>
+   <?php } else if($obj->name === "Organigramma" && dci_get_option("ck_portalesoloperusoesterno") !== 'True' ){?>
+        <div class="container my-5">
+            <div class="row g-4">
+                <h2 class="visually-hidden">Esplora l'organigramma dell'ente</h2>
+                <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
+                    <?php get_template_part("template-parts/amministrazione-trasparente/organigramma/tutti-organigramma"); ?>
+                </div>
+                <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+            </div>
+        </div>
+   <?php } else if($obj->name === "Articolazione uffici" && dci_get_option("ck_portalesoloperusoesterno") !== 'True' ){?>
+        <div class="container py-5">
+            <h2 class="visually-hidden">Esplora l'articolazione degli uffici comunali</h2>
+            <?php get_template_part("template-parts/amministrazione-trasparente/articolazione-uffici/tutti-uffici"); ?>
+        </div>
             </div>
    <?php } else { ?>
         

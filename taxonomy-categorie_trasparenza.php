@@ -285,7 +285,7 @@ if ($order === 'alfabetico_asc' || $order === 'alfabetico_desc') {
 
 
 $the_query = new WP_Query($args);
-$pagination_markup = trim((string) dci_bootstrap_pagination());
+// $pagination_markup = trim((string) dci_bootstrap_pagination());
 
 
 
@@ -457,15 +457,19 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 
                     <!-- Colonna destra: link utili -->
                     <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+                </div>
 
-                    <?php if ($pagination_markup !== '') { ?>
-                    <div class="row my-4">
-                        <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
+                
+                <?php $pagination_markup = trim((string) dci_bootstrap_pagination($the_query, false)); ?>
+                <?php if ($pagination_markup !== '') { ?>
+                <div class="row my-4">
+                    <div class="col-12 d-flex justify-content-center">
+                        <nav class="pagination-wrapper" aria-label="Navigazione pagine">
                             <?php echo $pagination_markup; ?>
                         </nav>
                     </div>
-                    <?php } ?>
                 </div>
+                <?php } ?>
             </div>
         </form>
     <?php } ?>

@@ -133,6 +133,37 @@ function dci_register_pagina_trasparenza_options()
         ),
     ));
 
+    // LINK  uffici Titolari di incarichi politici di amministrazione di direzione o di governo
+
+    $trasparenza_options->add_field(array(
+        'id'    => $prefix . 'trasparente_link_options',
+        'name'  => __('Configurazione Titolari di incarichi politici di amministrazione di direzione o di governo', 'design_comuni_italia'),
+        'desc'  => __('Configurazione della pagina Amministrazione Trasparente compilare se esterna', 'design_comuni_italia'),
+        'type'  => 'title',
+    ));
+
+    $trasparenza_options->add_field( array(
+        'id'    => $prefix . 'link_consiglio_comunale',
+        'name'  => __( 'Link ufficio Consiglio Comunale', 'design_comuni_italia' ),
+        // 'desc'  => __( 'Link al sito della Regione di Appartenenza' , 'design_comuni_italia' ),
+        'type'  => 'text_url'
+    ));
+
+    $trasparenza_options->add_field( array(
+        'id'    => $prefix . 'link_giunta_comunale',
+        'name'  => __( 'Link ufficio Giunta Comunale', 'design_comuni_italia' ),
+        // 'desc'  => __( 'Link al sito della Regione di Appartenenza' , 'design_comuni_italia' ),
+        'type'  => 'text_url'
+    ));
+
+    $trasparenza_options->add_field( array(
+        'id'    => $prefix . 'link_sindaco',
+        'name'  => __( 'Link ufficio Sindaco', 'design_comuni_italia' ),
+        // 'desc'  => __( 'Link al sito della Regione di Appartenenza' , 'design_comuni_italia' ),
+        'type'  => 'text_url'
+    ));
+
+
 
 
 }?>

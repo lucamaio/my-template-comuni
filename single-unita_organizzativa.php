@@ -33,6 +33,65 @@ get_header();
 
         $area_riferimento = dci_get_meta("unita_organizzativa_genitore") ?? '';
         $persone = dci_get_meta("persone_struttura") ?? [];
+
+        // Filtro persone in carica vs non più in carica (per questa UO)
+        $persone_attuali = [];
+        $persone_cessate = [];
+        $today_ts = current_time('timestamp');
+
+        if (is_array($persone) && !empty($persone)) {
+            foreach ($persone as $person_id) {
+                $persona_data_conclusione = dci_get_meta('data_conclusione_incarico', '_dci_persona_pubblica_', $person_id);
+                $is_current = true;
+
+                if (!empty($persona_data_conclusione)) {
+                    $persona_ts = is_numeric($persona_data_conclusione) ? intval($persona_data_conclusione) : strtotime($persona_data_conclusione);
+                    if ($persona_ts && $persona_ts < $today_ts) {
+                        $is_current = false;
+                    }
+                }
+
+                $incarichi = dci_get_meta('incarichi', '_dci_persona_pubblica_', $person_id);
+                if ($is_current && is_array($incarichi) && !empty($incarichi)) {
+                    $found = false;
+                    foreach ($incarichi as $incarico_id) {
+                        $uo_incarico = dci_get_meta('unita_organizzativa', '_dci_incarico_', $incarico_id);
+                        if (empty($uo_incarico) || intval($uo_incarico) !== intval($post->ID)) {
+                            continue;
+                        }
+
+                        $data_fine = dci_get_meta('data_conclusione_incarico', '_dci_incarico_', $incarico_id);
+                        if (empty($data_fine)) {
+                            $found = true;
+                            break;
+                        }
+
+                        $data_fine_ts = is_numeric($data_fine) ? intval($data_fine) : strtotime($data_fine);
+                        if (!$data_fine_ts || $data_fine_ts >= $today_ts) {
+                            $found = true;
+                            break;
+                        }
+                    }
+
+                    $is_current = $found;
+                }
+
+                if ($is_current) {
+                    $persone_attuali[] = $person_id;
+                } else {
+                    $persone_cessate[] = $person_id;
+                }
+            }
+        }
+
+        // for template part
+        global $persone_attuali, $persone_cessate;
+        $persone_attuali = is_array($persone_attuali) ? $persone_attuali : [];
+        $persone_cessate = is_array($persone_cessate) ? $persone_cessate : [];
+
+        // Verranno mostrate in template le persone attuali
+        $persone = $persone_attuali;
+
         $allegati = dci_get_meta("allegati", $prefix, $post->ID) ?? [];
         $sede_principale = dci_get_meta("sede_principale") ?? '';
         $servizi = dci_get_meta("elenco_servizi_offerti") ?? [];

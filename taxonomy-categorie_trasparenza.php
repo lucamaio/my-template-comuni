@@ -382,6 +382,12 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
             <?php get_template_part("template-parts/amministrazione-trasparente/articolazione-uffici/tutti-uffici"); ?>
         </div>
             </div>
+   <?php } else if($obj->name === "Titolari di incarichi politici di amministrazione di direzione o di governo" ){?>
+        <div class="container py-5">
+            <h2 class="visually-hidden">Esplora i Titolari di incarichi politici di amministrazione di direzione o di governo </h2>
+            <?php get_template_part("template-parts/amministrazione-trasparente/titolari-incarichi-poilitici/tutti-titolari"); ?>
+        </div>
+            </div>
    <?php } else { ?>
         
         <form role="search" id="search-form" method="get" class="search-form">

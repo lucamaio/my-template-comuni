@@ -81,7 +81,7 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
             'Organizzazione' => [
                 'Amministratori Cessati', // Nuova sottovoce
                 'Titolari di incarichi politici di amministrazione di direzione o di governo', //nuova sottovoce
-                'Organi di indirizzo politico-amministrativo',
+                // 'Organi di indirizzo politico-amministrativo', // Voce sostituita con quella sopra
                 "Sanzioni per mancata comunicazione dei dati",
                 "Rendiconti gruppi consiliari regionali/provinciali",
                 "Articolazione degli uffici" =>[ // Nuove sotto voci richieste dal ANAC

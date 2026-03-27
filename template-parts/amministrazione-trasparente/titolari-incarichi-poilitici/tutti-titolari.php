@@ -9,9 +9,10 @@
     Altrimenti, utilizzo la struttura personalizata simile a quella 'Titolari di incarichi di collaborazione o consulenza'
 */
 
-$portale_esterno = dci_get_option("ck_portalesoloperusoesterno") !== 'True';
+$portale_esterno = dci_get_option("ck_portalesoloperusoesterno");
+// var_dump($portale_esterno);
 
-if($portale_esterno){
+if($portale_esterno === 'false'){
     // Adesso, mi ricavo le UO politiche
 
     $parent_term = get_term_by('slug', 'struttura-politica', 'tipi_unita_organizzativa');
@@ -103,59 +104,78 @@ if($portale_esterno){
     $link_giunta = dci_get_option('link_giunta_comunale', 'trasparenza');
 
     $static_offices = [];
-    if ($portale_esterno) {
-        $static_offices = [
-            [
-                'title' => 'Consiglio Comunale',
-                'description' => 'Il consiglio comunale è l’assemblea pubblica rappresentativa del Comune.',
-                'link' => $link_consiglio,
-            ],
-            [
-                'title' => 'Sindaco',
-                'description' => 'Il Sindaco è l’organo rappresentativo dell’ente locale e garante dell’amministrazione.',
-                'link' => $link_sindaco,
-            ],
-            [
-                'title' => 'Giunta Comunale',
-                'description' => 'La Giunta Comunale è organo di indirizzo esecutivo e gestione del Comune.',
-                'link' => $link_giunta,
-            ],
-        ];
-    }?>
+    
+    $static_offices = [
+        [
+            'title' => 'Consiglio Comunale',
+            'description' => 'Il consiglio comunale è l’assemblea pubblica rappresentativa del Comune.',
+            'link' => $link_consiglio,
+        ],
+        [
+            'title' => 'Sindaco',
+            'description' => 'Il Sindaco è l’organo rappresentativo dell’ente locale e garante dell’amministrazione.',
+            'link' => $link_sindaco,
+        ],
+        [
+            'title' => 'Giunta Comunale',
+            'description' => 'La Giunta Comunale è organo di indirizzo esecutivo e gestione del Comune.',
+            'link' => $link_giunta,
+        ],
+    ];
+    ?>
     
  <div class="dci-at-wrap">
-        <div class="row g-4">
-           <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">
-              <?php if (!empty($static_offices)) {
-                        foreach ($static_offices as $office) {
-                            ?>
-                            <div class="col-12 col-md-6 col-lg-6">
-                                <div class="card-wrapper border border-light rounded shadow-sm cmp-list-card-img cmp-list-card-img-hr h-100 dci-at-card-compact">
-                                    <div class="card no-after rounded h-100">
-                                        <div class="row g-2 g-md-0 flex-md-column h-100">
-                                            <div class="col-12 order-1 order-md-2 h-100">
-                                                <div class="card-body card-img-none rounded-top h-100 d-flex flex-column">
-                                                    <span class="dci-at-card-icon mb-3" aria-hidden="true">
-                                                        <svg class="icon icon-primary icon-sm">
-                                                            <use href="#it-pa"></use>
-                                                        </svg>
-                                                    </span>
-                                                    <a class="text-decoration-none" href="<?php echo esc_url($office['link']); ?>">
-                                                        <h3 class="h5 card-title mb-2"><?php echo esc_html($office['title']); ?></h3>
-                                                    </a>
-                                                    <p class="card-text mb-0"><?php echo esc_html($office['description']); ?></p>
-                                                </div>
+    <div class="row g-4">
+        <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">
+
+            <?php if (!empty($static_offices)) { ?>
+                
+                <div class="row g-4">
+
+                    <?php foreach ($static_offices as $office) { ?>
+                        
+                        <div class="col-12 col-md-6 col-lg-6">
+                            <div class="card-wrapper border border-light rounded shadow-sm cmp-list-card-img cmp-list-card-img-hr h-100 dci-at-card-compact">
+                                <div class="card no-after rounded h-100">
+                                    <div class="row g-2 g-md-0 flex-md-column h-100">
+                                        <div class="col-12 order-1 order-md-2 h-100">
+                                            <div class="card-body card-img-none rounded-top h-100 d-flex flex-column">
+
+                                                <span class="dci-at-card-icon mb-3" aria-hidden="true">
+                                                    <svg class="icon icon-primary icon-sm">
+                                                        <use href="#it-pa"></use>
+                                                    </svg>
+                                                </span>
+
+                                                <a class="text-decoration-none" href="<?php echo esc_url($office['link']); ?>">
+                                                    <h3 class="h5 card-title mb-2">
+                                                        <?php echo esc_html($office['title']); ?>
+                                                    </h3>
+                                                </a>
+
+                                                <p class="card-text mb-0">
+                                                    <?php echo esc_html($office['description']); ?>
+                                                </p>
+
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <?php
-                        }
-                    }?>
-           </div>
+                        </div>
+
+                    <?php } ?>
+
+                </div> <!-- ✅ CHIUSURA ROW -->
+
+            <?php } ?>
+
         </div>
+
+        <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+
     </div>
+</div>
 
 
 

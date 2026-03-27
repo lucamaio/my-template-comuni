@@ -23,9 +23,12 @@ get_header();
         $descrizione_breve = dci_get_meta("descrizione_breve") ?? '';
         $competenze = dci_get_wysiwyg_field("competenze") ?? '';
 
+        // Variabili non utilizzate per la galleria
         $foto_id = dci_get_meta("foto_id");
-
         $img = wp_get_attachment_image_src($foto_id, "item-gallery");
+       
+        // Galleria foto
+        $gallery = dci_get_meta("gallery");
 
         $img1 = dci_get_meta('foto'); // Foto associata all'incarico
 
@@ -329,6 +332,16 @@ get_header();
                                                             </a>
                                                         </li>
                                                     <?php } ?>
+                                                    <!-- Nuova sezione per la galleria delle foto -->
+                                                    <?php
+                                                        if($gallery){?>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" href="#gallery">
+                                                                    <span>Galleria</span>
+                                                                </a>
+                                                            </li>
+                                                        <?php }
+                                                    ?>
 
                                                     <!-- Sposto la sezione contatti alla fine dell'indice, prima di ulteriori informazioni -->
                                                     <?php if ($contatti) { ?>
@@ -446,6 +459,9 @@ get_header();
                                     if (!empty($data_fine_incarico)) {
                                         $data_fine_incarico = date_i18n('d F Y', date($data_fine_incarico));
                                     }
+
+                                    // Campo Ulteriuori Informazioni
+                                    $more_info_incarico = dci_get_meta("ulteriori_informazioni","_dci_incarico_", $incarico_id);
                                 ?>
 
                                     <div class="accordion-item-incarico">
@@ -488,6 +504,10 @@ get_header();
                                             <?php if (!empty($importi_viaggi_servizi)) : ?>
                                                 <p class="richtext-wrapper lora"><strong>Importi di viaggio e/o servizio:</strong> <?php echo esc_html($importi_viaggi_servizi); ?></p>
                                             <?php endif; ?>
+
+                                            <?php if(!empty($more_info_incarico)){?>
+                                                <p class="richtext-wrapper lora"><strong>Ulteriori Informazioni:</strong> <?php echo esc_html($more_info_incarico); ?></p>
+                                            <?php } ?>
                                         </div>
                                     </div>
 
@@ -507,6 +527,7 @@ get_header();
                         </section> -->
                 <?php // } 
                 ?>
+                
                 <?php if ($compensi) { ?>
                     <section class="it-page-section mb-20">
                         <h2 class="title-xlarge mb-3" id="compensi">Compensi</h2>
@@ -515,6 +536,8 @@ get_header();
                         </div>
                     </section>
                 <?php } ?>
+
+                <!-- Queste variabile devono essere visualizzate solo quando la persona non presenta alcun icarico e sono configurate -->
                 <?php if (isset($data_insediamento) && !empty($data_insediamento)) { ?>
                     <section class="it-page-section mb-20">
                         <h2 class="title-xlarge mb-3" id="data-inizio">Data di
@@ -538,9 +561,10 @@ get_header();
                         <div class="richtext-wrapper lora"><?php echo $data_conclusione_incarico; ?></div>
                     </section>
                 <?php } ?>
+
                 <!-- Mostro tutte le UO collegate alla persona -->
                 <?php if ($organizzazioni) { ?>
-                    <section class="it-page-section mb-30">
+                    <section class="it-page-section mb-20">
                         <h2 class="title-xlarge mb-3" id="organizzazioni">Organizzazione/i</h2>
                         <div class="richtext-wrapper lora">
                             <?php foreach ($organizzazioni as $uo_id) {
@@ -549,6 +573,8 @@ get_header();
                         </div>
                     </section>
                 <?php } ?>
+
+                <!-- Sezione competenze - da utilizzare se non vi sono incarichi o si desidere aggiungere delle informazioni extra -->
                 <?php if ($competenze) { ?>
                     <section class="it-page-section mb-20">
                         <h2 class="title-xlarge mb-3" id="competenze">Competenze</h2>
@@ -557,7 +583,8 @@ get_header();
                         </div>
                     </section>
                 <?php } ?>
-                <!-- Aggiungo la sezione deleghe -->
+
+                <!-- Sezione deleghe - da utilizzare per i politici -->
                 <?php if ($deleghe) { ?>
                     <section class="it-page-section mb-20">
                         <h2 class="title-xlarge mb-3" id="deleghe">Deleghe</h2>
@@ -566,6 +593,7 @@ get_header();
                         </div>
                     </section>
                 <?php } ?>
+
                 <?php if ($biografia) { ?>
                     <section class="it-page-section mb-20">
                         <h2 class="title-xlarge mb-3" id="bio">Biografia</h2>
@@ -576,9 +604,9 @@ get_header();
                 <?php } ?>
 
                 <?php if ($curriculum_vitae) { ?>
-                    <article id="documenti" class="it-page-section anchor-offset mt-5">
+                    <article id="cv" class="it-page-section anchor-offset mt-5">
                         <h2 class="title-xlarge mb-3">Curriculum Vitae</h2>
-                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal" id="cv">
+                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
                             <?php
                             if ($curriculum_vitae) {
                                 $documento_id = attachment_url_to_postid($curriculum_vitae);
@@ -612,52 +640,52 @@ get_header();
                 <?php } ?>
 
                 <?php if (!empty($situazione_patrimoniale_id)) : ?>
-    <article id="variazione-situazione-patrimoniale" class="it-page-section anchor-offset mt-5">
-        <h2 class="title-xlarge mb-3">Variazione situazione patrimoniale</h2>
+                    <article id="variazione-situazione-patrimoniale" class="it-page-section anchor-offset mt-5">
+                        <h2 class="title-xlarge mb-3">Variazione situazione patrimoniale</h2>
 
-        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
+                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
 
-            <?php foreach ($situazione_patrimoniale_id as $doc) :
+                            <?php foreach ($situazione_patrimoniale_id as $doc) :
 
-                // Determina se $doc è URL o ID
-                if (is_numeric($doc)) {
-                    $documento = get_post($doc);
-                    $url = wp_get_attachment_url($doc);
-                } else {
-                    $url = $doc;
-                    $documento_id = attachment_url_to_postid($doc);
-                    $documento = $documento_id ? get_post($documento_id) : null;
-                }
+                                // Determina se $doc è URL o ID
+                                if (is_numeric($doc)) {
+                                    $documento = get_post($doc);
+                                    $url = wp_get_attachment_url($doc);
+                                } else {
+                                    $url = $doc;
+                                    $documento_id = attachment_url_to_postid($doc);
+                                    $documento = $documento_id ? get_post($documento_id) : null;
+                                }
 
-                $titolo = $documento ? $documento->post_title : basename($url);
-            ?>
+                                $titolo = $documento ? $documento->post_title : basename($url);
+                            ?>
 
-                <?php if ($url) : ?>
-                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                        <svg class="icon" aria-hidden="true">
-                            <use xlink:href="#it-clip"></use>
-                        </svg>
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a class="text-decoration-none"
-                                   href="<?php echo esc_url($url); ?>"
-                                   target="_blank"
-                                   aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
-                                   title="Scarica il documento <?php echo esc_attr($titolo); ?>">
-                                    <?php echo esc_html($titolo); ?>
-                                </a>
-                            </h5>
+                                <?php if ($url) : ?>
+                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                        <svg class="icon" aria-hidden="true">
+                                            <use xlink:href="#it-clip"></use>
+                                        </svg>
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="text-decoration-none"
+                                                href="<?php echo esc_url($url); ?>"
+                                                target="_blank"
+                                                aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
+                                                title="Scarica il documento <?php echo esc_attr($titolo); ?>">
+                                                    <?php echo esc_html($titolo); ?>
+                                                </a>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                            <?php endforeach; ?>
+
                         </div>
-                    </div>
+                    </article>
                 <?php endif; ?>
-
-            <?php endforeach; ?>
-
-        </div>
-    </article>
-<?php endif; ?>
                 <?php if ($dichiarazione_redditi) { ?>
-                    <article id="dichiarazione-redditi" class="it-page-section anchor-offset mt-5">
+                    <article id="dichiarazione-redditi" class="it-page-section anchor-offset mt-3">
                         <h2 class="title-xlarge mb-3">Dichiarazione dei redditi</h2>
                         <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
                             <?php
@@ -686,105 +714,125 @@ get_header();
                         </div>
                     </article>
                 <?php } ?>
+
                <?php if (!empty($spese_elettorali)) { ?>
-    <article id="spese-elettorali" class="it-page-section anchor-offset mt-5">
-        <h2 class="title-xlarge mb-3">Spese elettorali</h2>
+                    <article id="spese-elettorali" class="it-page-section anchor-offset mt-3">
+                        <h2 class="title-xlarge mb-3">Spese elettorali</h2>
 
-        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-            <?php foreach ($spese_elettorali as $spesa) :
+                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
+                            <?php foreach ($spese_elettorali as $spesa) :
 
-                $documento_id = attachment_url_to_postid($spesa);
-                $documento = $documento_id ? get_post($documento_id) : null;
+                                $documento_id = attachment_url_to_postid($spesa);
+                                $documento = $documento_id ? get_post($documento_id) : null;
 
-                $titolo = $documento ? $documento->post_title : basename($spesa);
-            ?>
-                <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                    <svg class="icon" aria-hidden="true">
-                        <use xlink:href="#it-clip"></use>
-                    </svg>
+                                $titolo = $documento ? $documento->post_title : basename($spesa);
+                            ?>
+                                <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                    <svg class="icon" aria-hidden="true">
+                                        <use xlink:href="#it-clip"></use>
+                                    </svg>
 
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <a class="text-decoration-none"
-                               href="<?php echo esc_url($spesa); ?>"
-                               target="_blank"
-                               aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
-                               title="Scarica il documento <?php echo esc_attr($titolo); ?>">
-                                <?php echo esc_html($titolo); ?>
-                            </a>
-                        </h5>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </article>
-<?php } ?>
-
-
-<?php if (!empty($altre_cariche)) { ?>
-    <article id="altre-cariche" class="it-page-section anchor-offset mt-5">
-        <h2 class="title-xlarge mb-3">Altre cariche</h2>
-
-        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-            <div class="richtext-wrapper lora">
-
-                <?php foreach ($altre_cariche as $file_url) :
-
-                    $documento_id = attachment_url_to_postid($file_url);
-                    $documento = $documento_id ? get_post($documento_id) : null;
-
-                    $titolo = $documento ? $documento->post_title : basename($file_url);
-                ?>
-                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                        <svg class="icon" aria-hidden="true">
-                            <use xlink:href="#it-clip"></use>
-                        </svg>
-
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a class="text-decoration-none"
-                                   href="<?php echo esc_url($file_url); ?>"
-                                   target="_blank"
-                                   aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
-                                   title="Scarica il documento <?php echo esc_attr($titolo); ?>">
-                                    <?php echo esc_html($titolo); ?>
-                                </a>
-                            </h5>
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="text-decoration-none"
+                                            href="<?php echo esc_url($spesa); ?>"
+                                            target="_blank"
+                                            aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
+                                            title="Scarica il documento <?php echo esc_attr($titolo); ?>">
+                                                <?php echo esc_html($titolo); ?>
+                                            </a>
+                                        </h5>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
-                    </div>
+                    </article>
+                <?php } ?>
 
-                <?php endforeach; ?>
+                <?php if (!empty($altre_cariche)) { ?>
+                    <article id="altre-cariche" class="it-page-section anchor-offset mt-3">
+                        <h2 class="title-xlarge mb-3">Altre cariche</h2>
 
-            </div>
-        </div>
-    </article>
-<?php } ?>
-
-
-<!-- CONTATTI -->
-<?php if (!empty($punti_contatto)) { ?>
-    <section class="it-page-section mb-20 mt-5">
-        <h2 class="title-xlarge mb-3" id="contatti">Contatti</h2>
-
-        <div class="richtext-wrapper lora">
-            <?php foreach ($punti_contatto as $pc_id) {
-                get_template_part('template-parts/single/punto-contatto');
-            } ?>
-        </div>
-    </section>
-<?php } ?>
-
-                    <!-- Aggiungo la sezione ulteriori informazioni in fondo alla pagina -->
-                    <section class="it-page-section anchor-offset mt-5">
-                        <h4 class="mb-auto" id="ulteriori-informazioni">Ulteriori informazioni</h4>
-                        <?php if ($ulteriori_informazioni) { ?>
+                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
                             <div class="richtext-wrapper lora">
-                                <?php echo esc_html($ulteriori_informazioni); ?>
+
+                                <?php foreach ($altre_cariche as $file_url) :
+
+                                    $documento_id = attachment_url_to_postid($file_url);
+                                    $documento = $documento_id ? get_post($documento_id) : null;
+
+                                    $titolo = $documento ? $documento->post_title : basename($file_url);
+                                ?>
+                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
+                                        <svg class="icon" aria-hidden="true">
+                                            <use xlink:href="#it-clip"></use>
+                                        </svg>
+
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="text-decoration-none"
+                                                href="<?php echo esc_url($file_url); ?>"
+                                                target="_blank"
+                                                aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
+                                                title="Scarica il documento <?php echo esc_attr($titolo); ?>">
+                                                    <?php echo esc_html($titolo); ?>
+                                                </a>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
-                        <?php } ?>
-                        <!-- Visulizzo la data di ultima modifica della persona -->
-                        <?php get_template_part('template-parts/single/page_bottom'); ?>
-                    </section>
+                        </div>
+                    </article>
+                <?php } ?>
+
+            <?php if ($gallery && $gallery !== []){?>
+                <section class="it-page-section mb-20 mt-5">
+                <h2 class="title-xlarge mb-3" id="gallery">Galleria</h2>
+                <article class="it-page-section it-grid-list-wrapper anchor-offset mt-5">
+                        <?php get_template_part("template-parts/single/gallery"); ?>
+                    </article>
+                </section>
+                <!-- Stile galleria foto -->
+                <style>
+                .it-grid-item-wrapper {
+                    /* Imposta una larghezza fissa per il contenitore dell'immagine/audio se necessario */
+                    width: 100%;
+                }
+
+                .img-responsive-wrapper {
+                    display: flex;
+                    justify-content: center; /* Centratura orizzontale */
+                }
+
+                </style>
+            <?php } ?>
+
+
+            <!-- CONTATTI -->
+            <?php if (!empty($punti_contatto)) { ?>
+                <section class="it-page-section mb-20 mt-3">
+                    <h2 class="title-xlarge mb-3" id="contatti">Contatti</h2>
+
+                    <div class="richtext-wrapper lora">
+                        <?php foreach ($punti_contatto as $pc_id) {
+                            get_template_part('template-parts/single/punto-contatto');
+                        } ?>
+                    </div>
+                </section>
+            <?php } ?>
+
+                <!-- Aggiungo la sezione ulteriori informazioni in fondo alla pagina -->
+                <section class="it-page-section anchor-offset mt-3">
+                    <h4 class="mb-auto" id="ulteriori-informazioni">Ulteriori informazioni</h4>
+                    <?php if ($ulteriori_informazioni) { ?>
+                        <div class="richtext-wrapper lora">
+                            <?php echo esc_html($ulteriori_informazioni); ?>
+                        </div>
+                    <?php } ?>
+                    <!-- Visulizzo la data di ultima modifica della persona -->
+                    <?php get_template_part('template-parts/single/page_bottom'); ?>
+                </section>
             </div>
         </div>
     </div>

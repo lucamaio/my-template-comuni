@@ -84,11 +84,12 @@ function dci_add_persona_pubblica_metaboxes()
 
     $cmb_user->add_field(array(
         'id'         => $prefix . 'descrizione_breve',
-        'name'       => __('Descrizione breve', 'design_comuni_italia'),
+        'name'       => __('Descrizione breve *', 'design_comuni_italia'),
         'desc' => __('Breve descrizione della Persona Pubblica. Comparirà all\'interno delle card di presentazione del contenuto.', 'design_comuni_italia'),
         'type'       => 'textarea',
         'attributes'    => array(
             'maxlength'  => '255',
+            'required' => 'required'
         ),
     ));
 
@@ -158,22 +159,6 @@ function dci_add_persona_pubblica_metaboxes()
         )
     ));
 
-    $cmb_competenze->add_field(array(
-        'id' => $prefix . 'data_inizio_incarico',
-        'name'    => __('Data inizio incarico', 'design_comuni_italia'),
-        'desc' => __('Data inizio incarico.', 'design_comuni_italia'),
-        'type'    => 'text_date',
-        'date_format' => 'd-m-Y',
-    ));
-
-    $cmb_competenze->add_field(array(
-        'id' => $prefix . 'data_conclusione_incarico',
-        'name'    => __('Data conclusione incarico', 'design_comuni_italia'),
-        'desc' => __('Data conclusione incarico.', 'design_comuni_italia'),
-        'type'    => 'text_date',
-        'date_format' => 'd-m-Y',
-    ));
-
 
     $cmb_competenze->add_field(array(
         'id' => $prefix . 'competenze',
@@ -209,14 +194,114 @@ function dci_add_persona_pubblica_metaboxes()
         ),
     ));
 
-    $cmb_moreInfo = new_cmb2_box(array(
+    // Sezione Data
+    $cmb_date = new_cmb2_box(array(
+        'id'           => $prefix . 'date_box',
+        'title'        => __('Date Mandato', 'design_comuni_italia'),
+        'object_types' => array('persona_pubblica'),
+        'desc'         => __('Compila questi campi solo se non sono stati inseriti incarichi specifici.', 'design_comuni_italia'),
+        'context'      => 'side',
+        'priority'     => 'high',
+    ));
+
+    $cmb_date->add_field(array(
+        'name' => __('Istruzioni Compilazione', 'design_comuni_italia'),
+        'desc' => __('Compila questi campi solo se non sono stati inseriti incarichi specifici', 'design_comuni_italia'),
+        'id'   => $prefix . 'info_data_title',
+        'type' => 'title',
+    ));
+
+    $cmb_date->add_field(array(
+        'id'          => $prefix . 'data_inizio_incarico',
+        'name'        => __('Data di inizio', 'design_comuni_italia'),
+        'desc'        => __('Indica la data di insediamento o inizio del mandato.', 'design_comuni_italia'),
+        'type'        => 'text_date',
+        'date_format' => 'd-m-Y',
+    ));
+
+    $cmb_date->add_field(array(
+        'id'          => $prefix . 'data_conclusione_incarico',
+        'name'        => __('Data di fine', 'design_comuni_italia'),
+        'desc'        => __('Indica la data di termine prevista o effettiva del mandato.', 'design_comuni_italia'),
+        'type'        => 'text_date',
+        'date_format' => 'd-m-Y',
+    ));
+
+    // Sezione informazioni Trasparenza
+    $cmb_trasparenza = new_cmb2_box(array(
+        'id'           => $prefix . 'trasparenza_box',
+        'title'        => __('Amministrazione Trasparente', 'design_comuni_italia'),
+        'desc'         => __('Documentazione obbligatoria ai sensi del D.Lgs. 33/2013 per i titolari di incarichi politici.', 'design_comuni_italia'),
+        'object_types' => array('persona_pubblica'),
+        'context'      => 'normal',
+        'priority'     => 'high',
+    ));
+
+    // Aggiungi questo come PRIMO campo subito dopo aver definito $cmb_trasparenza
+    $cmb_trasparenza->add_field(array(
+        'name' => __('Istruzioni Compilazione', 'design_comuni_italia'),
+        'desc' => __('Documentazione obbligatoria ai sensi del D.Lgs. 33/2013 per i titolari di incarichi politici.', 'design_comuni_italia'),
+        'id'   => $prefix . 'info_trasparenza_title',
+        'type' => 'title',
+    ));
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'situazione_patrimoniale',
+        'name' => __('Situazione patrimoniale', 'design_comuni_italia'),
+        'desc' => __('Descrizione della situazione patrimoniale complessiva del titolare dell\'incarico.', 'design_comuni_italia'),
+        'type' => 'wysiwyg',
+        'options' => array(
+            'textarea_rows' => 6,
+            'teeny'         => true,
+        ),
+    ));
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'variazione_situazione_patrimoniale',
+        'name' => __('Variazione situazione patrimoniale', 'design_comuni_italia'),
+        'desc' => __('Attestazione delle variazioni patrimoniali intervenute nell\'anno precedente rispetto all\'ultima dichiarazione depositata.', 'design_comuni_italia'),
+        'type' => 'file_list',
+    ));
+
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'dichiarazione_redditi',
+        'name' => __('Dichiarazione dei redditi', 'design_comuni_italia'),
+        'desc' => __('Copia dell\'ultima dichiarazione dei redditi (IRPEF). Nota: Per coniuge e parenti entro il 2° grado è necessario il consenso (o evidenza del mancato consenso). Oscurare i dati sensibili non pertinenti.', 'design_comuni_italia'),
+        'type' => 'file_list',
+    ));
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'spese_elettorali',
+        'name' => __('Spese elettorali', 'design_comuni_italia'),
+        'desc' => __('Dichiarazione spese sostenute e obbligazioni assunte per la propaganda elettorale o attestazione di uso esclusivo di mezzi del partito. Includere la formula: «Sul mio onore affermo che la dichiarazione corrisponde al vero».', 'design_comuni_italia'),
+        'type' => 'file_list',
+    ));
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'curriculum_vitae',
+        'name' => __('Curriculum Vitae', 'design_comuni_italia'),
+        'desc' => __('Carica il CV aggiornato in formato PDF (standard europeo).', 'design_comuni_italia'),
+        'type' => 'file',
+    ));
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'altre_cariche',
+        'name' => __('Altre cariche e compensi', 'design_comuni_italia'),
+        'desc' => __('Dati relativi all\'assunzione di altre cariche presso enti pubblici o privati e relativi compensi corrisposti a qualsiasi titolo.', 'design_comuni_italia'),
+        'type' => 'file_list',
+    ));
+   
+
+    // Sezioni ulteriori informazioni sulla persona
+
+     $cmb_moreInfo = new_cmb2_box(array(
         'id'               => $prefix . 'moreInfo_box',
         'title'            => __('Ulteriori Informazioni', 'design_comuni_italia'),
         'object_types'     => array('persona_pubblica'),
         'context'      => 'normal',
         'priority'     => 'high',
     ));
-
 
     $cmb_moreInfo->add_field(array(
         'id' => $prefix . 'biografia',
@@ -229,6 +314,7 @@ function dci_add_persona_pubblica_metaboxes()
         ),
     ));
 
+    
     $cmb_moreInfo->add_field(array(
         'name'       => __('Galleria di immagini', 'design_comuni_italia'),
         'desc' => __('Solo per Persona Politica: gallery dell attività politica e istituzionale della persona.', 'design_comuni_italia'),
@@ -241,50 +327,6 @@ function dci_add_persona_pubblica_metaboxes()
         ),
     ));
 
-    $cmb_moreInfo->add_field(array(
-        'name'       => __('Curriculum Vitae', 'design_comuni_italia'),
-        'id'             => $prefix . 'curriculum_vitae',
-        'type' => 'file',
-    ));
-
-    $cmb_moreInfo->add_field(array(
-        'id' => $prefix . 'situazione_patrimoniale',
-        'name'        => __('Situazione patrimoniale', 'design_comuni_italia'),
-        'desc' => __('Solo per Persona Politica: situazione patrimoniale della persona', 'design_comuni_italia'),
-        'type' => 'wysiwyg',
-        'options' => array(
-            'textarea_rows' => 10,
-            'teeny' => false,
-        ),
-    ));
-
-    $cmb_moreInfo->add_field(array(
-        'id'             => $prefix . 'dichiarazione_redditi',
-        'name' => __('Dichiarazione dei redditi', 'design_comuni_italia'),
-        'desc'       => __('Obbligatorio per Persona che ha incarichi o cariche politiche: copia dell\'ultima dichiarazione dei redditi soggetti all\'imposta sui redditi delle persone fisiche Per il soggetto, il coniuge non separato e i parenti entro il secondo grado, ove gli stessi vi consentano (NB: dando eventualmente evidenza del mancato consenso) (NB: è necessario limitare, con appositi accorgimenti a cura dell\'interessato o della amministrazione, la pubblicazione dei dati sensibili)', 'design_comuni_italia'),
-        'type' => 'file_list',
-    ));
-
-    $cmb_moreInfo->add_field(array(
-        'id'             => $prefix . 'spese_elettorali',
-        'name' => __('Spese elettorali', 'design_comuni_italia'),
-        'desc'       => __('Obbligatorio per Persona che ha incarichi o cariche politiche:: dichiarazione concernente le spese sostenute e le obbligazioni assunte per la propaganda elettorale ovvero attestazione di essersi avvalsi esclusivamente di materiali e di mezzi propagandistici predisposti e messi a disposizione dal partito o dalla formazione politica della cui lista il soggetto ha fatto parte, con l\'apposizione della formula «sul mio onore affermo che la dichiarazione corrisponde al vero» (con allegate copie delle dichiarazioni relative a finanziamenti e contributi per un importo che nell\'anno superi 5.000 €)', 'design_comuni_italia'),
-        'type' => 'file_list',
-    ));
-
-    $cmb_moreInfo->add_field(array(
-        'id'             => $prefix . 'variazione_situazione_patrimoniale',
-        'name' => __('Variazione situazione patrimoniale', 'design_comuni_italia'),
-        'desc'       => __('Obbligatorio per Persona che ha incarichi o cariche politiche:: attestazione concernente le variazioni della situazione patrimoniale intervenute nell\'anno precedente e copia della dichiarazione dei redditi Per il soggetto, il coniuge non separato e i parenti entro il secondo grado, ove gli stessi vi consentano (NB: dando eventualmente evidenza del mancato consenso)', 'design_comuni_italia'),
-        'type' => 'file_list',
-    ));
-
-    $cmb_moreInfo->add_field(array(
-        'id'             => $prefix . 'altre_cariche',
-        'name' => __('Altre cariche', 'design_comuni_italia'),
-        'desc'       => __('Obbligatorio per Persona che ha incarichi o cariche politiche: i dati relativi all\'assunzione di altre cariche, presso enti pubblici o privati, ed i relativi compensi a qualsiasi titolo corrisposti.', 'design_comuni_italia'),
-        'type' => 'file_list',
-    ));
 
     $cmb_moreInfo->add_field(array(
         'id' => $prefix . 'ulteriori_informazioni',

@@ -143,6 +143,13 @@ function dci_elemento_trasparenza_add_content_after_title($post)
                 </a>
             <?php endif; ?>
 
+            <?php if(dci_get_option("ck_portalesoloperusoesterno") === 'false'){?>
+                 <a href="edit.php?post_type=persona_pubblica" class="dci-menu-btn">
+                    Titolari di incarichi <b>Politici e di Amministrazione</b>
+            </a>
+            <?php } ?>
+           
+
         </div>
     </div>
     <?php

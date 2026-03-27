@@ -42,6 +42,35 @@ echo '<style>
     margin-top:.3rem; /* 🔽 ridotto da 1rem */
 }
 
+/* Avatar a destra migliorato */
+.avatar-wrapper{
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-wrapper img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;          /* evita deformazioni */
+    border-radius: 4px;         /* stile coerente */
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    background: #fff;
+}
+
+/* Migliore adattamento mobile */
+@media (max-width: 768px){
+    .avatar-wrapper{
+        width: 60px;
+        height: 60px;
+        margin-left: .75rem;
+    }
+}
 </style>';
 
 function dci_render_person_card($person_id) {
@@ -69,8 +98,8 @@ function dci_render_person_card($person_id) {
                     </div>
                 </div>
                 <?php if (!empty($img)) : ?>
-                    <div class="avatar size-xl">
-                        <?php dci_get_img($img); ?>
+                    <div class="avatar-wrapper">
+                        <?php dci_get_img($img, 'avatar-img'); ?>
                     </div>
                 <?php endif; ?>
             </div>

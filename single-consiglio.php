@@ -161,9 +161,13 @@ get_header();
                                                 role="region" aria-labelledby="accordion-title-one">
                                                 <div class="accordion-body">
                                                     <ul class="link-list" data-element="page-index">
-                                                        <li class="nav-item"><a class="nav-link"
-                                                                href="#ordini_giorno"><span class="title-medium">Ordini
-                                                                    del giorno</span></a></li>
+                                                        <?php if(!empty($ordini_giorno)) {?>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" href="#ordini_giorno">
+                                                                    <span class="title-medium">Ordini del giorno</span>
+                                                                </a>
+                                                            </li>
+                                                        <?php } ?>
                                                         <?php if (!empty($documenti)) : ?>
                                                         <li class="nav-item"><a class="nav-link" href="#documenti"><span
                                                                     class="title-medium">Documenti</span></a></li>
@@ -241,7 +245,7 @@ get_header();
                 </article>
                 <?php endif; ?>
 
-                <!-- Allegati -->
+               <!-- Allegati -->
                 <?php if (!empty($allegati)) : ?>
                 <article class="it-page-section anchor-offset mb-5" id="allegati">
                     <h4>Allegati</h4>
@@ -252,38 +256,40 @@ get_header();
                         if (!$allegato) continue;
 
                         $title_allegato = $allegato->post_title;
-                        if (strlen($title_allegato) > 50) $title_allegato = substr($title_allegato, 0, 50) . '...';
+
+                        // Troncamento e normalizzazione maiuscole
+                        $title_allegato = wp_strip_all_tags($title_allegato);
+                        if (strlen($title_allegato) > 30) $title_allegato = substr($title_allegato, 0, 30) . '...';
                         if (preg_match('/[A-Z]{5,}/', $title_allegato)) $title_allegato = ucfirst(strtolower($title_allegato));
-                    ?>
+                        ?>
                         <div class="card card-teaser shadow-sm p-3 mt-3 rounded border border-light flex-nowrap">
                             <svg class="icon" aria-hidden="true">
                                 <use xlink:href="#it-clip"></use>
                             </svg>
                             <div class="card-body">
-                                <h5 class="card-title">
-                                    <a class="text-decoration-none" href="<?php echo get_the_guid($allegato); ?>">
+                                <h5 class="card-title text-truncate" style="max-width:100%;">
+                                    <a class="text-decoration-none" href="<?php echo esc_url(get_the_guid($allegato)); ?>" 
+                                    title="<?php echo esc_attr($title_allegato); ?>">
                                         <?php echo esc_html($title_allegato); ?>
                                     </a>
-                                </h5>
+                                </h5>   
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
                 </article>
                 <?php endif; ?>
+
+                <!-- Link correlati -->
                 <?php if (!empty($links)) : ?>
                 <article class="it-page-section anchor-offset mb-5" id="links">
                     <h4>Link correlati</h4>
                     <div class="card-wrapper card-teaser-wrapper">
                         <?php foreach ($links as $link_data) :
-                            // Se stai usando il gruppo CMB2, $link_data dovrebbe contenere 'url' e 'titolo'
                             $link_url   = isset($link_data['url']) ? esc_url($link_data['url']) : '';
                             $title_link = isset($link_data['titolo']) ? sanitize_text_field($link_data['titolo']) : $link_url;
 
-                            // Limita la lunghezza del titolo a 50 caratteri
                             if (strlen($title_link) > 50) $title_link = substr($title_link, 0, 50) . '...';
-
-                            // Normalizza eventuali titoli in maiuscolo
                             if (preg_match('/[A-Z]{5,}/', $title_link)) $title_link = ucfirst(strtolower($title_link));
 
                             if (empty($link_url)) continue;
@@ -293,8 +299,9 @@ get_header();
                                 <use xlink:href="#it-clip"></use>
                             </svg>
                             <div class="card-body">
-                                <h5 class="card-title">
-                                    <a class="text-decoration-none" href="<?php echo $link_url; ?>" target="_blank" alt="<?php echo esc_attr($title_link); ?>" rel="noopener noreferrer">
+                                <h5 class="card-title text-truncate" style="max-width:100%;">
+                                    <a class="text-decoration-none" href="<?php echo $link_url; ?>" target="_blank" 
+                                    title="<?php echo esc_attr($title_link); ?>" rel="noopener noreferrer">
                                         <?php echo esc_html($title_link); ?>
                                     </a>
                                 </h5>
@@ -304,6 +311,7 @@ get_header();
                     </div>
                 </article>
                 <?php endif; ?>
+               
 
 
                 <?php if(is_array($persone) && count($persone)) { ?>
@@ -334,7 +342,7 @@ get_header();
                             </svg>
                             <div class="card-body">
                                 <h5 class="card-title">
-                                    <a class="text-decoration-none" href="<?php echo esc_url($link_streaming); ?>" target="_blank">
+                                    <a class="text-decoration-none" href="<?php // echo esc_url($link_streaming); ?>" target="_blank">
                                         Link alla diretta streaming del seduta del Consiglio Comunale
                                     </a>
                                 </h5>
@@ -376,5 +384,11 @@ get_header();
         background-color: #fff;              /* Sfondo bianco per risalto se su sfondo grigio */
         border-radius: 6px;                  /* Angoli leggermente arrotondati */
     }
-    
+    .card-teaser .card-title a {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
     </style>

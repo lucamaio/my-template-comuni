@@ -52,29 +52,38 @@ get_header();
                 }
 
                 $incarichi = dci_get_meta('incarichi', '_dci_persona_pubblica_', $person_id);
+
                 if ($is_current && is_array($incarichi) && !empty($incarichi)) {
                     $found = false;
+
                     foreach ($incarichi as $incarico_id) {
                         $uo_incarico = dci_get_meta('unita_organizzativa', '_dci_incarico_', $incarico_id);
-                        if (empty($uo_incarico) || intval($uo_incarico) !== intval($post->ID)) {
-                            continue;
-                        }
 
-                        $data_fine = dci_get_meta('data_conclusione_incarico', '_dci_incarico_', $incarico_id);
-                        if (empty($data_fine)) {
-                            $found = true;
-                            break;
-                        }
+                        // Considera solo incarichi legati a questa UO
+                        if (!empty($uo_incarico) && intval($uo_incarico) === intval($post->ID)) {
+                            $data_fine = dci_get_meta('data_conclusione_incarico', '_dci_incarico_', $incarico_id);
 
-                        $data_fine_ts = is_numeric($data_fine) ? intval($data_fine) : strtotime($data_fine);
-                        if (!$data_fine_ts || $data_fine_ts >= $today_ts) {
-                            $found = true;
-                            break;
+                            if (empty($data_fine)) {
+                                $found = true;
+                                break;
+                            }
+
+                            $data_fine_ts = is_numeric($data_fine) ? intval($data_fine) : strtotime($data_fine);
+                            if (!$data_fine_ts || $data_fine_ts >= $today_ts) {
+                                $found = true;
+                                break;
+                            }
                         }
                     }
 
-                    $is_current = $found;
+                    // Se non ho trovato incarichi associati a questa UO, considero la persona attuale
+                    if (!$found) {
+                        $is_current = true;
+                    } else {
+                        $is_current = $found;
+                    }
                 }
+                                
 
                 if ($is_current) {
                     $persone_attuali[] = $person_id;

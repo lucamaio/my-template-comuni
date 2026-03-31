@@ -118,7 +118,8 @@ function dci_add_persona_pubblica_metaboxes()
             'placeholder' =>  __('Seleziona gli Incarichi', 'design_comuni_italia'),
         )
     ));
-        $modifica_UO = dci_get_option('ck_modificaUOPersone', 'amministrazione');
+    
+    // $modifica_UO = dci_get_option('ck_modificaUOPersone', 'amministrazione');  // Variabile non più utilizzata, per via di errori nel salvataggio del post
 
     $attributes = array(
         'placeholder' => __('Seleziona le Unità Organizzative', 'design_comuni_italia'),
@@ -289,6 +290,31 @@ function dci_add_persona_pubblica_metaboxes()
         'id'   => $prefix . 'altre_cariche',
         'name' => __('Altre cariche e compensi', 'design_comuni_italia'),
         'desc' => __('Dati relativi all\'assunzione di altre cariche presso enti pubblici o privati e relativi compensi corrisposti a qualsiasi titolo.', 'design_comuni_italia'),
+        'type' => 'file_list',
+    ));
+
+    // Relazioni di inizio e fine mandato
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'relazione_inizio_mandato',
+        'name' => __('Relazione di inizio mandato', 'design_comuni_italia'),
+        'desc' => __('Relazione dettagliata sulle condizioni economiche e patrimoniali del titolare dell\'incarico all\'inizio del mandato, redatta secondo le modalità stabilite dall\'ANAC.', 'design_comuni_italia'),
+        'type' => 'file_list',
+    ));
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'relazione_fine_mandato',
+        'name' => __('Relazione di fine mandato', 'design_comuni_italia'),
+        'desc' => __('Relazione dettagliata sulle condizioni economiche e patrimoniali del titolare dell\'incarico alla fine del mandato, redatta secondo le modalità stabilite dall\'ANAC.', 'design_comuni_italia'),
+        'type' => 'file_list',
+    ));
+
+    // Altri documenti rilevanti
+
+    $cmb_trasparenza->add_field(array(
+        'id'   => $prefix . 'altri_documenti',
+        'name' => __('Altri documenti', 'design_comuni_italia'),
+        'desc' => __('Altri documenti rilevanti per la persona.', 'design_comuni_italia'),
         'type' => 'file_list',
     ));
    

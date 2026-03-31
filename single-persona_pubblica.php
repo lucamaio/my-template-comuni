@@ -74,6 +74,15 @@ get_header();
         $deleghe = dci_get_meta("deleghe") ?? '';
         $ulteriori_informazioni = dci_get_meta("ulteriori_informazioni") ?? '';
 
+        // Recuper relazioni inizio mandato
+        $relazioni_inizio_mandato = dci_get_meta("relazione_inizio_mandato") ?? [];
+
+        // Recupero relazioni fine mandato
+        $relazioni_fine_mandato = dci_get_meta("relazione_fine_mandato") ?? [];
+
+        // Altri Allegati
+        $altri_documenti = dci_get_meta("altri_documenti") ?? [];
+
         $prefix = '_dci_punto_contatto_';
         $contatti = [];
         foreach ($punti_contatto as $pc_id) {
@@ -226,6 +235,14 @@ get_header();
                                             aria-labelledby="accordion-title-one">
                                             <div class="accordion-body">
                                                 <ul class="link-list" data-element="page-index">
+                                                    <?php if ($biografia) { ?>
+                                                        <li class="nav-item">
+                                                            <a class="nav-link" href="#bio">
+                                                                <span>Biografia</span>
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
+
                                                     <?php if ($incarichi) { ?>
                                                         <li class="nav-item">
                                                             <a class="nav-link" href="#incarichi">
@@ -233,13 +250,13 @@ get_header();
                                                             </a>
                                                         </li>
                                                     <?php } ?>
-                                                    <?php if ($compensi) { ?>
-                                                        <li class="nav-item">
+                                                    <?php // if ($compensi) { ?>
+                                                        <!-- <li class="nav-item">
                                                             <a class="nav-link" href="#compensi">
                                                                 <span>Compensi</span>
                                                             </a>
-                                                        </li>
-                                                    <?php } ?>
+                                                        </li> -->
+                                                    <?php // } ?>
                                                     <?php if (isset($data_insediamento) and !empty($data_insediamento and $data_insediamento != NULL)) { ?>
                                                         <li class="nav-item">
                                                             <a class="nav-link" href="#data-inizio">
@@ -262,13 +279,7 @@ get_header();
                                                             </a>
                                                         </li>
                                                     <?php } ?>
-                                                    <?php if ($organizzazioni) { ?>
-                                                        <li class="nav-item">
-                                                            <a class="nav-link" href="#organizzazioni">
-                                                                <span>Organizzazione/i</span>
-                                                            </a>
-                                                        </li>
-                                                    <?php } ?>
+                                                  
                                                     <?php if ($competenze) { ?>
                                                         <li class="nav-item">
                                                             <a class="nav-link" href="#competenze">
@@ -276,6 +287,7 @@ get_header();
                                                             </a>
                                                         </li>
                                                     <?php } ?>
+
                                                     <?php if ($deleghe) { ?>
                                                         <li class="nav-item">
                                                             <a class="nav-link" href="#deleghe">
@@ -283,27 +295,42 @@ get_header();
                                                             </a>
                                                         </li>
                                                     <?php } ?>
-                                                    <?php if ($biografia) { ?>
+
+                                                    <?php if (isset($altre_cariche) && !empty($altre_cariche)) { ?>
                                                         <li class="nav-item">
-                                                            <a class="nav-link" href="#bio">
-                                                                <span>Biografia</span>
+                                                            <a class="nav-link" href="#altre-cariche">
+                                                                <span>Altre cariche</span>
                                                             </a>
                                                         </li>
                                                     <?php } ?>
-                                                    <?php if ($curriculum_vitae) { ?>
+                                                  
+                                                     <?php if ($curriculum_vitae) { ?>
                                                         <li class="nav-item">
                                                             <a class="nav-link" href="#cv">
                                                                 <span>Curriculum Vitae</span>
                                                             </a>
                                                         </li>
                                                     <?php } ?>
-                                                    <?php if ($dichiarazione_redditi) { ?>
+
+                                                      <!-- Nuova sezione per la galleria delle foto -->
+                                                    <?php
+                                                        if($gallery){?>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" href="#gallery">
+                                                                    <span>Galleria</span>
+                                                                </a>
+                                                            </li>
+                                                        <?php }
+                                                    ?>
+
+                                                      <?php if ($organizzazioni) { ?>
                                                         <li class="nav-item">
-                                                            <a class="nav-link" href="#dichiarazione-redditi">
-                                                                <span>Dichiarazione dei redditi</span>
+                                                            <a class="nav-link" href="#organizzazioni">
+                                                                <span>Organizzazione/i</span>
                                                             </a>
                                                         </li>
                                                     <?php } ?>
+                                
                                                     <?php if ($situazione_patrimoniale) { ?>
                                                         <li class="nav-item">
                                                             <a class="nav-link" href="#situazione-patrimoniale">
@@ -318,6 +345,13 @@ get_header();
                                                             </a>
                                                         </li>
                                                     <?php } ?>
+                                                    <?php if ($dichiarazione_redditi) { ?>
+                                                        <li class="nav-item">
+                                                            <a class="nav-link" href="#dichiarazione-redditi">
+                                                                <span>Dichiarazione dei redditi</span>
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
                                                     <?php if ($spese_elettorali) { ?>
                                                         <li class="nav-item">
                                                             <a class="nav-link" href="#spese-elettorali">
@@ -325,23 +359,30 @@ get_header();
                                                             </a>
                                                         </li>
                                                     <?php } ?>
-                                                    <?php if (isset($altre_cariche) && !empty($altre_cariche)) { ?>
+
+                                                    <?php if($relazioni_inizio_mandato){?>
                                                         <li class="nav-item">
-                                                            <a class="nav-link" href="#altre-cariche">
-                                                                <span>Altre cariche</span>
+                                                            <a class="nav-link" href="#relazioni-inizio-mandato">
+                                                                <span>Relazione inizio mandato</span>
                                                             </a>
                                                         </li>
                                                     <?php } ?>
-                                                    <!-- Nuova sezione per la galleria delle foto -->
-                                                    <?php
-                                                        if($gallery){?>
-                                                            <li class="nav-item">
-                                                                <a class="nav-link" href="#gallery">
-                                                                    <span>Galleria</span>
-                                                                </a>
-                                                            </li>
-                                                        <?php }
-                                                    ?>
+
+                                                    <?php if($relazioni_fine_mandato){?>
+                                                        <li class="nav-item">
+                                                            <a class="nav-link" href="#relazioni-fine-mandato">
+                                                                <span>Relazione fine mandato</span>
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
+
+                                                    <?php if ($altri_documenti) { ?>
+                                                        <li class="nav-item">
+                                                            <a class="nav-link" href="#altri-documenti">
+                                                                <span>Altri documenti</span>
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
 
                                                     <!-- Sposto la sezione contatti alla fine dell'indice, prima di ulteriori informazioni -->
                                                     <?php if ($contatti) { ?>
@@ -370,9 +411,21 @@ get_header();
         </div>
         <div class="col-12 col-lg-8 offset-lg-1">
             <div class="it-page-sections-container">
+
+                <!-- Sezione Biografia -->
+                <?php if ($biografia) { ?>
+                    <section class="it-page-section mb-30">
+                        <h2 class="title-xlarge" id="bio">Biografia</h2>
+                        <div class="richtext-wrapper lora">
+                            <?php echo $biografia ?>
+                        </div>
+                    </section>
+                <?php } ?>
+
+                <!-- Sezione Incarichi -->
                 <?php if (!empty($incarichi)) { ?>
-                    <section class="it-page-section mb-20">
-                        <h2 class="title-xlarge mb-3" id="incarichi">Incarichi</h2>
+                    <section class="it-page-section mb-20 mt-auto">
+                        <h2 class="title-xlarge" id="incarichi">Incarichi</h2>
                         <div class="richtext-wrapper lora">
                             <div class="incarichi-accordion">
                                 <!-- Scripèt per gestire l'accordion degli incarichi -->
@@ -517,6 +570,7 @@ get_header();
                         </div>
                     </section>
                 <?php } ?>
+
                 <!-- Nascondo tipo incarico perchè mostra un solo tipo anche qualora la persona abbia più incarichi di tipi diversi, creando confusione. Se si vuole mostrare il tipo di incarico, va mostrato all'interno dell'accordion di ogni incarico, così da essere chiaro a quale incarico si riferisce. -->
                 <?php // if ($tipo_incarico) { 
                 ?>
@@ -527,19 +581,20 @@ get_header();
                         </section> -->
                 <?php // } 
                 ?>
-                
-                <?php if ($compensi) { ?>
-                    <section class="it-page-section mb-20">
+                <!-- Rimoso in quanto può visualizzare dati incoreti nel caso di più incarichi. inoltre, lo vedo già per ogni incarico -->
+                <?php // if ($compensi) { ?>
+                    <!-- <section class="it-page-section mb-20">
                         <h2 class="title-xlarge mb-3" id="compensi">Compensi</h2>
                         <div class="richtext-wrapper lora">
-                            <?php echo $compensi ?>
+                            <?php //echo $compensi ?>
                         </div>
-                    </section>
-                <?php } ?>
+                    </section> -->
+                <?php // } ?>
 
+               
                 <!-- Queste variabile devono essere visualizzate solo quando la persona non presenta alcun icarico e sono configurate -->
                 <?php if (isset($data_insediamento) && !empty($data_insediamento)) { ?>
-                    <section class="it-page-section mb-20">
+                    <section class="it-page-section mb-20 mt-3">
                         <h2 class="title-xlarge mb-3" id="data-inizio">Data di
                             <?php if ($tipo_incarico == "politico") {
                                 echo 'insediamento';
@@ -552,7 +607,7 @@ get_header();
                 <?php } ?>
                 <!-- Aggiungo la sezione per la data di conclusione dell'incarico -->
                 <?php if (isset($data_conclusione_incarico) && !empty($data_conclusione_incarico)) { ?>
-                    <section class="it-page-section mb-20">
+                    <section class="it-page-section mb-20 mt-3">
                         <h2 class="title-xlarge mb-3" id="data-fine">Data di
                             <?php
                             echo 'conclusione incarico';
@@ -560,6 +615,112 @@ get_header();
                         </h2>
                         <div class="richtext-wrapper lora"><?php echo $data_conclusione_incarico; ?></div>
                     </section>
+                <?php } ?>
+
+
+                <!-- Sezione competenze - da utilizzare se non vi sono incarichi o si desidere aggiungere delle informazioni extra -->
+                <?php if ($competenze) { ?>
+                    <section class="it-page-section mb-20 mt-3">
+                        <h2 class="title-xlarge" id="competenze">Competenze</h2>
+                        <div class="richtext-wrapper lora">
+                            <?php echo $competenze; ?>
+                        </div>
+                    </section>
+                <?php } ?>
+
+                <!-- Sezione deleghe - da utilizzare per i politici -->
+                <?php if ($deleghe) { ?>
+                    <section class="it-page-section mb-20 mt-3">
+                        <h2 class="title-xlarge" id="deleghe">Deleghe</h2>
+                        <div class="richtext-wrapper lora">
+                            <?php echo $deleghe; ?>
+                        </div>
+                    </section>
+                <?php } ?>
+
+                <!-- Sezione altre cariche - da utilizzare per mostrare eventuali altre cariche ricoperte dalla persona, con documenti allegati -->
+                <?php if (!empty($altre_cariche)) { ?>
+                    <section class="it-page-section mb-auto mt-3">
+                        <h2 class="title-xlarge mb-3" id="altre-cariche">Altre cariche</h2>
+                        <div class="row">
+                            <?php foreach ($altre_cariche as $doc_id) : 
+                                // Se $doc_id è un URL, lo usiamo direttamente, altrimenti recuperiamo l'attachment
+                                $url = is_numeric($doc_id) ? wp_get_attachment_url($doc_id) : $doc_id;
+                                $nome_file = is_numeric($doc_id) ? get_the_title($doc_id) : basename($doc_id);
+                                
+                                // Formatazione del titolo del file: rimuove tag, limita la lunghezza e formatta parole in maiuscolo
+                                $titolo_carica = wp_strip_all_tags($nome_file);
+                                if (strlen($nome_file) > 30) $titolo_carica = substr($nome_file, 0, 30) . '...';
+                                if (preg_match('/[A-Z]{5,}/', $nome_file)) $titolo_carica = ucfirst(strtolower($nome_file));
+                                if ($url) : ?>
+                                    <div class="col-12 col-lg-6 mb-3">
+                                        <div class="card card-teaser shadow-sm p-3 h-100">
+                                            <div class="card-body d-flex align-items-center h-100">
+                                                <svg class="icon icon-primary me-2"><use href="#it-file"></use></svg>
+                                                <a href="<?php echo esc_url($url); ?>" target="_blank"  aria-label="Scarica il documento <?php echo esc_html($titolo_carica); ?>" title="Scarica il documento <?php echo esc_html($titolo_carica); ?>" class="text-decoration-none flex-grow-1">
+                                                    <span class="card-title fs-6 fs-sm-7"><?php echo esc_html($titolo_carica); ?></span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                            <?php endif; 
+                            endforeach; ?>
+                        </div>
+                    </section>
+                <?php } ?>
+
+                <!-- Sezione CV-->
+                <?php if ($curriculum_vitae) { ?>
+                    <section class="it-page-section anchor-offset mb-auto mt-3">
+                        <h2 class="title-xlarge mb-3" id="cv">Curriculum Vitae</h2>
+                        <div class="row">
+                            <?php
+                            if ($curriculum_vitae) {
+                                $documento_id = attachment_url_to_postid($curriculum_vitae);
+                                $documento = get_post($documento_id);
+
+                                $nome_file = $documento ? $documento->post_title : basename($curriculum_vitae);
+                                // Formatazione del titolo del file: rimuove tag, limita la lunghezza e formatta parole in maiuscolo
+                                $titolo_cv = wp_strip_all_tags($nome_file);
+                                if (strlen($nome_file) > 30) $titolo_cv = substr($nome_file, 0, 30) . '...';
+                                if (preg_match('/[A-Z]{5,}/', $nome_file)) $titolo_cv = ucfirst(strtolower($nome_file));
+                            ?>
+                                <div class="col-12 col-lg-6 mb-3">
+                                <div class="card card-teaser shadow-sm p-3 h-auto">
+                                    <div class="card-body d-flex align-items-center h-auto">
+                                        <svg class="icon icon-primary me-2"><use href="#it-file"></use></svg>
+                                        <a href="<?php echo esc_url($curriculum_vitae); ?>" target="_blank"  aria-label="Scarica il documento <?php echo esc_html($titolo_cv); ?>" title="Scarica il documento <?php echo esc_html($titolo_cv); ?>" class="text-decoration-none flex-grow-1">
+                                            <span class="card-title fs-6 fs-sm-7"><?php echo esc_html($titolo_cv); ?></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php } ?>
+                        </div>
+                    </article>
+                <?php } ?>
+
+                 <!-- Gallery Foto -->
+                <?php if ($gallery && $gallery !== []){?>
+                    <section class="it-page-section mb-20 mt-3">
+                    <h2 class="title-xlarge mb-3" id="gallery">Galleria</h2>
+                    <article class="it-page-section it-grid-list-wrapper anchor-offset mt-2">
+                            <?php get_template_part("template-parts/single/gallery"); ?>
+                        </article>
+                    </section>
+                    <!-- Stile galleria foto -->
+                    <style>
+                    .it-grid-item-wrapper {
+                        /* Imposta una larghezza fissa per il contenitore dell'immagine/audio se necessario */
+                        width: 100%;
+                    }
+
+                    .img-responsive-wrapper {
+                        display: flex;
+                        justify-content: center; /* Centratura orizzontale */
+                    }
+
+                    </style>
                 <?php } ?>
 
                 <!-- Mostro tutte le UO collegate alla persona -->
@@ -574,64 +735,9 @@ get_header();
                     </section>
                 <?php } ?>
 
-                <!-- Sezione competenze - da utilizzare se non vi sono incarichi o si desidere aggiungere delle informazioni extra -->
-                <?php if ($competenze) { ?>
-                    <section class="it-page-section mb-20">
-                        <h2 class="title-xlarge mb-3" id="competenze">Competenze</h2>
-                        <div class="richtext-wrapper lora">
-                            <?php echo $competenze; ?>
-                        </div>
-                    </section>
-                <?php } ?>
-
-                <!-- Sezione deleghe - da utilizzare per i politici -->
-                <?php if ($deleghe) { ?>
-                    <section class="it-page-section mb-20">
-                        <h2 class="title-xlarge mb-3" id="deleghe">Deleghe</h2>
-                        <div class="richtext-wrapper lora">
-                            <?php echo $deleghe; ?>
-                        </div>
-                    </section>
-                <?php } ?>
-
-                <?php if ($biografia) { ?>
-                    <section class="it-page-section mb-20">
-                        <h2 class="title-xlarge mb-3" id="bio">Biografia</h2>
-                        <div class="richtext-wrapper lora">
-                            <?php echo $biografia ?>
-                        </div>
-                    </section>
-                <?php } ?>
-
-                <?php if ($curriculum_vitae) { ?>
-                    <article id="cv" class="it-page-section anchor-offset mt-5">
-                        <h2 class="title-xlarge mb-3">Curriculum Vitae</h2>
-                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-                            <?php
-                            if ($curriculum_vitae) {
-                                $documento_id = attachment_url_to_postid($curriculum_vitae);
-                                $documento = get_post($documento_id);
-                            ?>
-                                <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                    <svg class="icon" aria-hidden="true">
-                                        <use xlink:href="#it-clip"></use>
-                                    </svg>
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="text-decoration-none" href="<?php echo $curriculum_vitae; ?>" target="_blank"
-                                                aria-label="Visualizza il documento <?php echo $documento->post_title; ?>"
-                                                title="Scarica il documento <?php echo $documento->post_title; ?>">
-                                                <?php echo $documento->post_title; ?>
-                                            </a>
-                                        </h5>
-                                    </div>
-                                </div>
-                            <?php } ?>
-                        </div>
-                    </article>
-                <?php } ?>
+                
                 <?php if ($situazione_patrimoniale) { ?>
-                    <article id="situazione-patrimoniale" class="it-page-section anchor-offset mt-5">
+                    <article id="situazione-patrimoniale" class="it-page-section anchor-offset mt-3">
                         <h2 class="title-xlarge mb-3">Situazione patrimoniale</h2>
                         <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
                             <?php echo $situazione_patrimoniale; ?>
@@ -639,78 +745,80 @@ get_header();
                     </article>
                 <?php } ?>
 
-                <?php if (!empty($situazione_patrimoniale_id)) : ?>
-                    <article id="variazione-situazione-patrimoniale" class="it-page-section anchor-offset mt-5">
-                        <h2 class="title-xlarge mb-3">Variazione situazione patrimoniale</h2>
+                <?php if (!empty($situazione_patrimoniale_id)) { ?>
+                <article id="variazione-situazione-patrimoniale" class="it-page-section anchor-offset mt-5">
+                    <h2 class="title-xlarge mb-3">Variazione della Situazione patrimoniale</h2>
 
-                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
+                    <div class="row">
+                        <?php foreach ($situazione_patrimoniale_id as $doc) :
 
-                            <?php foreach ($situazione_patrimoniale_id as $doc) :
+                            $url = is_numeric($doc) ? wp_get_attachment_url($doc) : $doc;
+                            $nome_file = is_numeric($doc) ? get_the_title($doc) : basename($doc);
 
-                                // Determina se $doc è URL o ID
-                                if (is_numeric($doc)) {
-                                    $documento = get_post($doc);
-                                    $url = wp_get_attachment_url($doc);
-                                } else {
-                                    $url = $doc;
-                                    $documento_id = attachment_url_to_postid($doc);
-                                    $documento = $documento_id ? get_post($documento_id) : null;
-                                }
+                            $titolo = wp_strip_all_tags($nome_file);
+                            if (strlen($nome_file) > 30) $titolo = substr($nome_file, 0, 30) . '...';
+                            if (preg_match('/[A-Z]{5,}/', $nome_file)) $titolo = ucfirst(strtolower($nome_file));
 
-                                $titolo = $documento ? $documento->post_title : basename($url);
-                            ?>
-
-                                <?php if ($url) : ?>
-                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                        <svg class="icon" aria-hidden="true">
-                                            <use xlink:href="#it-clip"></use>
+                            if ($url) :
+                        ?>
+                            <div class="col-12 col-lg-6 mb-3">
+                                <div class="card card-teaser shadow-sm p-3 h-100">
+                                    <div class="card-body d-flex align-items-center">
+                                        <svg class="icon icon-primary me-2">
+                                            <use href="#it-file"></use>
                                         </svg>
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="text-decoration-none"
-                                                href="<?php echo esc_url($url); ?>"
-                                                target="_blank"
-                                                aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
-                                                title="Scarica il documento <?php echo esc_attr($titolo); ?>">
-                                                    <?php echo esc_html($titolo); ?>
-                                                </a>
-                                            </h5>
-                                        </div>
+
+                                        <a href="<?php echo esc_url($url); ?>"
+                                        target="_blank"
+                                        class="text-decoration-none flex-grow-1"
+                                        aria-label="Scarica il documento <?php echo esc_attr($titolo); ?>"
+                                        title="Scarica il documento <?php echo esc_attr($titolo); ?>">
+                                            <span class="card-title fs-6">
+                                                <?php echo esc_html($titolo); ?>
+                                            </span>
+                                        </a>
                                     </div>
-                                <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endif; endforeach; ?>
+                    </div>
+                </article>
+                <?php } ?>
 
-                            <?php endforeach; ?>
-
-                        </div>
-                    </article>
-                <?php endif; ?>
-                <?php if ($dichiarazione_redditi) { ?>
+               <?php if (!empty($dichiarazione_redditi)) { ?>
                     <article id="dichiarazione-redditi" class="it-page-section anchor-offset mt-3">
                         <h2 class="title-xlarge mb-3">Dichiarazione dei redditi</h2>
-                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-                            <?php
-                            if ($dichiarazione_redditi) {
-                                foreach ($dichiarazione_redditi as $dichiarazione) {
-                                    $documento_id = attachment_url_to_postid($dichiarazione);
-                                    $documento = get_post($documento_id);
+
+                        <div class="row">
+                            <?php foreach ($dichiarazione_redditi as $doc) :
+
+                                $url = is_numeric($doc) ? wp_get_attachment_url($doc) : $doc;
+                                $nome_file = is_numeric($doc) ? get_the_title($doc) : basename($doc);
+
+                                $titolo = wp_strip_all_tags($nome_file);
+                                if (strlen($nome_file) > 30) $titolo = substr($nome_file, 0, 30) . '...';
+                                if (preg_match('/[A-Z]{5,}/', $nome_file)) $titolo = ucfirst(strtolower($nome_file));
+
+                                if ($url) :
                             ?>
-                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                        <svg class="icon" aria-hidden="true">
-                                            <use xlink:href="#it-clip"></use>
-                                        </svg>
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="text-decoration-none" href="<?php echo $dichiarazione; ?>"
-                                                    target="_blank"
-                                                    aria-label="Visualizza il documento <?php echo $documento->post_title; ?>"
-                                                    title="Scarica il documento <?php echo $documento->post_title; ?>">
-                                                    <?php echo $documento->post_title; ?>
-                                                </a>
-                                            </h5>
+                                <div class="col-12 col-lg-6 mb-3">
+                                    <div class="card card-teaser shadow-sm p-3 h-100">
+                                        <div class="card-body d-flex align-items-center">
+                                            <svg class="icon icon-primary me-2">
+                                                <use href="#it-file"></use>
+                                            </svg>
+
+                                            <a href="<?php echo esc_url($url); ?>"
+                                            target="_blank"
+                                            class="text-decoration-none flex-grow-1">
+                                                <span class="card-title fs-6">
+                                                    <?php echo esc_html($titolo); ?>
+                                                </span>
+                                            </a>
                                         </div>
                                     </div>
-                                <?php } ?>
-                            <?php } ?>
+                                </div>
+                            <?php endif; endforeach; ?>
                         </div>
                     </article>
                 <?php } ?>
@@ -719,99 +827,147 @@ get_header();
                     <article id="spese-elettorali" class="it-page-section anchor-offset mt-3">
                         <h2 class="title-xlarge mb-3">Spese elettorali</h2>
 
-                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-                            <?php foreach ($spese_elettorali as $spesa) :
+                        <div class="row">
+                            <?php foreach ($spese_elettorali as $doc) :
 
-                                $documento_id = attachment_url_to_postid($spesa);
-                                $documento = $documento_id ? get_post($documento_id) : null;
+                                $url = is_numeric($doc) ? wp_get_attachment_url($doc) : $doc;
+                                $nome_file = is_numeric($doc) ? get_the_title($doc) : basename($doc);
 
-                                $titolo = $documento ? $documento->post_title : basename($spesa);
+                                $titolo = wp_strip_all_tags($nome_file);
+                                if (strlen($nome_file) > 30) $titolo = substr($nome_file, 0, 30) . '...';
+                                if (preg_match('/[A-Z]{5,}/', $nome_file)) $titolo = ucfirst(strtolower($nome_file));
+
+                                if ($url) :
                             ?>
-                                <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                    <svg class="icon" aria-hidden="true">
-                                        <use xlink:href="#it-clip"></use>
-                                    </svg>
+                                <div class="col-12 col-lg-6 mb-3">
+                                    <div class="card card-teaser shadow-sm p-3 h-100">
+                                        <div class="card-body d-flex align-items-center">
+                                            <svg class="icon icon-primary me-2">
+                                                <use href="#it-file"></use>
+                                            </svg>
 
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="text-decoration-none"
-                                            href="<?php echo esc_url($spesa); ?>"
+                                            <a href="<?php echo esc_url($url); ?>"
                                             target="_blank"
-                                            aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
-                                            title="Scarica il documento <?php echo esc_attr($titolo); ?>">
-                                                <?php echo esc_html($titolo); ?>
-                                            </a>
-                                        </h5>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </article>
-                <?php } ?>
-
-                <?php if (!empty($altre_cariche)) { ?>
-                    <article id="altre-cariche" class="it-page-section anchor-offset mt-3">
-                        <h2 class="title-xlarge mb-3">Altre cariche</h2>
-
-                        <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-                            <div class="richtext-wrapper lora">
-
-                                <?php foreach ($altre_cariche as $file_url) :
-
-                                    $documento_id = attachment_url_to_postid($file_url);
-                                    $documento = $documento_id ? get_post($documento_id) : null;
-
-                                    $titolo = $documento ? $documento->post_title : basename($file_url);
-                                ?>
-                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                        <svg class="icon" aria-hidden="true">
-                                            <use xlink:href="#it-clip"></use>
-                                        </svg>
-
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="text-decoration-none"
-                                                href="<?php echo esc_url($file_url); ?>"
-                                                target="_blank"
-                                                aria-label="Visualizza il documento <?php echo esc_attr($titolo); ?>"
-                                                title="Scarica il documento <?php echo esc_attr($titolo); ?>">
+                                            class="text-decoration-none flex-grow-1">
+                                                <span class="card-title fs-6">
                                                     <?php echo esc_html($titolo); ?>
-                                                </a>
-                                            </h5>
+                                                </span>
+                                            </a>
                                         </div>
                                     </div>
-                                <?php endforeach; ?>
-                            </div>
+                                </div>
+                            <?php endif; endforeach; ?>
                         </div>
                     </article>
-                <?php } ?>
+                    <?php } ?>
 
-            <?php if ($gallery && $gallery !== []){?>
-                <section class="it-page-section mb-20 mt-5">
-                <h2 class="title-xlarge mb-3" id="gallery">Galleria</h2>
-                <article class="it-page-section it-grid-list-wrapper anchor-offset mt-5">
-                        <?php get_template_part("template-parts/single/gallery"); ?>
-                    </article>
-                </section>
-                <!-- Stile galleria foto -->
-                <style>
-                .it-grid-item-wrapper {
-                    /* Imposta una larghezza fissa per il contenitore dell'immagine/audio se necessario */
-                    width: 100%;
-                }
 
-                .img-responsive-wrapper {
-                    display: flex;
-                    justify-content: center; /* Centratura orizzontale */
-                }
+            <!-- Relazioni inizio mandato -->
+           <?php if (!empty($relazioni_inizio_mandato)) { ?>
+            <section class="it-page-section mb-auto mt-3">
+                <h2 class="title-xlarge mb-3" id="relazioni-inizio-mandato">Relazioni di inizio mandato</h2>
+                <div class="row">
+                    <?php
+                        foreach ($relazioni_inizio_mandato as $relazione) {
+                            $documento_id = attachment_url_to_postid($relazione);
+                            $documento = get_post($documento_id);
+                            $url_relazone_inizio = is_numeric($relazione) ? wp_get_attachment_url($relazione) : $relazione;
+                            
+                            $nome_relazione = $documento ? $documento->post_title : basename($relazione);
 
-                </style>
+                            // Formato del titolo del documento: se è tutto in maiuscolo, lo formatto in minuscolo con prima lettera maiuscola, altrimenti lo lascio com'è
+                            $titolo_relazione_inizio = wp_strip_all_tags($nome_relazione);
+                            if (strlen($nome_relazione) > 30) $titolo_relazione_inizio = substr($nome_relazione, 0, 30) . '...';
+                            if (preg_match('/[A-Z]{5,}/', $nome_relazione)) $titolo_relazione_inizio = ucfirst(strtolower($nome_relazione));
+                            if($url_relazone_inizio) :
+                    ?>
+                                <div class="col-12 col-lg-6 mb-3">
+                                    <div class="card card-teaser shadow-sm p-3 h-100">
+                                        <div class="card-body d-flex align-items-center h-100">
+                                            <svg class="icon icon-primary me-2"><use href="#it-file"></use></svg>
+                                            <a href="<?php echo esc_url($url_relazone_inizio); ?>" target="_blank"  aria-label="Scarica il documento <?php echo esc_html($titolo_relazione_inizio); ?>" title="Scarica il documento <?php echo esc_html($titolo_relazione_inizio); ?>" class="text-decoration-none flex-grow-1">
+                                                <span class="card-title fs-6 fs-sm-7"><?php echo esc_html($titolo_relazione_inizio); ?></span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        <?php } ?>
+                </div>
+            </section>
             <?php } ?>
+
+            <!-- Relazioni fine mandato -->
+            <?php if (!empty($relazioni_fine_mandato)) { ?>
+            <section class="it-page-section mb-auto mt-3">
+                <h2 class="title-xlarge mb-3" id="relazioni-fine-mandato">Relazioni di fine mandato</h2>
+                <div class="row">
+                    <?php
+                        foreach ($relazioni_fine_mandato as $relazione) {
+                            $documento_id = attachment_url_to_postid($relazione);
+                            $documento = get_post($documento_id);
+                            $url_relazone_fine = is_numeric($relazione) ? wp_get_attachment_url($relazione) : $relazione;
+                            
+                            $nome_relazione = $documento ? $documento->post_title : basename($relazione);
+
+                            // Formato del titolo del documento: se è tutto in maiuscolo, lo formatto in minuscolo con prima lettera maiuscola, altrimenti lo lascio com'è
+                            $titolo_relazione_fine = wp_strip_all_tags($nome_relazione);
+                            if (strlen($nome_relazione) > 30) $titolo_relazione_fine = substr($nome_relazione, 0, 30) . '...';
+                            if (preg_match('/[A-Z]{5,}/', $nome_relazione)) $titolo_relazione_fine = ucfirst(strtolower($nome_relazione));
+                            if($url_relazone_fine) :
+                    ?>
+                                <div class="col-12 col-lg-6 mb-3">
+                                    <div class="card card-teaser shadow-sm p-3 h-100">
+                                        <div class="card-body d-flex align-items-center h-100">
+                                            <svg class="icon icon-primary me-2"><use href="#it-file"></use></svg>
+                                            <a href="<?php echo esc_url($url_relazone_fine); ?>" target="_blank"  aria-label="Scarica il documento <?php echo esc_html($titolo_relazione_fine); ?>" title="Scarica il documento <?php echo esc_html($titolo_relazione_fine); ?>" class="text-decoration-none flex-grow-1">
+                                                <span class="card-title fs-6 fs-sm-7"><?php echo esc_html($titolo_relazione_fine); ?></span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        <?php } ?>
+                </div>
+            </section>
+            
+            <?php } ?>
+
+            <!-- Altri Documenti -->
+            <?php if (!empty($altri_documenti)) : ?>
+            <section class="it-page-section mb-auto mt-3">
+                <h2 class="title-xlarge mb-3" id="altri-documenti">Altri documenti</h2>
+                <div class="row">
+                    <?php foreach ($altri_documenti as $doc_id) : 
+                        // Se $doc_id è un URL, lo usiamo direttamente, altrimenti recuperiamo l'attachment
+                        $url = is_numeric($doc_id) ? wp_get_attachment_url($doc_id) : $doc_id;
+                        $nome_file = is_numeric($doc_id) ? get_the_title($doc_id) : basename($doc_id);
+                        
+                        // Formatazione del titolo del file: rimuove tag, limita la lunghezza e formatta parole in maiuscolo
+                        $title_documento = wp_strip_all_tags($nome_file);
+                        if (strlen($nome_file) > 30) $title_documento = substr($nome_file, 0, 30) . '...';
+                        if (preg_match('/[A-Z]{5,}/', $nome_file)) $title_documento = ucfirst(strtolower($nome_file));
+                        if ($url) : ?>
+                            <div class="col-12 col-lg-6 mb-3">
+                                <div class="card card-teaser shadow-sm p-3 h-100">
+                                    <div class="card-body d-flex align-items-center h-100">
+                                        <svg class="icon icon-primary me-2"><use href="#it-file"></use></svg>
+                                        <a href="<?php echo esc_url($url); ?>" target="_blank"  aria-label="Scarica il documento <?php echo esc_html($title_documento); ?>" title="Scarica il documento <?php echo esc_html($title_documento); ?>" class="text-decoration-none flex-grow-1">
+                                            <span class="card-title fs-6 fs-sm-7"><?php echo esc_html($title_documento); ?></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                    <?php endif; 
+                    endforeach; ?>
+                </div>
+            </section>
+            <?php endif; ?>
 
 
             <!-- CONTATTI -->
             <?php if (!empty($punti_contatto)) { ?>
-                <section class="it-page-section mb-20 mt-3">
+                <section class="it-page-section mb-auto mt-3">
                     <h2 class="title-xlarge mb-3" id="contatti">Contatti</h2>
 
                     <div class="richtext-wrapper lora">
@@ -823,9 +979,9 @@ get_header();
             <?php } ?>
 
                 <!-- Aggiungo la sezione ulteriori informazioni in fondo alla pagina -->
-                <section class="it-page-section anchor-offset mt-3">
-                    <h4 class="mb-auto" id="ulteriori-informazioni">Ulteriori informazioni</h4>
-                    <?php if ($ulteriori_informazioni) { ?>
+                <section class="it-page-section anchor-offset mb-auto mt-3">
+                    <h5 class="title-large mb-auto" id="ulteriori-informazioni">Ulteriori informazioni</h5>
+                    <?php if ($ulteriori_informazioni && !empty($ulteriori_informazioni)) { ?>
                         <div class="richtext-wrapper lora">
                             <?php echo esc_html($ulteriori_informazioni); ?>
                         </div>

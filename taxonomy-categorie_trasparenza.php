@@ -6,7 +6,7 @@
  * @package Design_Comuni_Italia
  */
 
-global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici, $tipo_personalizzato;
+global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici, $tipo_personalizzato, $dci_amm_sidebar_column_classes;
 
 $obj = get_queried_object();
 
@@ -50,6 +50,8 @@ if ($obj instanceof WP_Term && isset($obj->taxonomy) && $obj->taxonomy === 'tipi
 }
 
 get_header();
+
+$dci_amm_sidebar_column_classes = 'pt-30 pt-lg-50 pb-lg-50';
 
 if (!function_exists('dci_render_trasparenza_light_bg_style')) {
     function dci_render_trasparenza_light_bg_style()
@@ -490,8 +492,6 @@ $portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");
 
 // Se è attiva la trasparenza esterna, non visualizzare questi elementi
 if ($portalesoloperusoesterno !== 'true') {
-
-
             get_template_part("template-parts/common/valuta-servizio");
             get_template_part("template-parts/common/assistenza-contatti");
 }
@@ -507,3 +507,5 @@ get_footer();
         }, 100);
     });
 </script>
+
+<?php $dci_amm_sidebar_column_classes = ''; ?>

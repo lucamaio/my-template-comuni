@@ -75,7 +75,8 @@ get_header();
         $documenti = dci_get_meta("allegati", $prefix, $post->ID);
 
         // --- NUOVI LINK ---
-        $link_bdncp = dci_get_meta("link_bdncp", $prefix, $post->ID);
+        // $link_bdncp = dci_get_meta("link_bdncp", $prefix, $post->ID);
+        $link_bdncp = 'https://dati.anticorruzione.it/superset/dashboard/dettaglio_cig/?cig=' . $cig;
         $link_piattaforma = dci_get_meta("link_piattaforma", $prefix, $post->ID);
         $atti_indizione = get_post_meta(get_the_ID(), $prefix . 'atti_indizione_group', true);
         $determine_aggiudicazione = get_post_meta(get_the_ID(), $prefix . 'determine_aggiudicazione_group', true);
@@ -349,7 +350,7 @@ get_header();
                             <h4 id="link-esterni">Link e riferimenti esterni</h4>
                             <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
 
-                                <?php if(!empty($link_bdncp)) { ?>
+                                <?php //if(!empty($link_bdncp)) { ?>
                                     <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
                                         <svg class="icon"><use xlink:href="#it-link"></use></svg>
                                         <div class="card-body">
@@ -359,7 +360,7 @@ get_header();
                                             <p class="card-text">Consulta la scheda del bando sulla Banca Dati Nazionale Contratti Pubblici.</p>
                                         </div>
                                     </div>
-                                <?php } ?>
+                                <?php //} ?>
 
                                 <?php if(!empty($link_piattaforma)) { ?>
                                     <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">

@@ -392,11 +392,42 @@ class Breadcrumb_Trail {
 	
 			    	   if (get_post_type() == 'bando') {					
 	                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
-                                           $this->items[] =  "<a href='/tipi_cat_amm_trasp/bandi-di-gara-e-contratti'>" . __("Bandi di Gara e contratti", "design_comuni_italia") . "</a>";			   
 
-					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/contratti-pubblici'>" . __("Contratti Pubblici", "design_comuni_italia") . "</a>";	
-						
-	                           
+                                           $sezione_bando = get_post_meta( get_the_ID(), '_dci_bando_sezione', true );
+                                           $sezioni_bando = function_exists( 'dci_get_sezioni_bando' ) ? dci_get_sezioni_bando() : [];
+                                           $sezione_label = isset( $sezioni_bando[ $sezione_bando ] ) ? $sezioni_bando[ $sezione_bando ] : '';
+                                           $sezione_term  = $sezione_label ? get_term_by( 'name', $sezione_label, 'tipi_cat_amm_trasp' ) : false;
+
+                                           if ( $sezione_term && ! is_wp_error( $sezione_term ) ) {
+                                               if ( ! empty( $sezione_term->parent ) ) {
+                                                   $parent_term = get_term( $sezione_term->parent, 'tipi_cat_amm_trasp' );
+
+                                                   if ( $parent_term && ! is_wp_error( $parent_term ) ) {
+                                                       $this->items[] = sprintf(
+                                                           '<a href="%s">%s</a>',
+                                                           esc_url( get_term_link( $parent_term, 'tipi_cat_amm_trasp' ) ),
+                                                           $parent_term->name
+                                                       );
+                                                   }
+                                               }
+
+                                               $this->items[] = sprintf(
+                                                   '<a href="%s">%s</a>',
+                                                   esc_url( get_term_link( $sezione_term, 'tipi_cat_amm_trasp' ) ),
+                                                   $sezione_term->name
+                                               );
+                                           } else {
+                                               $parent_term = get_term_by( 'name', 'Bandi di Gara e contratti', 'tipi_cat_amm_trasp' );
+
+                                               if ( $parent_term && ! is_wp_error( $parent_term ) ) {
+                                                   $this->items[] = sprintf(
+                                                       '<a href="%s">%s</a>',
+                                                       esc_url( get_term_link( $parent_term, 'tipi_cat_amm_trasp' ) ),
+                                                       $parent_term->name
+                                                   );
+                                               }
+                                           }
+
 					   // Recupera il titolo della pagina e troncalo a 35 caratteri
 					    $title = get_the_title();
 					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."

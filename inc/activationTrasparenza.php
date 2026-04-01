@@ -4,7 +4,7 @@ function dci_trasparenza_activation() {
     set_time_limit(400);  // Aumenta il timeout
 
     // Inserisce i termini di tassonomia
-    insertTaxonomyTrasparenzaTerms();
+    $stats = insertTaxonomyTrasparenzaTerms();
 
     // Imposta un'opzione per indicare che il setup è avvenuto
     update_option("dci_has_installed", true);
@@ -13,6 +13,8 @@ function dci_trasparenza_activation() {
     if ('' != get_option('default_comment_status')) {
         update_option('default_comment_status', '');
     }
+
+    return $stats;
 }
 add_action('after_switch_theme', 'dci_trasparenza_activation');
 //dci_reload_trasparenza_option_page('themes.php', 'dci_trasparenza_activation');
@@ -31,14 +33,33 @@ function dci_reload_trasparenza_option_page() {
     }
 
     if (isset($_GET["action"]) && $_GET["action"] === "reload") {
-        dci_trasparenza_activation(); // Esegue nuovamente l'attivazione
-        echo '<div class="notice notice-success is-dismissible"><p>Dati ricaricati con successo.</p></div>';
+        $stats = dci_trasparenza_activation(); // Esegue nuovamente l'attivazione
+        $inserted = isset($stats['inserted']) ? (int) $stats['inserted'] : 0;
+        $updated = isset($stats['updated']) ? (int) $stats['updated'] : 0;
+        $descriptions = isset($stats['descriptions_updated']) ? (int) $stats['descriptions_updated'] : 0;
+        echo '<div class="notice notice-success is-dismissible"><p>Dati ricaricati con successo. Voci inserite: <strong>' . esc_html($inserted) . '</strong>, voci aggiornate: <strong>' . esc_html($updated) . '</strong>, descrizioni aggiornate: <strong>' . esc_html($descriptions) . '</strong>.</p></div>';
     }
 
     echo "<div class='wrap'>";
     echo "<h1>Ricarica i dati della Trasparenza</h1>";
     echo '<p>Questa operazione reinserisce le tassonomie e opzioni di default relative alla sezione "Amministrazione Trasparente".</p>';
-    echo '<a href="' . esc_url(admin_url('themes.php?page=reload-trasparenza-theme-options&action=reload')) . '" class="button button-primary">Ricarica Trasparenza</a>';
+    echo '<a id="dci-reload-trasparenza-btn" href="' . esc_url(admin_url('themes.php?page=reload-trasparenza-theme-options&action=reload')) . '" class="button button-primary">Ricarica Trasparenza</a>';
+    echo '<span id="dci-reload-trasparenza-loader" style="display:none; margin-left:12px; align-items:center;"><span class="spinner is-active" style="float:none; margin:0 8px 0 0;"></span>Ricaricamento in corso...</span>';
+    echo "<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var reloadBtn = document.getElementById('dci-reload-trasparenza-btn');
+        var loader = document.getElementById('dci-reload-trasparenza-loader');
+        if (!reloadBtn || !loader) {
+            return;
+        }
+        reloadBtn.addEventListener('click', function () {
+            loader.style.display = 'inline-flex';
+            reloadBtn.classList.add('disabled');
+            reloadBtn.setAttribute('aria-disabled', 'true');
+            reloadBtn.style.pointerEvents = 'none';
+        });
+    });
+    </script>";
     echo "</div>";
 }
 
@@ -219,10 +240,10 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                 "Tempi costi e indicatori di realizzazione delle opere pubbliche"
             ],
             "Pianificazione e governo del territorio" => [
-                "Pianificazione e governo del  territorio" // Ho aggiunto uno spazio per nedere le due categorie diverse in quanto hanno lo stesso nome
+                "Pianificazione e governo del territorio"
             ],
             "Informazioni ambientali" => [
-                "Informazioni  ambientali",  // Ho aggiunto uno spazio per nedere le due categorie diverse in quanto hanno lo stesso nome
+                "Informazioni ambientali",
                 
                 // nuove sotto-voci
                 "Stato dell’ambiente",
@@ -234,10 +255,10 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                 "Relazione sullo stato dell’ambiente del ministero dell’ambiente e della tutela del territorio"
             ],
             "Strutture sanitarie private accreditate" => [
-                "Strutture sanitarie  private accreditate"  // Ho aggiunto uno spazio per nedere le due categorie diverse in quanto hanno lo stesso nome
+                "Strutture sanitarie private accreditate"
             ],
             "Interventi straordinari e di emergenza" => [
-                "Interventi straordinari e di emergenza"  // Ho aggiunto uno spazio per nedere le due categorie diverse in quanto hanno lo stesso nome
+                "Interventi straordinari e di emergenza"
             ],
             // Voce non neccsaria
             // "Utilizzo delle risorse pubbliche" => [
@@ -330,6 +351,11 @@ if (!function_exists("dci_tipi_stato_bando_array")) {
 // Funzione di inserimento tassonomie
 // ===========================
 function insertTaxonomyTrasparenzaTerms() {
+    $stats = [
+        'inserted' => 0,
+        'updated' => 0,
+        'descriptions_updated' => 0,
+    ];
 
     /* --------------------------- */
     /* 1) Inserimento tassonomie   */
@@ -337,7 +363,8 @@ function insertTaxonomyTrasparenzaTerms() {
     // Categorie Trasparenza
     $tipi_cat_amm_trasp_array = dci_tipi_cat_amm_trasp_array();
  // recursionInsertTaxonomy( $tipi_cat_amm_trasp_array, 'tipi_cat_amm_trasp' );
-    recursionInsertTaxonomy1( $tipi_cat_amm_trasp_array, 'tipi_cat_amm_trasp' );
+    $ordine = 1;
+    recursionInsertTaxonomy1( $tipi_cat_amm_trasp_array, 'tipi_cat_amm_trasp', 0, $ordine, $stats );
 
     // Tipi di procedura contraente
     $tipi_procedura_contraente_array = dci_tipi_procedura_contraente_array();
@@ -789,8 +816,10 @@ function insertTaxonomyTrasparenzaTerms() {
 ];
 
     foreach ( $descrizioni as $term_name => $new_desc ) {
-        dci_update_term_description( $term_name, 'tipi_cat_amm_trasp', $new_desc );
+        dci_update_term_description( $term_name, 'tipi_cat_amm_trasp', $new_desc, $stats );
     }
+
+    return $stats;
 }
 
 /**
@@ -800,19 +829,224 @@ function insertTaxonomyTrasparenzaTerms() {
  * @param string $taxonomy  Tassonomia di appartenenza.
  * @param string $new_desc  Nuova descrizione (testo con \n\n per i paragrafi).
  */
-function dci_update_term_description( $term_name, $taxonomy, $new_desc ) {
-    $term = get_term_by( 'name', $term_name, $taxonomy );
+function dci_update_term_description( $term_name, $taxonomy, $new_desc, &$stats = null ) {
+    $terms = get_terms(
+        [
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => false,
+            'name'       => $term_name,
+        ]
+    );
 
-    if ( $term && ( empty( $term->description ) || $term->description !== $new_desc ) ) {
-        wp_update_term(
-            $term->term_id,
-            $taxonomy,
-            [ 'description' => $new_desc ]
-        );
+    if ( is_wp_error( $terms ) || empty( $terms ) ) {
+        return;
+    }
+
+    foreach ( $terms as $term ) {
+        if ( empty( $term->description ) || $term->description !== $new_desc ) {
+            wp_update_term(
+                $term->term_id,
+                $taxonomy,
+                [ 'description' => $new_desc ]
+            );
+            if ( is_array( $stats ) ) {
+                $stats['descriptions_updated']++;
+            }
+        }
     }
 }
 
+/**
+ * Recupera il primo termine che corrisponde esattamente al nome richiesto.
+ *
+ * @param string $term_name
+ * @param string $taxonomy
+ * @param int|null $parent
+ * @return WP_Term|false
+ */
+function dci_find_trasparenza_term_by_name( $term_name, $taxonomy, $parent = null ) {
+    $terms = get_terms(
+        [
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => false,
+            'name'       => $term_name,
+        ]
+    );
 
+    if ( is_wp_error( $terms ) || empty( $terms ) ) {
+        return false;
+    }
+
+    foreach ( $terms as $term ) {
+        if ( null === $parent || (int) $term->parent === (int) $parent ) {
+            return $term;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Normalizza gli spazi per intercettare termini legacy creati con doppi spazi.
+ *
+ * @param string $term_name
+ * @return string
+ */
+function dci_normalize_trasparenza_term_name( $term_name ) {
+    return preg_replace( '/\s+/u', ' ', trim( (string) $term_name ) );
+}
+
+/**
+ * Cerca un termine per nome normalizzato e parent.
+ *
+ * @param string $term_name
+ * @param string $taxonomy
+ * @param int    $parent
+ * @return WP_Term|false
+ */
+function dci_find_trasparenza_term_by_normalized_name( $term_name, $taxonomy, $parent = 0 ) {
+    $terms = get_terms(
+        [
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => false,
+            'parent'     => (int) $parent,
+        ]
+    );
+
+    if ( is_wp_error( $terms ) || empty( $terms ) ) {
+        return false;
+    }
+
+    $normalized_term_name = dci_normalize_trasparenza_term_name( $term_name );
+
+    foreach ( $terms as $term ) {
+        if ( dci_normalize_trasparenza_term_name( $term->name ) === $normalized_term_name ) {
+            return $term;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Costruisce uno slug univoco per la tassonomia Trasparenza tenendo conto del parent.
+ *
+ * @param string $term_name
+ * @param string $taxonomy
+ * @param int    $parent
+ * @return string
+ */
+function dci_build_trasparenza_term_slug( $term_name, $taxonomy, $parent = 0 ) {
+    $base_slug = sanitize_title( $term_name );
+
+    if ( (int) $parent <= 0 ) {
+        return $base_slug;
+    }
+
+    $ancestors = get_ancestors( $parent, $taxonomy, 'taxonomy' );
+    $ancestors = array_reverse( $ancestors );
+    $parts     = [];
+
+    foreach ( $ancestors as $ancestor_id ) {
+        $ancestor = get_term( $ancestor_id, $taxonomy );
+
+        if ( $ancestor && ! is_wp_error( $ancestor ) && ! empty( $ancestor->slug ) ) {
+            $parts[] = $ancestor->slug;
+        }
+    }
+
+    $parent_term = get_term( $parent, $taxonomy );
+    if ( $parent_term && ! is_wp_error( $parent_term ) && ! empty( $parent_term->slug ) ) {
+        $parts[] = $parent_term->slug;
+    }
+
+    $parts[] = $base_slug;
+
+    return implode( '-', array_filter( $parts ) );
+}
+
+/**
+ * Recupera un termine esistente oppure lo crea se manca.
+ * In fase di reload riallinea sempre parent e slug per evitare duplicati.
+ *
+ * @param string $term_name Nome del termine.
+ * @param string $taxonomy  Tassonomia di appartenenza.
+ * @param int    $parent    ID del termine genitore.
+ * @return array{term_id:int,action:string}
+ */
+function dci_upsert_trasparenza_term( $term_name, $taxonomy, $parent = 0 ) {
+    $slug    = dci_build_trasparenza_term_slug( $term_name, $taxonomy, $parent );
+    $term_id = 0;
+    $term    = dci_find_trasparenza_term_by_name( $term_name, $taxonomy, $parent );
+
+    if ( ! $term ) {
+        $term = dci_find_trasparenza_term_by_normalized_name( $term_name, $taxonomy, $parent );
+    }
+
+    if ( ! $term ) {
+        $term = get_term_by( 'slug', $slug, $taxonomy );
+    }
+
+    if ( $term instanceof WP_Term ) {
+        $term_id = (int) $term->term_id;
+        $args    = [];
+        $action  = 'unchanged';
+
+        if ( $term->name !== $term_name ) {
+            $args['name'] = $term_name;
+        }
+
+        if ( (int) $term->parent !== (int) $parent ) {
+            $args['parent'] = (int) $parent;
+        }
+
+        if ( $term->slug !== $slug ) {
+            $args['slug'] = $slug;
+        }
+
+        if ( ! empty( $args ) ) {
+            $updated = wp_update_term( $term_id, $taxonomy, $args );
+
+            if ( ! is_wp_error( $updated ) && isset( $updated['term_id'] ) ) {
+                $term_id = (int) $updated['term_id'];
+            }
+            $action = 'updated';
+        }
+
+        return [
+            'term_id' => $term_id,
+            'action'  => $action,
+        ];
+    }
+
+    $result = wp_insert_term(
+        $term_name,
+        $taxonomy,
+        [
+            'parent' => (int) $parent,
+            'slug'   => $slug,
+        ]
+    );
+
+    if ( is_wp_error( $result ) ) {
+        if ( 'term_exists' === $result->get_error_code() ) {
+            return [
+                'term_id' => (int) $result->get_error_data(),
+                'action'  => 'unchanged',
+            ];
+        }
+
+        return [
+            'term_id' => 0,
+            'action'  => 'error',
+        ];
+    }
+
+    return [
+        'term_id' => isset( $result['term_id'] ) ? (int) $result['term_id'] : 0,
+        'action'  => 'inserted',
+    ];
+}
 
 /**
  * Inserisce / aggiorna i termini e IMPOSTA SEMPRE
@@ -821,9 +1055,7 @@ function dci_update_term_description( $term_name, $taxonomy, $new_desc ) {
  *   – aggiorna sempre lo slug in base al nome del termine
  */
 
-function recursionInsertTaxonomy1( $terms, $taxonomy, $parent = 0, &$ordine = 1 ) {
-
-    $to_hide = dci_terms_to_hide();
+function recursionInsertTaxonomy1( $terms, $taxonomy, $parent = 0, &$ordine = 1, &$stats = null ) {
 
     foreach ( $terms as $key => $children ) {
 
@@ -834,28 +1066,38 @@ function recursionInsertTaxonomy1( $terms, $taxonomy, $parent = 0, &$ordine = 1 
             $term_name = $key;
         }
 
-        $result  = wp_insert_term( $term_name, $taxonomy, [ 'parent' => $parent ] );
-        $term_id = ( is_wp_error( $result ) && 'term_exists' === $result->get_error_code() )
-                 ? (int) $result->get_error_data()
-                 : ( ! is_wp_error( $result ) ? (int) $result['term_id'] : 0 );
+        $upsert  = dci_upsert_trasparenza_term( $term_name, $taxonomy, $parent );
+        $term_id = isset( $upsert['term_id'] ) ? (int) $upsert['term_id'] : 0;
 
         if ( ! $term_id ) {
             continue;
         }
 
-        update_term_meta( $term_id, 'ordinamento', $ordine );
-
-
-
-        
-        $visible = '1'; // di default visibile
-        foreach ($to_hide as $hide_term) {
-            if (strcasecmp(trim($term_name), trim($hide_term)) === 0) {
-                $visible = '0'; // nascondi solo se il nome corrisponde
-                break;
+        if ( is_array( $stats ) ) {
+            if ( isset( $upsert['action'] ) && 'inserted' === $upsert['action'] ) {
+                $stats['inserted']++;
+            } elseif ( isset( $upsert['action'] ) && 'updated' === $upsert['action'] ) {
+                $stats['updated']++;
             }
         }
-        update_term_meta( $term_id, 'visualizza_elemento', $visible );
+
+        $current_order = (string) get_term_meta( $term_id, 'ordinamento', true );
+        $current_visible = (string) get_term_meta( $term_id, 'visualizza_elemento', true );
+        $new_visible = dci_should_hide_trasparenza_term( $term_name ) ? '0' : '1';
+
+        if ( $current_order !== (string) $ordine ) {
+            update_term_meta( $term_id, 'ordinamento', $ordine );
+            if ( is_array( $stats ) && ( ! isset( $upsert['action'] ) || 'inserted' !== $upsert['action'] ) ) {
+                $stats['updated']++;
+            }
+        }
+
+        if ( $current_visible !== $new_visible ) {
+            update_term_meta( $term_id, 'visualizza_elemento', $new_visible );
+            if ( is_array( $stats ) && ( ! isset( $upsert['action'] ) || 'inserted' !== $upsert['action'] ) ) {
+                $stats['updated']++;
+            }
+        }
         
 
 
@@ -869,7 +1111,7 @@ function recursionInsertTaxonomy1( $terms, $taxonomy, $parent = 0, &$ordine = 1 
         $ordine++;
 
         if ( ! empty( $children ) && is_array( $children ) ) {
-            recursionInsertTaxonomy1( $children, $taxonomy, $term_id, $ordine );
+            recursionInsertTaxonomy1( $children, $taxonomy, $term_id, $ordine, $stats );
         }
     }
 }
@@ -883,6 +1125,18 @@ function recursionInsertTaxonomy1( $terms, $taxonomy, $parent = 0, &$ordine = 1 
  * Termini che NON devono comparire nei radio‑button di CMB2.
  * Scrivi i nomi esattamente come compaiono nell’array principale.
  */
+function dci_should_hide_trasparenza_term( $term_name ) {
+    $term_name = mb_strtolower( trim( (string) $term_name ) );
+
+    foreach ( dci_terms_to_hide() as $hide_term ) {
+        if ( $term_name === mb_strtolower( trim( (string) $hide_term ) ) ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function dci_terms_to_hide() {
     return [
         'Incarichi conferiti e autorizzati ai dipendenti',

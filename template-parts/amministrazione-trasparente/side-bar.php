@@ -1,5 +1,5 @@
 <?php
-global $siti_tematici, $dci_amm_sidebar_embedded, $dci_amm_sidebar_sections;
+global $siti_tematici, $dci_amm_sidebar_embedded, $dci_amm_sidebar_sections, $dci_amm_sidebar_column_classes;
 
 if (!function_exists('dci_amm_sidebar_term_is_visible')) {
     function dci_amm_sidebar_term_is_visible($term)
@@ -244,6 +244,7 @@ $current_term = ($current_term instanceof WP_Term && isset($current_term->taxono
 $root_term = dci_amm_sidebar_get_root_term($current_term);
 $root_term = dci_amm_sidebar_term_is_visible($root_term) ? $root_term : null;
 $embedded = !empty($dci_amm_sidebar_embedded);
+$sidebar_column_classes = !empty($dci_amm_sidebar_column_classes) ? trim((string) $dci_amm_sidebar_column_classes) : '';
 $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_filter($dci_amm_sidebar_sections)) : [];
 ?>
 
@@ -475,7 +476,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
 </style>
 
 <?php if (!$embedded) { ?>
-    <div class="col-12 col-lg-4 dci-amm-sidebar">
+    <div class="col-12 col-lg-4 dci-amm-sidebar<?php echo $sidebar_column_classes !== '' ? ' ' . esc_attr($sidebar_column_classes) : ''; ?>">
 <?php } ?>
 
     <div class="dci-amm-sidebar<?php echo $embedded ? ' dci-amm-sidebar--embedded' : ''; ?>">

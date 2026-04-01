@@ -307,16 +307,17 @@ function dci_add_bando_metaboxes()
     // ============================================================
     // LINK BDNCP (singolo - obbligatorio)
     // ============================================================
-    $cmb_links->add_field(array(
-        'name' => __('BDNCP (Banca Dati Nazionale Contratti Pubblici) *', 'design_comuni_italia'),
-        'desc' => __('Collegamento alla scheda del bando pubblicata sulla piattaforma ANAC.', 'design_comuni_italia'),
-        'id'   => $prefix . 'link_bdncp',
-        'type' => 'text_url',
-        'attributes' => array(
-            'required' => 'required'
-        ),
-    ));
-
+    // $cmb_links->add_field(array(
+    //     'name' => __('BDNCP (Banca Dati Nazionale Contratti Pubblici) *', 'design_comuni_italia'),
+    //     'desc' => __('Collegamento alla scheda del bando pubblicata sulla piattaforma ANAC.', 'design_comuni_italia'),
+    //     'id'   => $prefix . 'link_bdncp',
+    //     'type' => 'text_url',
+    //     'attributes' => array(
+    //         'required' => 'required'
+    //     ),
+    // ));
+    
+    // Rimosso in quanto semplicemnte basta inserire il cig qui e visualizzo i dati relativi: https://dati.anticorruzione.it/superset/dashboard/dettaglio_cig/?cig=
     // ============================================================
     // PIATTAFORMA DI APPROVVIGIONAMENTO (singolo - obbligatorio)
     // ============================================================

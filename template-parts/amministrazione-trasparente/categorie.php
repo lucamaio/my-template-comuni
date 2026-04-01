@@ -1,5 +1,7 @@
 <?php
-global $sito_tematico_id, $siti_tematici;
+global $sito_tematico_id, $siti_tematici, $dci_amm_sidebar_column_classes;
+
+$dci_amm_sidebar_column_classes = 'pt-30 pt-lg-50 pb-lg-50';
 
 $categorie_genitori = get_terms('tipi_cat_amm_trasp', [
     'hide_empty' => false,
@@ -650,10 +652,12 @@ document.addEventListener('click', function(event) {
                             <?php } ?>
                         </div>
                     </div>
-
                     <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                 </div>
             </div>
         </form>
     </div>
 </main>
+
+<?php
+$dci_amm_sidebar_column_classes = '';

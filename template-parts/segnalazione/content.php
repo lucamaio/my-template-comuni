@@ -2,6 +2,8 @@
 <?php
 
     $disservizi = dci_get_disservizi_names();
+    $privacy_url = dci_get_template_page_url('page-templates/privacy.php') ?: home_url('/page-templates/privacy');
+    $area_riservata_url = dci_get_option('area_riservata') ?: wp_login_url();
 
     $uffici = get_posts(array(
         'posts_per_page' => -1,
@@ -35,7 +37,7 @@
             </p>
             <p class="text-paragraph mb-0">
               Per i dettagli sul trattamento dei dati personali consulta l’
-              <a href="#" class="t-primary">informativa sulla privacy.</a>
+              <a href="<?php echo esc_url($privacy_url); ?>" class="t-primary">informativa sulla privacy.</a>
             </p>
     
             <div class="form-check mt-4 mb-3 mt-md-40 mb-lg-40">
@@ -62,10 +64,10 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="select-wrapper p-0 mt-1 select-partials">
-                        <label for="appointment" class="visually-hidden">
+                        <label for="luogo-disservizio" class="visually-hidden">
                             Indica il luogo del disservizio
                         </label>
-                        <select id="appointment" class="">
+                        <select id="luogo-disservizio" class="">
                             <option selected="selected" value="">
                                 Indica il luogo del disservizio
                             </option>
@@ -105,7 +107,7 @@
                         <label for="motivo-appuntamento" class="visually-hidden">
                             Tipologia di Disservizio
                         </label>
-                        <select id="appointment" class="">
+                        <select id="motivo-appuntamento" class="">
                             <option selected="selected" value="">
                                 Tipologia di Disservizio
                             </option>
@@ -135,95 +137,14 @@
             </div>
         </div>
         <div class="cmp-card">
-      <div class="card has-bkg-grey shadow-sm">
-        <div class="card-header border-0 p-0 mb-lg-30 m-0">
-          <div class="d-flex">
-                <h2 class="title-xxlarge mb-1">Autore della segnalazione</h2>
-          </div>
-          <p class="subtitle-small mb-0">Informazione su di te</p>
-    
-    
-    
-    
+            <div class="card has-bkg-grey shadow-sm p-big">
+                <div class="card-body p-0">
+                    <p class="subtitle-small mb-0">
+                        I dati del richiedente verranno inseriti nel passaggio successivo.
+                    </p>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-0">
-          
-                        <div class="cmp-info-button-card mt-3">
-                          <div class="card p-3 p-lg-4">
-                            <div class="card-body p-0">
-                              <h3 class="big-title mb-0">Mario Rossi</h3>
-                        
-                        
-                        
-                        
-                              <p class="card-info">Codice Fiscale <br> <span>GLABNC72H25H501Y</span></p>
-                        
-                        
-                              <div class="accordion-item">
-                                <div class="accordion-header" id="heading-collapse-parents">
-                                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-parents" aria-expanded="true" aria-controls="collapse-parents" data-focus-mouse="false">
-                                    <span class="d-flex align-items-center">
-                                    Mostra tutto
-                                      <svg class="icon icon-primary icon-sm">
-                                        <use href="../assets/bootstrap-italia/dist/svg/sprites.svg#it-expand"></use>
-                                      </svg>
-                                    </span>
-                                  </button>
-                              
-                              
-                                </div>
-                                <div id="collapse-parents" class="accordion-collapse collapse show" role="region" style="">
-                                  <div class="accordion-body p-0">
-                                    <div class="cmp-info-summary bg-white has-border">
-                                      <div class="card">
-                                    
-                                        <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between d-flex justify-content-end">
-                                          <h4 class="title-large-semi-bold mb-3">Contatti</h4>
-                                          <a href="#" class="d-none text-decoration-none"><span class="text-button-sm-semi t-primary">Modifica</span></a>
-                                        </div>
-                                    
-                                        <div class="card-body p-0">
-                                          <div class="single-line-info border-light">
-                                            <div class="text-paragraph-small">Telefono</div>
-                                            <div class="border-light">
-                                              <p class="data-text">
-                                                +39 331 1234567
-                                              </p>
-                                    
-                                    
-                                    
-                                            </div>
-                                          </div>
-                                          <div class="single-line-info border-light">
-                                            <div class="text-paragraph-small">Email</div>
-                                            <div class="border-light">
-                                              <p class="data-text">
-                                                mario.rossi@gmail.com
-                                              </p>
-                                    
-                                    
-                                    
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <div class="card-footer p-0 d-none">
-                                        </div>
-                                      </div>
-                                    </div>    </div>
-                                </div>
-                              </div>
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                            </div>
-                          </div>
-                        </div>    </div>
-      </div>
-    </div>
     </section>
 
     <!-- Step 3 -->
@@ -287,7 +208,7 @@
         <p class="subtitle-small pb-40 mb-0 d-lg-none">
             Hai un’identità digitale SPID o CIE?
             <a class="title-small-semi-bold t-primary underline"
-                href="./iscrizione-graduatoria-accedere-servizio.html"
+                href="<?php echo esc_url($area_riservata_url); ?>"
             >
                 Accedi
             </a>

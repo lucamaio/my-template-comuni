@@ -262,8 +262,13 @@ appointment.addEventListener("change", () => {
   answers.appointment = null;
   checkMandatoryFields();
 
-  // modificare l'url se si vuole integrare con un servizio esterno
-  fetch(url + `?month=${appointment?.value}&office=${answers?.place?.id}`)
+  const urlParam = new URLSearchParams({
+    id: answers?.office?.id,
+    month: appointment?.value,
+    year: new Date().getFullYear(),
+  });
+
+  fetch(`${window.wpRestApi}wp/v2/appuntamenti/ufficio/?${urlParam}`)
     .then((response) => {
       if (!response.ok) {
         throw new Error("HTTP error " + response.status);
@@ -271,9 +276,17 @@ appointment.addEventListener("change", () => {
       return response.json();
     })
     .then((data) => {
-      data = data[appointment?.value]
+      data = Array.isArray(data) ? data : data?.[appointment?.value] || [];
       document.querySelector("#radio-appointment").innerHTML =
         '<legend class="visually-hidden">Seleziona un giorno e orario</legend>';
+
+      if (!data.length) {
+        document.querySelector("#radio-appointment").innerHTML += `
+        <p class="mt-2 mb-0">Nessun appuntamento disponibile per il mese selezionato.</p>
+        `;
+        return;
+      }
+
       for (const dates of data) {
         const { startDate, endDate } = dates;
         const startDay = startDate.split("T")[0];

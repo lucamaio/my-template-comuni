@@ -8,6 +8,17 @@
  *
  * @package Design_Comuni_Italia
  */
+
+$external_only_raw = dci_get_option('ck_portalesoloperusoesterno');
+$is_external_only = in_array(strtolower((string) $external_only_raw), array('1', 'true', 'yes', 'on'), true);
+if ($is_external_only && function_exists('dci_get_external_footer_payload')) {
+    $external_footer = dci_get_external_footer_payload();
+    if (is_array($external_footer) && !empty($external_footer['html'])) {
+        echo $external_footer['html'];
+        wp_footer();
+        return;
+    }
+}
 ?>
 
 <section class="cookiebar fade" aria-label="Gestione dei cookies" aria-live="polite">

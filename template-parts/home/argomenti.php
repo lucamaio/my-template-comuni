@@ -14,6 +14,7 @@ $check_immagini = dci_get_option('ch_show_sfondo_argomenti','homepage');
 
 $img_default = get_template_directory_uri() . '/assets/img/bg_placeholder-blu.png';
 $img_ricavata = dci_get_option('immagine-argomenti','homepage');
+$has_custom_bg = (isset($img_ricavata) && !empty($img_ricavata) && $img_ricavata !== null);
 $img = (isset($img_ricavata) && !empty($img_ricavata) && $img_ricavata !== null)
     ? $img_ricavata
     : $img_default;
@@ -107,28 +108,33 @@ $img = (isset($img_ricavata) && !empty($img_ricavata) && $img_ricavata !== null)
 <br><br>
 
 <style>
-/* Sfondo sezione Argomenti in Evidenza */
+/* Sfondo sezione Argomenti in Evidenza (dinamico sul colore tema primaria) */
 .argomenti-evidenza-bg {
-    background-image: url('<?= $img ?>');
+    background-color: var(--bs-primary, #026e64);
+    <?php if ($has_custom_bg) { ?>
+    background-image: url('<?php echo esc_url($img); ?>');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    <?php } ?>
     position: relative;
     padding: 60px 0;
-    overflow: hidden; /* Assicura che il pseudo-elemento non esca dai bordi */
+    overflow: hidden;
+    isolation: isolate;
 }
 
-/* Overlay sfocato e opaco */
+/* Layer geometrico simile al precedente sfondo immagine */
 .argomenti-evidenza-bg::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.2); /* Opacità nera: 0.4 puoi regolare */
-    /* backdrop-filter: blur(0.1rem);  */
+    inset: 0;
     z-index: 1;
+    background:
+        <?php if (!$has_custom_bg) { ?>
+        linear-gradient(160deg, rgba(255, 255, 255, 0.08) 8%, transparent 8%) 0 0 / 42% 100% no-repeat,
+        linear-gradient(20deg, rgba(255, 255, 255, 0.09) 10%, transparent 10%) 100% 0 / 48% 100% no-repeat,
+        <?php } ?>
+        linear-gradient(120deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.1));
 }
 
 /* Contenuto sopra l'overlay */

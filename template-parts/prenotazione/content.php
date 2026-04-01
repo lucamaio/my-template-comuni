@@ -1,7 +1,19 @@
 <?php
     $uffici = get_posts(array(
         'posts_per_page' => -1,
-        'post_type' => 'unita_organizzativa'
+        'post_type' => 'unita_organizzativa',
+        'meta_query' => array(
+            'relation' => 'AND',
+            array(
+                'key' => '_dci_unita_organizzativa_orario_uo',
+                'compare' => 'EXISTS',
+            ),
+            array(
+                'key' => '_dci_unita_organizzativa_orario_uo',
+                'value' => '',
+                'compare' => '!=',
+            ),
+        ),
     ));
 
     $months = array();
@@ -12,7 +24,21 @@
         if($currentMonth >= 12) $currentMonth = 0;
         $currentMonth++;
     }
+    $privacy_url = dci_get_template_page_url('page-templates/privacy.php') ?: home_url('/page-templates/privacy');
+    $area_riservata_url = dci_get_option('area_riservata') ?: wp_login_url();
 ?>
+
+<style>
+    #radio-appointment {
+        max-height: 420px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    #radio-appointment .radio-body label {
+        overflow-wrap: anywhere;
+    }
+</style>
 
 <div class="it-page-sections-container">
 
@@ -160,10 +186,14 @@
 
     <!-- Step 4 -->
     <section class="d-none page-step it-page-section" data-steps="4">
+        <p class="text-paragraph mb-3">
+            Per i dettagli sul trattamento dei dati personali consulta l’
+            <a href="<?php echo esc_url($privacy_url); ?>" class="t-primary">informativa sulla privacy.</a>
+        </p>
         <p class="subtitle-small pb-40 mb-0 d-lg-none">
             Hai un’identità digitale SPID o CIE?
             <a class="title-small-semi-bold t-primary underline"
-                href="./iscrizione-graduatoria-accedere-servizio.html"
+                href="<?php echo esc_url($area_riservata_url); ?>"
             >
                 Accedi
             </a>

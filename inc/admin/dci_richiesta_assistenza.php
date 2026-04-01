@@ -29,7 +29,9 @@ function dci_register_post_type_richiesta_assistenza() {
         'menu_position'      => 5,
         'menu_icon'          => 'dashicons-media-spreadsheet',
         'has_archive'        => false,
-        'capability_type'    => array('richiesta_assistenza', 'richieste_assistenza'),
+        // Usiamo capability standard "post" per rendere il menu visibile agli utenti admin/editor
+        // senza dover assegnare capability personalizzate aggiuntive.
+        'capability_type'    => 'post',
         'capabilities'       => array(
             'create_posts' => 'do_not_allow'
         ),
@@ -209,4 +211,3 @@ add_action( 'do_meta_boxes', 'dci_richiesta_assistenza_remove_publish_mbox', 10,
 function dci_richiesta_assistenza_remove_publish_mbox($post_type, $position, $post){
     remove_meta_box('submitdiv','richiesta_assistenza','side');
 }
-

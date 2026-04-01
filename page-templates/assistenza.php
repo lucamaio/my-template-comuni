@@ -23,7 +23,9 @@ get_header();
 		while ( have_posts() ) :
 			the_post();
 
-			$description = dci_get_meta('descrizione','_dci_page_',$post->ID);
+				$description = dci_get_meta('descrizione','_dci_page_',$post->ID);
+            $privacy_url = dci_get_template_page_url('page-templates/privacy.php') ?: home_url('/page-templates/privacy');
+            $area_riservata_url = dci_get_option('area_riservata') ?: wp_login_url();
             $categorie_servizio = get_terms(array (
                 'taxonomy' => 'categorie_servizio',
                 'orderby' => 'name',
@@ -51,7 +53,7 @@ get_header();
                     </div>
                     <p class="subtitle-small pb-40 mb-0">
                         Hai un’identità digitale SPID o CIE?
-                        <a href="#">Accedi</a>
+                        <a href="<?php echo esc_url($area_riservata_url); ?>">Accedi</a>
                     </p>
                 </div>
             </div>
@@ -215,7 +217,7 @@ get_header();
                             <div class="privacy-wrapper">
                                 <p class="text-paragraph mb-3">
                                     Per i dettagli sul trattamento dei dati personali consulta l’
-                                    <a href="#" class="t-primary">informativa sulla privacy.</a>
+                                    <a href="<?php echo esc_url($privacy_url); ?>" class="t-primary">informativa sulla privacy.</a>
                                 </p>
 
                                 <div class="form-check mb-2">

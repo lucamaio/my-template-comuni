@@ -666,6 +666,58 @@ add_action('admin_init', function() {
 
 
 
+// FORZA CREAZIONE PAGINA ORGANIGRAMMA UFFICI
+add_action('init', function () {
+
+    $slug  = 'uffici-organigramma';
+    $title = 'Uffici Organigramma';
+
+    $page = get_page_by_path($slug);
+
+    if (!$page) {
+
+        // Creo la pagina
+        wp_insert_post([
+            'post_title'   => $title,
+            'post_name'    => $slug,
+            'post_status'  => 'publish',
+            'post_type'    => 'page',
+            'post_content' => '',
+        ]);
+
+    } else {
+
+        $update = [];
+
+        // Corregge titolo se modificato
+        if ($page->post_title !== $title) {
+            $update['post_title'] = $title;
+        }
+
+        // Corregge slug se modificato
+        if ($page->post_name !== $slug) {
+            $update['post_name'] = $slug;
+        }
+
+        // Assicura che sia pubblicata
+        if ($page->post_status !== 'publish') {
+            $update['post_status'] = 'publish';
+        }
+
+        // Assicura che sia una pagina
+        if ($page->post_type !== 'page') {
+            $update['post_type'] = 'page';
+        }
+
+        if (!empty($update)) {
+            $update['ID'] = $page->ID;
+            wp_update_post($update);
+        }
+    }
+
+});
+
+
 
 
 

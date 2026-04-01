@@ -36,14 +36,16 @@ function borderCardRadio(){var t=document.querySelectorAll(".radio-card");docume
           </div>
           `}borderCardRadio()}).catch(e=>{console.log("err",e)}),fetch(window.wpRestApi+"wp/v2/servizi/ufficio?"+e).then(e=>e.json()).then(e=>{document.querySelector("#motivo-appuntamento").innerHTML='<option selected="selected" value="">Seleziona opzione</option>';for(const t of e)document.querySelector("#motivo-appuntamento").innerHTML+=`
           <option value="${t?.ID}">${t?.post_title}</option>
-          `}).catch(e=>{console.log("err",e)})):document.querySelector("#place-cards-wrapper").innerHTML=""}),document.getElementById("appointment")),setSelectedPlace=(appointment.addEventListener("change",()=>{answers.appointment=null,checkMandatoryFields(),fetch(url+(`?month=${appointment?.value}&office=`+answers?.place?.id)).then(e=>{if(e.ok)return e.json();throw new Error("HTTP error "+e.status)}).then(e=>{e=e[appointment?.value],document.querySelector("#radio-appointment").innerHTML='<legend class="visually-hidden">Seleziona un giorno e orario</legend>';for(const s of e){var{startDate:t,endDate:n}=s,r=t.split("T")[0],r=new Date(r).toLocaleString([],{weekday:"long",day:"2-digit",month:"long",year:"numeric"}),a=t+"/"+n,n=encodeObject({startDate:t,endDate:n});document.querySelector("#radio-appointment").innerHTML+=`
+          `}).catch(e=>{console.log("err",e)})):document.querySelector("#place-cards-wrapper").innerHTML=""}),document.getElementById("appointment")),setSelectedPlace=(appointment.addEventListener("change",()=>{answers.appointment=null,checkMandatoryFields();var e=new URLSearchParams({id:answers?.office?.id,month:appointment?.value,year:(new Date).getFullYear()});fetch(window.wpRestApi+"wp/v2/appuntamenti/ufficio/?"+e).then(e=>{if(e.ok)return e.json();throw new Error("HTTP error "+e.status)}).then(e=>{if(e=Array.isArray(e)?e:e?.[appointment?.value]||[],document.querySelector("#radio-appointment").innerHTML='<legend class="visually-hidden">Seleziona un giorno e orario</legend>',e.length)for(const s of e){var{startDate:t,endDate:n}=s,r=t.split("T")[0],r=new Date(r).toLocaleString([],{weekday:"long",day:"2-digit",month:"long",year:"numeric"}),a=t+"/"+n,n=encodeObject({startDate:t,endDate:n});document.querySelector("#radio-appointment").innerHTML+=`
         <div
         class="radio-body border-bottom border-light"
         >
         <input name="radio" type="radio" id="${a}" onclick="saveAnswerByValue('appointment', '${n}', true)"/>
         <label for="${a}" class="text-capitalize">${r} ore ${t.split("T")[1]}</label>
         </div>
-        `}}).catch(e=>{console.log("err",e)})}),()=>{var e=answers?.place;document.querySelector("#selected-place-card").innerHTML=`  
+        `}else document.querySelector("#radio-appointment").innerHTML+=`
+        <p class="mt-2 mb-0">Nessun appuntamento disponibile per il mese selezionato.</p>
+        `}).catch(e=>{console.log("err",e)})}),()=>{var e=answers?.place;document.querySelector("#selected-place-card").innerHTML=`  
   <div class="cmp-info-summary bg-white mb-4 mb-lg-30 p-4">
   <div class="card">
       <div

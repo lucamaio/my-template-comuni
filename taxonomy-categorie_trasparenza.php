@@ -368,7 +368,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                     </div>
                 </div>
             </div>
-   <?php } else if($obj->name === "Telefono e posta elettronica" && dci_get_option("ck_portalesoloperusoesterno") !== 'True' ){?>
+   <?php } else if($obj->name === "Telefono e posta elettronica" && dci_get_option("ck_portalesoloperusoesterno") !== 'true' ){?>
         <div class="container my-5">
             <div class="row g-4">
                 <h2 class="visually-hidden">Esplora i contatti del ente</h2>
@@ -378,7 +378,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                 <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
             </div>
         </div>
-   <?php } else if($obj->name === "Articolazione uffici" && dci_get_option("ck_portalesoloperusoesterno") !== 'True' ){?>
+   <?php } else if($obj->name === "Articolazione uffici" && dci_get_option("ck_portalesoloperusoesterno") !== 'true' ){?>
         <div class="container py-5">
             <h2 class="visually-hidden">Esplora l'articolazione degli uffici comunali</h2>
             <?php get_template_part("template-parts/amministrazione-trasparente/articolazione-uffici/tutti-uffici"); ?>

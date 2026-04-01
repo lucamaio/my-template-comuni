@@ -6,7 +6,7 @@ if ( ! isset( $prefix ) ) {
 }
 ?>
 
-<div class="card mb-2 rounded-3 bg-body-secondary shadow-sm">
+<div class="card mb-5 rounded-3 bg-body-secondary shadow-sm">
     <div class="card-body">
         <div class="row g-0">
             <div class="col-md-12 ps-4">

@@ -235,7 +235,6 @@ form.incarichi-filtro-form button.btn-primary {
     cursor: default;
     box-shadow: 0 0 12px rgba(13, 110, 253, 0.75);
 }
-</style>
 @media (max-width: 991.98px) {
     .incarichi-filtro-form__grid {
         grid-template-columns: 1fr 1fr;
@@ -252,3 +251,4 @@ form.incarichi-filtro-form button.btn-primary {
         grid-template-columns: 1fr;
     }
 }
+</style>

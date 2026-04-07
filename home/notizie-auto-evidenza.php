@@ -99,6 +99,9 @@ foreach ($posts as $p) {
          * - la data di scadenza esiste
          * - è precedente a oggi
          * - ed è diversa dalla data di pubblicazione
+         *
+         * Mantengo quindi il confronto tra data pubblicazione e data scadenza,
+         * ma lo faccio confrontando il valore della data e non l'istanza dell'oggetto.
          */
         if (
             $dataScadenza instanceof DateTime &&
@@ -111,6 +114,7 @@ foreach ($posts as $p) {
             continue;
         }
 
+        // Allora imposto la notizia come valida
         $valid_posts[] = $p;
 
     } else {
@@ -120,8 +124,8 @@ foreach ($posts as $p) {
 
 wp_reset_postdata();
 
-$totale = count($valid_posts);
-$rendered = 0;
+$totale = count($valid_posts); // Numero di notizie valide da mostrare
+$rendered = 0; // Contatore per il numero di notizie evidenziate renderizzate
 
 if ($totale === 0) {
     return;
@@ -180,17 +184,10 @@ if ($totale === 0) {
 
             <div class="carousel-item <?php echo $is_active ? 'active' : ''; ?>">
                 <div class="container">
-                    <div class="row flex-column flex-lg-row align-items-start align-items-lg-center g-0">
-
-                        <!-- IMMAGINE -->
-                        <?php if ($img) { ?>
-                            <div class="col-12 col-lg-6 order-1 order-lg-2 col-img d-none d-lg-flex">
-                                <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
-                            </div>
-                        <?php } ?>
+                    <div class="row flex-column flex-lg-row align-items-center g-0">
 
                         <!-- TESTO -->
-                        <div class="col-12 col-lg-6 order-2 order-lg-1 d-flex align-items-start">
+                        <div class="col-12 col-lg-6 order-2 order-lg-1 d-flex align-items-center">
                             <div class="card-body">
 
                                 <div class="category-top d-flex align-items-center mb-2">
@@ -220,7 +217,7 @@ if ($totale === 0) {
 
                                 <!-- Mostra eventuali luoghi -->
                                 <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
-                                    <span class="data fw-normal luogo-wrapper" style="align-items: center !important;" aria-label="Luoghi">
+                                    <span class="data fw-normal" style="align-items: center !important;" aria-label="Luoghi">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
                                             <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
                                         </svg>
@@ -238,34 +235,34 @@ if ($totale === 0) {
                                     <div class="row mt-2 mb-1">
                                         <div class="col-6">
                                             <small>Data:</small>
-                                            <p class="fw-semibold font-monospace mb-0">
+                                            <p class="fw-semibold font-monospace">
                                                 <?php echo esc_html($dayPubblicazione . ' ' . $monthName . ' ' . $yearPubblicazione); ?>
                                             </p>
                                         </div>
                                     </div>
                                 <?php endif; ?>
-
+                               
                                 <!-- Argomenti -->
-                                <?php
-                                $argomenti = wp_get_post_terms($p->ID, 'argomenti');
-                                if (!empty($argomenti) && !is_wp_error($argomenti)) :
-                                ?>
-                                    <small class="mt-2">Argomenti:</small>
-                                    <ul class="d-flex flex-wrap gap-1 list-unstyled mb-0">
-                                        <?php foreach ($argomenti as $item) : ?>
-                                            <li>
-                                                <a class="chip chip-simple" href="<?php echo esc_url(get_term_link($item)); ?>">
-                                                    <span class="chip-label">
-                                                        <?php echo esc_html($item->name); ?>
-                                                    </span>
-                                                </a>
-                                            </li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                <?php endif; ?>
+                               <?php
+                                    $argomenti = wp_get_post_terms($p->ID, 'argomenti');
+                                    if (!empty($argomenti) && !is_wp_error($argomenti)) :
+                                    ?>
+                                        <small>Argomenti:</small>
+                                        <ul class="d-flex flex-wrap gap-1 list-unstyled mb-0">
+                                            <?php foreach ($argomenti as $item) : ?>
+                                                <li>
+                                                    <a class="chip chip-simple" href="<?php echo esc_url(get_term_link($item)); ?>">
+                                                        <span class="chip-label">
+                                                            <?php echo esc_html($item->name); ?>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
 
                                 <a class="read-more mt-4 d-inline-flex align-items-center"
-                                   href="<?php echo esc_url(get_permalink($p->ID)); ?>">
+                                href="<?php echo esc_url(get_permalink($p->ID)); ?>">
                                     <span class="text">Vai alla pagina</span>
                                     <svg class="icon ms-1">
                                         <use xlink:href="#it-arrow-right"></use>
@@ -273,6 +270,13 @@ if ($totale === 0) {
                                 </a>
                             </div>
                         </div>
+
+                        <!-- Immagine -->
+                        <?php if ($img): ?>
+                        <div class="col-12 col-lg-6 order-1 order-lg-2 col-img d-flex">
+                            <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
+                        </div>
+                    <?php endif; ?>
 
                     </div>
                 </div>
@@ -330,14 +334,8 @@ if ($totale === 0) {
 <div class="row single-news single-news-custom">
     <h2 id="novita-in-evidenza" class="visually-hidden">Novità in evidenza</h2>
 
-    <div class="row align-items-start align-items-lg-center">
-        <?php if ($img) { ?>
-            <div class="col-lg-6 offset-lg-1 order-1 order-lg-2 px-0 px-lg-2 col-img d-none d-lg-flex">
-                <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
-            </div>
-        <?php } ?>
-
-        <div class="col-12 col-lg-5 order-2 order-lg-1">
+    <div class="row">
+        <div class="col-lg-5 order-2 order-lg-1">
             <div class="card mb-0">
                 <div class="card-body pb-2">
                     <div class="category-top d-flex align-items-center mb-2">
@@ -353,6 +351,7 @@ if ($totale === 0) {
                             </span>
                         <?php } ?>
                     </div>
+                    
 
                     <a href="<?php echo esc_url(get_permalink($p->ID)); ?>" class="text-decoration-none">
                         <h3 class="card-title">
@@ -366,7 +365,7 @@ if ($totale === 0) {
 
                     <!-- Luoghi -->
                     <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
-                        <span class="data fw-normal luogo-wrapper" style="align-items: center !important;">
+                        <span class="data fw-normal" style="align-items: center !important;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
                                 <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
                             </svg>
@@ -385,7 +384,7 @@ if ($totale === 0) {
                         <div class="row mt-2 mb-1">
                             <div class="col-6">
                                 <small>Data:</small>
-                                <p class="fw-semibold font-monospace mb-0">
+                                <p class="fw-semibold font-monospace">
                                     <?php echo esc_html($dayPubblicazione . ' ' . $monthName . ' ' . $yearPubblicazione); ?>
                                 </p>
                             </div>
@@ -394,45 +393,69 @@ if ($totale === 0) {
 
                     <!-- Argomenti -->
                     <?php
-                    $argomenti = wp_get_post_terms($p->ID, 'argomenti');
-                    if (!empty($argomenti) && !is_wp_error($argomenti)) :
-                    ?>
-                        <small class="mt-2">Argomenti:</small>
-                        <ul class="d-flex flex-wrap gap-1 list-unstyled mb-0">
-                            <?php foreach ($argomenti as $item) : ?>
-                                <li>
-                                    <a class="chip chip-simple" href="<?php echo esc_url(get_term_link($item)); ?>">
-                                        <span class="chip-label">
-                                            <?php echo esc_html($item->name); ?>
-                                        </span>
-                                    </a>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php endif; ?>
+                        $argomenti = wp_get_post_terms($p->ID, 'argomenti');
+                        if (!empty($argomenti) && !is_wp_error($argomenti)) :
+                        ?>
+                            <small>Argomenti:</small>
+                            <ul class="d-flex flex-wrap gap-1 list-unstyled mb-0">
+                                <?php foreach ($argomenti as $item) : ?>
+                                    <li>
+                                        <a class="chip chip-simple" href="<?php echo esc_url(get_term_link($item)); ?>">
+                                            <span class="chip-label">
+                                                <?php echo esc_html($item->name); ?>
+                                            </span>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
 
-                    <a class="read-more mt-4 d-inline-flex align-items-center"
-                       href="<?php echo esc_url(get_permalink($p->ID)); ?>">
-                        <span class="text">Vai alla pagina</span>
-                        <svg class="icon ms-1">
-                            <use xlink:href="#it-arrow-right"></use>
-                        </svg>
-                    </a>
+                <a class="read-more mt-4 d-inline-flex align-items-center"
+                href="<?php echo esc_url(get_permalink($p->ID)); ?>">
+                    <span class="text">Vai alla pagina</span>
+                    <svg class="icon ms-1">
+                        <use xlink:href="#it-arrow-right"></use>
+                    </svg>
+                </a>
                 </div>
             </div>
         </div>
+
+        <?php if ($img): ?>
+        <div class="col-12 col-lg-6 offset-lg-1 order-1 order-lg-2 px-0 px-lg-2 col-img d-flex">
+            <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
+        </div>
+    <?php endif; ?>
+
     </div>
 </div>
 
 <?php wp_reset_postdata(); endif; ?>
 
 <style>
+
+    .argomenti-wrapper {
+    display: block;
+    width: 100%;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+.argomenti-badges {
+    display: block;
+    width: 100%;
+}
+
+.argomenti-badges * {
+    max-width: 100%;
+}
 #carosello-evidenza .card-body .read-more,
 .single-news.single-news-custom .card-body .read-more {
     align-self: flex-start;
     margin-left: 0 !important;
     padding-left: 0 !important;
     text-align: left;
+    align-self: flex-start;
 }
 
 /* Contenitore del carosello */
@@ -446,7 +469,7 @@ if ($totale === 0) {
     min-height: 500px;
 }
 
-/* Desktop: le righe occupano tutta l’altezza */
+/* Forza righe interne a occupare tutta l’altezza */
 #carosello-evidenza .carousel-item > .container,
 #carosello-evidenza .carousel-item .row {
     height: 100%;
@@ -468,13 +491,18 @@ if ($totale === 0) {
     overflow: hidden;
 }
 
-/* Evita overflow visivo desktop */
+/* Mantiene l’immagine sempre visibile anche con testo lungo */
+#carosello-evidenza .col-img {
+    align-items: flex-start !important;
+}
+
+/* Evita overflow visivo */
 #carosello-evidenza .carousel-inner {
     border-radius: 0;
     overflow: hidden;
 }
 
-/* Box immagine */
+/* Immagine: container grigio */
 #carosello-evidenza .col-img {
     display: flex;
     align-items: center;
@@ -483,9 +511,10 @@ if ($totale === 0) {
     min-height: 200px;
 }
 
-/* Immagine carosello */
+/* Immagine: stile base */
 #carosello-evidenza img.img-evidenza {
     max-width: 80%;
+    max-height: 200px;
     width: auto;
     height: auto;
     object-fit: contain;
@@ -503,14 +532,7 @@ if ($totale === 0) {
     padding: 0 1rem;
 }
 
-/* Luoghi */
-.luogo-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-}
-
-/* Versione desktop */
+/* Versione desktop (da 992px in su) */
 @media (min-width: 992px) {
     #carosello-evidenza .card-body {
         padding: 0 1rem;
@@ -523,12 +545,13 @@ if ($totale === 0) {
     }
 
     #carosello-evidenza img.img-evidenza {
+        max-width: auto;
         margin-left: auto;
         margin-right: 0;
     }
 }
 
-/* Stili singolo post */
+/* Stili singolo post con classe personalizzata */
 .single-news.single-news-custom .row .col-lg-6.offset-lg-1.order-1.order-lg-2 {
     display: flex;
     align-items: center;
@@ -537,7 +560,8 @@ if ($totale === 0) {
     padding-right: 3rem;
 }
 
-.single-news.single-news-custom .col-img img.img-fluid.img-evidenza {
+/* Immagine singola */
+.single-news.single-news-custom .col-lg-6.offset-lg-1 img.img-fluid.img-evidenza {
     max-width: 100%;
     max-height: 400px;
     width: auto;
@@ -547,6 +571,7 @@ if ($totale === 0) {
     margin-left: auto;
 }
 
+/* Titolo notizia singola: massimo 3 righe */
 .single-news.single-news-custom h3.card-title {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -555,6 +580,7 @@ if ($totale === 0) {
     text-overflow: ellipsis;
 }
 
+/* Descrizione breve notizia singola: massimo 3 righe */
 .single-news.single-news-custom .descrizione-breve-notizia {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -562,12 +588,12 @@ if ($totale === 0) {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 .single-news.single-news-custom .row .col-lg-5.order-2.order-lg-1 {
     padding-left: 0rem;
     padding-right: 0rem;
 }
 
+/* Stili originali singolo post senza classe custom (per sicurezza) */
 .single-news .row .col-lg-6.offset-lg-1.order-1.order-lg-2 {
     display: flex;
     align-items: center;
@@ -576,44 +602,105 @@ if ($totale === 0) {
     padding-right: 7rem;
 }
 
+/* Vecchio stile immagine singola */
+/*
+.single-news .row .col-lg-6.offset-lg-1.order-1.order-lg-2 img.img-fluid {
+    max-width: 80%;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin-left: auto;
+    transform: translateX(19px);
+}
+*/
+
 .single-news .row .col-lg-5.order-2.order-lg-1 {
     padding-left: 1.5rem;
     padding-right: 1rem;
 }
 
-/* MOBILE */
+/* Modifica per centrare l'immagine sui dispositivi mobili */
 @media (max-width: 991px) {
 
-    /* Centra l'immagine nel carosello e nei post singoli su mobile */
     #carosello-evidenza .col-img,
-    .single-news.single-news-custom .row .col-lg-6.offset-lg-1.order-1.order-lg-2 {
+    .single-news.single-news-custom .col-img {
         justify-content: center;
-        /* Centra orizzontalmente */
+        align-items: center;
+        min-height: auto;
+        padding: 0.75rem 1rem 1rem 1rem;
     }
 
-    /* Centra l'immagine su mobile */
     #carosello-evidenza img.img-evidenza,
-    .single-news.single-news-custom .row .col-lg-6.offset-lg-1.order-1.order-lg-2 img.img-fluid {
+    .single-news.single-news-custom .col-img img.img-fluid.img-evidenza {
+        display: block;
         margin: 0 auto;
-        /* Centra l'immagine */
-        max-width: 80%;
+        max-width: 78%;
+        max-height: 220px !important;
+        width: auto;
         height: auto;
+        object-fit: contain;
     }
 
-     #carosello-evidenza .carousel-item {
-        min-height: 480px;
+    #carosello-evidenza .carousel-item {
+        min-height: auto;
     }
 
     #carosello-evidenza .card-title {
         -webkit-line-clamp: 4;
     }
 
-    /* #carosello-evidenza .carousel-control-prev-icon,
-    #carosello-evidenza .carousel-control-next-icon {
-        width: 36px;
-        height: 36px;
-        background-size: 16px 16px;
-    } */
+    #carosello-evidenza .card-body,
+    .single-news.single-news-custom .card-body {
+        min-height: auto;
+    }
 }
 
+/* Freccette di navigazione */
+/* #carosello-evidenza .carousel-control-prev,
+#carosello-evidenza .carousel-control-next {
+    width: 56px;
+    opacity: 1;
+    color: #000 !important;
+    fill: #000 !important;
+} */
+
+/* Posizionamento più elegante */
+/* #carosello-evidenza .carousel-control-prev {
+    left: 0.5rem;
+} */
+
+/* #carosello-evidenza .carousel-control-next {
+    right: 0.5rem;
+} */
+
+/* Icona freccia: cerchio moderno */
+/* #carosello-evidenza .carousel-control-prev-icon,
+#carosello-evidenza .carousel-control-next-icon {
+    width: 44px;
+    height: 44px;
+    fill: #fff !important;
+    coloe: #fff !important;
+    background-color: rgba(0, 0, 0, 0.35);
+    background-size: 20px 20px;
+    border-radius: 50%;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+} */
+
+/* Hover */
+/* #carosello-evidenza .carousel-control-prev:hover .carousel-control-prev-icon,
+#carosello-evidenza .carousel-control-next:hover .carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.6);
+    transform: scale(1.12);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+} */
+
+/* Focus accessibile */
+/* #carosello-evidenza .carousel-control-prev:focus-visible,
+#carosello-evidenza .carousel-control-next:focus-visible {
+    outline: 2px solid rgba(0, 0, 0, 0.6);
+    outline-offset: 3px;
+} */
 </style>

@@ -589,6 +589,13 @@ function dci_add_servizi_metaboxes() {
             'placeholder' =>  __( 'Seleziona i Documenti Pubblici', 'design_comuni_italia' ),
         ),
     ) );
+    //  Voce allegati
+    $cmb_documenti->add_field(array(
+        'id' => $prefix . 'allegati',
+        'name'        => __('Allegati', 'design_comuni_italia'),
+        'desc' => __('Altri documenti allegati', 'design_comuni_italia'),
+        'type' => 'file_list',
+    ));
 
     //argomenti
     $cmb_argomenti = new_cmb2_box( array(

@@ -107,8 +107,12 @@ get_header();
             };
             
 
+            // Vincoli del servizio e casi particolari 
+            $vincoli = dci_get_meta("vincoli");
+            $casi_particolari = dci_get_meta("casi_particolari");
 
-
+            // Altri allegati
+            $allegati = dci_get_meta("allegati");
             ?>
       <script type="application/ld+json" data-element="metatag">
 {
@@ -251,6 +255,7 @@ get_header();
                                                     <div id="collapse-one" class="accordion-collapse collapse show" role="region" aria-labelledby="accordion-title-one">
                                                         <div class="accordion-body">
                                                             <ul class="link-list" data-element="page-index">
+                                                                <!-- Destinatari -->
                                                                 <?php if ($destinatari ) { ?>
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#who-needs">
@@ -258,6 +263,15 @@ get_header();
                                                                     </a>
                                                                 </li>
                                                                 <?php } ?>
+                                                                <!-- Copertura geografica -->
+                                                                <?php if ($copertura_geografica ) { ?>
+                                                                <li class="nav-item">
+                                                                    <a class="nav-link" href="#copertura-geografica">
+                                                                        <span class="title-medium">Copertura geografica</span>
+                                                                    </a>
+                                                                </li>
+                                                                <?php } ?>
+                                                                <!-- Descrizione -->
                                                                 <?php if ( $descrizione ) { ?>
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#description">
@@ -300,7 +314,15 @@ get_header();
                                                                     </a>
                                                                 </li>
                                                                 <?php } ?>
-
+                                                                <!-- Altri allegati -->
+                                                                <?php if (!empty($allegati) ) { ?>
+                                                                <li class="nav-item">
+                                                                    <a class="nav-link" href="#costs">
+                                                                        <span class="title-medium">Allegati</span>
+                                                                    </a>
+                                                                </li>
+                                                                <?php } ?>
+                                                                <!-- Costi -->
                                                                 <?php if ( $costi ) { ?>
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#costs">
@@ -320,6 +342,22 @@ get_header();
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#conditions">
                                                                         <span class="title-medium">Condizioni di servizio</span>
+                                                                    </a>
+                                                                </li>
+                                                                <?php } ?>
+                                                                <!-- Vincoli del servizio -->
+                                                                <?php if ( $vincoli ) { ?>
+                                                                <li class="nav-item">
+                                                                    <a class="nav-link" href="#constraints">
+                                                                        <span class="title-medium">Vincoli del servizio</span>
+                                                                    </a>
+                                                                </li>
+                                                                <?php } ?>
+                                                                <!-- Casi particolari -->
+                                                                <?php if ( $casi_particolari ) { ?>
+                                                                <li class="nav-item">
+                                                                    <a class="nav-link" href="#particular-cases">
+                                                                        <span class="title-medium">Casi particolari</span>
                                                                     </a>
                                                                 </li>
                                                                 <?php } ?>
@@ -420,14 +458,17 @@ get_header();
                                         }
                                     }
                                 ?>
-	                            <?php if (!empty($copertura_geografica)) { ?>
-	                                <h3 class="h4 title mb-3">Copertura geografica</h3>                                        
-	                                <div class="richtext-wrapper lora"><?php echo $copertura_geografica ?></div>
-	                            <?php } ?>
-		
                             </section>
+                        <!-- Sezione Copertura Geografica -->
+                        <?php if (!empty($copertura_geografica)) { ?>
+                            <section class="it-page-section mb-30">
+                                <h2 class="h3 mb-3" id="places">Copertura geografica</h2>
+                                <div class="richtext-wrapper lora" data-element="service-geographical-coverage">
+                                    <?php echo $copertura_geografica; ?>
+                                </div>
+                            </section>
+                        <?php } ?>
       
-
                         <?php if (is_array($canale_fisico_luoghi_id) && count($canale_fisico_luoghi_id)) { ?>
                             <section class="it-page-section mb-30">
                                 <h2 class="h3 mb-3" id="places">Luoghi</h2>
@@ -582,6 +623,46 @@ get_header();
 	                            </section>
 	                        <?php } ?>
 
+                            <!-- Altri allegati -->
+                            <?php if (!empty($allegati) && is_array($allegati)) { ?>
+                                <section class="it-page-section mb-30">
+                                    <h2 class="h3 mb-3" id="attachments">Allegati</h2>
+                                    <div class="richtext-wrapper lora" data-element="service-attachments">
+                                        <div class="row">
+                                            <?php foreach ($allegati as $allegato_id => $allegato_url) : 
+                                                $allegato_id = intval($allegato_id);
+                                                $allegato_title = get_the_title($allegato_id);
+
+                                                if (empty($allegato_title)) {
+                                                    $allegato_title = basename(parse_url($allegato_url, PHP_URL_PATH));
+                                                }
+                                            ?>
+                                                <div class="col-12 col-md-6 mb-3 card-wrapper">
+                                                    <div class="card card-teaser shadow-sm p-4 rounded border border-light flex-nowrap h-100">
+                                                        <svg class="icon" aria-hidden="true">
+                                                            <use xlink:href="#it-clip"></use>
+                                                        </svg>
+                                                        <div class="card-body">
+                                                            <h3 class="card-title h5 mb-2">
+                                                                <a class="text-decoration-none" 
+                                                                href="<?php echo esc_url($allegato_url); ?>" 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer">
+                                                                    <?php echo esc_html($allegato_title); ?>
+                                                                </a>
+                                                            </h3>
+                                                            <p class="card-text mb-0">
+                                                                <small class="text-muted">Scarica allegato</small>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </section>
+                                <?php } ?>
+
                             <?php if ( $costi ) { ?>
                             <section class="it-page-section mb-30">
                                 <h2 class="h3 mb-3" id="costs">Quanto costa</h2>
@@ -615,6 +696,27 @@ get_header();
                                     scadenze, requisiti e altre informazioni importanti, leggi i termini e le condizioni di servizio.
                                 </div>
                                 <?php get_template_part("template-parts/single/attachment"); ?>
+                            </section>
+                            <?php } ?>
+
+                            <!-- Vincoli del servizio -->
+
+                            <?php if($vincoli){ ?>
+                            <section class="it-page-section mb-30">
+                                <h2 class="h3 mb-3" id="constraints">Vincoli del servizio</h2>
+                                <div class="richtext-wrapper lora" data-element="service-constraints">
+                                    <?php echo $vincoli ?>
+                                </div>
+                            </section>
+                            <?php } ?>
+
+                            <!-- Casi particolari -->
+                            <?php if($casi_particolari){ ?>
+                            <section class="it-page-section mb-30">
+                                <h2 class="h3 mb-3" id="special-cases">Casi particolari</h2>
+                                <div class="richtext-wrapper lora" data-element="service-special-cases">
+                                    <?php echo $casi_particolari ?>
+                                </div>
                             </section>
                             <?php } ?>
 

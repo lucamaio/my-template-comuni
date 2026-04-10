@@ -370,6 +370,95 @@ add_action('cmb2_init', function(){
     }
 });
 
+// Sincronizzazione tra relazione Unità organizzativa -> Argomenti (term meta "area di appartenenza") e relazione Argomenti -> Unità organizzativa (post meta "argomenti")
+add_action('set_object_terms', 'dci_sync_uo_argomenti_area_appartenenza', 20, 6);
+function dci_sync_uo_argomenti_area_appartenenza($object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids) {
+    if ($taxonomy !== 'argomenti' || get_post_type($object_id) !== 'unita_organizzativa') {
+        return;
+    }
+
+    dci_update_argomenti_area_appartenenza_for_uo($object_id);
+}
+
+add_action('before_delete_post', 'dci_cleanup_uo_from_argomenti_area_appartenenza');
+function dci_cleanup_uo_from_argomenti_area_appartenenza($post_id) {
+    if (get_post_type($post_id) !== 'unita_organizzativa') {
+        return;
+    }
+
+    $term_ids = get_terms(array(
+        'taxonomy'   => 'argomenti',
+        'hide_empty' => false,
+        'fields'     => 'ids',
+    ));
+
+    if (is_wp_error($term_ids) || empty($term_ids)) {
+        return;
+    }
+
+    foreach ($term_ids as $term_id) {
+        $uffici = dci_normalize_argomento_area_appartenenza_meta($term_id);
+
+        if (!in_array((int) $post_id, $uffici, true)) {
+            continue;
+        }
+
+        $uffici = array_values(array_diff($uffici, array((int) $post_id)));
+        update_term_meta($term_id, 'dci_term_area_appartenenza', $uffici);
+    }
+}
+
+function dci_update_argomenti_area_appartenenza_for_uo($post_id) {
+    $current_term_ids = wp_get_post_terms($post_id, 'argomenti', array('fields' => 'ids'));
+
+    if (is_wp_error($current_term_ids)) {
+        $current_term_ids = array();
+    }
+
+    $current_term_ids = array_map('intval', $current_term_ids);
+
+    $all_term_ids = get_terms(array(
+        'taxonomy'   => 'argomenti',
+        'hide_empty' => false,
+        'fields'     => 'ids',
+    ));
+
+    if (is_wp_error($all_term_ids) || empty($all_term_ids)) {
+        return;
+    }
+
+    foreach ($all_term_ids as $term_id) {
+        $uffici = dci_normalize_argomento_area_appartenenza_meta($term_id);
+        $is_linked = in_array((int) $term_id, $current_term_ids, true);
+        $has_post = in_array((int) $post_id, $uffici, true);
+
+        if ($is_linked && !$has_post) {
+            $uffici[] = (int) $post_id;
+            update_term_meta($term_id, 'dci_term_area_appartenenza', array_values(array_unique($uffici)));
+            continue;
+        }
+
+        if (!$is_linked && $has_post) {
+            $uffici = array_values(array_diff($uffici, array((int) $post_id)));
+            update_term_meta($term_id, 'dci_term_area_appartenenza', $uffici);
+        }
+    }
+}
+
+function dci_normalize_argomento_area_appartenenza_meta($term_id) {
+    $uffici = get_term_meta($term_id, 'dci_term_area_appartenenza', true);
+
+    if (empty($uffici)) {
+        return array();
+    }
+
+    if (!is_array($uffici)) {
+        $uffici = array($uffici);
+    }
+
+    return array_values(array_unique(array_map('intval', array_filter($uffici))));
+}
+
 
 function set_to_current_unita_organizzativa_servizi($field_args, $field  ) {
 	return dci_get_meta("elenco_servizi_offerti", "_dci_unita_organizzativa_", $field->object_id) ?? [];

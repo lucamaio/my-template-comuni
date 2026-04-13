@@ -10,6 +10,7 @@ $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
  * - Recupera tutte le notizie evidenziate (schede manuali o automatiche)
  * - Se è attiva l'opzione per nascondere le notizie vecchie, il filtro viene applicato dopo
  */
+
 $args = array(
     'post_type'      => 'notizia',
     'meta_query'     => array(
@@ -221,7 +222,7 @@ if ($totale === 0) {
                                 <!-- Mostra eventuali luoghi -->
                                 <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
                                     <span class="data fw-normal luogo-wrapper" style="align-items: center !important;" aria-label="Luoghi">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:16px !important;height:16px !important;" class="me-1 icon icon-md" aria-hidden="true">
                                             <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
                                         </svg>
                                         <?php foreach ($luogo_notizia as $luogo_id):
@@ -341,7 +342,7 @@ if ($totale === 0) {
             <div class="card mb-0">
                 <div class="card-body pb-2">
                     <div class="category-top d-flex align-items-center mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="icon icon-md me-2" style="width:18px !important;height:18px !important;" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="icon icon-md me-2"  aria-hidden="true">
                             <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
                         </svg>
                         <?php if ($tipo) { ?>
@@ -367,7 +368,7 @@ if ($totale === 0) {
                     <!-- Luoghi -->
                     <?php if (is_array($luogo_notizia) && count($luogo_notizia)): ?>
                         <span class="data fw-normal luogo-wrapper" style="align-items: center !important;">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:18px !important;height:18px !important;" class="me-1 icon icon-md" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:16px !important;height:16px !important;" class="me-1 icon icon-md" aria-hidden="true">
                                 <path d="M541.9 139.5C546.4 127.7 543.6 114.3 534.7 105.4C525.8 96.5 512.4 93.6 500.6 98.2L84.6 258.2C71.9 263 63.7 275.2 64 288.7C64.3 302.2 73.1 314.1 85.9 318.3L262.7 377.2L321.6 554C325.9 566.8 337.7 575.6 351.2 575.9C364.7 576.2 376.9 568 381.8 555.4L541.8 139.4z"/>
                             </svg>
                             <?php foreach ($luogo_notizia as $luogo_id):
@@ -427,6 +428,30 @@ if ($totale === 0) {
 <?php wp_reset_postdata(); endif; ?>
 
 <style>
+
+
+/* SOLO per questo componente (carosello + singolo) */
+#carosello-evidenza .icon,
+#carosello-evidenza .icon-md,
+.single-news.single-news-custom .icon,
+.single-news.single-news-custom .icon-md {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px;
+    min-height: 18px;
+}
+
+
+
+
+#carosello-evidenza svg[class*="icon"],
+.single-news.single-news-custom svg[class*="icon"] {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+
+    
 #carosello-evidenza .card-body .read-more,
 .single-news.single-news-custom .card-body .read-more {
     align-self: flex-start;

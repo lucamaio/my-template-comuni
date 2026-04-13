@@ -7,32 +7,21 @@ $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
 $posts_per_page = ($hide_notizie_old === 'true') ? max($numero_notizie_evidenziate * 5, 20) : $numero_notizie_evidenziate;
 
 /**
- * Funzione di supporto:
- * restituisce la data custom come DateTime se presente e valida,
- * altrimenti null
+ * Restituisce il timestamp di pubblicazione effettivo:
+ * - usa il meta CMB2 se presente e valido
+ * - altrimenti usa la post_date di WordPress
  */
-if (!function_exists('dci_get_custom_date_from_arr')) {
-    function dci_get_custom_date_from_arr($field_name, $prefix, $post_id) {
-        $arrdata = dci_get_data_pubblicazione_arr($field_name, $prefix, $post_id);
+if (!function_exists('dci_get_notizia_pubblicazione_timestamp')) {
+    function dci_get_notizia_pubblicazione_timestamp($post_id, $prefix) {
+        $meta_timestamp = get_post_meta($post_id, $prefix . 'data_pubblicazione', true);
 
-        if (is_array($arrdata) && count($arrdata) >= 3) {
-            $day   = trim((string) $arrdata[0]);
-            $month = trim((string) $arrdata[1]);
-            $year  = trim((string) $arrdata[2]);
+        if (!empty($meta_timestamp) && is_numeric($meta_timestamp)) {
+            return (int) $meta_timestamp;
+        }
 
-            $year = strlen($year) == 2 ? '20' . $year : $year;
-
-            if ($day !== '' && $month !== '' && $year !== '') {
-                $date = DateTime::createFromFormat(
-                    'd/m/Y',
-                    sprintf('%02d/%02d/%04d', (int) $day, (int) $month, (int) $year)
-                );
-
-                if ($date instanceof DateTime) {
-                    $date->setTime(0, 0, 0);
-                    return $date;
-                }
-            }
+        $post_timestamp = get_post_timestamp($post_id);
+        if (!empty($post_timestamp)) {
+            return (int) $post_timestamp;
         }
 
         return null;
@@ -40,24 +29,14 @@ if (!function_exists('dci_get_custom_date_from_arr')) {
 }
 
 /**
- * Funzione di supporto:
- * restituisce la data pubblicazione effettiva:
- * - custom se presente
- * - altrimenti data nativa WordPress
+ * Restituisce il timestamp di scadenza se presente e valido
  */
-if (!function_exists('dci_get_effective_publication_date')) {
-    function dci_get_effective_publication_date($prefix, $post_id) {
-        $custom_date = dci_get_custom_date_from_arr('data_pubblicazione', $prefix, $post_id);
-        if ($custom_date instanceof DateTime) {
-            return $custom_date;
-        }
+if (!function_exists('dci_get_notizia_scadenza_timestamp')) {
+    function dci_get_notizia_scadenza_timestamp($post_id, $prefix) {
+        $meta_timestamp = get_post_meta($post_id, $prefix . 'data_scadenza', true);
 
-        $timestamp = get_post_timestamp($post_id);
-        if ($timestamp) {
-            $wp_date = new DateTime();
-            $wp_date->setTimestamp($timestamp);
-            $wp_date->setTime(0, 0, 0);
-            return $wp_date;
+        if (!empty($meta_timestamp) && is_numeric($meta_timestamp)) {
+            return (int) $meta_timestamp;
         }
 
         return null;
@@ -65,47 +44,26 @@ if (!function_exists('dci_get_effective_publication_date')) {
 }
 
 /**
- * Funzione di supporto:
- * restituisce i componenti della data da mostrare
- * - custom se presente
- * - altrimenti fallback alla data WordPress
+ * Restituisce i pezzi della data da stampare
  */
-if (!function_exists('dci_get_display_publication_date_parts')) {
-    function dci_get_display_publication_date_parts($prefix, $post_id) {
-        $day = '';
-        $month = '';
-        $year = '';
-        $monthName = '';
-
-        $custom_date = dci_get_custom_date_from_arr('data_pubblicazione', $prefix, $post_id);
-
-        if ($custom_date instanceof DateTime) {
-            $day       = $custom_date->format('d');
-            $month     = $custom_date->format('m');
-            $year      = $custom_date->format('Y');
-            $monthName = date_i18n('M', $custom_date->getTimestamp());
-
+if (!function_exists('dci_get_notizia_date_parts')) {
+    function dci_get_notizia_date_parts($timestamp) {
+        if (empty($timestamp) || !is_numeric($timestamp)) {
             return array(
-                'day'       => $day,
-                'month'     => $month,
-                'year'      => $year,
-                'monthName' => $monthName,
+                'day'       => '',
+                'month'     => '',
+                'year'      => '',
+                'monthName' => '',
             );
         }
 
-        $timestamp = get_post_timestamp($post_id);
-        if ($timestamp) {
-            $day       = date_i18n('d', $timestamp);
-            $month     = date_i18n('m', $timestamp);
-            $year      = date_i18n('Y', $timestamp);
-            $monthName = date_i18n('M', $timestamp);
-        }
+        $timestamp = (int) $timestamp;
 
         return array(
-            'day'       => $day,
-            'month'     => $month,
-            'year'      => $year,
-            'monthName' => $monthName,
+            'day'       => date_i18n('d', $timestamp),
+            'month'     => date_i18n('m', $timestamp),
+            'year'      => date_i18n('Y', $timestamp),
+            'monthName' => date_i18n('M', $timestamp),
         );
     }
 }
@@ -113,7 +71,7 @@ if (!function_exists('dci_get_display_publication_date_parts')) {
 /**
  * Query
  * - Recupera tutte le notizie evidenziate
- * - Se il check nascondi notizie vecchie è attivo, il filtro viene applicato dopo
+ * - Se è attiva l'opzione per nascondere notizie vecchie, il filtro viene applicato dopo
  */
 $args = array(
     'post_type'           => 'notizia',
@@ -157,8 +115,22 @@ foreach ($posts as $p) {
 
     if ($hide_notizie_old === 'true') {
 
-        $dataPubblicazione = dci_get_effective_publication_date($prefix, $p->ID);
-        $dataScadenza = dci_get_custom_date_from_arr('data_scadenza', $prefix, $p->ID);
+        $timestampPubblicazione = dci_get_notizia_pubblicazione_timestamp($p->ID, $prefix);
+        $timestampScadenza      = dci_get_notizia_scadenza_timestamp($p->ID, $prefix);
+
+        $dataPubblicazione = null;
+        if (!empty($timestampPubblicazione)) {
+            $dataPubblicazione = new DateTime();
+            $dataPubblicazione->setTimestamp((int) $timestampPubblicazione);
+            $dataPubblicazione->setTime(0, 0, 0);
+        }
+
+        $dataScadenza = null;
+        if (!empty($timestampScadenza)) {
+            $dataScadenza = new DateTime();
+            $dataScadenza->setTimestamp((int) $timestampScadenza);
+            $dataScadenza->setTime(0, 0, 0);
+        }
 
         /**
          * Escludo la notizia se:
@@ -205,20 +177,22 @@ if ($totale === 0) {
             setup_postdata($p);
 
             // Dati principali della notizia
-            $img = dci_get_meta("immagine", $prefix, $p->ID);
+            $img               = dci_get_meta("immagine", $prefix, $p->ID);
             $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $p->ID);
-            $luogo_notizia = dci_get_meta("luoghi", $prefix, $p->ID);
+            $luogo_notizia     = dci_get_meta("luoghi", $prefix, $p->ID);
 
             // Tipo notizia
             $tipo_terms = wp_get_post_terms($p->ID, 'tipi_notizia');
-            $tipo = (!empty($tipo_terms) && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
+            $tipo       = (!empty($tipo_terms) && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
 
             /**
              * DATA PUBBLICAZIONE
-             * - custom se presente
-             * - fallback a data WordPress se assente
+             * - meta CMB2 se presente
+             * - altrimenti post_date WordPress
              */
-            $date_parts = dci_get_display_publication_date_parts($prefix, $p->ID);
+            $timestampPubblicazione = dci_get_notizia_pubblicazione_timestamp($p->ID, $prefix);
+            $date_parts             = dci_get_notizia_date_parts($timestampPubblicazione);
+
             $dayPubblicazione   = $date_parts['day'];
             $monthPubblicazione = $date_parts['month'];
             $yearPubblicazione  = $date_parts['year'];
@@ -360,7 +334,9 @@ if ($totale === 0) {
     $tipo_terms = wp_get_post_terms($p->ID, 'tipi_notizia');
     $tipo       = (!empty($tipo_terms) && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
 
-    $date_parts = dci_get_display_publication_date_parts($prefix, $p->ID);
+    $timestampPubblicazione = dci_get_notizia_pubblicazione_timestamp($p->ID, $prefix);
+    $date_parts             = dci_get_notizia_date_parts($timestampPubblicazione);
+
     $dayPubblicazione   = $date_parts['day'];
     $monthPubblicazione = $date_parts['month'];
     $yearPubblicazione  = $date_parts['year'];
@@ -381,7 +357,7 @@ if ($totale === 0) {
             <div class="card mb-0">
                 <div class="card-body pb-2">
                     <div class="category-top d-flex align-items-center mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="icon icon-md me-2"  aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="icon icon-md me-2" aria-hidden="true">
                             <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
                         </svg>
                         <?php if ($tipo) { ?>

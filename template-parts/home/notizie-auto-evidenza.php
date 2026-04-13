@@ -4,24 +4,130 @@ global $numero_notizie_evidenziate;
 $numero_notizie_evidenziate = max(1, (int) $numero_notizie_evidenziate);
 $prefix = '_dci_notizia_';
 $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
+$posts_per_page = ($hide_notizie_old === 'true') ? max($numero_notizie_evidenziate * 5, 20) : $numero_notizie_evidenziate;
+
+/**
+ * Funzione di supporto:
+ * restituisce la data custom come DateTime se presente e valida,
+ * altrimenti null
+ */
+if (!function_exists('dci_get_custom_date_from_arr')) {
+    function dci_get_custom_date_from_arr($field_name, $prefix, $post_id) {
+        $arrdata = dci_get_data_pubblicazione_arr($field_name, $prefix, $post_id);
+
+        if (is_array($arrdata) && count($arrdata) >= 3) {
+            $day   = trim((string) $arrdata[0]);
+            $month = trim((string) $arrdata[1]);
+            $year  = trim((string) $arrdata[2]);
+
+            $year = strlen($year) == 2 ? '20' . $year : $year;
+
+            if ($day !== '' && $month !== '' && $year !== '') {
+                $date = DateTime::createFromFormat(
+                    'd/m/Y',
+                    sprintf('%02d/%02d/%04d', (int) $day, (int) $month, (int) $year)
+                );
+
+                if ($date instanceof DateTime) {
+                    $date->setTime(0, 0, 0);
+                    return $date;
+                }
+            }
+        }
+
+        return null;
+    }
+}
+
+/**
+ * Funzione di supporto:
+ * restituisce la data pubblicazione effettiva:
+ * - custom se presente
+ * - altrimenti data nativa WordPress
+ */
+if (!function_exists('dci_get_effective_publication_date')) {
+    function dci_get_effective_publication_date($prefix, $post_id) {
+        $custom_date = dci_get_custom_date_from_arr('data_pubblicazione', $prefix, $post_id);
+        if ($custom_date instanceof DateTime) {
+            return $custom_date;
+        }
+
+        $timestamp = get_post_timestamp($post_id);
+        if ($timestamp) {
+            $wp_date = new DateTime();
+            $wp_date->setTimestamp($timestamp);
+            $wp_date->setTime(0, 0, 0);
+            return $wp_date;
+        }
+
+        return null;
+    }
+}
+
+/**
+ * Funzione di supporto:
+ * restituisce i componenti della data da mostrare
+ * - custom se presente
+ * - altrimenti fallback alla data WordPress
+ */
+if (!function_exists('dci_get_display_publication_date_parts')) {
+    function dci_get_display_publication_date_parts($prefix, $post_id) {
+        $day = '';
+        $month = '';
+        $year = '';
+        $monthName = '';
+
+        $custom_date = dci_get_custom_date_from_arr('data_pubblicazione', $prefix, $post_id);
+
+        if ($custom_date instanceof DateTime) {
+            $day       = $custom_date->format('d');
+            $month     = $custom_date->format('m');
+            $year      = $custom_date->format('Y');
+            $monthName = date_i18n('M', $custom_date->getTimestamp());
+
+            return array(
+                'day'       => $day,
+                'month'     => $month,
+                'year'      => $year,
+                'monthName' => $monthName,
+            );
+        }
+
+        $timestamp = get_post_timestamp($post_id);
+        if ($timestamp) {
+            $day       = date_i18n('d', $timestamp);
+            $month     = date_i18n('m', $timestamp);
+            $year      = date_i18n('Y', $timestamp);
+            $monthName = date_i18n('M', $timestamp);
+        }
+
+        return array(
+            'day'       => $day,
+            'month'     => $month,
+            'year'      => $year,
+            'monthName' => $monthName,
+        );
+    }
+}
 
 /**
  * Query
- * - Recupera tutte le notizie evidenziate (schede manuali o automatiche)
- * - Se è attiva l'opzione per nascondere le notizie vecchie, il filtro viene applicato dopo
+ * - Recupera tutte le notizie evidenziate
+ * - Se il check nascondi notizie vecchie è attivo, il filtro viene applicato dopo
  */
-
 $args = array(
-    'post_type'      => 'notizia',
-    'meta_query'     => array(
+    'post_type'           => 'notizia',
+    'meta_query'          => array(
         array(
             'key'   => $prefix . 'evidenzia_home',
             'value' => 'on',
         ),
     ),
-    'orderby'        => 'date',
-    'order'          => 'DESC',
-    'posts_per_page' => -1,
+    'orderby'             => 'date',
+    'order'               => 'DESC',
+    'posts_per_page'      => -1,
+    'no_found_rows'       => true,
+    'ignore_sticky_posts' => true,
 );
 
 $query = new WP_Query($args);
@@ -35,71 +141,30 @@ if (!$query->have_posts() || empty($posts)) {
 /*
     Filtro i post validi
     - Se il check nascondi notizie vecchie è attivo, escludo le notizie con data di scadenza precedente a oggi
-      solo se la data di scadenza è diversa dalla data di pubblicazione
-    - Se invece il check non è attivo, includo tutte le notizie evidenziate senza filtrare per data di scadenza
+      solo se la data di scadenza è diversa dalla data di pubblicazione effettiva
+    - Se il check non è attivo, includo tutte le notizie evidenziate
 */
-
 $oggi = new DateTime('today');
-$valid_posts = []; // Array che conterrà i post validi dopo il filtro
+$oggi->setTime(0, 0, 0);
+
+$valid_posts = array();
 
 foreach ($posts as $p) {
 
-    // Controllo 0: verifico se ho già raggiunto il numero di notizie evidenziate da mostrare
     if (count($valid_posts) >= $numero_notizie_evidenziate) {
         break;
     }
 
-    // Primo controllo sul check nascondi notizie vecchie
     if ($hide_notizie_old === 'true') {
 
-        // Data pubblicazione
-        $dataPubblicazione = null;
-        $arrdata = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $p->ID);
-
-        if (is_array($arrdata) && count($arrdata) >= 3) {
-            $dayPubblicazione   = trim((string) $arrdata[0]);
-            $monthPubblicazione = trim((string) $arrdata[1]);
-            $yearPubblicazione  = trim((string) $arrdata[2]);
-
-            $yearPubblicazione = strlen($yearPubblicazione) == 2 ? '20' . $yearPubblicazione : $yearPubblicazione;
-
-            $dataPubblicazione = DateTime::createFromFormat(
-                'd/m/Y',
-                sprintf('%02d/%02d/%04d', (int) $dayPubblicazione, (int) $monthPubblicazione, (int) $yearPubblicazione)
-            );
-
-            if ($dataPubblicazione instanceof DateTime) {
-                $dataPubblicazione->setTime(0, 0, 0);
-            }
-        }
-
-        // Data scadenza
-        $dataScadenza = null;
-        $arrdataFine = dci_get_data_pubblicazione_arr("data_scadenza", $prefix, $p->ID);
-
-        if (is_array($arrdataFine) && count($arrdataFine) >= 3) {
-            $dayScadenza   = trim((string) $arrdataFine[0]);
-            $monthScadenza = trim((string) $arrdataFine[1]);
-            $yearScadenza  = trim((string) $arrdataFine[2]);
-
-            $yearScadenza = strlen($yearScadenza) == 2 ? '20' . $yearScadenza : $yearScadenza;
-
-            $dataScadenza = DateTime::createFromFormat(
-                'd/m/Y',
-                sprintf('%02d/%02d/%04d', (int) $dayScadenza, (int) $monthScadenza, (int) $yearScadenza)
-            );
-
-            if ($dataScadenza instanceof DateTime) {
-                $dataScadenza->setTime(0, 0, 0);
-            }
-        }
+        $dataPubblicazione = dci_get_effective_publication_date($prefix, $p->ID);
+        $dataScadenza = dci_get_custom_date_from_arr('data_scadenza', $prefix, $p->ID);
 
         /**
-         * Controllo:
-         * escludo la notizia se:
+         * Escludo la notizia se:
          * - la data di scadenza esiste
          * - è precedente a oggi
-         * - ed è diversa dalla data di pubblicazione
+         * - ed è diversa dalla data di pubblicazione effettiva
          */
         if (
             $dataScadenza instanceof DateTime &&
@@ -150,31 +215,14 @@ if ($totale === 0) {
 
             /**
              * DATA PUBBLICAZIONE
+             * - custom se presente
+             * - fallback a data WordPress se assente
              */
-            $dataPubblicazione = null;
-            $dayPubblicazione = '';
-            $monthPubblicazione = '';
-            $yearPubblicazione = '';
-            $monthName = '';
-
-            $arrdata = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $p->ID);
-
-            if (is_array($arrdata) && count($arrdata) >= 3) {
-                $dayPubblicazione   = trim((string) $arrdata[0]);
-                $monthPubblicazione = trim((string) $arrdata[1]);
-                $yearPubblicazione  = trim((string) $arrdata[2]);
-
-                $yearPubblicazione = strlen($yearPubblicazione) == 2 ? '20' . $yearPubblicazione : $yearPubblicazione;
-
-                $dataPubblicazione = DateTime::createFromFormat(
-                    'd/m/Y',
-                    sprintf('%02d/%02d/%04d', (int) $dayPubblicazione, (int) $monthPubblicazione, (int) $yearPubblicazione)
-                );
-
-                if ($dataPubblicazione instanceof DateTime) {
-                    $monthName = date_i18n('M', mktime(0, 0, 0, (int) $monthPubblicazione, 10));
-                }
-            }
+            $date_parts = dci_get_display_publication_date_parts($prefix, $p->ID);
+            $dayPubblicazione   = $date_parts['day'];
+            $monthPubblicazione = $date_parts['month'];
+            $yearPubblicazione  = $date_parts['year'];
+            $monthName          = $date_parts['monthName'];
 
             $is_active = ($index === 0);
             ?>
@@ -306,26 +354,17 @@ if ($totale === 0) {
     setup_postdata($p);
 
     $img               = dci_get_meta("immagine", $prefix, $p->ID);
-    $arrdata           = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $p->ID);
     $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $p->ID);
     $luogo_notizia     = dci_get_meta("luoghi", $prefix, $p->ID);
 
     $tipo_terms = wp_get_post_terms($p->ID, 'tipi_notizia');
     $tipo       = (!empty($tipo_terms) && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
 
-    $dayPubblicazione = '';
-    $monthPubblicazione = '';
-    $yearPubblicazione = '';
-    $monthName = '';
-
-    if (is_array($arrdata) && count($arrdata) >= 3) {
-        $dayPubblicazione   = trim((string) $arrdata[0]);
-        $monthPubblicazione = trim((string) $arrdata[1]);
-        $yearPubblicazione  = trim((string) $arrdata[2]);
-        $yearPubblicazione  = strlen($yearPubblicazione) == 2 ? '20' . $yearPubblicazione : $yearPubblicazione;
-
-        $monthName = date_i18n('M', mktime(0, 0, 0, (int) $monthPubblicazione, 10));
-    }
+    $date_parts = dci_get_display_publication_date_parts($prefix, $p->ID);
+    $dayPubblicazione   = $date_parts['day'];
+    $monthPubblicazione = $date_parts['month'];
+    $yearPubblicazione  = $date_parts['year'];
+    $monthName          = $date_parts['monthName'];
 ?>
 
 <div class="row single-news single-news-custom">
@@ -429,7 +468,6 @@ if ($totale === 0) {
 
 <style>
 
-
 /* SOLO per questo componente (carosello + singolo) */
 #carosello-evidenza .icon,
 #carosello-evidenza .icon-md,
@@ -441,17 +479,12 @@ if ($totale === 0) {
     min-height: 18px;
 }
 
-
-
-
 #carosello-evidenza svg[class*="icon"],
 .single-news.single-news-custom svg[class*="icon"] {
     width: 18px !important;
     height: 18px !important;
 }
 
-
-    
 #carosello-evidenza .card-body .read-more,
 .single-news.single-news-custom .card-body .read-more {
     align-self: flex-start;
@@ -613,32 +646,23 @@ if ($totale === 0) {
     #carosello-evidenza .col-img,
     .single-news.single-news-custom .row .col-lg-6.offset-lg-1.order-1.order-lg-2 {
         justify-content: center;
-        /* Centra orizzontalmente */
     }
 
     /* Centra l'immagine su mobile */
     #carosello-evidenza img.img-evidenza,
     .single-news.single-news-custom .row .col-lg-6.offset-lg-1.order-1.order-lg-2 img.img-fluid {
         margin: 0 auto;
-        /* Centra l'immagine */
         max-width: 80%;
         height: auto;
     }
 
-     #carosello-evidenza .carousel-item {
+    #carosello-evidenza .carousel-item {
         min-height: 480px;
     }
 
     #carosello-evidenza .card-title {
         -webkit-line-clamp: 4;
     }
-
-    /* #carosello-evidenza .carousel-control-prev-icon,
-    #carosello-evidenza .carousel-control-next-icon {
-        width: 36px;
-        height: 36px;
-        background-size: 16px 16px;
-    } */
 }
 
 </style>

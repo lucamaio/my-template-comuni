@@ -2,7 +2,9 @@
 global $count, $scheda, $post, $numero_notizie_evidenziate;
 
 // Recupero opzioni
-$post_id = dci_get_option('notizia_evidenziata', 'homepage', true)[0] ?? null;
+$notizia_evidenziata_option = dci_get_option('notizia_evidenziata', 'homepage', true);
+$post_id = (is_array($notizia_evidenziata_option) && isset($notizia_evidenziata_option[0])) ? $notizia_evidenziata_option[0] : null;
+
 $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
 $notizie_automatiche = dci_get_option("ck_notizie_automatico", "homepage");
 $notizie_home = dci_get_option("numero_notizie_home", "homepage");
@@ -39,7 +41,8 @@ if ($post) {
 $schede = [];
 if ($notizie_automatiche === 'false') {
     for ($i = 1; $i <= 12; $i++) {
-        $schede[] = dci_get_option("schede_evidenziate_$i", 'homepage', true)[0] ?? null;
+        $scheda_option = dci_get_option("schede_evidenziate_$i", 'homepage', true);
+        $schede[] = (is_array($scheda_option) && isset($scheda_option[0])) ? $scheda_option[0] : null;
     }
 }
 

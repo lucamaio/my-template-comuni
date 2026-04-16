@@ -5,10 +5,12 @@
     $term_children = $arr_ids;
 
     $per_page = 9;
-    $paged = get_query_var('paged');
+    $paged_from_query = get_query_var('paged');
+    $paged_from_get = isset($_GET['paged']) ? absint($_GET['paged']) : 0;
+    $paged = max(1, (int) ($paged_from_query ? $paged_from_query : $paged_from_get));
     $total_pages = ceil(count($term_children) / $per_page);
 
-    $current_page = ($paged ? $paged : 1);
+    $current_page = $paged;
     $offset = (($current_page - 1) * $per_page);
 
     $term_children = array_slice($term_children, $offset, $per_page);    
@@ -53,7 +55,7 @@
                 <ul class="pagination">
                 <?php if ($current_page != 1) { ?>
                 <li class="page-item">
-                    <a class="page-link" href="?paged=<?php echo $current_page - 1; ?>#tutti-gli-argomenti">
+                    <a class="page-link" href="<?php echo esc_url(add_query_arg('paged', $current_page - 1)); ?>#tutti-gli-argomenti">
                         <svg class="icon icon-primary">
                             <use xlink:href="#it-chevron-left"></use>
                         </svg>
@@ -63,12 +65,12 @@
                 <?php } ?>
                 <?php for ($i=1; $i <= $total_pages; $i++) { ?>
                     <li class="page-item">
-                        <a class="page-link" href="?paged=<?php echo $i; ?>#tutti-gli-argomenti" <?php echo $i == $current_page? 'aria-current="page"' : '' ?>><?php echo $i; ?></a>
+                        <a class="page-link" href="<?php echo esc_url(add_query_arg('paged', $i)); ?>#tutti-gli-argomenti" <?php echo $i == $current_page? 'aria-current="page"' : '' ?>><?php echo $i; ?></a>
                     </li>
                 <?php } ?>
                 <?php if ($current_page != $total_pages) { ?>
                 <li class="page-item">
-                    <a class="page-link" href="?paged=<?php echo $current_page + 1; ?>#tutti-gli-argomenti">
+                    <a class="page-link" href="<?php echo esc_url(add_query_arg('paged', $current_page + 1)); ?>#tutti-gli-argomenti">
                         <span class="visually-hidden">Pagina successiva</span>
                         <svg class="icon icon-primary">
                             <use xlink:href="#it-chevron-right"></use>

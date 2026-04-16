@@ -13,14 +13,15 @@ $category_segment = end($segments); // Prendi l'ultimo segmento dell'URL
 function get_procedures_data($search_term = null, $category_segment = null, $title = null)
 {
     $url = dci_get_option('servizi_maggioli_url', 'servizi');
-    $response = wp_remote_get($url);
+    $response = wp_remote_get($url, array(
+        'timeout' => 4,
+        'redirection' => 2,
+        'sslverify' => false,
+    ));
     $total_services = 0; // Inizializza il contatore
+    $data = function_exists('dci_get_maggioli_services_data') ? dci_get_maggioli_services_data() : array();
 
-    if (is_array($response) && !is_wp_error($response)) {
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        if ($data) {
+    if (!empty($data)) {
             // Inizializza array per servizi filtrati
             $filtered_services = [];
 
@@ -55,7 +56,6 @@ function get_procedures_data($search_term = null, $category_segment = null, $tit
 
             // Output dei servizi filtrati
             output_services($filtered_services);
-        }
     } else {
         echo "Non riesco a leggere i servizi aggiuntivi.";
     }
@@ -119,5 +119,4 @@ $search_term = isset($_GET['search']) ? $_GET['search'] : null;
 $total_services_loaded = get_procedures_data($search_term, $category_segment, $title);
 echo "<p>Servizi aggiuntivi: $total_services_loaded</p>";
 ?>
-
 

@@ -1,7 +1,3 @@
-<?php get_header(); ?>
-
-<main id="main">
-
 <?php
 $strip = get_option('strip_home');
 
@@ -44,8 +40,6 @@ if (!empty($strip['strip_items']) && count($strip['strip_items']) > 0) :
 </section>
 
 <?php endif; ?>
-
-</main>
 
 
 <style>

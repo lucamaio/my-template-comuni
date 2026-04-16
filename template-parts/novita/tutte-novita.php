@@ -1,34 +1,27 @@
 <?php
 global $the_query, $load_card_type;
 
-get_header();
-
 // Recupero ricerca
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 
 // PAGINAZIONE
 // Se sto cercando → forza pagina 1
-if (!empty($_GET['search'])) {
-    $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
-} else {
-    $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
-}
+$paged_from_query = get_query_var('paged');
+$paged_from_get = isset($_GET['paged']) ? absint($_GET['paged']) : 0;
+$paged = max(1, (int) ($paged_from_query ? $paged_from_query : $paged_from_get));
 
 // QUERY
 $args = array(
     's'              => $query,
     'posts_per_page' => 9,
     'post_type'      => array('notizia'),
+    'post_status'    => 'publish',
+    'ignore_sticky_posts' => true,
     'paged'          => $paged
 );
 
 $the_query = new WP_Query($args);
-
-// 🔥 Serve per far funzionare la paginazione del tema
-$GLOBALS['wp_query'] = $the_query;
 ?>
-
-<main>
 
 <div class="bg-grey-card py-5">
     <form role="search" id="search-form" method="get" class="search-form" action="#search-form">
@@ -86,7 +79,7 @@ $GLOBALS['wp_query'] = $the_query;
                 <!-- PAGINAZIONE -->
                 <div class="row my-4">
                     <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
-                        <?php echo dci_bootstrap_pagination(); ?>
+                        <?php echo dci_bootstrap_pagination($the_query, false); ?>
                     </nav>
                 </div>
 
@@ -100,6 +93,4 @@ $GLOBALS['wp_query'] = $the_query;
     </form>
 </div>
 
-</main>
-
-<?php wp_reset_query(); ?>
+<?php wp_reset_postdata(); ?>

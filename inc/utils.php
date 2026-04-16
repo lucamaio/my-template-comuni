@@ -323,10 +323,47 @@ if(!function_exists("dci_get_highlighted_posts")) {
 //calendario homepage
 if(!function_exists("dci_get_calendar")) {
     function dci_get_calendar($days = 7){
+        $days = max(1, (int) $days);
+        $cache_version = (int) get_option('dci_calendar_cache_version', 1);
+        $cache_key = 'dci_calendar_' . $cache_version . '_' . $days;
+
+        $cached_calendar = get_transient($cache_key);
+        if (is_array($cached_calendar)) {
+            return $cached_calendar;
+        }
+
         $calendar = dci_create_calendar($days);
+        set_transient($cache_key, $calendar, 5 * MINUTE_IN_SECONDS);
         return $calendar;
     }
 }
+
+if (!function_exists('dci_bump_calendar_cache_version')) {
+    function dci_bump_calendar_cache_version($post_id = 0) {
+        if (!empty($post_id) && wp_is_post_revision($post_id)) {
+            return;
+        }
+
+        if (!empty($post_id)) {
+            $post_type = get_post_type($post_id);
+            if ($post_type !== 'evento') {
+                return;
+            }
+        }
+
+        update_option('dci_calendar_cache_version', time());
+    }
+}
+add_action('save_post_evento', 'dci_bump_calendar_cache_version');
+
+if (!function_exists('dci_bump_calendar_cache_version_on_delete')) {
+    function dci_bump_calendar_cache_version_on_delete($post_id) {
+        if (get_post_type($post_id) === 'evento') {
+            dci_bump_calendar_cache_version();
+        }
+    }
+}
+add_action('deleted_post', 'dci_bump_calendar_cache_version_on_delete');
 
 /**
  * get group related to current page
@@ -583,9 +620,10 @@ if (!function_exists("dci_get_mapbox_access_token")) {
  *       echo bootstrap_pagination($query);
  *     ?>
  */
-function dci_bootstrap_pagination(\WP_Query $wp_query = null, $echo = true)
+
+function dci_bootstrap_pagination(?\WP_Query $wp_query = null, $echo = true)
 {
-    if (null === $wp_query) {
+    if ($wp_query === null) {
         global $wp_query;
     }
     $pages = paginate_links([
@@ -1058,19 +1096,33 @@ if(!function_exists("dci_get_related_bando")) {
         $servizi =   get_posts( $args );
 
         $result = array();
-        foreach ($bandi as $bando) {
-            foreach ($servizi as $servizio) {
-                $array_servizi =  dci_get_meta('servizi', '_dci_documento_pubblico_', $bando-> ID) ;
-                if (is_array( $array_servizi ) && in_array($servizio,$array_servizi)) {
+        $servizi_lookup = array_fill_keys(array_map('intval', $servizi), true);
 
-                    $result [] = array(
-                        'id' => $bando -> ID,
-                        'titolo' => $bando-> post_title,
-                        'link' => get_permalink($bando -> ID),
-                        'description' =>  dci_get_meta('descrizione_breve', '_dci_documento_pubblico_', $bando-> ID)
-                    );
+        foreach ($bandi as $bando) {
+            $array_servizi = dci_get_meta('servizi', '_dci_documento_pubblico_', $bando->ID);
+
+            if (!is_array($array_servizi) || empty($array_servizi)) {
+                continue;
+            }
+
+            $has_related_servizio = false;
+            foreach ($array_servizi as $servizio_id) {
+                if (isset($servizi_lookup[(int) $servizio_id])) {
+                    $has_related_servizio = true;
+                    break;
                 }
             }
+
+            if (!$has_related_servizio) {
+                continue;
+            }
+
+            $result[] = array(
+                'id' => $bando->ID,
+                'titolo' => $bando->post_title,
+                'link' => get_permalink($bando->ID),
+                'description' => dci_get_meta('descrizione_breve', '_dci_documento_pubblico_', $bando->ID)
+            );
         }
 
        return $result;
@@ -1139,6 +1191,48 @@ function dci_contains_element_with( $array, $key, $value) {
         }
     }
     return false;
+}
+
+if (!function_exists('dci_get_maggioli_services_data')) {
+    /**
+     * Recupera e mette in cache il feed servizi esterni Maggioli.
+     *
+     * @return array
+     */
+    function dci_get_maggioli_services_data() {
+        $url = trim((string) dci_get_option('servizi_maggioli_url', 'servizi'));
+        if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
+            return array();
+        }
+
+        $cache_key = 'dci_maggioli_services_' . md5($url);
+        $cached_data = get_transient($cache_key);
+        if (is_array($cached_data)) {
+            return $cached_data;
+        }
+
+        $request_args = array(
+            'timeout' => 4,
+            'redirection' => 2,
+            'sslverify' => false,
+            'user-agent' => 'PSR-Theme-Maggioli/1.0 (+'. home_url('/') .')',
+        );
+
+        $response = wp_remote_get($url, $request_args);
+        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+            set_transient($cache_key, array(), 2 * MINUTE_IN_SECONDS);
+            return array();
+        }
+
+        $data = json_decode((string) wp_remote_retrieve_body($response), true);
+        if (!is_array($data)) {
+            set_transient($cache_key, array(), 2 * MINUTE_IN_SECONDS);
+            return array();
+        }
+
+        set_transient($cache_key, $data, 5 * MINUTE_IN_SECONDS);
+        return $data;
+    }
 }
 
 // Returns an img tag with appropriate attributes

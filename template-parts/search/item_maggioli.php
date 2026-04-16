@@ -6,13 +6,19 @@ global $post;
 
 
 // Ottieni i dati dal link remoto
-$response = file_get_contents($url);
+$response = wp_remote_get($url, array(
+    'timeout' => 4,
+    'redirection' => 2,
+    'sslverify' => false,
+));
 
 // Verifica se la richiesta ha avuto successo
-if ($response === false) {
+if (is_wp_error($response)) {
     echo "Errore durante il recupero dei dati.";
     return;
 }
+
+$response = wp_remote_retrieve_body($response);
 
 // Decodifica il JSON in un array associativo
 $data = json_decode($response, true);
@@ -73,6 +79,5 @@ foreach ($filtered_data as $item) {
     <?php
 }
 ?>
-
 
 

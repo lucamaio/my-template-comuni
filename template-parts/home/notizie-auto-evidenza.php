@@ -83,7 +83,7 @@ $args = array(
     ),
     'orderby'             => 'date',
     'order'               => 'DESC',
-    'posts_per_page'      => -1,
+    'posts_per_page'      => $posts_per_page,
     'no_found_rows'       => true,
     'ignore_sticky_posts' => true,
 );

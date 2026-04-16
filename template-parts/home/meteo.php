@@ -10,8 +10,6 @@ if (empty($city)) {
 }
 ?>
 
-<main id="main">
-
 <section class="weather-section">
   <div class="container">
 
@@ -21,8 +19,6 @@ if (empty($city)) {
 
   </div>
 </section>
-
-</main>
 
 
 

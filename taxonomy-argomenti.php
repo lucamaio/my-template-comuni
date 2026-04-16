@@ -112,11 +112,6 @@ get_header();
         }
       }
     </style>
-    <?php
-
-    $posts = dci_get_posts_by_term('any', 'argomenti', $argomento->name);
-    ?>
-
     <?php get_template_part('template-parts/argomento/page-detail'); ?>
     <?php get_template_part('template-parts/argomento/novita-detail'); ?>
     <?php get_template_part('template-parts/argomento/amministrazione-detail'); ?>

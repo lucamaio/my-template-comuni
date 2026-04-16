@@ -3,14 +3,15 @@
 function get_procedures_data($search_term = null)
 {
     $url = dci_get_option('servizi_maggioli_url', 'servizi');
-    $response = wp_remote_get($url);
+    $response = wp_remote_get($url, array(
+        'timeout' => 4,
+        'redirection' => 2,
+        'sslverify' => false,
+    ));
     $total_services = 0; // Inizializza il contatore
+    $data = function_exists('dci_get_maggioli_services_data') ? dci_get_maggioli_services_data() : array();
 
-    if (is_array($response) && !is_wp_error($response)) {
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        if ($data) {
+    if (!empty($data)) {
             // Inizializza array per servizi in evidenza e non in evidenza
             $in_evidenza_services = [];
             $other_services = [];
@@ -55,7 +56,6 @@ function get_procedures_data($search_term = null)
             // Output degli altri servizi
             echo "<h4>Altri Servizi</h4>";
             output_services($other_services);
-        }
     } else {
         echo "Non riesco a leggere i servizi aggiuntivi.";
     }

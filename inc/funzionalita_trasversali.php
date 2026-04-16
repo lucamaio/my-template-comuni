@@ -124,12 +124,27 @@ function dci_get_external_footer_payload() {
         }
     }
 
+    $footer_cache_key = 'dci_ext_footer_' . md5((string) $external_home);
+    $footer_cached = get_transient($footer_cache_key);
+    if (is_array($footer_cached)) {
+        if (!empty($footer_cached['html'])) {
+            return $footer_cached;
+        }
+        return null;
+    }
+
     if ($is_external_only && $should_fetch_external_footer && !empty($external_home) && filter_var($external_home, FILTER_VALIDATE_URL)) {
+        $cache_key = 'dci_ext_footer_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
+        $cached_payload = get_transient($cache_key);
+        if (is_array($cached_payload)) {
+            return !empty($cached_payload['html']) ? $cached_payload : null;
+        }
+
         $current_home = trailingslashit(home_url('/'));
         $external_parts = wp_parse_url($external_home);
         $request_args = array(
-            'timeout' => 12,
-            'redirection' => 5,
+            'timeout' => 4,
+            'redirection' => 3,
             'user-agent' => 'PSR-Theme-Footer-Fetch/1.0 (+'. home_url('/') .')',
             'sslverify' => false,
         );
@@ -176,6 +191,7 @@ function dci_get_external_footer_payload() {
                 if (is_array($payload) && !empty($payload['html'])) {
                     $payload['source'] = $external_api;
                     $payload['attempted_sources'] = $attempted_sources;
+                    set_transient($footer_cache_key, $payload, 5 * MINUTE_IN_SECONDS);
                     return $payload;
                 }
             }
@@ -193,7 +209,7 @@ function dci_get_external_footer_payload() {
                 $external_html = wp_remote_retrieve_body($home_response);
                 $footer_html = dci_extract_footer_html($external_html);
                 if (!empty($footer_html)) {
-                    return array(
+                    $result = array(
                         'success' => true,
                         'generated_at' => current_time('c'),
                         'html' => $footer_html,
@@ -204,11 +220,17 @@ function dci_get_external_footer_payload() {
                             'js' => array(),
                         ),
                     );
+                    set_transient($footer_cache_key, $result, 5 * MINUTE_IN_SECONDS);
+                    return $result;
                 }
             }
         }
+
+        // Negative cache per evitare timeout ripetuti ad ogni request.
+        set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
     }
 
+    set_transient($footer_cache_key, array('success' => false, 'html' => ''), MINUTE_IN_SECONDS);
     return null;
 }
 
@@ -333,6 +355,12 @@ function dci_get_external_head_html() {
         return '';
     }
 
+    $head_cache_key = 'dci_ext_head_' . md5((string) $external_home);
+    $head_cached = get_transient($head_cache_key);
+    if (is_string($head_cached)) {
+        return ($head_cached === '__empty__') ? '' : $head_cached;
+    }
+
     $external_parts = wp_parse_url($external_home);
     if (empty($external_parts['scheme']) || empty($external_parts['host'])) {
         return '';
@@ -359,9 +387,49 @@ function dci_get_external_head_html() {
     }
     $candidate_homes = array_values(array_unique(array_filter($candidate_homes)));
 
+    $cache_key = 'dci_ext_head_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
+    $cached_head = get_transient($cache_key);
+    if (is_array($cached_head)) {
+        return !empty($cached_head['html']) ? $cached_head['html'] : '';
+    }
+
+    $external_html = dci_get_external_home_snapshot($external_home, $candidate_homes);
+    if ($external_html === '') {
+        set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
+        return '';
+    }
+
+    $head_html = dci_extract_head_html($external_html);
+    if (!empty($head_html)) {
+        set_transient($cache_key, array('html' => $head_html), 10 * MINUTE_IN_SECONDS);
+        return $head_html;
+    }
+
+    set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
+    return '';
+}
+
+/**
+ * Recupera uno snapshot HTML della home esterna con cache.
+ *
+ * @param string $external_home
+ * @param array  $candidate_homes
+ * @return string
+ */
+function dci_get_external_home_snapshot($external_home, $candidate_homes = array()) {
+    $cache_key = 'dci_ext_home_html_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
+    $cached_html = get_transient($cache_key);
+    if (is_array($cached_html)) {
+        return !empty($cached_html['html']) ? (string) $cached_html['html'] : '';
+    }
+
+    if (empty($candidate_homes)) {
+        $candidate_homes = array(trailingslashit($external_home));
+    }
+
     $request_args = array(
-        'timeout' => 12,
-        'redirection' => 5,
+        'timeout' => 4,
+        'redirection' => 3,
         'user-agent' => 'PSR-Theme-Head-Fetch/1.0 (+'. home_url('/') .')',
         'sslverify' => false,
     );
@@ -371,11 +439,13 @@ function dci_get_external_head_html() {
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
             $head_html = dci_extract_head_html(wp_remote_retrieve_body($response));
             if (!empty($head_html)) {
+                set_transient($head_cache_key, $head_html, 5 * MINUTE_IN_SECONDS);
                 return $head_html;
             }
         }
     }
 
+    set_transient($head_cache_key, '__empty__', MINUTE_IN_SECONDS);
     return '';
 }
 
@@ -402,6 +472,12 @@ function dci_get_external_header_html() {
         return '';
     }
 
+    $header_cache_key = 'dci_ext_header_' . md5((string) $external_home);
+    $header_cached = get_transient($header_cache_key);
+    if (is_string($header_cached)) {
+        return ($header_cached === '__empty__') ? '' : $header_cached;
+    }
+
     $external_parts = wp_parse_url($external_home);
     if (empty($external_parts['scheme']) || empty($external_parts['host'])) {
         return '';
@@ -413,8 +489,8 @@ function dci_get_external_header_html() {
     $candidate_homes = array_values(array_unique(array_filter($candidate_homes)));
 
     $request_args = array(
-        'timeout' => 12,
-        'redirection' => 5,
+        'timeout' => 4,
+        'redirection' => 3,
         'user-agent' => 'PSR-Theme-Header-Fetch/1.0 (+'. home_url('/') .')',
         'sslverify' => false,
     );
@@ -424,11 +500,13 @@ function dci_get_external_header_html() {
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
             $header_html = dci_extract_header_html(wp_remote_retrieve_body($response));
             if (!empty($header_html)) {
+                set_transient($header_cache_key, $header_html, 5 * MINUTE_IN_SECONDS);
                 return $header_html;
             }
         }
     }
 
+    set_transient($header_cache_key, '__empty__', MINUTE_IN_SECONDS);
     return '';
 }
 

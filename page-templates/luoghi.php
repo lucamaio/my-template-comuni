@@ -17,14 +17,7 @@ get_header();
 			$img = dci_get_option('immagine', 'luoghi');
 			$didascalia = dci_get_option('didascalia', 'luoghi');
 		
-			$args = array(
-				'posts_per_page' => -1,
-				'post_type' => 'luogo',
-				'post_status'    => 'publish'
-			);
-			$schede_luoghi = get_posts($args);
-
-		?>
+			?>
 		<?php 
 			$with_shadow = true;
 			get_template_part("template-parts/hero/hero"); 

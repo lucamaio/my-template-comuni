@@ -1,11 +1,21 @@
 <?php
 global $the_query, $load_posts, $load_card_type;
 
-$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 200;
+// Limite massimo hard per evitare query troppo grandi via parametro GET.
+$requested_max_posts = isset($_GET['max_posts']) ? absint($_GET['max_posts']) : 0;
 $load_posts = -1;
 // $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
 $notizie_home= dci_get_option("numero_notizie_home", "homepage");
+$notizie_home = max(1, (int) $notizie_home);
+
+// Mantiene abbastanza elementi per popolare la sezione, ma senza esplodere il carico.
+if ($hide_notizie_old === 'true') {
+    $max_posts = ($requested_max_posts > 0) ? min($requested_max_posts, 300) : max($notizie_home * 8, 60);
+} else {
+    // Se non serve filtrare "notizie vecchie", basta caricare il numero richiesto.
+    $max_posts = ($requested_max_posts > 0) ? min($requested_max_posts, 300) : $notizie_home;
+}
 
 $args = array(
     //'s'         => $query,
@@ -14,6 +24,8 @@ $args = array(
     'orderby'   => 'meta_value_num',
     'order'     => 'desc',
     'posts_per_page' => $max_posts,
+    'no_found_rows' => true,
+    'ignore_sticky_posts' => true,
 );
 
 $the_query = new WP_Query($args);
@@ -23,20 +35,11 @@ $posts = $the_query->posts;
  //   return dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $b->ID) - dci_get_data_pubblicazione_ts("data_pubblicazione", '_dci_notizia_', $a->ID);
 //});
 
-$posts = array_slice($posts, 0, $max_posts);
-
-$args = array(
-    // 's' => $query,
-    'posts_per_page' => $max_posts,
-    'post_type' => array('notizia')
-);
-
-$the_query = new WP_Query($args);
 $count=0;
 // var_dump($posts);
 foreach ($posts as $post) {
     if($count >= $notizie_home){
-        continue;
+        break;
     }
 
     $load_card_type = 'notizia';

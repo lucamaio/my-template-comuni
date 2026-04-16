@@ -80,13 +80,13 @@ class CMB2_Field_Leaflet {
             $field_type_object->type = new CMB2_Type_Text( $field_type_object );
         }
 
-        echo '<div id="geocode-selector"></div>';
-        echo "<div class='cmb2-leaflet__container'></div>";
-
-        $this->render_input( 'lat', $field, $field_escaped_value, $field_type_object );
-        $this->render_input( 'lng', $field, $field_escaped_value, $field_type_object );
-
-        $field_type_object->_desc( true, true );
+            echo '<div id="geocode-selector"></div>';
+            echo "<div class='cmb2-leaflet__container'></div>";
+            
+            $this->render_input( 'lat', $field, $field_escaped_value, $field_type_object );
+            $this->render_input( 'lng', $field, $field_escaped_value, $field_type_object );
+            
+            $field_type_object->_desc( true, true );
 
     }
 
@@ -137,18 +137,23 @@ class CMB2_Field_Leaflet {
      *
      * @internal param array $args
      */
-    protected function render_input( $field_name = '', CMB2_Field $field, $field_escaped_value, CMB2_Types $field_type_object ) {
-        $attrs = $field_type_object->concat_attrs( [
-            'id'    => "{$field->args( 'id' )}_{$field_name}",
-            'type'  => 'hidden',
-            'name'  => "{$field->args( '_name' )}[{$field_name}]",
-            'value' => isset( $field_escaped_value[ $field_name ] ) ? $field_escaped_value[ $field_name ] : '',
-            'class' => "leaflet-map__{$field_name}",
-            'desc'  => ''
-        ], [ 'attributes' ] );
-
-        echo sprintf( '<input%s />', $attrs );
-    }
+        protected function render_input( $field_name = '', ?CMB2_Field $field = null, $field_escaped_value = null, ?CMB2_Types $field_type_object = null ) {
+        
+            if (!$field || !$field_type_object) {
+                return;
+            }
+            
+            $attrs = $field_type_object->concat_attrs( [
+                'id'    => "{$field->args( 'id' )}_{$field_name}",
+                'type'  => 'hidden',
+                'name'  => "{$field->args( '_name' )}[{$field_name}]",
+                'value' => isset( $field_escaped_value[ $field_name ] ) ? $field_escaped_value[ $field_name ] : '',
+                'class' => "leaflet-map__{$field_name}",
+                'desc'  => ''
+            ], [ 'attributes' ] );
+        
+            echo sprintf( '<input%s />', $attrs );
+        }
 }
 
 new CMB2_Field_Leaflet();

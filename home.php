@@ -17,10 +17,6 @@ if ($is_external_only) {
     exit;
 }
 
-
-
-
-
 get_header();
 
 
@@ -53,7 +49,7 @@ get_header();
 
 		   
         <section id="evidenza" class="evidence-section">
-                <?php  get_template_part("template-parts/home/argomenti"); ?>
+                <?php get_template_part("template-parts/home/argomenti"); ?>
                <?php  get_template_part("template-parts/home/strip"); ?>
                 <?php get_template_part("template-parts/home/servizi"); ?>
             <div class="section py-5 pb-lg-80 px-lg-5 position-relative">
@@ -93,7 +89,7 @@ get_header();
          <?php 
             $show_map = dci_get_option( "ck_show_map", "homepage" );
             if($show_map === 'true'){
-                get_template_part("template-parts/vivere-comune/mappa");
+              get_template_part("template-parts/vivere-comune/mappa");
             }
 
         ?>

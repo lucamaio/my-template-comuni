@@ -1,12 +1,10 @@
 <?php
 global $argomento_full, $count;
 $argomenti_evidenza = array();
-for ($i = 1; $i <= 3; $i++) { // Riduco il numero di argomenti in evidenza a 3 in quanto è possibile inserire solo 3 argomenti evidenziati nelle opzioni del tema
-    $argomento_option = dci_get_option('argomenti_evidenziati_' . $i, 'homepage');
-    $argomento_full = (is_array($argomento_option) && isset($argomento_option[0]) && is_array($argomento_option[0])) ? $argomento_option[0] : null;
-
-    if ($argomento_full && !empty($argomento_full['argomento_' . $i . '_argomento'])) {
-        $argomenti_evidenza[$i] = $argomento_full;
+for ($i = 1; $i <= 9; $i++) {
+    $argomento = dci_get_option('argomenti_evidenziati_' . $i, 'homepage')[0] ?? null;
+    if ($argomento) {
+        $argomenti_evidenza[$i] = $argomento;       
     }
 }
 $altri_argomenti = dci_get_option('argomenti_altri','homepage');
@@ -16,58 +14,56 @@ $check_immagini = dci_get_option('ch_show_sfondo_argomenti','homepage');
 
 $img_default = get_template_directory_uri() . '/assets/img/bg_placeholder-blu.png';
 $img_ricavata = dci_get_option('immagine-argomenti','homepage');
-$has_custom_bg = (isset($img_ricavata) && !empty($img_ricavata) && $img_ricavata !== null);
 $img = (isset($img_ricavata) && !empty($img_ricavata) && $img_ricavata !== null)
     ? $img_ricavata
     : $img_default;
 ?>
 
 <?php if (!empty($argomenti_evidenza)) { 
-   if(isset($check_immagini) && !empty($check_immagini) && $check_immagini === 'true' && $img != null) { // Mostra immagine di sfondo ?>
-        <div class="it-hero-wrapper it-wrapped-container py-4 argomenti-evidenza-bg">
-            <div class="container">
-                <div class="row"> 
-                    <h2 class="text-white title-xlarge mb-3">Argomenti in Evidenza</h2>
-                </div>
-                <div>
-                    <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal card-teaser-block-3">
-                        <?php
-                        if(is_array($argomenti_evidenza)) {
-                            foreach ($argomenti_evidenza as $key => $argomento_full) {
-                                $count = $key;
-                                if ($argomento_full && isset($argomento_full['argomento_'.$count.'_argomento'])) {
-                                    get_template_part("template-parts/home/scheda-argomento");
-                                }
-                            } 
-                        } ?>
-                    </div>
-                </div>
+   if(isset($check_immagini) && !empty($check_immagini) && $check_immagini === 'true' && $img != null) {?>
+<div class="it-hero-wrapper it-wrapped-container py-4 argomenti-evidenza-bg">
+    <div class="container">
+        <div class="row"> 
+            <h2 class="text-white title-xlarge mb-3">Argomenti in Evidenza</h2> 
+        </div>
+        <div>
+            <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal card-teaser-block-3">
+                <?php
+                if(is_array($argomenti_evidenza)) {
+                    foreach ($argomenti_evidenza as $key => $argomento_full) {
+                        $count = $key;
+                        if ($argomento_full && isset($argomento_full['argomento_'.$count.'_argomento'])) {
+                            get_template_part("template-parts/home/scheda-argomento");
+                        }
+                    } 
+                } ?>
             </div>
         </div>
-    <?php } else{ ?>
-        <div class="container">
-            <div class="row"> 
-                <h2 class="text-black title-xlarge mb-3">Argomenti in Evidenza</h2> 
-            </div>
-            <div>
-                <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal card-teaser-block-3">
-                    <?php
-                    if(is_array($argomenti_evidenza)) {
-                        foreach ($argomenti_evidenza as $key => $argomento_full) {
-                            $count = $key;
-                            if ($argomento_full && isset($argomento_full['argomento_'.$count.'_argomento'])) {
-                                get_template_part("template-parts/home/scheda-argomento");
-                            }
-                        } 
-                    } ?>
-                </div>
+    </div>
+</div>
+<?php } else{ ?>
+     <div class="container">
+        <div class="row"> 
+            <h2 class="text-black title-xlarge mb-3">Argomenti in Evidenza</h2> 
+        </div>
+        <div>
+            <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal card-teaser-block-3">
+                <?php
+                if(is_array($argomenti_evidenza)) {
+                    foreach ($argomenti_evidenza as $key => $argomento_full) {
+                        $count = $key;
+                        if ($argomento_full && isset($argomento_full['argomento_'.$count.'_argomento'])) {
+                            get_template_part("template-parts/home/scheda-argomento");
+                        }
+                    } 
+                } ?>
             </div>
         </div>
-    <?php } 
-}?>
+    </div>
+<?php } }?>
 
-<?php if (isset($altri_argomenti) && is_array($altri_argomenti) && !empty($altri_argomenti)) { ?>
-<div class="container mb-30">
+<div class="container">
+    <?php if ($altri_argomenti) { ?>
     <div class="row pt-30">
         <div class="col-12">
             <h2 class="mb-2 title-xsmall-bold text u-grey-light" ><font color="black" size="3">Altri argomenti</font></h2>
@@ -79,19 +75,20 @@ $img = (isset($img_ricavata) && !empty($img_ricavata) && $img_ricavata !== null)
             <div class="button-group">
                 
                 <?php
-                // Cliclo per mostrare gli altri argomenti 
                 foreach ($altri_argomenti as $i => $arg_id) {
-                    $argomento_term = get_term_by('term_taxonomy_id', $arg_id) ?? null;
-                    if ($argomento_term) {
-                        $url = get_term_link($argomento_term->term_id, 'argomenti') ?? '#';
-                        if($url){?>
-                            <a href="<?php echo esc_url($url); ?>" class="btn-argomento" style="display: inline-flex; align-items: center; gap: 8px;">
-                                <svg class="icon text-primary" style="width:20px; height:30px; display:inline-block; vertical-align:middle;">
-                                    <use xlink:href="#it-bookmark"></use>
-                                </svg>
-                                <?php echo esc_html($argomento_term->name); ?>
-                                </a> <?php 
-                        }
+                    $argomento = get_term_by('term_taxonomy_id', $arg_id);
+                    if ($argomento) {
+                        $url = get_term_link($argomento->term_id, 'argomenti');
+                ?>
+                
+                <a href="<?php echo esc_url($url); ?>" class="btn-argomento" style="display: inline-flex; align-items: center; gap: 8px;">
+                  <svg class="icon text-primary" style="width:20px; height:30px; display:inline-block; vertical-align:middle;">
+                    <use xlink:href="#it-bookmark"></use>
+                  </svg>
+                  <?php echo esc_html($argomento->name); ?>
+                </a>
+                
+                <?php
                     }
                 }
                 ?>
@@ -104,37 +101,34 @@ $img = (isset($img_ricavata) && !empty($img_ricavata) && $img_ricavata !== null)
             </div>
         </div>
     </div>
+    <?php } ?>
 </div>
-<?php } ?>
+
+<br><br>
 
 <style>
-/* Sfondo sezione Argomenti in Evidenza (dinamico sul colore tema primaria) */
+/* Sfondo sezione Argomenti in Evidenza */
 .argomenti-evidenza-bg {
-    background-color: var(--bs-primary, #026e64);
-    <?php if ($has_custom_bg) { ?>
-    background-image: url('<?php echo esc_url($img); ?>');
+    background-image: url('<?= $img ?>');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    <?php } ?>
     position: relative;
     padding: 60px 0;
-    overflow: hidden;
-    isolation: isolate;
+    overflow: hidden; /* Assicura che il pseudo-elemento non esca dai bordi */
 }
 
-/* Layer geometrico simile al precedente sfondo immagine */
+/* Overlay sfocato e opaco */
 .argomenti-evidenza-bg::before {
     content: "";
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2); /* Opacità nera: 0.4 puoi regolare */
+    /* backdrop-filter: blur(0.1rem);  */
     z-index: 1;
-    background:
-        <?php if (!$has_custom_bg) { ?>
-        linear-gradient(160deg, rgba(255, 255, 255, 0.08) 8%, transparent 8%) 0 0 / 42% 100% no-repeat,
-        linear-gradient(20deg, rgba(255, 255, 255, 0.09) 10%, transparent 10%) 100% 0 / 48% 100% no-repeat,
-        <?php } ?>
-        linear-gradient(120deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.1));
 }
 
 /* Contenuto sopra l'overlay */

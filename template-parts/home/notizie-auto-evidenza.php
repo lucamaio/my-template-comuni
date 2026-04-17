@@ -97,7 +97,7 @@ if (!$query->have_posts() || empty($posts)) {
 }
 
 /*
-    Filtro i post validi e preparo già i dati per la stampa:
+    Filtro i post validi
     - Se il check nascondi notizie vecchie è attivo, escludo le notizie con data di scadenza precedente a oggi
       solo se la data di scadenza è diversa dalla data di pubblicazione effettiva
     - Se il check non è attivo, includo tutte le notizie evidenziate
@@ -105,18 +105,19 @@ if (!$query->have_posts() || empty($posts)) {
 $oggi = new DateTime('today');
 $oggi->setTime(0, 0, 0);
 
-$items = array();
+$valid_posts = array();
 
 foreach ($posts as $p) {
 
-    if (count($items) >= $numero_notizie_evidenziate) {
+    if (count($valid_posts) >= $numero_notizie_evidenziate) {
         break;
     }
 
-    $timestampPubblicazione = dci_get_notizia_pubblicazione_timestamp($p->ID, $prefix);
-    $timestampScadenza      = dci_get_notizia_scadenza_timestamp($p->ID, $prefix);
-
     if ($hide_notizie_old === 'true') {
+
+        $timestampPubblicazione = dci_get_notizia_pubblicazione_timestamp($p->ID, $prefix);
+        $timestampScadenza      = dci_get_notizia_scadenza_timestamp($p->ID, $prefix);
+
         $dataPubblicazione = null;
         if (!empty($timestampPubblicazione)) {
             $dataPubblicazione = new DateTime();
@@ -147,37 +148,17 @@ foreach ($posts as $p) {
         ) {
             continue;
         }
+
+        $valid_posts[] = $p;
+
+    } else {
+        $valid_posts[] = $p;
     }
-
-    $tipo_terms = wp_get_post_terms($p->ID, 'tipi_notizia');
-    $tipo       = (!empty($tipo_terms) && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
-
-    $argomenti = wp_get_post_terms($p->ID, 'argomenti');
-    if (is_wp_error($argomenti)) {
-        $argomenti = array();
-    }
-
-    $date_parts = dci_get_notizia_date_parts($timestampPubblicazione);
-
-    // Preparo l'array dei dati per la stampa, così da non dover ripetere la logica di recupero dati all'interno del
-    $items[] = array(
-        'post'               => $p,
-        'id'                 => $p->ID,
-        'img'                => dci_get_meta("immagine", $prefix, $p->ID),
-        'descrizione_breve'  => dci_get_meta("descrizione_breve", $prefix, $p->ID),
-        'luogo_notizia'      => dci_get_meta("luoghi", $prefix, $p->ID),
-        'tipo'               => $tipo,
-        'argomenti'          => $argomenti,
-        'dayPubblicazione'   => $date_parts['day'],
-        'monthPubblicazione' => $date_parts['month'],
-        'yearPubblicazione'  => $date_parts['year'],
-        'monthName'          => $date_parts['monthName'],
-    );
 }
 
 wp_reset_postdata();
 
-$totale = count($items);
+$totale = count($valid_posts);
 $rendered = 0;
 
 if ($totale === 0) {
@@ -191,20 +172,31 @@ if ($totale === 0) {
 <div id="carosello-evidenza" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
     <div class="carousel-inner">
 
-        <?php foreach ($items as $index => $item) : // Loop principale per stampare le notizie in evidenza
-            $p = $item['post'];
+        <?php foreach ($valid_posts as $index => $p) :
+
             setup_postdata($p);
 
-            $img               = $item['img'];
-            $descrizione_breve = $item['descrizione_breve'];
-            $luogo_notizia     = $item['luogo_notizia'];
-            $tipo              = $item['tipo'];
-            $argomenti         = $item['argomenti'];
+            // Dati principali della notizia
+            $img               = dci_get_meta("immagine", $prefix, $p->ID);
+            $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $p->ID);
+            $luogo_notizia     = dci_get_meta("luoghi", $prefix, $p->ID);
 
-            $dayPubblicazione   = $item['dayPubblicazione'];
-            $monthPubblicazione = $item['monthPubblicazione'];
-            $yearPubblicazione  = $item['yearPubblicazione'];
-            $monthName          = $item['monthName'];
+            // Tipo notizia
+            $tipo_terms = wp_get_post_terms($p->ID, 'tipi_notizia');
+            $tipo       = (!empty($tipo_terms) && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
+
+            /**
+             * DATA PUBBLICAZIONE
+             * - meta CMB2 se presente
+             * - altrimenti post_date WordPress
+             */
+            $timestampPubblicazione = dci_get_notizia_pubblicazione_timestamp($p->ID, $prefix);
+            $date_parts             = dci_get_notizia_date_parts($timestampPubblicazione);
+
+            $dayPubblicazione   = $date_parts['day'];
+            $monthPubblicazione = $date_parts['month'];
+            $yearPubblicazione  = $date_parts['year'];
+            $monthName          = $date_parts['monthName'];
 
             $is_active = ($index === 0);
             ?>
@@ -277,14 +269,17 @@ if ($totale === 0) {
                                 <?php endif; ?>
 
                                 <!-- Argomenti -->
-                                <?php if (!empty($argomenti) && !is_wp_error($argomenti)) : ?>
+                                <?php
+                                $argomenti = wp_get_post_terms($p->ID, 'argomenti');
+                                if (!empty($argomenti) && !is_wp_error($argomenti)) :
+                                ?>
                                     <small class="mt-2">Argomenti:</small>
                                     <ul class="d-flex flex-wrap gap-1 list-unstyled mb-0">
-                                        <?php foreach ($argomenti as $item_argomento) : ?>
+                                        <?php foreach ($argomenti as $item) : ?>
                                             <li>
-                                                <a class="chip chip-simple" href="<?php echo esc_url(get_term_link($item_argomento)); ?>">
+                                                <a class="chip chip-simple" href="<?php echo esc_url(get_term_link($item)); ?>">
                                                     <span class="chip-label">
-                                                        <?php echo esc_html($item_argomento->name); ?>
+                                                        <?php echo esc_html($item->name); ?>
                                                     </span>
                                                 </a>
                                             </li>
@@ -329,20 +324,23 @@ if ($totale === 0) {
 </div>
 
 <?php else:
-    $item = $items[0];
-    $p    = $item['post'];
+    $p = $valid_posts[0];
     setup_postdata($p);
 
-    $img               = $item['img'];
-    $descrizione_breve = $item['descrizione_breve'];
-    $luogo_notizia     = $item['luogo_notizia'];
-    $tipo              = $item['tipo'];
-    $argomenti         = $item['argomenti'];
+    $img               = dci_get_meta("immagine", $prefix, $p->ID);
+    $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $p->ID);
+    $luogo_notizia     = dci_get_meta("luoghi", $prefix, $p->ID);
 
-    $dayPubblicazione   = $item['dayPubblicazione'];
-    $monthPubblicazione = $item['monthPubblicazione'];
-    $yearPubblicazione  = $item['yearPubblicazione'];
-    $monthName          = $item['monthName'];
+    $tipo_terms = wp_get_post_terms($p->ID, 'tipi_notizia');
+    $tipo       = (!empty($tipo_terms) && !is_wp_error($tipo_terms)) ? $tipo_terms[0] : null;
+
+    $timestampPubblicazione = dci_get_notizia_pubblicazione_timestamp($p->ID, $prefix);
+    $date_parts             = dci_get_notizia_date_parts($timestampPubblicazione);
+
+    $dayPubblicazione   = $date_parts['day'];
+    $monthPubblicazione = $date_parts['month'];
+    $yearPubblicazione  = $date_parts['year'];
+    $monthName          = $date_parts['monthName'];
 ?>
 
 <div class="row single-news single-news-custom">
@@ -411,14 +409,17 @@ if ($totale === 0) {
                     <?php endif; ?>
 
                     <!-- Argomenti -->
-                    <?php if (!empty($argomenti) && !is_wp_error($argomenti)) : ?>
+                    <?php
+                    $argomenti = wp_get_post_terms($p->ID, 'argomenti');
+                    if (!empty($argomenti) && !is_wp_error($argomenti)) :
+                    ?>
                         <small class="mt-2">Argomenti:</small>
                         <ul class="d-flex flex-wrap gap-1 list-unstyled mb-0">
-                            <?php foreach ($argomenti as $item_argomento) : ?>
+                            <?php foreach ($argomenti as $item) : ?>
                                 <li>
-                                    <a class="chip chip-simple" href="<?php echo esc_url(get_term_link($item_argomento)); ?>">
+                                    <a class="chip chip-simple" href="<?php echo esc_url(get_term_link($item)); ?>">
                                         <span class="chip-label">
-                                            <?php echo esc_html($item_argomento->name); ?>
+                                            <?php echo esc_html($item->name); ?>
                                         </span>
                                     </a>
                                 </li>

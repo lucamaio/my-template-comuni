@@ -18,9 +18,24 @@ while ( have_posts() ) :
 
     // Meta fields
     $oggetto      = get_post_meta( $id, $prefix . 'oggetto', true );
-    $compenso_raw = get_post_meta( $id, $prefix . 'compenso', true );
-    $compenso_num = floatval( str_replace( [ '.', ',' ], [ '', '.' ], $compenso_raw ) );
-    $compenso     = $compenso_num > 0 ? number_format( $compenso_num, 2, ',', '.' ) . '€' : 'Non specificato';
+    $compenso_raw = trim( (string) get_post_meta( $id, $prefix . 'compenso', true ) );
+
+    if ( $compenso_raw !== '' ) {
+        if ( strpos( $compenso_raw, ',' ) !== false && strpos( $compenso_raw, '.' ) !== false ) {
+            // Caso: 1.234,56
+            $compenso_num = floatval( str_replace( [ '.', ',' ], [ '', '.' ], $compenso_raw ) );
+        } elseif ( strpos( $compenso_raw, ',' ) !== false ) {
+            // Caso: 1234,56
+            $compenso_num = floatval( str_replace( ',', '.', $compenso_raw ) );
+        } else {
+            // Caso: 1234.56 oppure 0.01
+            $compenso_num = floatval( $compenso_raw );
+        }
+    } else {
+        $compenso_num = 0;
+    }
+
+    $compenso = $compenso_raw !== '' ? number_format( $compenso_num, 2, ',', '.' ) . ' €' : 'Non specificato';
 
     $data_inizio = get_post_meta( $id, $prefix . 'data_inizio', true );
     $data_fine   = get_post_meta( $id, $prefix . 'data_fine', true );
@@ -33,6 +48,7 @@ while ( have_posts() ) :
     $curriculum = get_post_meta( $id, $prefix . 'cv_allegati', true );
 
     $data_pubbl = get_the_date( 'j F Y', $id );
+    $soggetto    = get_the_title( $id );
 ?>
 
     <div class="container" id="main-container">
@@ -132,29 +148,66 @@ while ( have_posts() ) :
                             </nav>
                         </div>
             </aside>
-            <section class="col-lg-8 it-page-sections-container border-light mb-5">
+            <section class="col-lg-8 it-page-sections-container border-light mb-3">
 
                 <article class="it-page-section anchor-offset">
                     <h4 id="oggetto">Oggetto incarico</h4>
-                    <div class="richtext-wrapper lora"><?php echo nl2br( esc_html( $oggetto ?: '-' ) ); ?></div>
+                    <div class="richtext-wrapper lora mt-3"><?php echo nl2br( esc_html( $oggetto ?: '-' ) ); ?></div>
                 </article>
 
                 <article class="it-page-section anchor-offset mt-5">
                     <h4 id="dati">Dati principali</h4>
-                    <div class="card card-border-top mb-0">
-                        <ul class="mb-0 list-unstyled">
-                            <li><strong>Atto di conferimento:</strong> <?php echo esc_html( $atto ?: '-' ); ?></li>
-                            <li><strong>Compenso lordo:</strong> <?php echo esc_html( $compenso ); ?></li>
-                            <li><strong>Data inizio:</strong> <?php echo $data_inizio ? date_i18n( 'd/m/Y', $data_inizio ) : '-'; ?></li>
-                            <li><strong>Data fine:</strong> <?php echo $data_fine ? date_i18n( 'd/m/Y', $data_fine ) : '-'; ?></li>
-                            <li><strong>Durata:</strong> <?php echo esc_html( $durata ?: '-' ); ?></li>
-                            <li><strong>Situazioni conflitto:</strong> <?php echo esc_html( $situazioni ?: '-' ); ?></li>
-                        </ul>
+
+                    <div class="card card-border-top shadow-sm">
+                        <div class="card-body">
+                            <div class="row g-4">
+
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted small mb-1">Soggetto titolare dell'incarico</h6>
+                                    <p class="mb-0 fw-semibold"><?php echo esc_html( $soggetto ?: '-' ); ?></p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted small mb-1">Atto di conferimento</h6>
+                                    <p class="mb-0 fw-semibold"><?php echo esc_html( $atto ?: '-' ); ?></p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted small mb-1">Compenso lordo</h6>
+                                    <p class="mb-0 fw-semibold"><?php echo esc_html( $compenso ); ?></p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted small mb-1">Durata</h6>
+                                    <p class="mb-0 fw-semibold"><?php echo esc_html( $durata ?: '-' ); ?></p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted small mb-1">Data inizio</h6>
+                                    <p class="mb-0 fw-semibold">
+                                        <?php echo $data_inizio ? date_i18n( 'd/m/Y', $data_inizio ) : '-'; ?>
+                                    </p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted small mb-1">Data fine</h6>
+                                    <p class="mb-0 fw-semibold">
+                                        <?php echo $data_fine ? date_i18n( 'd/m/Y', $data_fine ) : '-'; ?>
+                                    </p>
+                                </div>
+
+                                <div class="col-12">
+                                    <h6 class="text-uppercase text-muted small mb-1">Situazioni di conflitto di interessi</h6>
+                                    <p class="mb-0 fw-semibold"><?php echo esc_html( $situazioni ?: '-' ); ?></p>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 </article>
 
                 <?php if ( ! empty( $documenti ) && is_array( $documenti ) ) : ?>
-                    <article class="it-page-section anchor-offset mt-5">
+                    <article class="it-page-section anchor-offset mt-4">
                         <h4 id="documenti">Documenti</h4>
                         <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
                             <?php foreach ( $documenti as $file_url ) : 
@@ -183,7 +236,7 @@ while ( have_posts() ) :
                 <?php endif; ?>
 
                 <?php if ( ! empty( $curriculum ) && is_array( $curriculum ) ) : ?>
-                    <article class="it-page-section anchor-offset mt-5">
+                    <article class="it-page-section anchor-offset mt-4">
                         <h4 id="curriculum">Curriculum</h4>
                         <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
                             <?php foreach ( $curriculum as $file_url ) : 

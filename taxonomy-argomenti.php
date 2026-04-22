@@ -15,16 +15,7 @@ $img = dci_get_term_meta('immagine', "dci_term_", $argomento->term_id);
 $aree_appartenenza = dci_get_term_meta('area_appartenenza', "dci_term_", $argomento->term_id);
 $assessorati_riferimento = dci_get_term_meta('assessorato_riferimento', "dci_term_", $argomento->term_id);
 
-// Logica per la gestione della barra verticale in caso di più di 3 UO associate all'argomento
-$gestori_count = 0; // Variabile di suporto per contare il numero totale di gestori (aree di appartenenza + assessorati di riferimento)
 
-if (is_array($aree_appartenenza)) {
-    $gestori_count += count($aree_appartenenza);
-}
-
-if (is_array($assessorati_riferimento)) {
-    $gestori_count += count($assessorati_riferimento);
-}
 
 get_header();
 ?>
@@ -63,10 +54,10 @@ get_header();
                     </p>
                   </div>
                   <div class="col-12 col-lg-5 me-lg-5">
+                    <div class="card-wrapper card-column">
                     <?php 
-                      if ((is_array($aree_appartenenza) && count($aree_appartenenza)) || (is_array($assessorati_riferimento) && count($assessorati_riferimento))) { ?>
-                        <h3 class="title-xsmall-semi-bold">Questo argomento è gestito da:</h3>
-                        <div class="card-wrapper card-column<?php echo $gestori_count > 3 ? ' argomento-gestori-scroll' : ''; ?>">
+                        if ((is_array($aree_appartenenza) && count($aree_appartenenza)) || (is_array($assessorati_riferimento) && count($assessorati_riferimento))) { ?>
+                    <h3 class="title-xsmall-semi-bold">Questo argomento è gestito da:</h3>
                     <?php } ?>
                     <?php 
                         if (is_array($aree_appartenenza) && count($aree_appartenenza)) {
@@ -83,33 +74,6 @@ get_header();
                             }
                         } 
                       ?>
-
-                      <?php if($gestori_count > 3) {  //  Aggiungo lo stile solo se ci sono più di 3 UO associate all'argomento ?>
-                        <style>
-                          .argomento-gestori-scroll {
-                            max-height: 25rem;
-                            overflow-y: auto;
-                            padding-right: 0.5rem;
-                          }
-
-                          .argomento-gestori-scroll::-webkit-scrollbar {
-                            width: 0.5rem;
-                          }
-
-                          .argomento-gestori-scroll::-webkit-scrollbar-thumb {
-                            background: rgba(23, 50, 77, 0.35);
-                            border-radius: 999px;
-                          }
-
-                          @media (max-width: 991.98px) {
-                            .argomento-gestori-scroll {
-                              max-height: 25rem;
-                              overflow-y: auto;
-                              padding-right: 0.35rem;
-                            }
-                          }
-                      </style>
-                      <?php } ?>
                     </div>
                   </div>
                 </div>

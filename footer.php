@@ -20,7 +20,13 @@ if ($is_external_only && function_exists('dci_get_external_footer_payload')) {
     }
 }
 ?>
-
+<style>
+@media (max-width: 768px) {
+  .cookiebar {
+    display: none !important;
+  }
+}	
+</style>
 <section class="cookiebar fade" aria-label="Gestione dei cookies" aria-live="polite">
   <p>COOKIES - Si usano i cookies e altre tecniche di tracciamento per migliorare la tua esperienza di navigazione nel nostro sito, per mostrarti contenuti personalizzati e annunci mirati, per analizzare il traffico sul nostro sito, e per capire da dove arrivano i nostri visitatori.
     <a href="/privacy/" class="cookiebar-btn">Info Privacy<span class="visually-hidden">cookies</span></a>
@@ -295,15 +301,21 @@ if ($is_external_only && function_exists('dci_get_external_footer_payload')) {
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+  const isMobile = window.innerWidth <= 768;
+
   const cookieBar = document.querySelector(".cookiebar");
   const acceptButton = document.querySelector(".acceptAllCookie");
   const denyButton   = document.querySelector(".denyAllCookie");
 
+  // 👉 BLOCCA COMPLETAMENTE SU MOBILE
+  if (isMobile) {
+    if (cookieBar) cookieBar.remove();
+    return;
+  }
+
   // Se l'utente ha già scelto, nascondi la barra
   if (localStorage.getItem("cookieChoice")) {
-    if (cookieBar) {
-      cookieBar.style.display = "none";
-    }
+    if (cookieBar) cookieBar.style.display = "none";
   }
 
   // ACCETTA
@@ -324,16 +336,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
+// 👇 questo lascialo separato (ok così)
+document.addEventListener('keydown', function(e) {
+  const editable = e.target.isContentEditable || 
+                   e.target.tagName.toLowerCase() === 'input' || 
+                   e.target.tagName.toLowerCase() === 'textarea';
 
-	document.addEventListener('keydown', function(e) {
-	  const editable = e.target.isContentEditable || e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea';
-	
-	  if (editable && e.key.toLowerCase() === 'm') {
-	    e.stopPropagation(); // blocca la M solo negli elementi editabili
-		  }
-	}, true);
-
-	
+  if (editable && e.key.toLowerCase() === 'm') {
+    e.stopPropagation();
+  }
+}, true);
 </script>
 
 

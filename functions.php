@@ -296,9 +296,6 @@ function getFileSizeAndFormat($url) {
 
 
 
-
-
-
 function my_custom_one_time_function() {
     // Evita lavoro pesante sulle richieste frontend.
     if (!is_admin() && !(defined('WP_CLI') && WP_CLI)) {
@@ -308,32 +305,36 @@ function my_custom_one_time_function() {
     // Controlla se l'opzione è già stata impostata
     if (!get_option('my_custom_function_executed')) {
         
-		$args = array(
-			'post_type' => 'notizia', 
-			'post_status' => 'publish', 
-			'posts_per_page'   => -1 
-		);
-		$posts = get_posts($args);
-		foreach ( $posts as $post ) {
-			
-			$meta_valore = get_post_meta($post->ID, '_dci_notizia_data_pubblicazione', true);
-			
-			if (empty($meta_valore)) {
-				// Recupera la data di pubblicazione del post
-				$data_pubblicazione = strtotime(get_the_date('d-m-Y', $post->ID));
-				
-				// Aggiorna il campo personalizzato con la data di pubblicazione
-				update_post_meta($post->ID, '_dci_notizia_data_pubblicazione', $data_pubblicazione);
-			}
-		}
+        $args = [
+            'post_type' => 'notizia',
+            'post_status' => 'publish',
+            'posts_per_page' => 200,
+            'paged' => 1,
+            'fields' => 'ids'
+        ];
 
-        // Imposta l'opzione per segnare che la funzione è stata eseguita
+        do {
+            $posts = get_posts($args);
+
+            foreach ($posts as $post_id) {
+
+                $meta_valore = get_post_meta($post_id, '_dci_notizia_data_pubblicazione', true);
+
+                if (empty($meta_valore)) {
+                    $data_pubblicazione = strtotime(get_the_date('d-m-Y', $post_id));
+                    update_post_meta($post_id, '_dci_notizia_data_pubblicazione', $data_pubblicazione);
+                }
+            }
+
+            $args['paged']++;
+
+        } while (!empty($posts));
+
+        // ✅ DEVE stare dentro l'if
         update_option('my_custom_function_executed', 1);
     }
 }
 add_action('admin_init', 'my_custom_one_time_function');
-
-
 
 
 
@@ -735,68 +736,88 @@ add_action('rest_api_init', function () {
 
     /*
     =====================================
-    EVENTO
+    EVENTO (OTTIMIZZATO)
     =====================================
     */
     register_rest_field('evento', 'data_inizio', [
         'get_callback' => function ($post) {
-            return get_post_meta($post['id'], '_dci_evento_data_orario_inizio', true);
+            static $cache = [];
+            if (!isset($cache[$post['id']])) {
+                $cache[$post['id']] = get_post_meta($post['id']);
+            }
+            return $cache[$post['id']]['_dci_evento_data_orario_inizio'][0] ?? '';
         }
     ]);
 
     register_rest_field('evento', 'data_fine', [
         'get_callback' => function ($post) {
-            return get_post_meta($post['id'], '_dci_evento_data_orario_fine', true);
+            static $cache = [];
+            if (!isset($cache[$post['id']])) {
+                $cache[$post['id']] = get_post_meta($post['id']);
+            }
+            return $cache[$post['id']]['_dci_evento_data_orario_fine'][0] ?? '';
         }
     ]);
 
     register_rest_field('evento', 'descrizione_breve', [
         'get_callback' => function ($post) {
-            return get_post_meta($post['id'], '_dci_evento_descrizione_breve', true);
+            static $cache = [];
+            if (!isset($cache[$post['id']])) {
+                $cache[$post['id']] = get_post_meta($post['id']);
+            }
+            return $cache[$post['id']]['_dci_evento_descrizione_breve'][0] ?? '';
         }
     ]);
 
-
     /*
     =====================================
-    NOTIZIA
+    NOTIZIA (OTTIMIZZATO)
     =====================================
     */
     register_rest_field('notizia', 'descrizione_breve', [
         'get_callback' => function ($post) {
-            return get_post_meta($post['id'], '_dci_notizia_descrizione_breve', true);
+            static $cache = [];
+            if (!isset($cache[$post['id']])) {
+                $cache[$post['id']] = get_post_meta($post['id']);
+            }
+            return $cache[$post['id']]['_dci_notizia_descrizione_breve'][0] ?? '';
         }
     ]);
 
     register_rest_field('notizia', 'data_scadenza', [
         'get_callback' => function ($post) {
-            return get_post_meta($post['id'], '_dci_notizia_data_scadenza', true);
+            static $cache = [];
+            if (!isset($cache[$post['id']])) {
+                $cache[$post['id']] = get_post_meta($post['id']);
+            }
+            return $cache[$post['id']]['_dci_notizia_data_scadenza'][0] ?? '';
         }
     ]);
 
-
     /*
     =====================================
-    LUOGO (OTTIMIZZATO CON CACHE)
+    LUOGO (CACHE)
     =====================================
     */
     register_rest_field('luogo', 'meta_luogo', [
         'get_callback' => function ($post) {
 
             $cache_key = 'luogo_meta_' . $post['id'];
-            $cached = wp_cache_get($cache_key);
 
-            if ($cached !== false) {
-                return $cached;
-            }
+            $cached = get_transient($cache_key);
+            if ($cached !== false) return $cached;
 
             $prefix = '_dci_luogo_';
-            $gps = get_post_meta($post['id'], $prefix . 'posizione_gps', true);
+            $all_meta = get_post_meta($post['id']);
+
+            $gps = isset($all_meta[$prefix . 'posizione_gps'][0])
+                ? maybe_unserialize($all_meta[$prefix . 'posizione_gps'][0])
+                : [];
 
             $tipi = get_the_terms($post['id'], 'tipi_luogo');
             $tipi_array = [];
 
-            if ($tipi && !is_wp_error($tipi)) {
+            if (!empty($tipi) && !is_wp_error($tipi)) {
                 foreach ($tipi as $t) {
                     $tipi_array[] = [
                         'name' => $t->name,
@@ -806,32 +827,33 @@ add_action('rest_api_init', function () {
             }
 
             $data = [
-                'immagine' => get_post_meta($post['id'], $prefix . 'immagine', true),
-                'descrizione' => get_post_meta($post['id'], $prefix . 'descrizione_breve', true),
-                'lat' => isset($gps['lat']) ? $gps['lat'] : '',
-                'lng' => isset($gps['lng']) ? $gps['lng'] : '',
-                'indirizzo' => get_post_meta($post['id'], $prefix . 'indirizzo', true),
-                'quartiere' => get_post_meta($post['id'], $prefix . 'quartiere', true),
-                'circoscrizione' => get_post_meta($post['id'], $prefix . 'circoscrizione', true),
+                'immagine' => $all_meta[$prefix . 'immagine'][0] ?? '',
+                'descrizione' => $all_meta[$prefix . 'descrizione_breve'][0] ?? '',
+                'lat' => $gps['lat'] ?? '',
+                'lng' => $gps['lng'] ?? '',
+                'indirizzo' => $all_meta[$prefix . 'indirizzo'][0] ?? '',
+                'quartiere' => $all_meta[$prefix . 'quartiere'][0] ?? '',
+                'circoscrizione' => $all_meta[$prefix . 'circoscrizione'][0] ?? '',
                 'tipi_luogo' => $tipi_array
             ];
 
-            // cache 1 ora
-            wp_cache_set($cache_key, $data, '', 3600);
+            set_transient($cache_key, $data, HOUR_IN_SECONDS);
 
             return $data;
         }
     ]);
 
-
     /*
     =====================================
-    API FOOTER
+    FOOTER (CACHE)
     =====================================
     */
     register_rest_route('comune/v1', '/footer', [
         'methods' => 'GET',
         'callback' => function () {
+
+            $cached = get_transient('api_footer');
+            if ($cached !== false) return $cached;
 
             $data = [
                 "nome" => dci_get_option("nome_comune"),
@@ -858,8 +880,18 @@ add_action('rest_api_init', function () {
                 }
             }
 
+            set_transient('api_footer', $data, HOUR_IN_SECONDS);
+
             return $data;
         }
     ]);
 
+});
+
+add_action('save_post_luogo', function($post_id) {
+    delete_transient('luogo_meta_' . $post_id);
+});
+
+add_action('update_option_dci_options', function() {
+    delete_transient('api_footer');
 });

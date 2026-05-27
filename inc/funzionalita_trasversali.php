@@ -18,20 +18,13 @@ add_action('rest_api_init', 'dci_register_sedi_route');
  */
 function dci_get_sedi_ufficio(WP_REST_Request $request) {
 
-    $params = $request->get_params();
+    $params = $_GET;
     if (array_key_exists('title', $params)) {
         $ufficio  = get_page_by_title($params['title'], OBJECT, 'unita_organizzativa');
-        if (!$ufficio || empty($ufficio->ID)) {
-            return array(
-                "error" => array(
-                    "code" =>  404,
-                    "message" => "Unità organizzativa non trovata."
-                ));
-        }
-        $id = $ufficio->ID;
+        $id = $ufficio -> ID;
     }
     else if (array_key_exists('id', $params)) {
-        $id = absint($params['id']);
+        $id = $params['id'];
     }
 
     $sedi_ids = array();
@@ -51,7 +44,7 @@ function dci_get_sedi_ufficio(WP_REST_Request $request) {
         }
     }
 
-    if (!isset($id) || empty($id)) {
+    if (!isset($id)) {
         return array(
             "error" => array(
                 "code" =>  400,
@@ -66,7 +59,7 @@ function dci_get_sedi_ufficio(WP_REST_Request $request) {
         'post_status' => 'publish',
         'numberposts' => -1,
         'post__in' => $sedi_ids,
-        'orderby' => 'post__in'
+        'order_by' => 'post__in'
     ]);
 
     foreach ($sedi as $sede) {
@@ -89,6 +82,30 @@ function dci_register_servizi_ufficio_route() {
     ));
 }
 add_action('rest_api_init', 'dci_register_servizi_ufficio_route');
+
+/**
+ * Espone i titolari dell'amministrazione politica con ruoli e dati essenziali.
+ */
+function dci_register_amministrazione_politica_route() {
+    register_rest_route('wp/v2', '/amministrazione-politica/', array(
+        'methods' => 'GET',
+        'callback' => 'dci_get_amministrazione_politica',
+        'permission_callback' => '__return_true',
+    ));
+}
+add_action('rest_api_init', 'dci_register_amministrazione_politica_route');
+
+/**
+ * Espone gli uffici e i relativi responsabili (se presenti).
+ */
+function dci_register_uffici_responsabili_route() {
+    register_rest_route('wp/v2', '/uffici/responsabili/', array(
+        'methods' => 'GET',
+        'callback' => 'dci_get_uffici_responsabili',
+        'permission_callback' => '__return_true',
+    ));
+}
+add_action('rest_api_init', 'dci_register_uffici_responsabili_route');
 
 /**
  * Espone gli slot prenotabili costruiti dall'orario associato all'Unità organizzativa.
@@ -131,7 +148,7 @@ function dci_get_external_footer_payload() {
         }
     }
 
-    $footer_cache_key = 'dci_ext_footer_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
+    $footer_cache_key = 'dci_ext_footer_' . md5((string) $external_home);
     $footer_cached = get_transient($footer_cache_key);
     if (is_array($footer_cached)) {
         if (!empty($footer_cached['html'])) {
@@ -141,6 +158,12 @@ function dci_get_external_footer_payload() {
     }
 
     if ($is_external_only && $should_fetch_external_footer && !empty($external_home) && filter_var($external_home, FILTER_VALIDATE_URL)) {
+        $cache_key = 'dci_ext_footer_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
+        $cached_payload = get_transient($cache_key);
+        if (is_array($cached_payload)) {
+            return !empty($cached_payload['html']) ? $cached_payload : null;
+        }
+
         $current_home = trailingslashit(home_url('/'));
         $external_parts = wp_parse_url($external_home);
         $request_args = array(
@@ -228,7 +251,7 @@ function dci_get_external_footer_payload() {
         }
 
         // Negative cache per evitare timeout ripetuti ad ogni request.
-        set_transient($footer_cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
+        set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
     }
 
     set_transient($footer_cache_key, array('success' => false, 'html' => ''), MINUTE_IN_SECONDS);
@@ -332,7 +355,6 @@ function dci_extract_header_html($html) {
     return '';
 }
 
-
 /**
  * Recupera il blocco head del portale principale (se configurato).
  *
@@ -357,10 +379,10 @@ function dci_get_external_head_html() {
         return '';
     }
 
-    $cache_key = 'dci_ext_head_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
-    $cached_head = get_transient($cache_key);
-    if (is_array($cached_head)) {
-        return !empty($cached_head['html']) ? $cached_head['html'] : '';
+    $head_cache_key = 'dci_ext_head_' . md5((string) $external_home);
+    $head_cached = get_transient($head_cache_key);
+    if (is_string($head_cached)) {
+        return ($head_cached === '__empty__') ? '' : $head_cached;
     }
 
     $external_parts = wp_parse_url($external_home);
@@ -388,6 +410,12 @@ function dci_get_external_head_html() {
         }
     }
     $candidate_homes = array_values(array_unique(array_filter($candidate_homes)));
+
+    $cache_key = 'dci_ext_head_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
+    $cached_head = get_transient($cache_key);
+    if (is_array($cached_head)) {
+        return !empty($cached_head['html']) ? $cached_head['html'] : '';
+    }
 
     $external_html = dci_get_external_home_snapshot($external_home, $candidate_homes);
     if ($external_html === '') {
@@ -435,13 +463,13 @@ function dci_get_external_home_snapshot($external_home, $candidate_homes = array
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
             $head_html = dci_extract_head_html(wp_remote_retrieve_body($response));
             if (!empty($head_html)) {
-                set_transient($head_cache_key, $head_html, 5 * MINUTE_IN_SECONDS);
+                set_transient($cache_key, array('html' => $head_html), 10 * MINUTE_IN_SECONDS);
                 return $head_html;
             }
         }
     }
 
-    set_transient($head_cache_key, '__empty__', MINUTE_IN_SECONDS);
+    set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
     return '';
 }
 
@@ -468,10 +496,10 @@ function dci_get_external_header_html() {
         return '';
     }
 
-    $cache_key = 'dci_ext_header_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
-    $cached_header = get_transient($cache_key);
-    if (is_array($cached_header)) {
-        return !empty($cached_header['html']) ? $cached_header['html'] : '';
+    $header_cache_key = 'dci_ext_header_' . md5((string) $external_home);
+    $header_cached = get_transient($header_cache_key);
+    if (is_string($header_cached)) {
+        return ($header_cached === '__empty__') ? '' : $header_cached;
     }
 
     $external_parts = wp_parse_url($external_home);
@@ -484,19 +512,25 @@ function dci_get_external_header_html() {
     $candidate_homes[] = $external_parts['scheme'] . '://' . $external_parts['host'] . '/';
     $candidate_homes = array_values(array_unique(array_filter($candidate_homes)));
 
-    $external_html = dci_get_external_home_snapshot($external_home, $candidate_homes);
-    if ($external_html === '') {
-        set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
-        return '';
+    $request_args = array(
+        'timeout' => 4,
+        'redirection' => 3,
+        'user-agent' => 'PSR-Theme-Header-Fetch/1.0 (+'. home_url('/') .')',
+        'sslverify' => false,
+    );
+
+    foreach ($candidate_homes as $candidate_home) {
+        $response = wp_remote_get($candidate_home, $request_args);
+        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+            $header_html = dci_extract_header_html(wp_remote_retrieve_body($response));
+            if (!empty($header_html)) {
+                set_transient($header_cache_key, $header_html, 5 * MINUTE_IN_SECONDS);
+                return $header_html;
+            }
+        }
     }
 
-    $header_html = dci_extract_header_html($external_html);
-    if (!empty($header_html)) {
-        set_transient($cache_key, array('html' => $header_html), 10 * MINUTE_IN_SECONDS);
-        return $header_html;
-    }
-
-    set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
+    set_transient($header_cache_key, '__empty__', MINUTE_IN_SECONDS);
     return '';
 }
 
@@ -527,8 +561,19 @@ function dci_get_appuntamenti_ufficio(WP_REST_Request $request) {
         $year = (int) wp_date('Y');
     }
 
+    $is_current_month = ((int) wp_date('n') === $month && (int) wp_date('Y') === $year);
+    $cache_key = 'dci_slots_uo_' . $office_id . '_' . $year . '_' . $month;
+
+    if (!$is_current_month) {
+        $cached_slots = get_transient($cache_key);
+        if (is_array($cached_slots)) {
+            return $cached_slots;
+        }
+    }
+
     $orario_id = absint(dci_get_meta('orario_uo', '_dci_unita_organizzativa_', $office_id));
     if ($orario_id <= 0) {
+        set_transient($cache_key, array(), 2 * MINUTE_IN_SECONDS);
         return array();
     }
 
@@ -539,6 +584,7 @@ function dci_get_appuntamenti_ufficio(WP_REST_Request $request) {
     $data_inizio = DateTime::createFromFormat('d-m-Y', $data_inizio_raw) ?: null;
     $data_fine = DateTime::createFromFormat('d-m-Y', $data_fine_raw) ?: null;
     if (!$data_inizio || !$data_fine) {
+        set_transient($cache_key, array(), 2 * MINUTE_IN_SECONDS);
         return array();
     }
 
@@ -597,6 +643,10 @@ function dci_get_appuntamenti_ufficio(WP_REST_Request $request) {
         }
 
         $cursor->modify('+1 day')->setTime(0, 0, 0);
+    }
+
+    if (!$is_current_month) {
+        set_transient($cache_key, $slots, 5 * MINUTE_IN_SECONDS);
     }
 
     return $slots;
@@ -697,23 +747,16 @@ function dci_parse_orario_range($range) {
  */
 function dci_get_servizi_ufficio(WP_REST_Request $request) {
 
-    $params = $request->get_params();
+    $params = $_GET;
     if (array_key_exists('title', $params)) {
         $ufficio  = get_page_by_title($params['title'], OBJECT, 'unita_organizzativa');
-        if (!$ufficio || empty($ufficio->ID)) {
-            return array(
-                "error" => array(
-                    "code" =>  404,
-                    "message" => "Unità organizzativa non trovata."
-                ));
-        }
-        $id = $ufficio->ID;
+        $id = $ufficio -> ID;
     }
     else if (array_key_exists('id', $params)) {
-        $id = absint($params['id']);
+        $id = $params['id'];
     }
 
-    if (!isset($id) || empty($id)) {
+    if (!isset($id)) {
         return array(
             "error" => array(
                 "code" =>  400,
@@ -732,11 +775,481 @@ function dci_get_servizi_ufficio(WP_REST_Request $request) {
             'post_status' => 'publish',
             'numberposts' => -1,
             'post__in' => $servizi_ids,
-            'orderby' => 'post__in'
+            'order_by' => 'post__in'
         ]);
     }
 
     return $servizi;
+}
+
+/**
+ * Normalizza una lista di ID salvata in meta (array/stringa/scalare).
+ *
+ * @param mixed $value
+ * @return int[]
+ */
+function dci_normalize_meta_ids($value) {
+    if (empty($value)) {
+        return array();
+    }
+
+    $flat_values = array();
+    $stack = is_array($value) ? $value : array($value);
+
+    while (!empty($stack)) {
+        $current = array_pop($stack);
+        if (is_array($current)) {
+            foreach ($current as $item) {
+                $stack[] = $item;
+            }
+            continue;
+        }
+        $flat_values[] = $current;
+    }
+
+    return array_values(array_unique(array_filter(array_map('intval', $flat_values))));
+}
+
+/**
+ * Restituisce i titolari dell'amministrazione politica con ruoli, immagine e descrizione breve.
+ *
+ * @param WP_REST_Request $request
+ * @return array[]
+ */
+function dci_get_amministrazione_politica(WP_REST_Request $request) {
+    $cache_key = 'dci_api_amministrazione_politica_v3';
+    $cached = get_transient($cache_key);
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    $today_ts = current_time('timestamp');
+
+    $candidate_person_ids = array();
+
+    // Persone collegate a incarichi politici.
+    $incarichi_politici = get_posts(array(
+        'post_type' => 'incarico',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+        'fields' => 'ids',
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'tipi_incarico',
+                'field' => 'slug',
+                'terms' => array('politico'),
+            ),
+        ),
+    ));
+
+    foreach ($incarichi_politici as $incarico_id) {
+        $persone_incarico = dci_normalize_meta_ids(get_post_meta($incarico_id, '_dci_incarico_persona', false));
+        foreach ($persone_incarico as $persona_id) {
+            $candidate_person_ids[$persona_id] = true;
+        }
+    }
+
+    // Persone collegate alle unità organizzative politiche richieste.
+    $uo_politiche = get_posts(array(
+        'post_type' => 'unita_organizzativa',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+        'fields' => 'ids',
+        'post_name__in' => array('sindaco', 'giunta-comunale', 'consiglio-comunale'),
+    ));
+
+    foreach ($uo_politiche as $uo_id) {
+        $responsabili = dci_normalize_meta_ids(dci_get_meta('responsabile', '_dci_unita_organizzativa_', $uo_id));
+        $persone_struttura = dci_normalize_meta_ids(dci_get_meta('persone_struttura', '_dci_unita_organizzativa_', $uo_id));
+
+        foreach (array_merge($responsabili, $persone_struttura) as $persona_id) {
+            $candidate_person_ids[$persona_id] = true;
+        }
+    }
+
+    if (empty($candidate_person_ids)) {
+        set_transient($cache_key, array(), 5 * MINUTE_IN_SECONDS);
+        return array();
+    }
+
+    $response = array();
+
+
+    $role_rank = function ($role_title) {
+        $normalized = sanitize_title((string) $role_title);
+
+        $priority_map = array(
+            'sindaco' => 0,
+            'vicesindaco' => 1,
+            'vice-sindaco' => 1,
+            'assessore' => 2,
+            'giunta-comunale' => 2,
+            'presidente-del-consiglio' => 3,
+            'vicepresidente-del-consiglio' => 4,
+            'consigliere' => 5,
+            'consigliere-comunale' => 5,
+        );
+
+        if (isset($priority_map[$normalized])) {
+            return $priority_map[$normalized];
+        }
+
+        if (strpos($normalized, 'sindaco') !== false) {
+            return 0;
+        }
+        if (strpos($normalized, 'vice') !== false && strpos($normalized, 'sindaco') !== false) {
+            return 1;
+        }
+        if (strpos($normalized, 'assessore') !== false || strpos($normalized, 'giunta') !== false) {
+            return 2;
+        }
+        if (strpos($normalized, 'presidente-del-consiglio') !== false) {
+            return 3;
+        }
+        if (strpos($normalized, 'vicepresidente-del-consiglio') !== false) {
+            return 4;
+        }
+        if (strpos($normalized, 'consigliere') !== false) {
+            return 5;
+        }
+
+        return 99;
+    };
+
+    foreach (array_keys($candidate_person_ids) as $person_id) {
+        $person = get_post($person_id);
+        if (!$person instanceof WP_Post || $person->post_type !== 'persona_pubblica' || $person->post_status !== 'publish') {
+            continue;
+        }
+
+        $data_conclusione_persona = dci_get_meta('data_conclusione_incarico', '_dci_persona_pubblica_', $person_id);
+        if (!empty($data_conclusione_persona)) {
+            $fine_persona_ts = is_numeric($data_conclusione_persona) ? intval($data_conclusione_persona) : strtotime($data_conclusione_persona);
+            if ($fine_persona_ts && $fine_persona_ts < $today_ts) {
+                continue;
+            }
+        }
+
+        $incarichi_ids = dci_normalize_meta_ids(dci_get_meta('incarichi', '_dci_persona_pubblica_', $person_id));
+        $ruoli = array();
+        $has_active_role = false;
+
+        foreach ($incarichi_ids as $incarico_id) {
+            $incarico = get_post($incarico_id);
+            if (!$incarico instanceof WP_Post || $incarico->post_status !== 'publish') {
+                continue;
+            }
+
+            $ruoli[] = $incarico->post_title;
+
+            $fine_incarico = dci_get_meta('data_conclusione_incarico', '_dci_incarico_', $incarico_id);
+            if (empty($fine_incarico)) {
+                $has_active_role = true;
+                continue;
+            }
+
+            $fine_incarico_ts = is_numeric($fine_incarico) ? intval($fine_incarico) : strtotime($fine_incarico);
+            if (!$fine_incarico_ts || $fine_incarico_ts >= $today_ts) {
+                $has_active_role = true;
+            }
+        }
+
+        if (empty($ruoli) || !$has_active_role) {
+            continue;
+        }
+
+        $thumbnail_id = get_post_thumbnail_id($person_id);
+        $foto_persona = dci_get_meta('foto', '_dci_persona_pubblica_', $person_id);
+        $immagine = $thumbnail_id ? wp_get_attachment_image_url($thumbnail_id, 'full') : null;
+
+        if (empty($immagine) && !empty($foto_persona)) {
+            if (is_numeric($foto_persona)) {
+                $img_url = wp_get_attachment_image_url((int) $foto_persona, 'full');
+                $immagine = $img_url ? $img_url : null;
+            } elseif (is_array($foto_persona) && isset($foto_persona['url']) && is_string($foto_persona['url'])) {
+                $immagine = $foto_persona['url'];
+            } elseif (is_string($foto_persona)) {
+                $immagine = $foto_persona;
+            }
+        }
+
+        $contatti = dci_get_contatti_da_punti_ids(
+            dci_normalize_meta_ids(dci_get_meta('punti_contatto', '_dci_persona_pubblica_', $person_id))
+        );
+
+        $ruoli_unici = array_values(array_unique($ruoli));
+        usort($ruoli_unici, function ($a, $b) use ($role_rank) {
+            $rank_cmp = $role_rank($a) <=> $role_rank($b);
+            if ($rank_cmp !== 0) {
+                return $rank_cmp;
+            }
+
+            return strcasecmp((string) $a, (string) $b);
+        });
+
+        $response[] = array(
+            'id' => $person_id,
+            'nome' => get_the_title($person_id),
+            'url' => get_permalink($person_id),
+            'ruoli' => $ruoli_unici,
+            'descrizione_breve' => dci_get_meta('descrizione_breve', '_dci_persona_pubblica_', $person_id),
+            'immagine' => $immagine,
+            'contatti' => $contatti,
+        );
+    }
+
+    usort($response, function ($a, $b) use ($role_rank) {
+        $a_primary = isset($a['ruoli'][0]) ? $role_rank($a['ruoli'][0]) : 99;
+        $b_primary = isset($b['ruoli'][0]) ? $role_rank($b['ruoli'][0]) : 99;
+
+        $rank_cmp = $a_primary <=> $b_primary;
+        if ($rank_cmp !== 0) {
+            return $rank_cmp;
+        }
+
+        return strcasecmp((string) $a['nome'], (string) $b['nome']);
+    });
+
+    set_transient($cache_key, $response, 5 * MINUTE_IN_SECONDS);
+
+    return $response;
+}
+
+/**
+ * Restituisce gli uffici (unità organizzative) con i rispettivi responsabili se presenti.
+ *
+ * @param WP_REST_Request $request
+ * @return array[]
+ */
+function dci_get_uffici_responsabili(WP_REST_Request $request) {
+    $cache_key = 'dci_api_uffici_responsabili_v2';
+    $cached = get_transient($cache_key);
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    $uffici = get_posts(array(
+        'post_type' => 'unita_organizzativa',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'tipi_unita_organizzativa',
+                'field' => 'slug',
+                'terms' => array('ufficio'),
+            ),
+        ),
+    ));
+
+    $response = array();
+
+    foreach ($uffici as $ufficio) {
+        $tipi_ufficio = get_the_terms($ufficio, 'tipi_unita_organizzativa');
+        if (!is_array($tipi_ufficio) || empty($tipi_ufficio) || !isset($tipi_ufficio[0]->slug) || $tipi_ufficio[0]->slug !== 'ufficio') {
+            continue;
+        }
+
+        $responsabili_ids = dci_normalize_meta_ids(dci_get_meta('responsabile', '_dci_unita_organizzativa_', $ufficio->ID));
+        $responsabili = array();
+
+        foreach ($responsabili_ids as $responsabile_id) {
+            $responsabile = get_post($responsabile_id);
+            if (!$responsabile instanceof WP_Post || $responsabile->post_status !== 'publish') {
+                continue;
+            }
+
+            $ruoli = array();
+            $incarichi_ids = dci_normalize_meta_ids(dci_get_meta('incarichi', '_dci_persona_pubblica_', $responsabile_id));
+            foreach ($incarichi_ids as $incarico_id) {
+                $incarico = get_post($incarico_id);
+                if ($incarico instanceof WP_Post && $incarico->post_status === 'publish') {
+                    $ruoli[] = $incarico->post_title;
+                }
+            }
+
+            $responsabili[] = array(
+                'id' => $responsabile_id,
+                'nome' => get_the_title($responsabile_id),
+                'url' => get_permalink($responsabile_id),
+                'ruoli' => array_values(array_unique($ruoli)),
+            );
+        }
+
+        $response[] = array(
+            'id' => $ufficio->ID,
+            'nome' => $ufficio->post_title,
+            'url' => get_permalink($ufficio->ID),
+            'descrizione_breve' => dci_get_meta('descrizione_breve', '_dci_unita_organizzativa_', $ufficio->ID),
+            'orari_ufficio' => dci_get_ufficio_orari_payload($ufficio->ID),
+            'contatti' => dci_get_ufficio_contatti_payload($ufficio->ID),
+            'responsabili' => $responsabili,
+        );
+    }
+
+    set_transient($cache_key, $response, 5 * MINUTE_IN_SECONDS);
+
+    return $response;
+}
+
+/**
+ * Raccoglie i contatti associati all'ufficio.
+ *
+ * @param int $ufficio_id
+ * @return array
+ */
+function dci_get_ufficio_contatti_payload($ufficio_id) {
+    $contact_ids = dci_normalize_meta_ids(dci_get_meta('contatti', '_dci_unita_organizzativa_', $ufficio_id));
+    $contacts = dci_get_contatti_da_punti_ids($contact_ids);
+
+    $sede_principale = dci_get_meta('sede_principale', '_dci_unita_organizzativa_', $ufficio_id);
+    if (!empty($sede_principale)) {
+        $indirizzo = dci_get_meta('indirizzo', '_dci_luogo_', $sede_principale);
+        if (!empty($indirizzo)) {
+            array_unshift($contacts['indirizzo'], $indirizzo);
+        }
+    }
+
+    foreach ($contacts as $key => $values) {
+        $contacts[$key] = array_values(array_unique(array_filter($values)));
+    }
+
+    return $contacts;
+}
+
+/**
+ * Aggrega i contatti a partire dagli ID dei punti di contatto.
+ *
+ * @param int[] $contact_ids
+ * @return array
+ */
+function dci_get_contatti_da_punti_ids($contact_ids) {
+    $contacts = array(
+        'telefono' => array(),
+        'email' => array(),
+        'pec' => array(),
+        'indirizzo' => array(),
+        'url' => array(),
+    );
+
+    foreach ($contact_ids as $contact_id) {
+        $full_contact = dci_get_full_punto_contatto($contact_id);
+        if (!is_array($full_contact)) {
+            continue;
+        }
+
+        foreach ($contacts as $key => $values) {
+            if (!empty($full_contact[$key]) && is_array($full_contact[$key])) {
+                $contacts[$key] = array_merge($contacts[$key], array_filter($full_contact[$key]));
+            }
+        }
+    }
+
+    foreach ($contacts as $key => $values) {
+        $contacts[$key] = array_values(array_unique(array_filter($values)));
+    }
+
+    return $contacts;
+}
+
+/**
+ * Restituisce gli orari dell'ufficio a partire da sede principale/altre sedi.
+ *
+ * @param int $ufficio_id
+ * @return array[]
+ */
+function dci_get_ufficio_orari_payload($ufficio_id) {
+    $sede_principale = (int) dci_get_meta('sede_principale', '_dci_unita_organizzativa_', $ufficio_id);
+    $altre_sedi = dci_normalize_meta_ids(dci_get_meta('altre_sedi', '_dci_unita_organizzativa_', $ufficio_id));
+    $orario_uo_id = (int) dci_get_meta('orario_uo', '_dci_unita_organizzativa_', $ufficio_id);
+
+    $sedi_ids = array();
+    if ($sede_principale > 0) {
+        $sedi_ids[] = $sede_principale;
+    }
+
+    foreach ($altre_sedi as $sede_id) {
+        if (!in_array($sede_id, $sedi_ids, true)) {
+            $sedi_ids[] = $sede_id;
+        }
+    }
+
+    $orari = array();
+
+    // Orario ufficio configurato direttamente sull'Unità organizzativa (tipologia "orario").
+    if ($orario_uo_id > 0) {
+        $orario_settimanale = dci_get_orario_settimanale_payload($orario_uo_id);
+        if (!empty($orario_settimanale)) {
+            $orari[] = array(
+                'fonte' => 'orario_uo',
+                'orario_id' => $orario_uo_id,
+                'orario_nome' => get_the_title($orario_uo_id),
+                'settimana' => $orario_settimanale,
+            );
+        }
+    }
+
+    // Fallback: orari presenti sui luoghi/sedi associati all'ufficio.
+    foreach ($sedi_ids as $sede_id) {
+        $sede = get_post($sede_id);
+        if (!$sede instanceof WP_Post || $sede->post_status !== 'publish') {
+            continue;
+        }
+
+        $orario_pubblico = dci_get_wysiwyg_field('orario_pubblico', '_dci_luogo_', $sede_id);
+        $indirizzo = dci_get_meta('indirizzo', '_dci_luogo_', $sede_id);
+
+        if (empty($orario_pubblico) && empty($indirizzo)) {
+            continue;
+        }
+
+        $orari[] = array(
+            'fonte' => 'sede',
+            'sede_id' => $sede_id,
+            'sede_nome' => get_the_title($sede_id),
+            'sede_indirizzo' => $indirizzo,
+            'orario_pubblico' => $orario_pubblico,
+            'is_sede_principale' => ($sede_id === $sede_principale),
+        );
+    }
+
+    return $orari;
+}
+
+/**
+ * Restituisce gli orari settimanali dalla tipologia "orario".
+ *
+ * @param int $orario_id
+ * @return array
+ */
+function dci_get_orario_settimanale_payload($orario_id) {
+    $giorni = array(
+        'lun' => 'Lunedì',
+        'mar' => 'Martedì',
+        'mer' => 'Mercoledì',
+        'gio' => 'Giovedì',
+        'ven' => 'Venerdì',
+        'sab' => 'Sabato',
+        'dom' => 'Domenica',
+    );
+
+    $settimana = array();
+    foreach ($giorni as $abbr => $label) {
+        $mattina = dci_get_meta($abbr . '_mattina', '_dci_orario_', $orario_id);
+        $pomeriggio = dci_get_meta($abbr . '_pomeriggio', '_dci_orario_', $orario_id);
+        if (empty($mattina) && empty($pomeriggio)) {
+            continue;
+        }
+
+        $settimana[] = array(
+            'giorno' => $label,
+            'mattina' => $mattina,
+            'pomeriggio' => $pomeriggio,
+        );
+    }
+
+    return $settimana;
 }
 
 

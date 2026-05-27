@@ -21,7 +21,7 @@ if ($is_external_only && function_exists('dci_get_external_footer_payload')) {
 }
 ?>
 <style>
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .cookiebar {
     display: none !important;
   }
@@ -301,35 +301,43 @@ if ($is_external_only && function_exists('dci_get_external_footer_payload')) {
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-  const isMobile = window.innerWidth <= 768;
+  const isTouchDevice = 
+    'ontouchstart' in window || 
+    navigator.maxTouchPoints > 0;
 
   const cookieBar = document.querySelector(".cookiebar");
   const acceptButton = document.querySelector(".acceptAllCookie");
   const denyButton   = document.querySelector(".denyAllCookie");
 
-  // 👉 BLOCCA COMPLETAMENTE SU MOBILE
-  if (isMobile) {
+  // 🔥 MOBILE + TABLET → niente banner ma NO tracking
+  if (isTouchDevice) {
+    localStorage.setItem("cookieChoice", "denied");
+
     if (cookieBar) cookieBar.remove();
+
+    // 👉 blocca eventuali script di tracking
+    window.disableTracking = true;
+
     return;
   }
 
-  // Se l'utente ha già scelto, nascondi la barra
+  // DESKTOP → comportamento normale
   if (localStorage.getItem("cookieChoice")) {
     if (cookieBar) cookieBar.style.display = "none";
   }
 
-  // ACCETTA
   if (acceptButton) {
     acceptButton.addEventListener("click", function () {
       localStorage.setItem("cookieChoice", "accepted");
+      window.disableTracking = false;
       if (cookieBar) cookieBar.style.display = "none";
     });
   }
 
-  // NEGA
   if (denyButton) {
     denyButton.addEventListener("click", function () {
       localStorage.setItem("cookieChoice", "denied");
+      window.disableTracking = true;
       if (cookieBar) cookieBar.style.display = "none";
     });
   }

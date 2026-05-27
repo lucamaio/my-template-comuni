@@ -23,7 +23,9 @@ if (!empty($prenota_appuntamento)) {
 
 
 function dci_enqueue_dci_booking_script()  {
-    wp_enqueue_script( 'dci-booking', get_template_directory_uri() . '/assets/js/booking.js', array(), false, true);
+    $booking_script_path = get_template_directory() . '/assets/js/booking.js';
+    $booking_script_version = file_exists($booking_script_path) ? filemtime($booking_script_path) : null;
+    wp_enqueue_script( 'dci-booking', get_template_directory_uri() . '/assets/js/booking.js', array(), $booking_script_version, true);
     wp_localize_script('dci-booking', "url", [get_template_directory_uri() . '/assets/json/calendar.json']);
     wp_localize_script('dci-booking', "urlConfirm", [admin_url( 'admin-ajax.php' )]);
 }

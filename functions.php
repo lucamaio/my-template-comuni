@@ -171,6 +171,7 @@ function dci_scripts() {
 
     wp_enqueue_style( 'dci-font', get_template_directory_uri() . '/assets/css/fonts.css', array('dci-comuni'));
     wp_enqueue_style( 'dci-wp-style', get_template_directory_uri()."/style.css", array('dci-comuni'));
+    wp_enqueue_style( 'dci-accessibility-toolbar', get_template_directory_uri() . '/assets/css/accessibility-toolbar.css', array('dci-wp-style'), false );
 
 
     wp_enqueue_script( 'dci-modernizr', get_template_directory_uri() . '/assets/js/modernizr.custom.js');
@@ -195,6 +196,8 @@ function dci_scripts() {
         wp_enqueue_script( 'dci-boostrap-italia-min-js', get_template_directory_uri() . '/assets/js/bootstrap-italia.bundle.min.js', array(), false, true);
     }
 	wp_enqueue_script( 'dci-comuni', get_template_directory_uri() . '/assets/js/comuni.js', array(), false, true);
+	wp_enqueue_script( 'dci-accessibility-toolbar', get_template_directory_uri() . '/assets/js/accessibility-toolbar.js', array(), false, true);
+	wp_script_add_data( 'dci-accessibility-toolbar', 'defer', true );
 	wp_add_inline_script( 'dci-comuni', 'window.wpRestApi = "' . get_rest_url() . '"', 'before' );
 
 	wp_enqueue_script( 'dci-jquery-easing', get_template_directory_uri() . '/assets/js/components/jquery-easing/jquery.easing.js', array(), false, true);
@@ -732,40 +735,123 @@ add_action('init', function() {
 });
 
 
+
+
+/**
+ * Restituisce i servizi attivi per integrazioni esterne (es. APP Comuni).
+ */
+function dci_is_servizio_attivo($post_id) {
+    $prefix = '_dci_servizio_';
+    $stato = get_post_meta($post_id, $prefix . 'stato', true);
+
+    if ($stato === 'false') {
+        return false;
+    }
+
+    $today = current_time('Y-m-d');
+
+    $data_inizio_raw = trim((string) get_post_meta($post_id, $prefix . 'data_inizio_servizio', true));
+    if ($data_inizio_raw !== '') {
+        $data_inizio = DateTime::createFromFormat('d/m/Y', $data_inizio_raw);
+        if ($data_inizio instanceof DateTime && $data_inizio->format('Y-m-d') > $today) {
+            return false;
+        }
+    }
+
+    $data_fine_raw = trim((string) get_post_meta($post_id, $prefix . 'data_fine_servizio', true));
+    if ($data_fine_raw !== '') {
+        $data_fine = DateTime::createFromFormat('d/m/Y', $data_fine_raw);
+        if ($data_fine instanceof DateTime && $data_fine->format('Y-m-d') < $today) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function dci_get_servizi_attivi_rest_payload(WP_REST_Request $request) {
+    $limit = (int) $request->get_param('per_page');
+    if ($limit <= 0 || $limit > 200) {
+        $limit = 100;
+    }
+
+    $servizi = get_posts([
+        'post_type' => 'servizio',
+        'post_status' => 'publish',
+        'posts_per_page' => $limit,
+        'orderby' => 'title',
+        'order' => 'ASC',
+    ]);
+
+    $response = [];
+
+    foreach ($servizi as $servizio) {
+        if (!dci_is_servizio_attivo($servizio->ID)) {
+            continue;
+        }
+
+        $response[] = [
+            'id' => $servizio->ID,
+            'titolo' => get_the_title($servizio->ID),
+            'slug' => $servizio->post_name,
+            'link' => get_permalink($servizio->ID),
+            'descrizione_breve' => (string) get_post_meta($servizio->ID, '_dci_servizio_descrizione_breve', true),
+            'data_inizio_servizio' => (string) get_post_meta($servizio->ID, '_dci_servizio_data_inizio_servizio', true),
+            'data_fine_servizio' => (string) get_post_meta($servizio->ID, '_dci_servizio_data_fine_servizio', true),
+            'richiedi_online_attivo' => !empty(get_post_meta($servizio->ID, '_dci_servizio_canale_digitale_link', true)),
+            'accedi_al_servizio_label' => (string) get_post_meta($servizio->ID, '_dci_servizio_canale_digitale_label', true),
+            'accedi_al_servizio_link' => (string) get_post_meta($servizio->ID, '_dci_servizio_canale_digitale_link', true),
+        ];
+    }
+
+    return rest_ensure_response($response);
+}
 add_action('rest_api_init', function () {
 
-    /*
+    
+    register_rest_route('wp/v2', '/servizi-attivi', [
+        'methods'  => WP_REST_Server::READABLE,
+        'callback' => 'dci_get_servizi_attivi_rest_payload',
+        'permission_callback' => '__return_true',
+    ]);
+
+/*
     =====================================
     EVENTO (OTTIMIZZATO)
     =====================================
     */
     register_rest_field('evento', 'data_inizio', [
         'get_callback' => function ($post) {
-            static $cache = [];
-            if (!isset($cache[$post['id']])) {
-                $cache[$post['id']] = get_post_meta($post['id']);
-            }
-            return $cache[$post['id']]['_dci_evento_data_orario_inizio'][0] ?? '';
+            $payload = dci_get_evento_rest_payload($post['id']);
+            return $payload['data_inizio'];
         }
     ]);
 
     register_rest_field('evento', 'data_fine', [
         'get_callback' => function ($post) {
-            static $cache = [];
-            if (!isset($cache[$post['id']])) {
-                $cache[$post['id']] = get_post_meta($post['id']);
-            }
-            return $cache[$post['id']]['_dci_evento_data_orario_fine'][0] ?? '';
+            $payload = dci_get_evento_rest_payload($post['id']);
+            return $payload['data_fine'];
         }
     ]);
 
     register_rest_field('evento', 'descrizione_breve', [
         'get_callback' => function ($post) {
-            static $cache = [];
-            if (!isset($cache[$post['id']])) {
-                $cache[$post['id']] = get_post_meta($post['id']);
-            }
-            return $cache[$post['id']]['_dci_evento_descrizione_breve'][0] ?? '';
+            $payload = dci_get_evento_rest_payload($post['id']);
+            return $payload['descrizione_breve'];
+        }
+    ]);
+
+    register_rest_field('evento', 'descrizione_completa', [
+        'get_callback' => function ($post) {
+            $payload = dci_get_evento_rest_payload($post['id']);
+            return $payload['descrizione_completa'];
+        }
+    ]);
+
+    register_rest_field('evento', 'immagine', [
+        'get_callback' => function ($post) {
+            $payload = dci_get_evento_rest_payload($post['id']);
+            return $payload['immagine'];
         }
     ]);
 
@@ -776,33 +862,51 @@ add_action('rest_api_init', function () {
     */
     register_rest_field('notizia', 'descrizione_breve', [
         'get_callback' => function ($post) {
-            static $cache = [];
-            if (!isset($cache[$post['id']])) {
-                $cache[$post['id']] = get_post_meta($post['id']);
-            }
-            return $cache[$post['id']]['_dci_notizia_descrizione_breve'][0] ?? '';
+            $payload = dci_get_notizia_rest_payload($post['id']);
+            return $payload['descrizione_breve'];
         }
     ]);
 
-    register_rest_field('notizia', 'data_scadenza', [
+
+    register_rest_field('notizia', 'descrizione_completa', [
         'get_callback' => function ($post) {
-            static $cache = [];
-            if (!isset($cache[$post['id']])) {
-                $cache[$post['id']] = get_post_meta($post['id']);
-            }
-            return $cache[$post['id']]['_dci_notizia_data_scadenza'][0] ?? '';
+            $payload = dci_get_notizia_rest_payload($post['id']);
+            return $payload['descrizione_completa'];
         }
     ]);
 
+    register_rest_field('notizia', 'allegati', [
+        'get_callback' => function ($post) {
+            $payload = dci_get_notizia_rest_payload($post['id']);
+            return $payload['allegati'];
+        }
+    ]);
+
+
+	register_rest_field('notizia', 'immagine', [
+    'get_callback' => function ($post) {
+        $payload = dci_get_notizia_rest_payload($post['id']);
+        return $payload['immagine'];
+    }
+	]);
+	
     /*
     =====================================
     LUOGO (CACHE)
     =====================================
     */
+
+    register_rest_field('luogo', 'descrizione_completa', [
+        'get_callback' => function ($post) {
+            $payload = get_post_meta($post['id']);
+            return $payload['_dci_luogo_descrizione_estesa'][0] ?? '';
+        }
+    ]);
+
     register_rest_field('luogo', 'meta_luogo', [
         'get_callback' => function ($post) {
 
-            $cache_key = 'luogo_meta_' . $post['id'];
+            $cache_key = 'luogo_meta_v2_' . $post['id'];
 
             $cached = get_transient($cache_key);
             if ($cached !== false) return $cached;
@@ -829,6 +933,7 @@ add_action('rest_api_init', function () {
             $data = [
                 'immagine' => $all_meta[$prefix . 'immagine'][0] ?? '',
                 'descrizione' => $all_meta[$prefix . 'descrizione_breve'][0] ?? '',
+                'descrizione_completa' => $all_meta[$prefix . 'descrizione_estesa'][0] ?? '',
                 'lat' => $gps['lat'] ?? '',
                 'lng' => $gps['lng'] ?? '',
                 'indirizzo' => $all_meta[$prefix . 'indirizzo'][0] ?? '',
@@ -888,10 +993,375 @@ add_action('rest_api_init', function () {
 
 });
 
+add_filter('rest_notizia_query', function ($args, $request) {
+    $id = absint($request->get_param('id'));
+    if ($id > 0) {
+        $args['p'] = $id;
+    }
+
+    return $args;
+}, 10, 2);
+
+if (!function_exists('dci_get_notizia_rest_payload')) {
+    /**
+     * Payload REST notizia con cache breve per alleggerire richieste ripetute.
+     *
+     * @param int $post_id
+     * @return array
+     */
+    function dci_get_notizia_rest_payload($post_id) {
+        $post_id = absint($post_id);
+        if ($post_id <= 0) {
+            return array(
+                'descrizione_breve' => '',
+                'data_scadenza' => '',
+                'descrizione_completa' => '',
+                'allegati' => array(),
+            );
+        }
+
+
+
+        $cache_key = 'dci_notizia_rest_' . $post_id;
+        $cached_payload = get_transient($cache_key);
+        if (is_array($cached_payload)) {
+            return $cached_payload;
+        }
+
+
+
+$immagine = null;
+
+// 1️⃣ FEATURED IMAGE
+$thumbnail_id = get_post_thumbnail_id($post_id);
+
+if ($thumbnail_id) {
+    $img_url = wp_get_attachment_image_url($thumbnail_id, 'full');
+
+    if ($img_url) {
+        $immagine = [
+            'id' => (int) $thumbnail_id,
+            'url' => $img_url,
+            'alt' => get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true) ?: '',
+            'title' => get_the_title($thumbnail_id) ?: '',
+        ];
+    }
+}
+
+// 2️⃣ FALLBACK CMB2
+if (!$immagine) {
+    $meta_img = get_post_meta($post_id, '_dci_notizia_immagine', true);
+
+    if (!empty($meta_img)) {
+
+        if (is_numeric($meta_img)) {
+            $img_url = wp_get_attachment_image_url($meta_img, 'full');
+
+            if ($img_url) {
+                $immagine = [
+                    'id' => (int) $meta_img,
+                    'url' => $img_url,
+                    'alt' => get_post_meta($meta_img, '_wp_attachment_image_alt', true) ?: '',
+                    'title' => get_the_title($meta_img) ?: '',
+                ];
+            }
+        }
+        elseif (is_array($meta_img) && isset($meta_img['url'])) {
+            $immagine = [
+                'id' => 0,
+                'url' => $meta_img['url'],
+                'alt' => '',
+                'title' => '',
+            ];
+        }
+        elseif (is_string($meta_img)) {
+            $immagine = [
+                'id' => 0,
+                'url' => $meta_img,
+                'alt' => '',
+                'title' => '',
+            ];
+        }
+    }
+}
+
+
+
+
+
+		
+
+        $meta = get_post_meta($post_id);
+        $full_text = $meta['_dci_notizia_testo_completo'][0] ?? '';
+        if ($full_text === '') {
+            $post_obj = get_post($post_id);
+            $full_text = $post_obj ? (string) $post_obj->post_content : '';
+        }
+
+        $raw_attachments = $meta['_dci_notizia_allegati'][0] ?? [];
+        $attachments = maybe_unserialize($raw_attachments);
+        $allegati = array();
+        if (is_array($attachments)) {
+            foreach ($attachments as $file_id => $file_data) {
+                $attachment_id = 0;
+                if (is_array($file_data) && isset($file_data['id'])) {
+                    $attachment_id = absint($file_data['id']);
+                } else {
+                    $attachment_id = absint($file_id);
+                }
+
+                $file_url = $attachment_id > 0 ? wp_get_attachment_url($attachment_id) : '';
+                if (empty($file_url) && is_string($file_data)) {
+                    $file_url = $file_data;
+                }
+                if (empty($file_url)) {
+                    continue;
+                }
+
+                $file_name = $attachment_id > 0 ? get_the_title($attachment_id) : basename((string) $file_url);
+                if (empty($file_name)) {
+                    $file_name = basename((string) $file_url);
+                }
+
+                $allegati[] = array(
+                    'id' => $attachment_id,
+                    'nome' => $file_name,
+                    'url_download' => $file_url,
+                    'mime_type' => $attachment_id > 0 ? get_post_mime_type($attachment_id) : '',
+                );
+            }
+        }
+
+        $payload = array(
+            'descrizione_breve' => $meta['_dci_notizia_descrizione_breve'][0] ?? '',
+            'data_scadenza' => $meta['_dci_notizia_data_scadenza'][0] ?? '',
+            'descrizione_completa' => $full_text,
+            'allegati' => $allegati,
+			'immagine' => $immagine,
+        );
+
+        set_transient($cache_key, $payload, 5 * MINUTE_IN_SECONDS);
+        return $payload;
+    }
+}
+
+if (!function_exists('dci_get_evento_rest_payload')) {
+    /**
+     * Payload REST evento con cache breve per ridurre latenza sotto carico.
+     *
+     * @param int $post_id
+     * @return array
+     */
+    function dci_get_evento_rest_payload($post_id) {
+        $post_id = absint($post_id);
+        if ($post_id <= 0) {
+            return array(
+                'data_inizio' => '',
+                'data_fine' => '',
+                'descrizione_breve' => '',
+                'descrizione_completa' => '',
+                'immagine' => null,
+            );
+        }
+
+        $cache_key = 'dci_evento_rest_' . $post_id;
+        $cached_payload = get_transient($cache_key);
+        if (is_array($cached_payload)) {
+            return $cached_payload;
+        }
+
+        $meta = get_post_meta($post_id);
+        $meta_image = $meta['_dci_evento_immagine'][0] ?? '';
+
+        $thumbnail_id = 0;
+        if (!empty($meta_image) && is_string($meta_image)) {
+            $thumbnail_id = attachment_url_to_postid($meta_image);
+        }
+        if (!$thumbnail_id) {
+            $thumbnail_id = get_post_thumbnail_id($post_id);
+        }
+
+        $immagine = null;
+        if ($thumbnail_id) {
+            $img_url = wp_get_attachment_image_url($thumbnail_id, 'full');
+            if ($img_url) {
+                $immagine = array(
+                    'id' => (int) $thumbnail_id,
+                    'url' => $img_url,
+                    'alt' => get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true) ?: '',
+                    'title' => get_the_title($thumbnail_id) ?: '',
+                );
+            }
+        } elseif (!empty($meta_image) && is_string($meta_image)) {
+            $immagine = array(
+                'id' => 0,
+                'url' => $meta_image,
+                'alt' => '',
+                'title' => '',
+            );
+        }
+
+        $payload = array(
+            'data_inizio' => $meta['_dci_evento_data_orario_inizio'][0] ?? '',
+            'data_fine' => $meta['_dci_evento_data_orario_fine'][0] ?? '',
+            'descrizione_breve' => $meta['_dci_evento_descrizione_breve'][0] ?? '',
+            'descrizione_completa' => $meta['_dci_evento_descrizione_completa'][0] ?? '',
+            'immagine' => $immagine,
+        );
+
+        set_transient($cache_key, $payload, 5 * MINUTE_IN_SECONDS);
+        return $payload;
+    }
+}
+
+add_action('save_post_notizia', function ($post_id) {
+    delete_transient('dci_notizia_rest_' . absint($post_id));
+});
+
+add_action('save_post_evento', function ($post_id) {
+    delete_transient('dci_evento_rest_' . absint($post_id));
+});
+
 add_action('save_post_luogo', function($post_id) {
     delete_transient('luogo_meta_' . $post_id);
 });
 
 add_action('update_option_dci_options', function() {
     delete_transient('api_footer');
+});
+
+/**
+ * Allinea la query principale della tassonomia trasparenza ai filtri del template
+ * per evitare mismatch di paginazione (es. ultima pagina in errore/404).
+ */
+add_action('pre_get_posts', function (WP_Query $query) {
+    if (is_admin() || !$query->is_main_query()) {
+        return;
+    }
+
+    if (!$query->is_tax('tipi_cat_amm_trasp')) {
+        return;
+    }
+
+    $max_posts = isset($_GET['max_posts']) ? absint($_GET['max_posts']) : 10;
+    if ($max_posts <= 0) {
+        $max_posts = 10;
+    }
+
+    $search = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : '';
+    $order_type = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';
+
+    $query->set('post_type', 'elemento_trasparenza');
+    $query->set('posts_per_page', $max_posts);
+
+    $term_slug = (string) $query->get('tipi_cat_amm_trasp');
+    if ($term_slug !== '') {
+        $term = get_term_by('slug', $term_slug, 'tipi_cat_amm_trasp');
+        if ($term && !is_wp_error($term)) {
+            $query->set('tax_query', array(
+                array(
+                    'taxonomy' => 'tipi_cat_amm_trasp',
+                    'field' => 'term_id',
+                    'terms' => array((int) $term->term_id),
+                    'include_children' => false,
+                ),
+            ));
+        }
+    }
+
+    if ($search !== '') {
+        $query->set('s', $search);
+    }
+
+    if ($order_type === 'alfabetico_asc' || $order_type === 'alfabetico_desc') {
+        $query->set('orderby', 'title');
+        $query->set('order', $order_type === 'alfabetico_desc' ? 'DESC' : 'ASC');
+    } else {
+        $query->set('orderby', 'date');
+        $query->set('order', $order_type === 'data_asc' ? 'ASC' : 'DESC');
+    }
+});
+
+// ===============================
+// Privacy via Api
+// ===============================
+
+
+add_action('rest_api_init', function () {
+
+    register_rest_route('comune/v1', '/privacy', [
+        'methods' => 'GET',
+        'callback' => function () {
+
+            // 🔥 CACHE
+            $cached = get_transient('api_privacy');
+            if ($cached !== false) return $cached;
+
+            $page = get_page_by_path('privacy-policy');
+
+            if (!$page) {
+                return [
+                    "titolo" => "Privacy Policy",
+                    "contenuto" => ""
+                ];
+            }
+
+            $data = [
+                "titolo" => get_the_title($page->ID),
+                "contenuto" => apply_filters('the_content', $page->post_content)
+            ];
+
+            set_transient('api_privacy', $data, HOUR_IN_SECONDS);
+
+            return $data;
+        }
+    ]);
+
+});
+
+
+
+
+// ===============================
+// MODALITÀ APP (no tracking Apple)
+// ===============================
+add_action('init', function () {
+
+    $isApp = isset($_GET['app']);
+
+    // fallback SOLO Android
+    if (!$isApp && !empty($_SERVER['HTTP_USER_AGENT'])) {
+        $ua = strtolower($_SERVER['HTTP_USER_AGENT']);
+        if (strpos($ua, 'wv') !== false) {
+            $isApp = true;
+        }
+    }
+
+    if (!$isApp) return;
+
+    if (!defined('DONOTCACHEPAGE')) {
+        define('DONOTCACHEPAGE', true);
+    }
+
+    add_filter('script_loader_src', function ($src) {
+
+        if (empty($src)) return $src;
+
+        $blocked = [
+            'googletagmanager',
+            'google-analytics',
+            'gtag/js',
+            'doubleclick',
+            'facebook'
+        ];
+
+        foreach ($blocked as $b) {
+            if (stripos($src, $b) !== false) {
+                return '';
+            }
+        }
+
+        return $src;
+    });
+
 });

@@ -6,7 +6,10 @@ global $wpdb;
 
 $max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 5;
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
-$paged = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$paged = max(1, (int) get_query_var('paged'));
+if ($paged < 2) {
+    $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : (isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1);
+}
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
 
 // Prendi gli anni disponibili dai post pubblicati (per la combo)
@@ -50,7 +53,7 @@ $base_url = add_query_arg(array(
     'search'      => $main_search_query ? $main_search_query : '',
     'filter_year' => $selected_year > 0 ? $selected_year : 0,
     'max_posts'   => $max_posts,
-    'page'        => '%#%',
+    'paged'       => '%#%',
 ), $current_url);
 ?>
 

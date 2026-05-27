@@ -20,7 +20,6 @@ $args = array(
 );
 
 $the_query = new WP_Query($args);
-$GLOBALS['wp_query'] = $the_query;
 ?>
 
 <div class="bg-grey-card py-5">
@@ -69,7 +68,7 @@ $GLOBALS['wp_query'] = $the_query;
       <?php if ($the_query->max_num_pages > 1) : ?>
       <div class="row my-4">
           <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine documenti">
-              <?php echo dci_bootstrap_pagination(); ?>
+              <?php dci_bootstrap_pagination($the_query); ?>
           </nav>
       </div>
       <?php endif; ?>

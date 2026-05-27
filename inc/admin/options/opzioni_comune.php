@@ -208,6 +208,19 @@ function dci_register_comune_options(){
         ),
     ));
 
+
+    $header_options->add_field(array(
+        'id'      => $prefix . 'ck_accessibility_toolbar',
+        'name'    => __('Mostra toolbar accessibilità', 'design_comuni_italia'),
+        'desc'    => __('Abilita/disabilita la toolbar accessibilità frontend (minimizzata in basso a sinistra).', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+    ));
+
     $header_options->add_field(array(
         'id'      => $prefix . 'ck_collegamenti_contenuti',
         'name'    => __('Collegamenti Automaticament Contenuti Correlati', 'design_comuni_italia'),

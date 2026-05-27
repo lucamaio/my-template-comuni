@@ -626,10 +626,31 @@ function dci_bootstrap_pagination(?\WP_Query $wp_query = null, $echo = true)
     if ($wp_query === null) {
         global $wp_query;
     }
+
+    $current_page = max(1, (int) get_query_var('paged'), (int) get_query_var('page'));
+    if ($current_page < 2 && isset($_GET['paged'])) {
+        $current_page = max(1, absint($_GET['paged']));
+    }
+    if ($current_page < 2 && isset($_GET['page'])) {
+        $current_page = max(1, absint($_GET['page']));
+    }
+
+    $add_args = [];
+    if (!empty($_GET) && is_array($_GET)) {
+        foreach ($_GET as $key => $value) {
+            if (in_array($key, ['paged', 'page'], true)) {
+                continue;
+            }
+            if (is_scalar($value) && $value !== '') {
+                $add_args[$key] = dci_removeslashes((string) $value);
+            }
+        }
+    }
+
     $pages = paginate_links([
             'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
             'format' => '?paged=%#%',
-            'current' => max(1, get_query_var('paged')),
+            'current' => $current_page,
             'total' => $wp_query->max_num_pages,
             'type' => 'array',
             'show_all' => false,
@@ -638,7 +659,7 @@ function dci_bootstrap_pagination(?\WP_Query $wp_query = null, $echo = true)
             'prev_next' => true,
             'prev_text' => __('« '),
             'next_text' => __(' »'),
-            'add_args' => false,
+            'add_args' => $add_args,
             'add_fragment' => ''
         ]
     );
@@ -1211,8 +1232,14 @@ if (!function_exists('dci_get_maggioli_services_data')) {
             return $cached_data;
         }
 
+        $lock_key = $cache_key . '_lock';
+        if (get_transient($lock_key)) {
+            return array();
+        }
+        set_transient($lock_key, 1, 20);
+
         $request_args = array(
-            'timeout' => 4,
+            'timeout' => 3,
             'redirection' => 2,
             'sslverify' => false,
             'user-agent' => 'PSR-Theme-Maggioli/1.0 (+'. home_url('/') .')',
@@ -1221,16 +1248,19 @@ if (!function_exists('dci_get_maggioli_services_data')) {
         $response = wp_remote_get($url, $request_args);
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             set_transient($cache_key, array(), 2 * MINUTE_IN_SECONDS);
+            delete_transient($lock_key);
             return array();
         }
 
         $data = json_decode((string) wp_remote_retrieve_body($response), true);
         if (!is_array($data)) {
             set_transient($cache_key, array(), 2 * MINUTE_IN_SECONDS);
+            delete_transient($lock_key);
             return array();
         }
 
         set_transient($cache_key, $data, 5 * MINUTE_IN_SECONDS);
+        delete_transient($lock_key);
         return $data;
     }
 }
@@ -1239,14 +1269,31 @@ if (!function_exists('dci_get_maggioli_services_data')) {
 
 if(!function_exists("dci_get_img")) {
     function dci_get_img( $url, $classes = '') {
-        $img_post = get_post( attachment_url_to_postid($url) );
-        $image_alt = get_post_meta( $img_post->ID, '_wp_attachment_image_alt', true);
-        $image_title = get_the_title( $img_post->ID );
+        $attachment_id = attachment_url_to_postid($url);
+        $img_post = $attachment_id ? get_post( $attachment_id ) : null;
 
-        $img = '<img src="'.$url.'" ';        
-        if ($classes) $img .= 'class="'.$classes.'" ';
-        if ($image_alt) $img .= 'alt="'.$image_alt.'" ';
-        if ($image_title) $img .= 'title="'.$image_title.'" ';
+        $image_title = '';
+        $image_alt = '';
+
+        if ( $img_post && isset( $img_post->ID ) ) {
+            $image_alt   = (string) get_post_meta( $img_post->ID, '_wp_attachment_image_alt', true );
+            $image_title = (string) get_the_title( $img_post->ID );
+        }
+
+        if ( empty( $image_title ) ) {
+            $image_title = trim( preg_replace('/[-_]+/', ' ', pathinfo( (string) $url, PATHINFO_FILENAME ) ) );
+        }
+
+        if ( empty( $image_alt ) ) {
+            $image_alt = $image_title;
+        }
+
+        $img = '<img src="' . esc_url( $url ) . '" ';
+        if ($classes) {
+            $img .= 'class="' . esc_attr( $classes ) . '" ';
+        }
+        $img .= 'alt="' . esc_attr( $image_alt ) . '" ';
+        $img .= 'title="' . esc_attr( $image_title ) . '" ';
         $img .= '/>';
 
         echo $img;

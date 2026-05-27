@@ -13,6 +13,20 @@
                 'value' => '',
                 'compare' => '!=',
             ),
+            array(
+                'key' => '_dci_unita_organizzativa_elenco_servizi_offerti',
+                'compare' => 'EXISTS',
+            ),
+            array(
+                'key' => '_dci_unita_organizzativa_elenco_servizi_offerti',
+                'value' => '',
+                'compare' => '!=',
+            ),
+            array(
+                'key' => '_dci_unita_organizzativa_elenco_servizi_offerti',
+                'value' => 'a:0:{}',
+                'compare' => '!=',
+            ),
         ),
     ));
 

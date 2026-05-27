@@ -1,30 +1,11 @@
 <?php
 global $post;
 
-// URL remoto da cui ottenere i dati
- $url = dci_get_option('servizi_maggioli_url', 'servizi');
-
-
-// Ottieni i dati dal link remoto
-$response = wp_remote_get($url, array(
-    'timeout' => 4,
-    'redirection' => 2,
-    'sslverify' => false,
-));
-
-// Verifica se la richiesta ha avuto successo
-if (is_wp_error($response)) {
-    echo "Errore durante il recupero dei dati.";
-    return;
-}
-
-$response = wp_remote_retrieve_body($response);
-
-// Decodifica il JSON in un array associativo
-$data = json_decode($response, true);
+// Recupera i dati dal feed (con cache, se disponibile)
+$data = function_exists('dci_get_maggioli_services_data') ? dci_get_maggioli_services_data() : array();
 
 // Controlla se il JSON è stato decodificato correttamente
-if ($data === null) {
+if (!is_array($data)) {
     echo "Errore durante la decodifica del JSON.";
     return;
 }
@@ -79,5 +60,4 @@ foreach ($filtered_data as $item) {
     <?php
 }
 ?>
-
 

@@ -17,24 +17,12 @@ $situazioni  = get_post_meta(get_the_ID(), $prefix . 'situazioni_conflitto', tru
 // Allegati
 $allegati   = get_post_meta(get_the_ID(), $prefix . 'allegati', true);
 $curriculum = get_post_meta(get_the_ID(), $prefix . 'cv_allegati', true);
-
-// Data pubblicazione
-$arrayDataPubblicazione = dci_get_data_pubblicazione_arr(get_the_ID(), $prefix . 'data_pubblicazione', true); 
-if(is_array($arrayDataPubblicazione) && count($arrayDataPubblicazione) === 3) {
-    $dayPubblicazione = $arrayDataPubblicazione[0];
-    $monthPubblicazione = $arrayDataPubblicazione[1];
-    $yearPubblicazione = $arrayDataPubblicazione[2];
-}else {
-    $dayPubblicazione = '';
-    $monthPubblicazione = '';
-    $yearPubblicazione = '';
-}
 ?>
 
-<div class="card mb-4 rounded-3 shadow-sm border">
+<div class="card mb-4 rounded-4 shadow-sm border">
     <div class="card-body">
         <!-- Titolo/Norma -->
-        <h6 class="text-uppercase text-muted small">Soggetto titolare dell’incarico</h6>
+        <h6 class="text-uppercase text-muted small">Titolo/Norma</h6>
         <h5 class="fw-bold mb-3">
             <?php echo esc_html(get_the_title()); ?>
         </h5>
@@ -93,7 +81,7 @@ if(is_array($arrayDataPubblicazione) && count($arrayDataPubblicazione) === 3) {
                         if (!$file_url) continue;
                         echo '<p class="mb-1">
                                 <svg class="icon icon-sm me-1"><use href="#it-file"></use></svg>
-                                <a href="'.esc_url($file_url).'" target="_blank" rel="noopener" class="text-decoration-none" aria-label="Scarica l\'allegato '.esc_attr($file_title).'">'.esc_html($file_title).'</a>
+                                <a href="'.esc_url($file_url).'" target="_blank" rel="noopener">'.esc_html($file_title).'</a>
                               </p>';
                         $i++;
                     }
@@ -115,7 +103,7 @@ if(is_array($arrayDataPubblicazione) && count($arrayDataPubblicazione) === 3) {
                         if (!$file_url) continue;
                         echo '<p class="mb-1">
                                 <svg class="icon icon-sm me-1"><use href="#it-file"></use></svg>
-                                <a href="'.esc_url($file_url).'" target="_blank" rel="noopener" class="text-decoration-none" aria-label="Scarica il curriculum '.esc_attr($file_title).'">'.esc_html($file_title).'</a>
+                                <a href="'.esc_url($file_url).'" target="_blank" rel="noopener">'.esc_html($file_title).'</a>
                               </p>';
                         $i++;
                     }
@@ -133,19 +121,9 @@ if(is_array($arrayDataPubblicazione) && count($arrayDataPubblicazione) === 3) {
                 <p class="mb-0"><?php echo $situazioni ? esc_html($situazioni) : '-'; ?></p>
             </div>
             <div class="col text-end">
-                <a href="<?php the_permalink(); ?>" class="fw-semibold text-decoration-none" aria-label="Vai al dettaglio">
+                <a href="<?php the_permalink(); ?>" class="fw-semibold">
                     Clicca qui per consultare il dettaglio
                 </a>
-            </div>
-        </div>
-
-        <!-- Data pubblicazione -->
-        <div class="row mt-3 pt-3 border-top">
-            <div class="col">
-                <h6 class="text-uppercase text-muted small mb-1">Data pubblicazione</h6>
-                <p class="mb-0">
-                    <?php echo $dayPubblicazione && $monthPubblicazione && $yearPubblicazione ? "$dayPubblicazione/$monthPubblicazione/$yearPubblicazione" : '-'; ?>
-                </p>
             </div>
         </div>
     </div>

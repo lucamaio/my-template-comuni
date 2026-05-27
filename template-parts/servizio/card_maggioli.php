@@ -12,12 +12,6 @@ $category_segment = end($segments); // Prendi l'ultimo segmento dell'URL
 // Funzione per ottenere i dati dal servizio web
 function get_procedures_data($search_term = null, $category_segment = null, $title = null)
 {
-    $url = dci_get_option('servizi_maggioli_url', 'servizi');
-    $response = wp_remote_get($url, array(
-        'timeout' => 4,
-        'redirection' => 2,
-        'sslverify' => false,
-    ));
     $total_services = 0; // Inizializza il contatore
     $data = function_exists('dci_get_maggioli_services_data') ? dci_get_maggioli_services_data() : array();
 
@@ -119,4 +113,3 @@ $search_term = isset($_GET['search']) ? $_GET['search'] : null;
 $total_services_loaded = get_procedures_data($search_term, $category_segment, $title);
 echo "<p>Servizi aggiuntivi: $total_services_loaded</p>";
 ?>
-

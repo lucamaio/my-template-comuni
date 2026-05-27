@@ -6,7 +6,7 @@ if(count($argomenti)) {?>
 <ul class="d-flex flex-wrap gap-1">
     <?php foreach ( $argomenti as $item ) { ?>
         <li>
-            <a class="chip chip-simple"
+            <a class="chip chip-simple" title="<?php echo esc_attr($item->name); ?>"
             href="<?php echo get_term_link($item); ?>"
             >
                 <span class="chip-label"> 

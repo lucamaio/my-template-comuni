@@ -1056,6 +1056,31 @@ body.dci-sticky-header-nav-active .dci-sticky-nav-search .search-link {
   }
 }
 
+
+/* Loader for header/footer fragments consumed through the REST API. */
+.dci-api-fragment-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 16px;
+}
+
+.dci-api-fragment-loader__spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(0, 102, 204, 0.2);
+  border-top-color: #06c;
+  border-radius: 50%;
+  animation: dci-async-loader-spin 0.8s linear infinite;
+}
+
+.dci-api-fragment-loader__text {
+  margin-left: 0.75rem;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
 /* Loader sezioni caricate in parallelo */
 .dci-async-template {
   background: #f7f9fa;

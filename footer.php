@@ -534,16 +534,10 @@ if ($is_external_only && function_exists('dci_get_external_footer_payload')) {
 	                            <li class="list-inline-item d-flex">
 	                                <small>  © <?php echo dci_get_option("nome_comune"); ?>                                        
 					 <?php
-						$firma_nostra = dci_get_option("firma_nostra");
-
-						if ($firma_nostra === 'false' || $firma_nostra === false) : ?>
-						    &nbsp;&nbsp;-&nbsp;&nbsp;Sviluppato da 
-						        <a class="text-primary" style="text-decoration:none;" target="_blank" href="https://www.p-service.it/" title="Point Service S.r.l" aria-label="Point Service S.r.l" aria-labelledby="footerCompanyLabel">
-						            <span id="footerCompanyLabel" style="color: #fff">
-						                &nbsp;Point Service S.r.l
-						            </span>
-						        </a>  						   
-						<?php endif; ?>
+						if (function_exists('dci_get_footer_signature_html')) {
+							echo dci_get_footer_signature_html();
+						}
+					?>
 				      </small>
 	                            </li>
                         </ul>

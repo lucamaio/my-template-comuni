@@ -131,6 +131,31 @@ function dci_register_footer_export_route() {
 add_action('rest_api_init', 'dci_register_footer_export_route');
 
 /**
+ * Espone l'HTML dell'header per integrazioni esterne.
+ */
+function dci_register_header_export_route() {
+    register_rest_route('wp/v2', '/header/rendered/', array(
+        'methods' => 'GET',
+        'callback' => 'dci_get_rendered_header',
+        'permission_callback' => '__return_true',
+    ));
+}
+add_action('rest_api_init', 'dci_register_header_export_route');
+
+/**
+ * Restituisce il markup loader da mostrare mentre header/footer sono letti via API.
+ *
+ * @param string $label
+ * @return string
+ */
+function dci_get_external_fragment_loader_html($label = 'Caricamento contenuto') {
+    return '<div class="dci-api-fragment-loader" role="status" aria-live="polite">'
+        . '<span class="dci-api-fragment-loader__spinner" aria-hidden="true"></span>'
+        . '<span class="dci-api-fragment-loader__text">' . esc_html($label) . '</span>'
+        . '</div>';
+}
+
+/**
  * Verifica valori booleani salvati dalle opzioni CMB2/radio del tema.
  *
  * @param mixed $value
@@ -167,6 +192,96 @@ function dci_should_fetch_external_footer() {
     return dci_is_truthy_option_value(dci_get_option('ck_richiama_footer_portale_principale', 'dci_options', 'false'));
 }
 
+
+
+/**
+ * Restituisce la base pubblica da usare negli HTML header/footer esportati via API.
+ *
+ * @return string
+ */
+function dci_get_api_fragment_public_base_url() {
+    $public_home = trim((string) dci_get_option('url_homesoloesterno'));
+
+    if (dci_is_external_portal_enabled() && $public_home !== '') {
+        if (!preg_match('#^https?://#i', $public_home)) {
+            $public_home = 'https://' . ltrim($public_home, '/');
+        }
+
+        if (filter_var($public_home, FILTER_VALIDATE_URL)) {
+            return trailingslashit($public_home);
+        }
+    }
+
+    return home_url('/');
+}
+
+/**
+ * Verifica se la firma Point Service deve essere visibile nel footer locale.
+ *
+ * @return bool
+ */
+function dci_should_show_footer_signature() {
+    return !dci_is_truthy_option_value(dci_get_option('firma_nostra'));
+}
+
+/**
+ * Restituisce la firma Point Service usata dal footer standard.
+ *
+ * @param string $text_color Colore testo firma, utile per footer API su sfondo chiaro.
+ * @return string
+ */
+function dci_get_footer_signature_html($text_color = '#fff') {
+    if (!dci_should_show_footer_signature()) {
+        return '';
+    }
+
+    $text_color = in_array(strtolower((string) $text_color), array('#000', '#000000'), true) ? '#000000' : '#fff';
+    $signature_style = 'color: ' . $text_color . ' !important;';
+
+    return '&nbsp;&nbsp;-&nbsp;&nbsp;<span style="' . esc_attr($signature_style) . '">Sviluppato da </span>'
+        . '<a class="text-primary" style="text-decoration:none; ' . esc_attr($signature_style) . '" target="_blank" href="https://www.p-service.it/" title="Point Service S.r.l" aria-label="Point Service S.r.l" aria-labelledby="footerCompanyLabel">'
+        . '<span id="footerCompanyLabel" style="' . esc_attr($signature_style) . '">'
+        . '&nbsp;Point Service S.r.l'
+        . '</span>'
+        . '</a>';
+}
+
+/**
+ * Applica la firma locale al footer recuperato via API quando il check locale lo richiede.
+ *
+ * @param string $html
+ * @return string
+ */
+function dci_apply_local_footer_signature($html) {
+    if (!is_string($html) || $html === '' || !dci_should_show_footer_signature()) {
+        return $html;
+    }
+
+    if (stripos($html, 'p-service.it') !== false || stripos($html, 'Point Service S.r.l') !== false) {
+        return $html;
+    }
+
+    $signature_html = dci_get_footer_signature_html('#000000');
+    if ($signature_html === '') {
+        return $html;
+    }
+
+    $pattern = '/(<small\b[^>]*>\s*©[\s\S]*?)(<\/small>)/i';
+    if (preg_match($pattern, $html)) {
+        return preg_replace($pattern, '$1' . $signature_html . '$2', $html, 1);
+    }
+
+    $fallback_html = '<div class="footer-bottom"><ul class="it-footer-small-prints-list list-inline mb-0 d-flex flex-column flex-md-row" style="float: right;">'
+        . '<li class="list-inline-item d-flex"><small>© ' . esc_html(dci_get_option('nome_comune')) . $signature_html . '</small></li>'
+        . '</ul></div>';
+
+    if (stripos($html, '</footer>') !== false) {
+        return preg_replace('/<\/footer>/i', $fallback_html . '</footer>', $html, 1);
+    }
+
+    return $html . $fallback_html;
+}
+
 /**
  * Stampa nel <head> locale le risorse recuperate dal portale principale, se abilitate.
  */
@@ -198,6 +313,7 @@ function dci_get_external_footer_payload() {
     $footer_cached = get_transient($footer_cache_key);
     if (is_array($footer_cached)) {
         if (!empty($footer_cached['html'])) {
+            $footer_cached['html'] = dci_apply_local_footer_signature($footer_cached['html']);
             return $footer_cached;
         }
         return null;
@@ -207,7 +323,11 @@ function dci_get_external_footer_payload() {
         $cache_key = 'dci_ext_footer_v2_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
         $cached_payload = get_transient($cache_key);
         if (is_array($cached_payload)) {
-            return !empty($cached_payload['html']) ? $cached_payload : null;
+            if (!empty($cached_payload['html'])) {
+                $cached_payload['html'] = dci_apply_local_footer_signature($cached_payload['html']);
+                return $cached_payload;
+            }
+            return null;
         }
 
         $current_home = trailingslashit(home_url('/'));
@@ -262,7 +382,9 @@ function dci_get_external_footer_payload() {
                     $payload['html'] = dci_absolutize_external_html_urls($payload['html'], $external_home);
                     $payload['source'] = $external_api;
                     $payload['attempted_sources'] = $attempted_sources;
+                    $payload['loading_html'] = dci_get_external_fragment_loader_html('Caricamento footer');
                     set_transient($footer_cache_key, $payload, 5 * MINUTE_IN_SECONDS);
+                    $payload['html'] = dci_apply_local_footer_signature($payload['html']);
                     return $payload;
                 }
             }
@@ -291,8 +413,10 @@ function dci_get_external_footer_payload() {
                             'css' => array(),
                             'js' => array(),
                         ),
+                        'loading_html' => dci_get_external_fragment_loader_html('Caricamento footer'),
                     );
                     set_transient($footer_cache_key, $result, 5 * MINUTE_IN_SECONDS);
+                    $result['html'] = dci_apply_local_footer_signature($result['html']);
                     return $result;
                 }
             }
@@ -322,6 +446,7 @@ function dci_get_rendered_footer() {
     $raw = ob_get_clean();
 
     $footer_html = dci_extract_footer_html($raw);
+    $footer_html = dci_absolutize_external_html_urls($footer_html, home_url('/'));
 
     return array(
         'success' => true,
@@ -339,6 +464,40 @@ function dci_get_rendered_footer() {
                 get_template_directory_uri() . '/assets/js/comuni.js',
             ),
         ),
+        'loading_html' => dci_get_external_fragment_loader_html('Caricamento footer'),
+    );
+}
+
+/**
+ * Restituisce uno snapshot HTML dell'header del tema.
+ *
+ * @return array
+ */
+function dci_get_rendered_header() {
+    // L'endpoint API deve esportare l'header del sito corrente, non proxyare menu/pulsanti del portale esterno.
+    ob_start();
+    locate_template('header.php', true, false);
+    $raw = ob_get_clean();
+    $header_html = dci_extract_header_html($raw);
+    $header_html = dci_absolutize_external_html_urls($header_html, dci_get_api_fragment_public_base_url(), home_url('/'));
+
+    return array(
+        'success' => true,
+        'generated_at' => current_time('c'),
+        'html' => $header_html,
+        'source' => home_url('/'),
+        'assets' => array(
+            'css' => array(
+                get_template_directory_uri() . '/assets/css/bootstrap-italia-comuni.min.css',
+                get_template_directory_uri() . '/assets/css/comuni.css',
+                get_stylesheet_uri(),
+            ),
+            'js' => array(
+                get_template_directory_uri() . '/assets/js/bootstrap-italia.bundle.min.js',
+                get_template_directory_uri() . '/assets/js/comuni.js',
+            ),
+        ),
+        'loading_html' => dci_get_external_fragment_loader_html('Caricamento header'),
     );
 }
 
@@ -370,9 +529,10 @@ function dci_extract_footer_html($html) {
  *
  * @param string $html
  * @param string $external_home
+ * @param string $source_home Base locale da sostituire quando l'HTML API contiene URL assoluti del sito tecnico.
  * @return string
  */
-function dci_absolutize_external_html_urls($html, $external_home) {
+function dci_absolutize_external_html_urls($html, $external_home, $source_home = '') {
     if (!is_string($html) || $html === '' || empty($external_home)) {
         return $html;
     }
@@ -386,15 +546,67 @@ function dci_absolutize_external_html_urls($html, $external_home) {
     }
 
     $base_url = untrailingslashit($external_home);
+    $source_base_url = '';
+    if (!empty($source_home)) {
+        if (!preg_match('#^https?://#i', $source_home)) {
+            $source_home = 'https://' . ltrim($source_home, '/');
+        }
+        if (filter_var($source_home, FILTER_VALIDATE_URL)) {
+            $source_base_url = untrailingslashit($source_home);
+        }
+    }
 
-    return preg_replace_callback('/\b(href|src|action)=(\"|\')([^\"\']+)\2/i', function ($matches) use ($base_url) {
-        $url = trim($matches[3]);
+    $make_absolute = static function ($url) use ($base_url, $source_base_url) {
+        $url = trim((string) $url);
 
-        if ($url === '' || strpos($url, '/') !== 0 || strpos($url, '//') === 0) {
+        if ($url === '') {
+            return $url;
+        }
+
+        if ($source_base_url !== '' && strcasecmp($url, $source_base_url) === 0) {
+            return esc_url($base_url);
+        }
+
+        if ($source_base_url !== '' && stripos($url, $source_base_url . '/') === 0) {
+            return esc_url($base_url . substr($url, strlen($source_base_url)));
+        }
+
+        if (strpos($url, '/') !== 0 || strpos($url, '//') === 0) {
+            return $url;
+        }
+
+        return esc_url($base_url . $url);
+    };
+
+    $html = preg_replace_callback('/\b(href|src|action|data-href|data-url)=("|\')([^"\']+)\2/i', function ($matches) use ($make_absolute) {
+        $absolute_url = $make_absolute($matches[3]);
+
+        if ($absolute_url === trim((string) $matches[3])) {
             return $matches[0];
         }
 
-        return $matches[1] . '=' . $matches[2] . esc_url($base_url . $url) . $matches[2];
+        return $matches[1] . '=' . $matches[2] . $absolute_url . $matches[2];
+    }, $html);
+
+    $html = preg_replace_callback('/\b((?:window\.|document\.)?location(?:\.href)?)\s*=\s*("|\')([^"\']+)\2/i', function ($matches) use ($make_absolute) {
+        $absolute_url = $make_absolute($matches[3]);
+
+        if ($absolute_url === trim((string) $matches[3])) {
+            return $matches[0];
+        }
+
+        return $matches[1] . '=' . $matches[2] . $absolute_url . $matches[2];
+    }, $html);
+
+    return preg_replace_callback('/url\(("|\')?([^\)"\']+)\1\)/i', function ($matches) use ($make_absolute) {
+        $absolute_url = $make_absolute($matches[2]);
+
+        if ($absolute_url === trim((string) $matches[2])) {
+            return $matches[0];
+        }
+
+        $quote = isset($matches[1]) ? $matches[1] : '';
+        return 'url(' . $quote . $absolute_url . $quote . ')';
     }, $html);
 }
 
@@ -575,7 +787,7 @@ function dci_get_external_header_html() {
         return '';
     }
 
-    $header_cache_key = 'dci_ext_header_v2_' . md5((string) $external_home);
+    $header_cache_key = 'dci_ext_header_v3_' . md5((string) $external_home);
     $header_cached = get_transient($header_cache_key);
     if (is_string($header_cached)) {
         return ($header_cached === '__empty__') ? '' : $header_cached;
@@ -597,6 +809,20 @@ function dci_get_external_header_html() {
         'user-agent' => 'PSR-Theme-Header-Fetch/1.0 (+'. home_url('/') .')',
         'sslverify' => false,
     );
+
+    foreach ($candidate_homes as $candidate_home) {
+        $external_api = trailingslashit($candidate_home) . 'wp-json/wp/v2/header/rendered/';
+        $api_response = wp_remote_get($external_api, $request_args);
+
+        if (!is_wp_error($api_response) && wp_remote_retrieve_response_code($api_response) === 200) {
+            $payload = json_decode(wp_remote_retrieve_body($api_response), true);
+            if (is_array($payload) && !empty($payload['html'])) {
+                $header_html = dci_absolutize_external_html_urls($payload['html'], $external_home);
+                set_transient($header_cache_key, $header_html, 5 * MINUTE_IN_SECONDS);
+                return $header_html;
+            }
+        }
+    }
 
     foreach ($candidate_homes as $candidate_home) {
         $response = wp_remote_get($candidate_home, $request_args);

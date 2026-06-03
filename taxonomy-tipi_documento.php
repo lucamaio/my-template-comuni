@@ -8,7 +8,7 @@
 global $the_query, $load_posts, $load_card_type, $documento, $tax_query, $title, $description, $data_element, $hide_categories;
 
 $obj = get_queried_object();
-$max_posts = isset($_GET['max_posts']) ? $_GET['max_posts'] : 6;
+$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 6, 6, 50);
 $load_posts = 3;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 

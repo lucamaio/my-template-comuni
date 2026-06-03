@@ -2,45 +2,36 @@
 global $nomefile, $idfile;
 
 $icon = "svg-documents";
-if(substr($nomefile, -3) == "pdf")
-	$icon = "it-pdf-document";
-if(substr($nomefile, -3) == "doc")
-	$icon = "svg-doc-document";
-if(substr($nomefile, -4) == "docx")
-	$icon = "svg-doc-document";
-if(substr($nomefile, -3) == "xml")
-	$icon = "svg-xml-document";
-
-$ext = substr($nomefile, -4);
+if (substr((string) $nomefile, -3) == "pdf") {
+    $icon = "it-pdf-document";
+}
+if (substr((string) $nomefile, -3) == "doc") {
+    $icon = "svg-doc-document";
+}
+if (substr((string) $nomefile, -4) == "docx") {
+    $icon = "svg-doc-document";
+}
+if (substr((string) $nomefile, -3) == "xml") {
+    $icon = "svg-xml-document";
+}
 
 $attach = get_post($idfile);
 $filetocheck = get_attached_file($idfile);
-
-$filesize = filesize($filetocheck);
-$fulltype = mime_content_type($filetocheck);
-$arrtype = explode("/", $fulltype);
-$arrtype_more = explode(".", $arrtype[count($arrtype)-1]);
-if(is_array($arrtype_more)) {
-    $arrtype = $arrtype_more;
-}
-$type = "file";
-if(is_array($arrtype))
-    $type = $arrtype[count($arrtype)-1];
-
-$ptitle = $attach->post_title;
-if(trim($ptitle) == ""){
-    $ptitle = str_replace("-", " ", basename($filetocheck, $ext));
-    $ptitle = str_replace("_", " ", $ptitle);
+$file_url = wp_get_attachment_url($idfile);
+$file_info = $file_url ? getFileSizeAndFormat($file_url) : 'FILE';
+$ptitle = $attach ? $attach->post_title : '';
+if (trim($ptitle) == "") {
+    $filename = $filetocheck ? basename($filetocheck) : (string) $nomefile;
+    $ptitle = str_replace(array("-", "_"), " ", pathinfo($filename, PATHINFO_FILENAME));
 }
 ?>
-	<div class="card card-bg card-icon rounded">
-		<div class="card-body">
-			<svg class="icon <?php echo $icon; ?>"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#<?php echo $icon; ?>"></use></svg>
-			<div class="card-icon-content">
-				<p><strong><a target="_blank" href="<?php echo $attach->guid; ?>"><?php echo $ptitle; ?></a></strong></p>
-				<small><?php echo $type; ?> - <?php echo intval($filesize/1024); ?> kb</small>
-			</div><!-- /card-icon-content -->
-		</div><!-- /card-body -->
-	</div><!-- /card card-bg card-icon rounded -->
+    <div class="card card-bg card-icon rounded">
+        <div class="card-body">
+            <svg class="icon <?php echo esc_attr($icon); ?>"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#<?php echo esc_attr($icon); ?>"></use></svg>
+            <div class="card-icon-content">
+                <p><strong><a target="_blank" href="<?php echo esc_url($file_url); ?>"><?php echo esc_html($ptitle); ?></a></strong></p>
+                <small><?php echo esc_html($file_info); ?></small>
+            </div><!-- /card-icon-content -->
+        </div><!-- /card-body -->
+    </div><!-- /card card-bg card-icon rounded -->
 <?php
-

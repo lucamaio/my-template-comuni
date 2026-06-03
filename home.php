@@ -41,17 +41,17 @@ get_header();
             
             
 	    <p></p>
-            <?php   get_template_part("template-parts/home/notizie"); ?>
-            <?php   get_template_part("template-parts/home/calendario"); ?>
+            <?php dci_get_template_part_async("home-notizie"); ?>
+            <?php dci_get_template_part_async("home-calendario"); ?>
 
         </section>
 
 
 		   
         <section id="evidenza" class="evidence-section">
-                <?php get_template_part("template-parts/home/argomenti"); ?>
+                <?php dci_get_template_part_async("home-argomenti"); ?>
                <?php  get_template_part("template-parts/home/strip"); ?>
-                <?php get_template_part("template-parts/home/servizi"); ?>
+                <?php dci_get_template_part_async("home-servizi"); ?>
             <div class="section py-5 pb-lg-80 px-lg-5 position-relative">
 		        
                 <?php  get_template_part("template-parts/home/siti","tematici"); ?>
@@ -75,10 +75,10 @@ get_header();
                 $stile_galleria = dci_get_option('stile_galleria','galleria') ?: null;
                 if($stile_galleria === "solo-foto" || $stile_galleria ==="Solo foto"){
                      // Vecchia Galleria fotografica
-                    get_template_part("template-parts/vivere-comune/galleria-foto");
+                    dci_get_template_part_async("home-gallery-photo");
                 }else if($stile_galleria === "foto-gallery" || $stile_galleria ==="foto-gallery"){
                     // Nuova galleria
-                    get_template_part("template-parts/galleria/home-gallery");
+                    dci_get_template_part_async("home-gallery");
                 }
 		    }
 		?>
@@ -89,12 +89,12 @@ get_header();
          <?php 
             $show_map = dci_get_option( "ck_show_map", "homepage" );
             if($show_map === 'true'){
-              get_template_part("template-parts/vivere-comune/mappa");
+              dci_get_template_part_async("home-map");
             }
 
         ?>
         <?php get_template_part("template-parts/common/valuta-servizio"); ?>
-        <?php get_template_part("template-parts/home/meteo"); ?>
+        <?php dci_get_template_part_async("home-meteo"); ?>
         <?php get_template_part("template-parts/common/assistenza-contatti"); ?>
     </main>
 <?php

@@ -442,13 +442,22 @@ function dci_get_empty_calendar_array($days) {
 }
 
 function dci_get_eventi_calendar_array() {
+    $cached = get_transient('dci_eventi_calendar_array');
+
+    if (is_array($cached)) {
+        return $cached;
+    }
+
     $args = array(
-        'post_type'      => 'evento',
-        'posts_per_page' => -1, // Fondamentale per ricavare tutti gli eventi presenti. Se non specificato ne ricava solo 5
-        'fields'         => 'ids',
-        'post_status'    => 'publish',
-        'orderby'        => 'meta_value',
-        'order'          => 'ASC',
+        'post_type'              => 'evento',
+        'posts_per_page'         => 300,
+        'fields'                 => 'ids',
+        'post_status'            => 'publish',
+        'orderby'                => 'meta_value',
+        'order'                  => 'ASC',
+        'no_found_rows'          => true,
+        'ignore_sticky_posts'    => true,
+        'update_post_term_cache' => false,
     );
     
     $eventi = get_posts($args);
@@ -467,6 +476,8 @@ function dci_get_eventi_calendar_array() {
             'tipo_evento' => dci_get_tipo_evento($evento)
         );
     }
+   set_transient('dci_eventi_calendar_array', $eventi_calendar_array, 15 * MINUTE_IN_SECONDS);
+
    return $eventi_calendar_array;
 }
 
@@ -544,23 +555,23 @@ if (!function_exists("dci_get_eventi_figli")) {
             $id = get_the_ID();
         }
 
-        $children = array();
-
-        $posts = get_posts([
+        return get_posts([
             'post_type' => 'evento',
             'post_status' => 'publish',
-            'numberposts' => -1,
+            'posts_per_page' => 100,
             'orderby' => 'date',
-            'order'    => 'DESC'
+            'order'    => 'DESC',
+            'no_found_rows' => true,
+            'ignore_sticky_posts' => true,
+            'meta_query' => array(
+                array(
+                    'key' => '_dci_evento_evento_genitore',
+                    'value' => absint($id),
+                    'compare' => '=',
+                    'type' => 'NUMERIC',
+                ),
+            ),
         ]);
-
-        foreach ($posts as $post) {
-            if (dci_get_meta('evento_genitore','_dci_evento_', $post->ID) == $id){
-                $children [] = $post;
-            }
-        }
-
-        return $children;
     }
 }
 
@@ -621,6 +632,29 @@ if (!function_exists("dci_get_mapbox_access_token")) {
  *     ?>
  */
 
+function dci_get_async_public_url($fallback_url = '')
+{
+    if (wp_doing_ajax() && isset($_POST['current_url'])) {
+        $current_url = esc_url_raw(wp_unslash($_POST['current_url']));
+        if ($current_url !== '') {
+            return $current_url;
+        }
+    }
+
+    return $fallback_url;
+}
+
+function dci_get_pagination_base_url($page_arg = 'paged', $fallback_url = '')
+{
+    $current_url = dci_get_async_public_url($fallback_url);
+    if ($current_url !== '') {
+        $current_url = remove_query_arg(array('paged', 'page', $page_arg), $current_url);
+        return str_replace('%25%23%25', '%#%', esc_url(add_query_arg($page_arg, '%#%', $current_url)));
+    }
+
+    return str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999)));
+}
+
 function dci_bootstrap_pagination(?\WP_Query $wp_query = null, $echo = true)
 {
     if ($wp_query === null) {
@@ -647,9 +681,12 @@ function dci_bootstrap_pagination(?\WP_Query $wp_query = null, $echo = true)
         }
     }
 
+    $pagination_base = dci_get_pagination_base_url('paged');
+    $pagination_format = wp_doing_ajax() && isset($_POST['current_url']) ? '' : '?paged=%#%';
+
     $pages = paginate_links([
-            'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
-            'format' => '?paged=%#%',
+            'base' => $pagination_base,
+            'format' => $pagination_format,
             'current' => $current_page,
             'total' => $wp_query->max_num_pages,
             'type' => 'array',
@@ -1065,10 +1102,25 @@ if(!function_exists("dci_get_full_punto_contatto")) {
  */
 if(!function_exists("dci_get_related_bando")) {
     function dci_get_related_bandi($id_categoria_servizio = '', $amount = -1) {
-        $bandi = array();
+        if ($id_categoria_servizio == '' && is_tax()) {
+            $queried_object = get_queried_object();
+            if ($queried_object instanceof WP_Term) {
+                $id_categoria_servizio = $queried_object->term_id;
+            }
+        }
+
+        $amount = dci_sanitize_posts_per_page($amount, 12, 30);
+        $cache_key = 'dci_related_bandi_' . md5((string) $id_categoria_servizio . '|' . (string) $amount);
+        $cached = get_transient($cache_key);
+
+        if (is_array($cached)) {
+            return $cached;
+        }
 
         $args = array(
             'post_type' => 'documento_pubblico',
+            'post_status' => 'publish',
+            'fields' => 'ids',
             'tax_query' => array(
                 'relation' => 'AND',
                 array(
@@ -1082,45 +1134,51 @@ if(!function_exists("dci_get_related_bando")) {
                     'terms' => array( 'bando')
                 ),
             ),
-            'numberposts' => $amount,
+            'posts_per_page' => $amount,
             'orderby' => 'date',
-            'order' => 'DESC'
+            'order' => 'DESC',
+            'no_found_rows' => true,
+            'ignore_sticky_posts' => true,
+            'update_post_term_cache' => false,
         );
 
-        $bandi =  get_posts( $args );
-
+        $bandi = get_posts($args);
 
         $args = array(
             'post_type' => 'servizio',
+            'post_status' => 'publish',
             'fields' => 'ids',
-            'numberposts' => -1,
+            'posts_per_page' => 300,
             'orderby' => 'date',
-            'order' => 'DESC'
+            'order' => 'DESC',
+            'no_found_rows' => true,
+            'ignore_sticky_posts' => true,
+            'update_post_term_cache' => false,
         );
-
-        if ($id_categoria_servizio == '') {
-            if (is_tax()) {
-                $id_categoria_servizio = get_queried_object()->term_id;
-            }
-        }
 
         if ($id_categoria_servizio != '') {
             $args['tax_query'] =  array(
                 array(
                     'taxonomy' => 'categorie_servizio',
                     'field' => 'id',
-                    'terms' => array($id_categoria_servizio)
+                    'terms' => array(absint($id_categoria_servizio))
                 )
             );
         }
 
-        $servizi =   get_posts( $args );
-
+        $servizi = get_posts($args);
         $result = array();
         $servizi_lookup = array_fill_keys(array_map('intval', $servizi), true);
 
-        foreach ($bandi as $bando) {
-            $array_servizi = dci_get_meta('servizi', '_dci_documento_pubblico_', $bando->ID);
+        if (empty($bandi) || empty($servizi_lookup)) {
+            set_transient($cache_key, $result, 15 * MINUTE_IN_SECONDS);
+            return $result;
+        }
+
+        update_meta_cache('post', array_map('intval', $bandi));
+
+        foreach ($bandi as $bando_id) {
+            $array_servizi = dci_get_meta('servizi', '_dci_documento_pubblico_', $bando_id);
 
             if (!is_array($array_servizi) || empty($array_servizi)) {
                 continue;
@@ -1139,14 +1197,16 @@ if(!function_exists("dci_get_related_bando")) {
             }
 
             $result[] = array(
-                'id' => $bando->ID,
-                'titolo' => $bando->post_title,
-                'link' => get_permalink($bando->ID),
-                'description' => dci_get_meta('descrizione_breve', '_dci_documento_pubblico_', $bando->ID)
+                'id' => $bando_id,
+                'titolo' => get_the_title($bando_id),
+                'link' => get_permalink($bando_id),
+                'description' => dci_get_meta('descrizione_breve', '_dci_documento_pubblico_', $bando_id)
             );
         }
 
-       return $result;
+        set_transient($cache_key, $result, 15 * MINUTE_IN_SECONDS);
+
+        return $result;
 
     }
 }
@@ -1159,46 +1219,71 @@ if(!function_exists("dci_get_related_bando")) {
  */
 if(!function_exists("dci_get_related_unita_amministrative")) {
     function dci_get_related_unita_amministrative($id_categoria_servizio = '', $amount = -1) {
+        if ($id_categoria_servizio == '' && is_tax()) {
+            $queried_object = get_queried_object();
+            if ($queried_object instanceof WP_Term) {
+                $id_categoria_servizio = $queried_object->term_id;
+            }
+        }
+
+        $amount = dci_sanitize_posts_per_page($amount, 300, 300);
+        $cache_key = 'dci_related_unita_' . md5((string) $id_categoria_servizio . '|' . (string) $amount);
+        $cached = get_transient($cache_key);
+
+        if (is_array($cached)) {
+            return $cached;
+        }
 
         $args = array(
             'post_type' => 'servizio',
+            'post_status' => 'publish',
             'fields' => 'ids',
-            'numberposts' => -1,
+            'posts_per_page' => $amount,
             'orderby' => 'date',
-            'order' => 'DESC'
+            'order' => 'DESC',
+            'no_found_rows' => true,
+            'ignore_sticky_posts' => true,
+            'update_post_term_cache' => false,
         );
-
-        if ($id_categoria_servizio == '') {
-            if (is_tax()) {
-                $id_categoria_servizio = get_queried_object()->term_id;
-            }
-        }
 
         if ($id_categoria_servizio != '') {
             $args['tax_query'] =  array(
                 array(
                     'taxonomy' => 'categorie_servizio',
                     'field' => 'id',
-                    'terms' => array($id_categoria_servizio)
+                    'terms' => array(absint($id_categoria_servizio))
                 )
             );
         }
 
-        $id_servizi =  get_posts( $args );
-
+        $id_servizi = get_posts($args);
         $unita_organizzative = array();
+        $unita_ids = array();
+
+        if (empty($id_servizi)) {
+            set_transient($cache_key, $unita_organizzative, 15 * MINUTE_IN_SECONDS);
+            return $unita_organizzative;
+        }
+
+        update_meta_cache('post', array_map('intval', $id_servizi));
 
         foreach ($id_servizi as $id_servizio) {
-            $id = dci_get_meta('unita_responsabile', '_dci_servizio_', $id_servizio);
+            $id = absint(dci_get_meta('unita_responsabile', '_dci_servizio_', $id_servizio));
 
-            if (!dci_contains_element_with($unita_organizzative, $key= 'id', $value = $id)){
-                $unita_organizzative [] = array(
-                    'id' => $id,
-                    'link' => get_permalink($id),
-                    'title' => get_the_title($id)
-                );
+            if ($id <= 0 || isset($unita_ids[$id])) {
+                continue;
             }
+
+            $unita_ids[$id] = true;
+            $unita_organizzative[] = array(
+                'id' => $id,
+                'link' => get_permalink($id),
+                'title' => get_the_title($id)
+            );
         }
+
+        set_transient($cache_key, $unita_organizzative, 15 * MINUTE_IN_SECONDS);
+
         return $unita_organizzative;
     }
 }
@@ -1268,7 +1353,7 @@ if (!function_exists('dci_get_maggioli_services_data')) {
 // Returns an img tag with appropriate attributes
 
 if(!function_exists("dci_get_img")) {
-    function dci_get_img( $url, $classes = '') {
+    function dci_get_img( $url, $classes = '', $attributes = array()) {
         $attachment_id = attachment_url_to_postid($url);
         $img_post = $attachment_id ? get_post( $attachment_id ) : null;
 
@@ -1294,9 +1379,55 @@ if(!function_exists("dci_get_img")) {
         }
         $img .= 'alt="' . esc_attr( $image_alt ) . '" ';
         $img .= 'title="' . esc_attr( $image_title ) . '" ';
+        if (is_array($attributes)) {
+            foreach ($attributes as $attribute => $value) {
+                if ($value === false || $value === null || $value === '') {
+                    continue;
+                }
+                $attribute = sanitize_key($attribute);
+                $img .= esc_attr($attribute) . '="' . esc_attr((string) $value) . '" ';
+            }
+        }
         $img .= '/>';
 
         echo $img;
+    }
+}
+
+if(!function_exists("dci_get_deferred_img")) {
+    function dci_get_deferred_img( $url, $classes = '') {
+        $attachment_id = attachment_url_to_postid($url);
+        $img_post = $attachment_id ? get_post( $attachment_id ) : null;
+        $image_title = '';
+        $image_alt = '';
+
+        if ( $img_post && isset( $img_post->ID ) ) {
+            $image_alt   = (string) get_post_meta( $img_post->ID, '_wp_attachment_image_alt', true );
+            $image_title = (string) get_the_title( $img_post->ID );
+        }
+
+        if ( empty( $image_title ) ) {
+            $image_title = trim( preg_replace('/[-_]+/', ' ', pathinfo( (string) $url, PATHINFO_FILENAME ) ) );
+        }
+
+        if ( empty( $image_alt ) ) {
+            $image_alt = $image_title;
+        }
+
+        $placeholder = get_template_directory_uri() . '/assets/img/placeholder_grey.jpeg';
+        $deferred_classes = trim($classes . ' dci-deferred-img');
+        $img = '<img src="' . esc_url($placeholder) . '" data-dci-src="' . esc_url($url) . '" ';
+        if ($deferred_classes) {
+            $img .= 'class="' . esc_attr($deferred_classes) . '" ';
+        }
+        $img .= 'alt="' . esc_attr($image_alt) . '" ';
+        $img .= 'title="' . esc_attr($image_title) . '" ';
+        $img .= 'loading="lazy" decoding="async" fetchpriority="low" />';
+
+        echo $img;
+        echo '<noscript>';
+        dci_get_img($url, $classes);
+        echo '</noscript>';
     }
 }
 

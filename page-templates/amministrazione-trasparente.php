@@ -69,7 +69,7 @@ get_header();
 			?>
 			<?php get_template_part("template-parts/single/hero-custom"); ?>
                         <?php info();?>
-			<?php get_template_part("template-parts/amministrazione-trasparente/categorie"); ?>		
+			<?php dci_get_template_part_async("trasparenza-categorie"); ?>
 
            <?php 
 				//Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.

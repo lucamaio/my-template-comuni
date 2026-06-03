@@ -50,7 +50,7 @@ get_header();
     ?>
         <?php get_template_part("template-parts/hero/hero"); ?>
         <?php info(); ?>
-        <?php get_template_part("template-parts/consigli/tutti"); ?>
+        <?php dci_get_template_part_async("consigli-tutti"); ?>
 
         <?php 
         // Se il portale gestisce solo la Trasparenza in modo esterno, mostra solo la home

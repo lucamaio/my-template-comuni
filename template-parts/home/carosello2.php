@@ -20,8 +20,15 @@ if (is_string($raw_gallery) && !empty($raw_gallery)) {
 <section id="carosello" class="carosello-section">
     <?php if (count($gallery) === 1): ?>
         <?php $url_immagine = array_values($gallery)[0]; ?>
-        <div class="bg-image">
-            <?php dci_get_img($url_immagine, 'immagine-home'); ?>
+        <div class="bg-image dci-deferred-img-frame dci-home-hero-deferred">
+            <div class="dci-deferred-img-frame__loader" aria-hidden="true">
+                <div class="dci-async-loader">
+                    <span class="dci-async-loader__spinner"></span>
+                    <span class="dci-async-loader__line dci-async-loader__line--long"></span>
+                    <span class="dci-async-loader__line"></span>
+                </div>
+            </div>
+            <?php dci_get_deferred_img($url_immagine, 'immagine-home'); ?>
         </div>
         <style>
             .bg-image img {

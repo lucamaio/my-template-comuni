@@ -7,6 +7,10 @@ if(!isset($post) && !empty($post) && $post!=null){
     $post = get_post($scheda['scheda_' . $count . '_contenuto'][0]);
 }
 
+if (!$post instanceof WP_Post || get_post_status($post) !== 'publish') {
+    return;
+}
+
 $img = dci_get_meta('immagine');
 $descrizione_breve = dci_get_meta('descrizione_breve');
 $icon = dci_get_post_type_icon_by_id($post->ID);

@@ -75,18 +75,26 @@
                     <?php
                     $popular_posts = new WP_Query([
                         'post_type' => dci_get_sercheable_tipologie(),
+                        'post_status' => 'publish',
                         'posts_per_page' => 7,
                         'meta_key' => 'views',
                         'orderby' => 'meta_value_num',
-                        'order' => 'DESC'
+                        'order' => 'DESC',
+                        'no_found_rows' => true,
+                        'ignore_sticky_posts' => true,
+                        'update_post_term_cache' => false,
                     ]);
 
                     if (empty($popular_posts->posts)) {
                         $popular_posts = new WP_Query([
                             'post_type' => dci_get_sercheable_tipologie(),
+                            'post_status' => 'publish',
                             'posts_per_page' => 7,
                             'orderby' => 'date',
                             'order' => 'DESC',
+                            'no_found_rows' => true,
+                            'ignore_sticky_posts' => true,
+                            'update_post_term_cache' => false,
                         ]);
                     }
 

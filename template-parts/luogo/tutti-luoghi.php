@@ -76,7 +76,7 @@ $the_query = new WP_Query($args);
                 <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine luoghi">
                     <?php
                     $pagination_links = paginate_links(array(
-                        'base'         => esc_url(add_query_arg('luoghi_page', '%#%')),
+                        'base'         => dci_get_pagination_base_url('luoghi_page'),
                         'format'       => '',
                         'current'      => $paged,
                         'total'        => $the_query->max_num_pages,

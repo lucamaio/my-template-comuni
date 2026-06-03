@@ -46,6 +46,390 @@ if ( ! function_exists ( 'dci_get_tipologia_articoli_options' ) ) {
 require get_template_directory() . '/inc/utils.php';
 
 /**
+ * Normalizza il numero di contenuti per pagina nelle query frontend.
+ *
+ * Evita valori non validi o troppo alti passati via query string che possono
+ * far caricare migliaia di contenuti in memoria su portali molto popolati.
+ *
+ * @param mixed $value Valore richiesto.
+ * @param int   $default Valore di fallback.
+ * @param int   $max Limite massimo consentito.
+ * @return int
+ */
+function dci_sanitize_posts_per_page($value, $default = 10, $max = 100) {
+    $default = max(1, absint($default));
+    $max = max(1, absint($max));
+    $value = is_numeric($value) ? (int) $value : 0;
+
+    if ($value <= 0) {
+        $value = $default;
+    }
+
+    return min($value, $max);
+}
+
+/**
+ * Imposta una micro-cache HTTP per pagine pubbliche anonime.
+ *
+ * Non salva HTML lato server: suggerisce solo a browser/proxy di riusare per poco
+ * tempo pagine GET senza parametri, evitando aree dinamiche o sensibili.
+ */
+function dci_send_light_frontend_cache_headers() {
+    if (
+        is_admin()
+        || wp_doing_ajax()
+        || is_user_logged_in()
+        || (defined('REST_REQUEST') && REST_REQUEST)
+        || (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE)
+        || strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'GET'
+        || !empty($_GET)
+        || is_search()
+        || is_404()
+        || is_preview()
+        || is_customize_preview()
+    ) {
+        return;
+    }
+
+    $sensitive_templates = array(
+        'page-templates/assistenza.php',
+        'page-templates/prenota-appuntamento.php',
+        'page-templates/segnala-disservizio.php',
+    );
+
+    foreach ($sensitive_templates as $template) {
+        if (is_page_template($template)) {
+            return;
+        }
+    }
+
+    header('Cache-Control: public, max-age=60, s-maxage=60, stale-while-revalidate=120');
+    header('Pragma: cache');
+}
+add_action('send_headers', 'dci_send_light_frontend_cache_headers', 20);
+
+/**
+ * Async template part loading.
+ */
+function dci_async_template_parts_map() {
+    return array(
+        'home-notizie' => array('slug' => 'template-parts/home/notizie', 'label' => 'Caricamento novità'),
+        'home-calendario' => array('slug' => 'template-parts/home/calendario', 'label' => 'Caricamento eventi'),
+        'home-servizi' => array('slug' => 'template-parts/home/servizi', 'label' => 'Caricamento servizi'),
+        'home-argomenti' => array('slug' => 'template-parts/home/argomenti', 'label' => 'Caricamento argomenti in evidenza'),
+        'home-gallery-photo' => array('slug' => 'template-parts/vivere-comune/galleria-foto', 'label' => 'Caricamento galleria'),
+        'home-gallery' => array('slug' => 'template-parts/galleria/home-gallery', 'label' => 'Caricamento galleria'),
+        'home-map' => array('slug' => 'template-parts/vivere-comune/mappa', 'label' => 'Caricamento mappa'),
+        'home-meteo' => array('slug' => 'template-parts/home/meteo', 'label' => 'Caricamento meteo', 'compact' => true),
+        'amministrazione-evidenza' => array('slug' => 'template-parts/amministrazione/evidenza', 'label' => 'Caricamento amministrazione in evidenza'),
+        'amministrazione-cards' => array('slug' => 'template-parts/amministrazione/cards-list', 'label' => 'Caricamento amministrazione'),
+        'aree-amministrative-tutte' => array('slug' => 'template-parts/aree-amministrative/tutte-aree', 'label' => 'Caricamento aree amministrative'),
+        'uffici-tutti' => array('slug' => 'template-parts/uffici/tutti-uffici', 'label' => 'Caricamento uffici'),
+        'organi-governo-tutti' => array('slug' => 'template-parts/organi-governo/tutti-organi', 'label' => 'Caricamento organi di governo'),
+        'politici-tutti' => array('slug' => 'template-parts/politici/tutti-politici', 'label' => 'Caricamento politici'),
+        'personale-amministrativo-tutti' => array('slug' => 'template-parts/personale-amministrativo/tutto-personale', 'label' => 'Caricamento personale amministrativo'),
+        'enti-fondazioni-tutti' => array('slug' => 'template-parts/enti-e-fondazioni/tutti-enti', 'label' => 'Caricamento enti e fondazioni'),
+        'consigli-tutti' => array('slug' => 'template-parts/consigli/tutti', 'label' => 'Caricamento consiglio'),
+        'trasparenza-categorie' => array('slug' => 'template-parts/amministrazione-trasparente/categorie', 'label' => 'Caricamento elenco amministrazione trasparente'),
+        'trasparenza-risultati-paginati' => array('slug' => 'template-parts/amministrazione-trasparente/risultati-paginati', 'label' => 'Caricamento contenuti della trasparenza', 'compact' => true),
+        'novita-evidenza' => array('slug' => 'template-parts/novita/evidenza', 'label' => 'Caricamento notizie in evidenza'),
+        'novita-tutte' => array('slug' => 'template-parts/novita/tutte-novita', 'label' => 'Caricamento lista notizie'),
+        'servizi-evidenza' => array('slug' => 'template-parts/servizio/evidenza', 'label' => 'Caricamento servizi in evidenza'),
+        'servizi-tutti' => array('slug' => 'template-parts/servizio/tutti-servizi', 'label' => 'Caricamento lista servizi'),
+        'luoghi-evidenza' => array('slug' => 'template-parts/luogo/evidenza', 'label' => 'Caricamento luoghi in evidenza'),
+        'luoghi-tutti' => array('slug' => 'template-parts/luogo/tutti-luoghi', 'label' => 'Caricamento lista luoghi'),
+        'eventi-tutti' => array('slug' => 'template-parts/vivere-comune/tutti-eventi', 'label' => 'Caricamento eventi'),
+        'vivere-eventi' => array('slug' => 'template-parts/vivere-comune/eventi', 'label' => 'Caricamento eventi in evidenza'),
+        'vivere-luoghi' => array('slug' => 'template-parts/vivere-comune/luoghi', 'label' => 'Caricamento luoghi in evidenza'),
+    );
+}
+
+function dci_is_async_template_request($template_key) {
+    return wp_doing_ajax()
+        && isset($_POST['action'], $_POST['template_key'])
+        && 'dci_load_template_part' === sanitize_key(wp_unslash($_POST['action']))
+        && $template_key === sanitize_key(wp_unslash($_POST['template_key']));
+}
+
+function dci_async_template_parts_disabled() {
+    $disabled_by_query = isset($_GET['dci_disable_async']) && '1' === sanitize_text_field(wp_unslash($_GET['dci_disable_async']));
+    $disabled_by_cookie = isset($_COOKIE['dci_disable_async']) && '1' === sanitize_text_field(wp_unslash($_COOKIE['dci_disable_async']));
+
+    return $disabled_by_query || $disabled_by_cookie;
+}
+
+function dci_async_template_parts_cache_ttl() {
+    return 60;
+}
+
+function dci_async_template_parts_cache_version() {
+    $version = get_option('dci_async_template_parts_cache_version');
+
+    if (!$version) {
+        $version = str_replace('.', '', (string) microtime(true));
+        update_option('dci_async_template_parts_cache_version', $version, false);
+    }
+
+    return $version;
+}
+
+function dci_bump_async_template_parts_cache_version() {
+    update_option('dci_async_template_parts_cache_version', str_replace('.', '', (string) microtime(true)), false);
+}
+
+function dci_maybe_bump_async_template_parts_cache_version_on_option($option) {
+    $cache_sensitive_options = array(
+        'accesso_rapido',
+        'amministrazione',
+        'argomenti',
+        'assistenza',
+        'dci_options',
+        'documenti',
+        'footer',
+        'Galleria',
+        'galleria',
+        'home_messages',
+        'homepage',
+        'link_utili',
+        'luoghi',
+        'multimedia',
+        'novita',
+        'ricerca',
+        'servizi',
+        'socials',
+        'strip_home',
+        'trasparenza',
+        'vivi',
+    );
+
+    if (!in_array((string) $option, $cache_sensitive_options, true)) {
+        return;
+    }
+
+    dci_bump_async_template_parts_cache_version();
+}
+add_action('save_post', 'dci_bump_async_template_parts_cache_version');
+add_action('deleted_post', 'dci_bump_async_template_parts_cache_version');
+add_action('created_term', 'dci_bump_async_template_parts_cache_version');
+add_action('edited_term', 'dci_bump_async_template_parts_cache_version');
+add_action('delete_term', 'dci_bump_async_template_parts_cache_version');
+add_action('added_option', 'dci_maybe_bump_async_template_parts_cache_version_on_option');
+add_action('updated_option', 'dci_maybe_bump_async_template_parts_cache_version_on_option');
+add_action('deleted_option', 'dci_maybe_bump_async_template_parts_cache_version_on_option');
+
+function dci_async_template_parts_cache_key($template_key, $page_id, $term_id, $taxonomy, $query_string, $current_url = '') {
+    return 'dci_async_tpl_' . md5(wp_json_encode(array(
+        'version' => dci_async_template_parts_cache_version(),
+        'schema' => 'pagination-path-v2',
+        'template_key' => $template_key,
+        'page_id' => (int) $page_id,
+        'term_id' => (int) $term_id,
+        'taxonomy' => $taxonomy,
+        'query_string' => $query_string,
+        'current_url' => $current_url,
+    )));
+}
+
+function dci_get_template_part_async($template_key) {
+    $templates = dci_async_template_parts_map();
+
+    if (!isset($templates[$template_key])) {
+        return;
+    }
+
+    if (is_admin() || wp_doing_ajax() || dci_async_template_parts_disabled()) {
+        get_template_part($templates[$template_key]['slug']);
+        return;
+    }
+
+    $placeholder_id = 'dci-async-' . sanitize_html_class($template_key) . '-' . wp_rand(1000, 9999);
+    $label = $templates[$template_key]['label'];
+    $loader_class = !empty($templates[$template_key]['compact']) ? 'py-4' : 'container py-5';
+    ?>
+    <div
+        id="<?php echo esc_attr($placeholder_id); ?>"
+        class="dci-async-template"
+        data-template-key="<?php echo esc_attr($template_key); ?>"
+        data-page-id="<?php echo esc_attr(get_queried_object_id()); ?>"
+        <?php if (is_tax()) { ?>
+            data-term-id="<?php echo esc_attr(get_queried_object_id()); ?>"
+            data-taxonomy="<?php echo esc_attr(get_queried_object()->taxonomy); ?>"
+        <?php } ?>
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+    >
+        <div class="<?php echo esc_attr($loader_class); ?>">
+            <div class="dci-async-loader" aria-hidden="true">
+                <span class="dci-async-loader__spinner"></span>
+                <span class="dci-async-loader__line dci-async-loader__line--long"></span>
+                <span class="dci-async-loader__line"></span>
+            </div>
+            <span class="visually-hidden"><?php echo esc_html($label); ?>...</span>
+        </div>
+    </div>
+    <?php
+}
+
+add_action('wp_ajax_dci_load_template_part', 'dci_load_template_part_ajax');
+add_action('wp_ajax_nopriv_dci_load_template_part', 'dci_load_template_part_ajax');
+function dci_load_template_part_ajax() {
+    $template_key = isset($_POST['template_key']) ? sanitize_key(wp_unslash($_POST['template_key'])) : '';
+    $templates = dci_async_template_parts_map();
+
+    if (!isset($templates[$template_key])) {
+        wp_send_json_error(array('message' => 'Template non disponibile.'), 404);
+    }
+
+    $query_string = isset($_POST['query_string']) ? (string) wp_unslash($_POST['query_string']) : '';
+    if ($query_string !== '') {
+        parse_str($query_string, $query_args);
+        if (is_array($query_args)) {
+            $_GET = array_merge($_GET, $query_args);
+        }
+    }
+
+    $current_url = isset($_POST['current_url']) ? esc_url_raw(wp_unslash($_POST['current_url'])) : '';
+    if ($current_url !== '') {
+        $current_url_parts = wp_parse_url($current_url);
+        if (is_array($current_url_parts) && !empty($current_url_parts['path'])) {
+            $_SERVER['REQUEST_URI'] = $current_url_parts['path'] . (!empty($current_url_parts['query']) ? '?' . $current_url_parts['query'] : '');
+
+            if (!isset($_GET['paged']) && !isset($_GET['page']) && preg_match('~/page/([0-9]+)/?~', $current_url_parts['path'], $pagination_matches)) {
+                $_GET['paged'] = max(1, absint($pagination_matches[1]));
+            }
+        }
+    }
+
+    $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
+    $taxonomy = isset($_POST['taxonomy']) ? sanitize_key(wp_unslash($_POST['taxonomy'])) : '';
+    $page_id = isset($_POST['page_id']) ? absint($_POST['page_id']) : 0;
+
+    global $wp_query;
+    if (isset($_GET['paged'])) {
+        $wp_query->set('paged', max(1, absint($_GET['paged'])));
+    }
+    if (isset($_GET['page'])) {
+        $wp_query->set('page', max(1, absint($_GET['page'])));
+    }
+
+    if ($term_id && $taxonomy) {
+        $term = get_term($term_id, $taxonomy);
+        if ($term && !is_wp_error($term)) {
+            $wp_query->queried_object = $term;
+            $wp_query->queried_object_id = $term_id;
+            $wp_query->is_tax = true;
+        }
+    }
+
+    $cache_key = dci_async_template_parts_cache_key($template_key, $page_id, $term_id, $taxonomy, $query_string, $current_url);
+    if (!is_user_logged_in()) {
+        $cached_html = get_transient($cache_key);
+        if (false !== $cached_html) {
+            wp_send_json_success(array('html' => $cached_html, 'cached' => true));
+        }
+    }
+
+    if ($page_id && !$term_id) {
+        global $post;
+        $post = get_post($page_id);
+        if ($post) {
+            setup_postdata($post);
+        }
+    }
+
+    ob_start();
+    get_template_part($templates[$template_key]['slug']);
+    $html = ob_get_clean();
+
+    if ($page_id && !$term_id) {
+        wp_reset_postdata();
+    }
+
+    if (!is_user_logged_in()) {
+        set_transient($cache_key, $html, dci_async_template_parts_cache_ttl());
+    }
+
+    wp_send_json_success(array('html' => $html, 'cached' => false));
+}
+
+
+
+function dci_get_rss_feed_url($post_type) {
+    $feed_url = get_post_type_archive_feed_link($post_type);
+
+    if (empty($feed_url)) {
+        $feed_url = add_query_arg('post_type', $post_type, get_feed_link('rss2'));
+    }
+
+    return $feed_url;
+}
+
+function dci_get_feed_rss_page_content() {
+    $feed_notizie = esc_url(dci_get_rss_feed_url('notizia'));
+    $feed_eventi = esc_url(dci_get_rss_feed_url('evento'));
+
+    return '<p>I feed RSS permettono di seguire gli aggiornamenti del sito senza dover controllare manualmente ogni pagina. Iscrivendoti a un feed, puoi ricevere in un unico lettore le nuove pubblicazioni appena vengono rese disponibili.</p>'
+        . '<p>Puoi usare un programma, una app o un servizio online compatibile con RSS. Dopo aver copiato il link del feed che ti interessa, il lettore mostrerà automaticamente i nuovi contenuti pubblicati dal Comune.</p>'
+        . '<p>Scegli il feed che vuoi seguire:</p>'
+        . '<ul>'
+        . '<li><a href="' . $feed_notizie . '">Feed RSS notizie</a></li>'
+        . '<li><a href="' . $feed_eventi . '">Feed RSS eventi</a></li>'
+        . '</ul>';
+}
+
+function dci_get_feed_rss_page_url() {
+    $page = get_page_by_path('feed-rss');
+
+    if ($page instanceof WP_Post) {
+        return get_permalink($page->ID);
+    }
+
+    return home_url('/feed-rss/');
+}
+
+function dci_ensure_feed_rss_page() {
+    if (wp_installing()) {
+        return;
+    }
+
+    $cached_page_id = absint(get_option('dci_feed_rss_page_id', 0));
+    if ($cached_page_id && get_post_status($cached_page_id)) {
+        return;
+    }
+
+    $page = get_page_by_path('feed-rss');
+    if ($page instanceof WP_Post) {
+        update_option('dci_feed_rss_page_id', $page->ID, false);
+
+        if (get_post_meta($page->ID, '_dci_auto_feed_rss_page', true) === '1' && $page->post_content !== dci_get_feed_rss_page_content()) {
+            wp_update_post(array(
+                'ID' => $page->ID,
+                'post_content' => dci_get_feed_rss_page_content(),
+            ));
+        }
+
+        return;
+    }
+
+    $page_id = wp_insert_post(array(
+        'post_title' => 'Feed RSS',
+        'post_name' => 'feed-rss',
+        'post_type' => 'page',
+        'post_status' => 'publish',
+        'post_content' => dci_get_feed_rss_page_content(),
+        'comment_status' => 'closed',
+        'ping_status' => 'closed',
+    ), true);
+
+    if (!is_wp_error($page_id)) {
+        update_post_meta($page_id, '_dci_auto_feed_rss_page', '1');
+        update_option('dci_feed_rss_page_id', $page_id, false);
+    }
+}
+add_action('init', 'dci_ensure_feed_rss_page', 20);
+
+/**
  * Breadcrumb class
  */
 require get_template_directory() . '/inc/breadcrumb.php';
@@ -170,7 +554,7 @@ function dci_scripts() {
     wp_enqueue_style( 'dci-comuni', get_template_directory_uri() . '/assets/css/bootstrap-italia-comuni.min.css');
 
     wp_enqueue_style( 'dci-font', get_template_directory_uri() . '/assets/css/fonts.css', array('dci-comuni'));
-    wp_enqueue_style( 'dci-wp-style', get_template_directory_uri()."/style.css", array('dci-comuni'));
+    wp_enqueue_style( 'dci-wp-style', get_template_directory_uri()."/style.css", array('dci-comuni'), filemtime(get_template_directory() . '/style.css'));
     wp_enqueue_style( 'dci-accessibility-toolbar', get_template_directory_uri() . '/assets/css/accessibility-toolbar.css', array('dci-wp-style'), false );
 
 
@@ -196,8 +580,19 @@ function dci_scripts() {
         wp_enqueue_script( 'dci-boostrap-italia-min-js', get_template_directory_uri() . '/assets/js/bootstrap-italia.bundle.min.js', array(), false, true);
     }
 	wp_enqueue_script( 'dci-comuni', get_template_directory_uri() . '/assets/js/comuni.js', array(), false, true);
+	wp_enqueue_script( 'dci-sticky-header-nav', get_template_directory_uri() . '/assets/js/sticky-header-nav.js', array(), false, true);
+	wp_enqueue_script( 'dci-deferred-images', get_template_directory_uri() . '/assets/js/deferred-images.js', array(), filemtime(get_template_directory() . '/assets/js/deferred-images.js'), true);
+	wp_script_add_data( 'dci-deferred-images', 'defer', true );
 	wp_enqueue_script( 'dci-accessibility-toolbar', get_template_directory_uri() . '/assets/js/accessibility-toolbar.js', array(), false, true);
 	wp_script_add_data( 'dci-accessibility-toolbar', 'defer', true );
+	wp_enqueue_script( 'dci-async-template-parts', get_template_directory_uri() . '/assets/js/async-template-parts.js', array(), filemtime(get_template_directory() . '/assets/js/async-template-parts.js'), true );
+	wp_localize_script( 'dci-async-template-parts', 'dciAsyncTemplateParts', array(
+		'ajaxurl' => admin_url( 'admin-ajax.php', 'relative' ),
+		'maxConcurrent' => 2,
+		'maxRetries' => 4,
+		'timeoutMs' => 20000,
+	) );
+	wp_script_add_data( 'dci-async-template-parts', 'defer', true );
 	wp_add_inline_script( 'dci-comuni', 'window.wpRestApi = "' . get_rest_url() . '"', 'before' );
 
 	wp_enqueue_script( 'dci-jquery-easing', get_template_directory_uri() . '/assets/js/components/jquery-easing/jquery.easing.js', array(), false, true);
@@ -275,26 +670,63 @@ function get_parent_template () {
 
 
  // Restituisce il formato e le dimensioni di un allegato
-function getFileSizeAndFormat($url) {
-    $percorso = parse_url($url);
-    $percorso = isset($percorso["path"]) ? substr($percorso["path"], 0, -strlen(pathinfo($url, PATHINFO_BASENAME))) : '';
-    $response = wp_remote_head($url);
+if (!function_exists('dci_format_file_size')) {
+    function dci_format_file_size($bytes) {
+        $bytes = absint($bytes);
 
-    if (is_wp_error($response)) {
-        return 'Errore nel recupero delle informazioni del file';
+        if ($bytes >= 1073741824) {
+            return number_format_i18n($bytes / 1073741824, 2) . ' Gb';
+        }
+
+        if ($bytes >= 1048576) {
+            return number_format_i18n($bytes / 1048576, 2) . ' Mb';
+        }
+
+        if ($bytes >= 1024) {
+            return number_format_i18n($bytes / 1024, 2) . ' Kb';
+        }
+
+        return $bytes . ' byte';
+    }
+}
+
+function getFileSizeAndFormat($url) {
+    $url = trim((string) $url);
+    if ($url === '') {
+        return 'FILE';
     }
 
-    $headers = wp_remote_retrieve_headers($response);
-    $content_length = isset($headers['content-length']) ? intval($headers['content-length']) : 0;
+    if (is_numeric($url)) {
+        $attachment_url = wp_get_attachment_url((int) $url);
+        if ($attachment_url) {
+            $url = $attachment_url;
+        }
+    }
 
-    $base = log($content_length, 1024);
-    $suffixes = array('', 'Kb', 'Mb', 'Gb', 'Tb');
-    $size_formatted = round(pow(1024, $base - floor($base)), 2) . ' ' . $suffixes[floor($base)];
+    $filetype = wp_check_filetype($url);
+    $file_format = !empty($filetype['ext']) ? strtoupper($filetype['ext']) : strtoupper(pathinfo((string) wp_parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+    if ($file_format === '') {
+        $file_format = 'FILE';
+    }
 
-    $info_file = pathinfo($url);
-    $file_format = strtoupper(isset($info_file['extension']) ? $info_file['extension'] : '');
+    $url_host = wp_parse_url($url, PHP_URL_HOST);
+    $site_host = wp_parse_url(home_url('/'), PHP_URL_HOST);
+    $is_local_url = !$url_host || !$site_host || strtolower((string) $url_host) === strtolower((string) $site_host);
 
-    return $file_format . ' ' . $size_formatted;
+    if ($is_local_url) {
+        $attachment_id = attachment_url_to_postid($url);
+        if ($attachment_id) {
+            $local_file = get_attached_file($attachment_id);
+            if ($local_file && file_exists($local_file) && is_readable($local_file)) {
+                $local_size = filesize($local_file);
+                if ($local_size !== false && $local_size > 0) {
+                    return $file_format . ' ' . dci_format_file_size($local_size);
+                }
+            }
+        }
+    }
+
+    return $file_format;
 }
 
 
@@ -485,6 +917,26 @@ function wpc_contatore_homepage() {
 }
 
 add_action('template_redirect', 'wpc_contatore_homepage');
+
+/**
+ * Reindirizza eventuali richieste a /home verso la vera homepage del portale.
+ */
+function dci_redirect_home_slug_to_front_page() {
+    if ( is_admin() || wp_doing_ajax() ) {
+        return;
+    }
+
+    $request_path = isset($_SERVER['REQUEST_URI']) ? wp_parse_url(wp_unslash($_SERVER['REQUEST_URI']), PHP_URL_PATH) : '';
+    $home_path = wp_parse_url(home_url('/home/'), PHP_URL_PATH);
+
+    if ( untrailingslashit($request_path) !== untrailingslashit($home_path) ) {
+        return;
+    }
+
+    wp_safe_redirect(home_url('/'), 301);
+    exit;
+}
+add_action('template_redirect', 'dci_redirect_home_slug_to_front_page', 0);
 
 
 
@@ -1220,6 +1672,7 @@ add_action('save_post_notizia', function ($post_id) {
 
 add_action('save_post_evento', function ($post_id) {
     delete_transient('dci_evento_rest_' . absint($post_id));
+    delete_transient('dci_eventi_calendar_array');
 });
 
 add_action('save_post_luogo', function($post_id) {
@@ -1243,10 +1696,7 @@ add_action('pre_get_posts', function (WP_Query $query) {
         return;
     }
 
-    $max_posts = isset($_GET['max_posts']) ? absint($_GET['max_posts']) : 10;
-    if ($max_posts <= 0) {
-        $max_posts = 10;
-    }
+    $max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 10, 10, 50);
 
     $search = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : '';
     $order_type = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';

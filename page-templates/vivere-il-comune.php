@@ -26,8 +26,15 @@ get_header();
 				<section class="it-hero-small-size cmp-hero-img-small">
 					<div class="img-responsive-wrapper">
 						<div class="img-responsive">
-							<div class="img-wrapper">
-								<?php dci_get_img($img); ?>
+							<div class="img-wrapper dci-deferred-img-frame dci-vivere-hero-deferred">
+								<div class="dci-deferred-img-frame__loader" aria-hidden="true">
+									<div class="dci-async-loader">
+										<span class="dci-async-loader__spinner"></span>
+										<span class="dci-async-loader__line dci-async-loader__line--long"></span>
+										<span class="dci-async-loader__line"></span>
+									</div>
+								</div>
+								<?php dci_get_deferred_img($img); ?>
 							</div>
 						</div>
 					</div>
@@ -39,8 +46,8 @@ get_header();
 					</div>
 				</div>
 			</section>
-			<?php get_template_part("template-parts/vivere-comune/eventi"); ?>
-			<?php get_template_part("template-parts/vivere-comune/luoghi"); ?>
+			<?php dci_get_template_part_async("vivere-eventi"); ?>
+			<?php dci_get_template_part_async("vivere-luoghi"); ?>
 			<?php get_template_part("template-parts/vivere-comune/argomenti"); ?>
 			
 			<?php 
@@ -50,10 +57,10 @@ get_header();
 				$stile_galleria = dci_get_option('stile_galleria','galleria') ?: null;
 				if($stile_galleria === "solo-foto" || $stile_galleria ==="Solo foto"){
 					// Vecchia Galleria fotografica
-					get_template_part("template-parts/vivere-comune/galleria-foto");
+					dci_get_template_part_async("home-gallery-photo");
 				}else if($stile_galleria === "foto-gallery" || $stile_galleria ==="foto-gallery"){
 					// Nuova galleria
-					get_template_part("template-parts/galleria/home-gallery");
+					dci_get_template_part_async("home-gallery");
 				}
 		    }?>
 

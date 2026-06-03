@@ -16,8 +16,8 @@ get_header();
 			
 			?>
 			<?php get_template_part("template-parts/hero/hero"); ?>
-			<?php get_template_part("template-parts/servizio/evidenza"); ?>
-			<?php get_template_part("template-parts/servizio/tutti-servizi"); ?>
+			<?php dci_get_template_part_async("servizi-evidenza"); ?>
+			<?php dci_get_template_part_async("servizi-tutti"); ?>
 			<?php get_template_part("template-parts/servizio/categorie"); ?>
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>
 			<?php get_template_part("template-parts/common/assistenza-contatti"); ?>

@@ -11,10 +11,16 @@ if(isset($img) && $img != null){ ?>
 
     <div class="gallery-item">
         <a href="<?= get_permalink(); ?>">
-            <img src="<?php echo $img ?>" 
-                 alt="Paesaggio montano al tramonto con cime innevate e cielo arancione" 
-                 class="gallery-image" 
-                 onerror="this.style.backgroundColor='#667eea'; this.alt='Immagine non disponibile'">
+            <div class="dci-deferred-img-frame dci-gallery-image-frame">
+                <div class="dci-deferred-img-frame__loader" aria-hidden="true">
+                    <div class="dci-async-loader">
+                        <span class="dci-async-loader__spinner"></span>
+                        <span class="dci-async-loader__line dci-async-loader__line--long"></span>
+                        <span class="dci-async-loader__line"></span>
+                    </div>
+                </div>
+                <?php dci_get_deferred_img($img, 'gallery-image'); ?>
+            </div>
             
             <!-- Badge del tipo -->
             <?php if(!empty($tipo)) : ?>

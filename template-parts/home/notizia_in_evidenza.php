@@ -5,6 +5,18 @@ global $count, $scheda;
 $post_ids = dci_get_option('notizia_evidenziata', 'homepage', true);
 $prefix   = '_dci_notizia_';
 
+if (is_array($post_ids)) {
+    $post_ids = array_values(array_filter($post_ids, function ($post_id) {
+        return $post_id && get_post_status($post_id) === 'publish';
+    }));
+} elseif ($post_ids && get_post_status($post_ids) !== 'publish') {
+    $post_ids = null;
+}
+
+if (empty($post_ids)) {
+    return;
+}
+
 if (is_array($post_ids) && count($post_ids) > 1) {
 ?>
 <h2 id="novita-in-evidenza" class="visually-hidden">Novità in evidenza</h2>

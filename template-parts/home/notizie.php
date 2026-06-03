@@ -2,6 +2,9 @@
 global $count, $scheda, $post, $numero_notizie_evidenziate;
 
 $post_id = dci_get_option('notizia_evidenziata', 'homepage', true)[0] ?? null;
+if ($post_id && get_post_status($post_id) !== 'publish') {
+    $post_id = null;
+}
 $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
 $notizie_automatiche = dci_get_option("ck_notizie_automatico", "homepage");
 $notizie_home= dci_get_option("numero_notizie_home", "homepage");
@@ -75,6 +78,11 @@ $visualizza_pulsante=false; // Aggiungo questa variabile per verificare se devo 
                             if ($scheda) {
 
                                 $post = get_post($scheda['scheda_' . $count . '_contenuto'][0]);
+                                if (!$post || get_post_status($post) !== 'publish') {
+                                    ++$count;
+                                    continue;
+                                }
+
                                 $post_id = $post->ID;
                                 $typePost = $post->post_type;
                                 $prefix = '_dci_' . $typePost . '_';

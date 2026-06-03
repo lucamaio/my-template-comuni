@@ -15,7 +15,7 @@ get_header();
 			the_post();
 			?>
 			<?php get_template_part("template-parts/hero/hero"); ?>
-			<?php get_template_part("template-parts/personale-amministrativo/tutto-personale"); ?>
+			<?php dci_get_template_part_async("personale-amministrativo-tutti"); ?>
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>
 			<?php get_template_part("template-parts/common/assistenza-contatti"); ?>
 							

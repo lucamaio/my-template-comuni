@@ -34,13 +34,16 @@ function load_more(){
 	$post_types = json_decode( stripslashes( $_POST['post_types'] ), true );
 	$url_query_params =  json_decode( stripslashes( $_POST['query_params'] ), true );
 	$additional_filter =  json_decode( stripslashes( $_POST['additional_filter'] ), true );
+	$post_count = isset($_POST['post_count']) ? absint($_POST['post_count']) : 0;
+	$load_posts = dci_sanitize_posts_per_page(isset($_POST['load_posts']) ? $_POST['load_posts'] : 6, 6, 24);
 
 	switch ($post_types){
 			case "notizia":
 				$args = array(
 					's' => $_POST['search'],
-					'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
+					'posts_per_page' => $load_posts,
 					'post_type'      => $post_types,
+					'offset'         => $post_count,
 					'post_status'    => 'publish',
 					'order'          => 'DESC',
 					'meta_query' => array(
@@ -55,7 +58,7 @@ function load_more(){
 			case "servizio":
 				$args = array(
 					's' => $_POST['search'],
-					'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
+					'posts_per_page' => $load_posts,
 					'post_type'      => $post_types,
 					'post_status'    => 'publish',
 					'orderby' => 'post_title',
@@ -65,7 +68,7 @@ function load_more(){
 			case "luogo":
 				$args = array(
 				's' => $_POST['search'],
-				'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
+				'posts_per_page' => $load_posts,
 				'post_type'      => $post_types,
 				'post_status'    => 'publish',
 				'orderby' => 'post_title',
@@ -75,7 +78,7 @@ function load_more(){
 			default:
 				$args = array(
 					's' => $_POST['search'],
-					'posts_per_page' => $_POST['post_count'] + $_POST['load_posts'],
+					'posts_per_page' => $load_posts,
 					'post_type'      => $post_types,
 					'post_status'    => 'publish',
 					'orderby' => 'text_date_timestamp',
@@ -99,6 +102,8 @@ function load_more(){
 	if ( isset($url_query_params["post_types"]) ) $args['post_type'] = $url_query_params["post_types"];
 	if ( isset($url_query_params["s"]) ) $args['s'] = $url_query_params["s"];
 	if ( isset($additional_filter) ) $args = $args + $additional_filter;
+	$args['offset'] = $post_count;
+	$args['ignore_sticky_posts'] = true;
  
 	// it is always better to use WP_Query but not here
 	$new_query = query_posts( $args );
@@ -151,8 +156,9 @@ function load_more(){
 
 	$res = array();
 	$res['response'] = $out;
-	$res['post_count'] = count($new_query);
-	if ($wp_query->found_posts == count($new_query)) {
+	$loaded_count = count($new_query);
+	$res['post_count'] = $post_count + $loaded_count;
+	if (($post_count + $loaded_count) >= (int) $wp_query->found_posts) {
 		$res['all_results'] = true;
 	}
 	$res = json_encode($res);

@@ -252,9 +252,26 @@ get_header();
                                 // Cicla gli allegati (multipli o singolo convertito)
                                 if (!empty($file_documento)) {
                                     foreach ($file_documento as $file_url) {
-                                        $documento_id = attachment_url_to_postid($file_url);
-                                        $documento = get_post($documento_id);
-                                        $titolo = $documento ? $documento->post_title : basename($file_url);
+                                        if (is_array($file_url)) {
+                                            continue;
+                                        }
+
+                                        $file_url = trim((string) $file_url);
+                                        $documento_id = is_numeric($file_url) ? absint($file_url) : attachment_url_to_postid($file_url);
+
+                                        if ($documento_id && is_numeric($file_url)) {
+                                            $attachment_url = wp_get_attachment_url($documento_id);
+                                            if ($attachment_url) {
+                                                $file_url = $attachment_url;
+                                            }
+                                        }
+
+                                        if ($file_url === '') {
+                                            continue;
+                                        }
+
+                                        $documento = $documento_id ? get_post($documento_id) : null;
+                                        $titolo = $documento ? $documento->post_title : basename((string) wp_parse_url($file_url, PHP_URL_PATH));
                                         ?>
                                         <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
                                             <svg class="icon" aria-hidden="true">
@@ -266,7 +283,7 @@ get_header();
                                                         aria-label="Scarica il documento <?php echo esc_attr($titolo); ?>"
                                                         title="Scarica il documento <?php echo esc_attr($titolo); ?>">
                                                         <?php echo esc_html($titolo); ?>
-                                                        (<?php echo getFileSizeAndFormat($file_url); ?>)
+                                                        (<?php echo esc_html(getFileSizeAndFormat($file_url)); ?>)
                                                     </a>
                                                 </h5>
                                             </div>

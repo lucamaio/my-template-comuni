@@ -106,87 +106,162 @@ const weatherApiKey = "<?php echo esc_js($apiKey); ?>";
 </script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+(function() {
+  function initWeather() {
+    const section = document.querySelector(".weather-section");
+    const container = section ? section.querySelector(".weather-grid") : null;
 
-  const container = document.querySelector(".weather-grid");
+    if (!section || !container || section.dataset.weatherLoaded === "true") {
+      return;
+    }
 
-  const city = weatherCity;
-  const apiKey = weatherApiKey;
+    const city = weatherCity;
+    const apiKey = weatherApiKey;
 
-  const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=it`;
+    if (!city || !apiKey) {
+      container.innerHTML = "<p>Meteo non configurato.</p>";
+      return;
+    }
 
-  async function updateWeather() {
-    try {
+    const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${encodeURIComponent(apiKey)}&units=metric&lang=it`;
+    const cacheKey = `dci_weather_${city}_${apiKey}`;
+    const cacheTtl = 30 * 60 * 1000;
+
+    function getCachedWeather() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+
+        if (cached && cached.timestamp && (Date.now() - cached.timestamp) < cacheTtl && cached.data) {
+          return cached.data;
+        }
+      } catch (error) {
+        localStorage.removeItem(cacheKey);
+      }
+
+      return null;
+    }
+
+    function setCachedWeather(data) {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({
+          timestamp: Date.now(),
+          data: data
+        }));
+      } catch (error) {
+        // Cache browser non disponibile o piena: ignoro senza bloccare il meteo.
+      }
+    }
+
+    async function getWeatherData() {
+      const cached = getCachedWeather();
+
+      if (cached) {
+        return cached;
+      }
+
       const response = await fetch(apiUrl);
       const data = await response.json();
 
-      const daily = {};
+      if (!data || !Array.isArray(data.list)) {
+        throw new Error("Risposta meteo non valida");
+      }
 
-      data.list.forEach(item => {
-        const date = item.dt_txt.split(" ")[0];
-
-        if (!daily[date]) {
-          daily[date] = {
-            temps: [],
-            humidity: [],
-            icons: [],
-            desc: item.weather[0].description
-          };
-        }
-
-        daily[date].temps.push(item.main.temp);
-        daily[date].humidity.push(item.main.humidity);
-        daily[date].icons.push(item.weather[0].icon);
-      });
-
-      const days = Object.keys(daily).slice(0, 5);
-
-      container.innerHTML = "";
-
-      days.forEach((day, index) => {
-
-        const d = daily[day];
-
-        const avgTemp = Math.round(d.temps.reduce((a,b)=>a+b)/d.temps.length);
-        const minTemp = Math.round(Math.min(...d.temps));
-        const maxTemp = Math.round(Math.max(...d.temps));
-        const avgHumidity = Math.round(d.humidity.reduce((a,b)=>a+b)/d.humidity.length);
-
-        const icon = d.icons[Math.floor(d.icons.length/2)];
-
-        const dateObj = new Date(day);
-        const dayName = index === 0 
-          ? "OGGI" 
-          : dateObj.toLocaleDateString("it-IT", { weekday: 'long' }).toUpperCase();
-
-        container.innerHTML += `
-          <div class="weather-card ${index === 0 ? 'big' : ''}">
-            <div class="weather-day">${dayName}</div>
-
-            <div class="weather-content">
-              <div class="weather-info">
-                <div>Temp. media ${avgTemp}°C</div>
-                <div>Max ${maxTemp}°C</div>
-                <div>Min ${minTemp}°C</div>
-                <div>Umidità ${avgHumidity}%</div>
-              </div>
-
-              <div class="weather-icon">
-                <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="">
-              </div>
-            </div>
-
-            <div class="weather-desc">${d.desc}</div>
-          </div>
-        `;
-      });
-
-    } catch (error) {
-      console.error("Errore meteo:", error);
-      container.innerHTML = "<p>Errore nel caricamento del meteo.</p>";
+      setCachedWeather(data);
+      return data;
     }
+
+    async function updateWeather() {
+      section.dataset.weatherLoaded = "true";
+      container.innerHTML = "<p>Caricamento meteo...</p>";
+
+      try {
+        const data = await getWeatherData();
+        const daily = {};
+
+        data.list.forEach(item => {
+          const date = item.dt_txt.split(" ")[0];
+
+          if (!daily[date]) {
+            daily[date] = {
+              temps: [],
+              humidity: [],
+              icons: [],
+              desc: item.weather[0].description
+            };
+          }
+
+          daily[date].temps.push(item.main.temp);
+          daily[date].humidity.push(item.main.humidity);
+          daily[date].icons.push(item.weather[0].icon);
+        });
+
+        const days = Object.keys(daily).slice(0, 5);
+
+        container.innerHTML = "";
+
+        days.forEach((day, index) => {
+
+          const d = daily[day];
+
+          const avgTemp = Math.round(d.temps.reduce((a,b)=>a+b)/d.temps.length);
+          const minTemp = Math.round(Math.min(...d.temps));
+          const maxTemp = Math.round(Math.max(...d.temps));
+          const avgHumidity = Math.round(d.humidity.reduce((a,b)=>a+b)/d.humidity.length);
+
+          const icon = d.icons[Math.floor(d.icons.length/2)];
+
+          const dateObj = new Date(day);
+          const dayName = index === 0
+            ? "OGGI"
+            : dateObj.toLocaleDateString("it-IT", { weekday: 'long' }).toUpperCase();
+
+          container.innerHTML += `
+            <div class="weather-card ${index === 0 ? 'big' : ''}">
+              <div class="weather-day">${dayName}</div>
+
+              <div class="weather-content">
+                <div class="weather-info">
+                  <div>Temp. media ${avgTemp}°C</div>
+                  <div>Max ${maxTemp}°C</div>
+                  <div>Min ${minTemp}°C</div>
+                  <div>Umidità ${avgHumidity}%</div>
+                </div>
+
+                <div class="weather-icon">
+                  <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="" loading="lazy">
+                </div>
+              </div>
+
+              <div class="weather-desc">${d.desc}</div>
+            </div>
+          `;
+        });
+
+      } catch (error) {
+        console.error("Errore meteo:", error);
+        container.innerHTML = "<p>Errore nel caricamento del meteo.</p>";
+      }
+    }
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(function(entries) {
+        if (entries.some(entry => entry.isIntersecting)) {
+          observer.disconnect();
+          updateWeather();
+        }
+      }, { rootMargin: '200px 0px' });
+
+      observer.observe(section);
+      return;
+    }
+
+    updateWeather();
   }
 
-  updateWeather();
-});
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initWeather);
+  } else {
+    initWeather();
+  }
+}());
 </script>

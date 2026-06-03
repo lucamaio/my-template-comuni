@@ -24,7 +24,7 @@
 ?>
         <div class="row custom-map-container" style="overflow: hidden; background: transparent; display: flex; justify-content: center; align-items: center; width: 100%; height: 450px;">
             <div style="position: relative; width: 99%; height: 450px; background: transparent; margin-left: 1%; /* Spostato a destra */">
-                <iframe style="border: 0; width: 100%; height: 100%; max-width: 100%;" src="<?= esc_url($link_map) ?>" title="<?= esc_attr($map_label) ?>" aria-label="<?= esc_attr($map_label) ?>" alt="<?= esc_attr($map_label) ?>" allowfullscreen scrolling="no"></iframe>
+                <iframe style="border: 0; width: 100%; height: 100%; max-width: 100%;" src="<?= esc_url($link_map) ?>" title="<?= esc_attr($map_label) ?>" aria-label="<?= esc_attr($map_label) ?>" alt="<?= esc_attr($map_label) ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen scrolling="no"></iframe>
             </div>
         </div>
 <?php }

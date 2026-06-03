@@ -6,6 +6,7 @@
  * @package Design_Comuni_Italia
  */
 
+
 global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici, $tipo_personalizzato, $dci_amm_sidebar_column_classes;
 
 $obj = get_queried_object();
@@ -311,7 +312,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                     <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
                         <?php get_template_part("template-parts/amministrazione-trasparente/atto-concessione/tutti-gli-atti"); ?>
                     </div>
-                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> 
+                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                 </div>
             </div>
         </div>
@@ -322,7 +323,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                     <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
                         <?php get_template_part("template-parts/amministrazione-trasparente/incarichi-autorizzazioni/tutti-gli-incarichi"); ?>
                     </div>
-                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?> 
+                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
                 </div>
             </div>
         </div>		    
@@ -425,27 +426,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                         </div>
 
                         <!-- Risultati della ricerca -->
-                        <?php if ($the_query->found_posts != 0) { ?>
-                            <?php $categoria = $the_query->posts; ?>
-                            <div class="row g-4" id="load-more">
-                                <?php foreach ($categoria as $elemento) {
-                                    $load_card_type = "elemento_trasparenza";
-                                    get_template_part("template-parts/amministrazione-trasparente/card");
-                                } ?>
-                            </div>
-                        <?php } else { ?>
-                            <div class="dci-at-empty text-decoration-none" role="status" aria-live="polite">
-                                <span class="dci-at-empty__icon" aria-hidden="true">
-                                    <svg class="icon icon-sm">
-                                        <use href="#it-info-circle"></use>
-                                    </svg>
-                                </span>
-                                <div class="dci-at-empty__content">
-                                    <p class="dci-at-empty__title text-decoration-none">Nessun contenuto disponibile</p>
-                                    <p class="dci-at-empty__text text-decoration-none">Non ci sono elementi o post da mostrare con i filtri attuali. Prova a cambiare ricerca o ordinamento.</p>
-                                </div>
-                            </div>
-                        <?php } ?>
+                        <?php dci_get_template_part_async("trasparenza-risultati-paginati"); ?>
                     </div>
 
                     <!-- Colonna destra: link utili -->
@@ -453,52 +434,6 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
                 </div>
 
                 
-                <?php
-                $pagination_args = array();
-                if ($query !== null && $query !== '') {
-                    $pagination_args['search'] = $query;
-                }
-                if (!empty($order)) {
-                    $pagination_args['order_type'] = $order;
-                }
-                if (!empty($max_posts)) {
-                    $pagination_args['max_posts'] = (int) $max_posts;
-                }
-
-                $pages = paginate_links(array(
-                    'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
-                    'format' => '?paged=%#%',
-                    'current' => $paged,
-                    'total' => max(1, (int) $the_query->max_num_pages),
-                    'type' => 'array',
-                    'show_all' => false,
-                    'end_size' => 3,
-                    'mid_size' => 1,
-                    'prev_next' => true,
-                    'prev_text' => __('« '),
-                    'next_text' => __(' »'),
-                    'add_args' => $pagination_args,
-                    'add_fragment' => ''
-                ));
-
-                $pagination_markup = '';
-                if (is_array($pages)) {
-                    $pagination_markup = '<div class="pagination"><ul class="pagination">';
-                    foreach ($pages as $page_link) {
-                        $pagination_markup .= '<li class="page-item' . (strpos($page_link, 'current') !== false ? ' active' : '') . '">' . str_replace('page-numbers', 'page-link', $page_link) . '</li>';
-                    }
-                    $pagination_markup .= '</ul></div>';
-                }
-                ?>
-                <?php if ($pagination_markup !== '') { ?>
-                <div class="row my-4">
-                    <div class="col-12 d-flex">
-                        <nav class="pagination-wrapper" aria-label="Navigazione pagine">
-                            <?php echo $pagination_markup; ?>
-                        </nav>
-                    </div>
-                </div>
-                <?php } ?>
             </div>
         </form>
     <?php } ?>

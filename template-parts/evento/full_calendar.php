@@ -26,7 +26,12 @@
     var events = [
 		<?php
         $args = array('post_type' => 'evento',
-            'posts_per_page' => -1,
+            'posts_per_page' => 300,
+            'fields' => 'ids',
+            'post_status' => 'publish',
+            'no_found_rows' => true,
+            'ignore_sticky_posts' => true,
+            'update_post_term_cache' => false,
             'meta_key' => '_dci_evento_timestamp_inizio',
             'orderby' => 'meta_value',
             'order'     => 'DESC',
@@ -40,9 +45,9 @@
             )
         );
         $eposts = get_posts($args);
-        foreach ($eposts as $epost) {
-            $timestamp_inizio = dci_get_meta("timestamp_inizio", "", $epost->ID);
-            $timestamp_fine= dci_get_meta("timestamp_fine", "", $epost->ID);
+        foreach ($eposts as $epost_id) {
+            $timestamp_inizio = dci_get_meta("timestamp_inizio", "", $epost_id);
+            $timestamp_fine= dci_get_meta("timestamp_fine", "", $epost_id);
 
             $begin = new DateTime(date_i18n("c",$timestamp_inizio));
             $end = new DateTime(date_i18n("c",$timestamp_fine));

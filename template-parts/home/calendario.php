@@ -80,7 +80,7 @@ $url_eventi = dci_get_template_page_url("page-templates/eventi.php");
 					<div class="h4 mt-4"> Nessun evento in programma in questo periodo. </div>
 				<?php } ?>
 			</div>
-			<?php if ( is_home() ) {?>
+			<?php if ( is_home() || dci_is_async_template_request('home-calendario') ) {?>
 				<div class="row my-2 justify-content-md-center"">
 					<a href="<?= $url_eventi ?>" class="read-more"  aria-label="Mostra tutti gli eventi" data-element="live-button-events">
 						Mostra tutti gli eventi

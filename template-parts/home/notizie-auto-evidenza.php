@@ -4,7 +4,7 @@ global $numero_notizie_evidenziate;
 $numero_notizie_evidenziate = max(1, (int) $numero_notizie_evidenziate);
 $prefix = '_dci_notizia_';
 $hide_notizie_old = dci_get_option("ck_hide_notizie_old", "homepage");
-$posts_per_page = ($hide_notizie_old === 'true') ? max($numero_notizie_evidenziate * 5, 20) : $numero_notizie_evidenziate;
+$posts_per_page = ($hide_notizie_old === 'true') ? min(max($numero_notizie_evidenziate * 5, 20), 100) : min($numero_notizie_evidenziate, 100);
 
 /**
  * Restituisce il timestamp di pubblicazione effettivo:
@@ -75,6 +75,7 @@ if (!function_exists('dci_get_notizia_date_parts')) {
  */
 $args = array(
     'post_type'           => 'notizia',
+    'post_status'         => 'publish',
     'meta_query'          => array(
         array(
             'key'   => $prefix . 'evidenzia_home',
@@ -108,6 +109,10 @@ $oggi->setTime(0, 0, 0);
 $valid_posts = array();
 
 foreach ($posts as $p) {
+
+    if (get_post_status($p) !== 'publish') {
+        continue;
+    }
 
     if (count($valid_posts) >= $numero_notizie_evidenziate) {
         break;

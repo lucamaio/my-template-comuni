@@ -7,7 +7,7 @@ if ( ! $enabled ) {
 }
 ?>
 <div class="dci-a11y" data-dci-a11y>
-    <button type="button" class="dci-a11y-toggle" data-a11y-action="toggle" aria-expanded="false" aria-controls="dci-a11y-panel">⚙️ Accessibilità</button>
+    <button type="button" class="dci-a11y-toggle" data-a11y-action="toggle" aria-expanded="false" aria-controls="dci-a11y-panel" aria-label="Accessibilità"><span class="dci-a11y-toggle-icon" aria-hidden="true">&#9881;</span><span class="dci-a11y-toggle-label">Accessibilità</span></button>
     <div id="dci-a11y-panel" class="dci-a11y-panel" hidden>
         <button type="button" class="dci-a11y-btn" data-a11y-action="font-up" data-level-control="font"><span class="dci-a11y-ico">🔎</span><span class="dci-a11y-label">Aumenta testo</span><span class="dci-a11y-level" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
         <button type="button" class="dci-a11y-btn" data-a11y-action="font-down" data-level-control="font"><span class="dci-a11y-ico">🔍</span><span class="dci-a11y-label">Riduci testo</span><span class="dci-a11y-level" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>

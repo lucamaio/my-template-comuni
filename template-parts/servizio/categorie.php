@@ -23,18 +23,6 @@ if($mostra_categiorie_servizi=="true"){
         <h2 class="title-xxlarge mb-4">Esplora per categoria</h2>
         <div class="row g-4">
             <?php foreach ($categorie_servizio_names as $categoria_servizio_name) {
-                $args = array(
-                    'post_type' => 'servizio',
-                    'posts_per_page' => -1,
-                    'tax_query' => array(
-                        array(
-                            'taxonomy' => 'categorie_servizio',
-                            'field' => 'name',
-                            'terms' => $categoria_servizio_name,
-                        ),
-                    ),
-                );
-                $servizi = get_posts($args);
                 $categoria = get_term_by('name', $categoria_servizio_name, 'categorie_servizio');
                 $url = get_term_link($categoria->term_id, 'categorie_servizio');
             ?>

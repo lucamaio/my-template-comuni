@@ -15,7 +15,7 @@ get_header();
 			the_post();
 			?>
 			<?php get_template_part("template-parts/hero/hero"); ?>
-			<?php get_template_part("template-parts/enti-e-fondazioni/tutti-enti"); ?>
+			<?php dci_get_template_part_async("enti-fondazioni-tutti"); ?>
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>
 			<?php get_template_part("template-parts/common/assistenza-contatti"); ?>
 							

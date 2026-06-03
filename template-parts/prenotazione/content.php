@@ -1,7 +1,14 @@
 <?php
     $uffici = get_posts(array(
         'posts_per_page' => -1,
+        'fields' => 'ids',
+        'post_status' => 'publish',
         'post_type' => 'unita_organizzativa',
+        'orderby' => 'post_title',
+        'order' => 'ASC',
+        'no_found_rows' => true,
+        'ignore_sticky_posts' => true,
+        'update_post_term_cache' => false,
         'meta_query' => array(
             'relation' => 'AND',
             array(

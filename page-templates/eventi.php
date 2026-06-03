@@ -15,7 +15,7 @@ get_header();
 			the_post();
 			?>
 			<?php get_template_part("template-parts/hero/hero"); ?>
-			<?php get_template_part("template-parts/vivere-comune/tutti-eventi"); ?>
+			<?php dci_get_template_part_async("eventi-tutti"); ?>
 			<?php get_template_part("template-parts/evento/tipologie");?>
 			<?php get_template_part("template-parts/common/valuta-servizio"); ?>
 			<?php get_template_part("template-parts/common/assistenza-contatti"); ?>

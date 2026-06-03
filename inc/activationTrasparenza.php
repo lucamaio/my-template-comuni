@@ -97,14 +97,23 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                     'Statuti e leggi regionali',
                     'Codice disciplinare e codice di condotta'
                 ],
-                "Oneri informativi per cittadini e imprese"
+                "Oneri informativi per cittadini e imprese"=>[
+                    'Scadenziario nuovi obblighi amministrativi' // Nuova sotto-voce richiesta da ANAC
+                ]
             ],
             'Organizzazione' => [
+                
+                'Titolari di incarichi politici di amministrazione di direzione o di governo' =>[ // Pagina custom e sottovoci
+                    'Relazioni di inizio mandato',
+                    'Relazioni di fine mandato'
+                ],
                 'Amministratori Cessati', // Nuova sottovoce
-                'Titolari di incarichi politici di amministrazione di direzione o di governo', //nuova sottovoce
-                // 'Organi di indirizzo politico-amministrativo', // Voce sostituita con quella sopra
                 "Sanzioni per mancata comunicazione dei dati",
-                "Rendiconti gruppi consiliari regionali/provinciali",
+                "Rendiconti gruppi consiliari regionali/provinciali" =>[
+                    'Rendiconti gruppi consiliari regionali/provinciali',
+                    'Atti degli organi di controllo'
+                ],
+
                 "Articolazione degli uffici" =>[ // Nuove sotto voci richieste dal ANAC
                     "Articolazione uffici",  // Pagina Custom nel sito
                     "Organigramma"
@@ -117,9 +126,14 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
             'Personale' => [
                 // Nuove sotto-voci
                 'Titolari di incarichi dirigenziali amministrativi di vertice', 
-                'Titolari di Incarichi dirigenziali (dirigenti non generali)',
+                'Titolari di Incarichi dirigenziali (dirigenti non generali)' =>[
+                    'Incarichi dirigenziali a qualsiasi titolo conferiti',
+                    'Elenco posizioni dirigenziali discrezionali',
+                    'Posti di funzioni disponibili',
+                    'Ruoli dirigenti'
+                ],
                 'Dirigenti cessati',
-                'Sanzioni per mancata comunicazione dei dati', 
+                'Sanzioni per mancata comunicazione dei dati',
 
                 'Posizioni organizzative',
 
@@ -129,7 +143,8 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                     'Costo personale tempo indeterminato'
                 ],
                 'Personale non a tempo indeterminato' =>[
-                    'Costo del personale non a tempo indeterminato'
+                    'Costo del personale non a tempo indeterminato',
+                    'Personale non a tempo indeterminato'
                 ],
                 'Tassi di assenza',
                 "Incarichi conferiti e autorizzati ai dipendenti",
@@ -181,17 +196,31 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
 
                 //    "Contratti Pubblici", // Sezione non più necessaria per la trasparenza
                 // Sezioni che sostituiscono "Contratti Pubblici" per la trasparenza
-                "Pubblicazione",
-                "Affidamento",
-                "Esecutiva",
-                "Sponsorizzazioni",
+                "Pubblicazione"=> [
+                    'Dibattito pubblico',
+                    'Documenti di gara'
+                ],
+                "Affidamento" =>[
+                    'Composizione della commissione giudicatrice',
+                    'Pari opportunità e inclusione lavorativa',
+                    'Affidamenti Servizi pubblici locali (SPL)'
+                ],
+                "Esecutiva" =>[
+                    'Collegio consultivo tecnico',
+                    'Pari opportunità e inclusione lavorativa'
+                ],
+                "Sponsorizzazioni" =>[
+                    'Contratti di sponsorizzazione'
+                ],
                 "Procedure di somma urgenza e di protezione civile",
                 "Finanza di progetto",
+                "Atti, documenti e link a BDNCP",
 
                  // Procedimenti fino al 31 / 12/2023
                 "Procedimenti fino al 31/12/2023" => [
-                    "Atti delle amministrazioni aggiudicatrici e degli enti aggiudicatori distintamente per ogni procedura",
-                    "Informazioni sulle singole procedure in formato tabellare"
+                    "Provvedimenti di esclusione e di ammissione",
+                    "Informazioni sulle singole procedure in formato tabellare",
+                    "Atti delle amministrazioni aggiudicatrici e degli enti aggiudicatori distintamente per ogni procedura"
                 ]
             ],
             "Sovvenzioni , contributi sussidi, vantaggi economici"=>[
@@ -208,7 +237,8 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
             ],
             "Beni immobili e gestione patrimonio"=>[
                 "Patrimonio immobiliare",
-                "Canoni di locazione o affitto"
+                "Canoni di locazione o affitto",
+                "Beni confiscati alla criminalità organizzata e trasferiti agli enti locali"
             ],
             "Controlli e rilievi sull'amministrazione"=>[
                 "Organismi indipendenti di valutazione, nuclei di valutazione o altri organismi con funzioni analoghe",
@@ -287,12 +317,17 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                 "Accessibilità e Catalogo di dati, metadati e banche dati"=>[
                     'Regolamenti',
                     'Obiettivi di accessibilità',
-                   'Azioni di sensibilizzazione rapporti con la società civile',
+                    'Azioni di sensibilizzazione rapporti con la società civile',
                 ],
                 "Azioni di sensibilizzazione e rapporti con la società civile" => [
                     "Autovetture di servizio"
                 ],
-                // "Dati ulteriori" // Voce non più neccessaria
+                "Dati ulteriori" =>[ // Nuova sotto-voci
+                    'Dati ulteriori',
+                    "Project Financing",
+                    "Piano triennale delle azioni positive",
+                    "Provvedimenti CDS"
+                ]
             ]
         ];
     }
@@ -325,7 +360,7 @@ if (!function_exists("dci_tipi_procedura_contraente_array")) {
             "30 - Procedura derivante oa legge regionale",
             "31 - Affidamento diretto per variante superiore al dell'importo contrattuale",
             "32 - Affidamento riservato",
-            "33 -Procedura negoziata per affidamenti sotto soglia",
+            "33 - Procedura negoziata per affidamenti sotto soglia",
             "34 - Procedura art. 16 comma 2. opr 280/2001 per opere urbanizzazione a scomputo primarie sotto soglia comunitaria",
             "35 - Parternariato per l'innovazione",
             "36 - Affidamento diretto per lavori. servizi o forniture supplementari",
@@ -810,6 +845,162 @@ function insertTaxonomyTrasparenzaTerms() {
 
     "Autovetture di servizio" =>
         "Elenco e dati sulle autovetture in dotazione all'ente utilizzate per i servizi pubblici con indicazione di utilizzo e manutenzione.",
+
+    "Disposizioni generali" =>
+        "Informazioni generali sugli obblighi di trasparenza, sugli atti fondamentali e sulla programmazione dell'amministrazione.",
+
+    "Piano triennale per la prevenzione della corruzione e della trasparenza (PTPCT)" =>
+        "Piano triennale con le misure adottate dall'ente per prevenire la corruzione e assicurare la trasparenza dell'azione amministrativa.",
+
+    "Scadenziario nuovi obblighi amministrativi" =>
+        "Elenco delle scadenze relative ai nuovi obblighi amministrativi introdotti per cittadini e imprese.",
+
+    "Organizzazione" =>
+        "Informazioni sulla struttura organizzativa dell'ente, sugli organi di indirizzo e sugli uffici comunali.",
+
+    "Relazioni di inizio mandato" =>
+        "Documenti che illustrano la situazione finanziaria e patrimoniale dell'ente all'inizio del mandato amministrativo.",
+
+    "Relazioni di fine mandato" =>
+        "Documenti conclusivi che rendicontano l'attività amministrativa e la situazione dell'ente al termine del mandato.",
+
+    "Atti degli organi di controllo" =>
+        "Atti e documenti prodotti dagli organi di controllo competenti sui rendiconti e sull'attività amministrativa.",
+
+    "Affidamenti Servizi pubblici locali (SPL)" =>
+        "Documentazione relativa agli affidamenti dei servizi pubblici locali e agli obblighi di pubblicazione collegati.",
+
+    "Composizione della commissione giudicatrice" =>
+        "Informazioni sui componenti delle commissioni giudicatrici nominate nelle procedure di gara.",
+
+    "Pari opportunità e inclusione lavorativa" =>
+        "Documenti e misure relative agli obblighi di pari opportunità e inclusione lavorativa negli affidamenti pubblici.",
+
+    "Collegio consultivo tecnico" =>
+        "Informazioni sulla composizione e sugli atti del collegio consultivo tecnico nelle procedure previste dalla normativa.",
+
+    "Consulenti e collaboratori" =>
+        "Incarichi di consulenza e collaborazione affidati dall'amministrazione, con dati, compensi e riferimenti previsti dalla legge.",
+
+    "Bandi di concorso" =>
+        "Bandi, avvisi, graduatorie e informazioni relative alle procedure concorsuali dell'amministrazione.",
+
+    "Personale" =>
+        "Dati e documenti relativi al personale dell'ente, agli incarichi, ai costi, alle assenze e alla contrattazione.",
+
+    "Incarichi dirigenziali a qualsiasi titolo conferiti" =>
+        "Elenco degli incarichi dirigenziali conferiti dall'amministrazione, con dati e documenti previsti dagli obblighi di trasparenza.",
+
+    "Elenco posizioni dirigenziali discrezionali" =>
+        "Elenco delle posizioni dirigenziali attribuite con procedure discrezionali o fiduciarie secondo la normativa vigente.",
+
+    "Posti di funzioni disponibili" =>
+        "Informazioni sui posti di funzione dirigenziale disponibili all'interno dell'amministrazione.",
+
+    "Ruoli dirigenti" =>
+        "Elenco dei ruoli dirigenziali dell'ente e delle relative informazioni organizzative.",
+
+    "Performance" =>
+        "Documenti e dati relativi alla misurazione, valutazione e rendicontazione della performance dell'amministrazione.",
+
+    "Enti controllati" =>
+        "Informazioni sugli enti pubblici vigilati, sulle società partecipate e sugli enti di diritto privato controllati.",
+
+    "Attività e procedimenti" =>
+        "Informazioni sui procedimenti amministrativi, sui tempi di conclusione e sulle modalità di acquisizione dei dati d'ufficio.",
+
+    "Dichiarazioni sostitutive e acquisizione d'ufficio dei dati" =>
+        "Indicazioni sulle dichiarazioni sostitutive e sulle modalità con cui l'amministrazione acquisisce d'ufficio dati e documenti.",
+
+    "Provvedimenti dirigenti amministrativi" =>
+        "Provvedimenti adottati dai dirigenti amministrativi e pubblicati secondo gli obblighi di trasparenza.",
+
+    "Bandi di Gara e contratti" =>
+        "Dati, atti e documenti relativi alle procedure di affidamento di lavori, servizi e forniture.",
+
+    "Dibattito pubblico" =>
+        "Documentazione relativa alle procedure di dibattito pubblico previste per opere e interventi di particolare rilevanza.",
+
+    "Documenti di gara" =>
+        "Bandi, disciplinari, capitolati e altri documenti pubblicati per le procedure di gara.",
+
+    "Contratti di sponsorizzazione" =>
+        "Contratti e accordi di sponsorizzazione stipulati dall'amministrazione, con importi e soggetti coinvolti.",
+
+    "Informazioni Ulteriori" =>
+        "Informazioni integrative relative alle procedure di finanza di progetto e agli obblighi di pubblicazione collegati.",
+
+    "Provvedimenti di esclusione e di ammissione" =>
+        "Provvedimenti relativi all'esclusione o all'ammissione degli operatori economici nelle procedure di gara.",
+
+    "Sovvenzioni , contributi sussidi, vantaggi economici" =>
+        "Dati e atti relativi a sovvenzioni, contributi, sussidi e vantaggi economici concessi dall'amministrazione.",
+
+    "Bilanci" =>
+        "Documenti contabili, bilanci e indicatori che descrivono la programmazione e la rendicontazione economico-finanziaria dell'ente.",
+
+    "Beni immobili e gestione patrimonio" =>
+        "Informazioni sul patrimonio immobiliare dell'ente, sui canoni e sui beni confiscati trasferiti all'amministrazione.",
+
+    "Beni confiscati alla criminalità organizzata e trasferiti agli enti locali" =>
+        "Elenco e informazioni sui beni confiscati alla criminalità organizzata e trasferiti all'ente locale.",
+
+    "Controlli e rilievi sull'amministrazione" =>
+        "Atti e documenti relativi ai controlli e ai rilievi formulati dagli organismi competenti sull'amministrazione.",
+
+    "Opere pubbliche" =>
+        "Documenti di programmazione, monitoraggio e rendicontazione relativi alle opere pubbliche dell'ente.",
+
+    "Servizi Erogati" =>
+        "Informazioni sulla qualità, sui costi e sulle modalità di erogazione dei servizi forniti dall'amministrazione.",
+
+    "Carta dei servizi e standard di qualità" =>
+        "Documenti che definiscono standard di qualità, impegni e modalità di erogazione dei servizi pubblici.",
+
+    "Costi contabilizzati" =>
+        "Dati sui costi sostenuti per l'erogazione dei servizi e sulle modalità di contabilizzazione.",
+
+    "Liste di attesa" =>
+        "Informazioni sulle eventuali liste di attesa relative ai servizi erogati dall'amministrazione.",
+
+    "Pagamenti dell'amministrazione" =>
+        "Dati e informazioni sui pagamenti dell'ente, sulla tempestività e sulle modalità di pagamento informatico.",
+
+    "Accesso civico “generalizzato” concernente dati e documenti ulteriori" =>
+        "Procedure per richiedere accesso civico generalizzato a dati, documenti e informazioni ulteriori detenuti dall'amministrazione.",
+
+    "Catalogo dei dati , metadati e delle banche dei dati" =>
+        "Elenco dei dati, metadati e banche dati dell'ente, con indicazioni su formati, accessibilità e modalità di riuso.",
+
+    "Stato dell’ambiente" =>
+        "Rapporto descrittivo dello stato dell'ambiente nel territorio amministrato, con dati su aria, acqua, suolo e altri indicatori ambientali.",
+
+    "Misure incidenti sull’ambiente e relative analisi d’impatto" =>
+        "Documentazione sulle misure che possono incidere sull'ambiente e sulle relative analisi di impatto.",
+
+    "Misure protezione sull’ambiente e relative analisi d’impatto" =>
+        "Documentazione sulle misure di protezione ambientale adottate e sulle relative analisi di impatto.",
+
+    "Relazioni sull’attuazione della legislazione" =>
+        "Relazioni e documenti sullo stato di attuazione della normativa ambientale di competenza dell'ente.",
+
+    "Relazione sullo stato dell’ambiente del ministero dell’ambiente e della tutela del territorio" =>
+        "Documenti e relazioni ministeriali sullo stato dell'ambiente utili alla consultazione pubblica.",
+
+    "Altri contenuti" =>
+        "Sezione dedicata a ulteriori obblighi di trasparenza, prevenzione della corruzione, accesso civico e dati integrativi.",
+
+    "Azioni di sensibilizzazione e rapporti con la società civile" =>
+        "Iniziative promosse dall'amministrazione per favorire trasparenza, partecipazione e dialogo con la società civile.",
+
+    "Project Financing" =>
+        "Documenti e informazioni relativi a interventi realizzati tramite finanza di progetto e partenariato pubblico-privato.",
+
+    "Piano triennale delle azioni positive" =>
+        "Piano delle azioni positive per promuovere pari opportunità, benessere organizzativo e inclusione nell'amministrazione.",
+
+    "Provvedimenti CDS" =>
+        "Provvedimenti e documenti collegati alle decisioni della Conferenza dei servizi o ad altri procedimenti amministrativi collegati.",
 
     "Dati ulteriori" =>
         "Ulteriori dati pubblici e informazioni integrative utili alla piena trasparenza dell’ente, non classificabili nelle altre categorie."

@@ -3,7 +3,12 @@
 $max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 10, 10, 50);
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
 
-$paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+$paged = max(
+    1,
+    (int) get_query_var('paged'),
+    (int) get_query_var('page'),
+    isset($_GET['paged']) ? absint($_GET['paged']) : 0
+);
 
 // Recupera i valori attuali dei filtri dalla URL per mantenere lo stato della ricerca
 $current_oggetto               = isset($_GET['oggetto']) ? sanitize_text_field($_GET['oggetto']) : '';
@@ -11,6 +16,15 @@ $current_cig                   = isset($_GET['cig']) ? sanitize_text_field($_GET
 $current_procedura_contraente  = isset($_GET['procedura_contraente']) ? sanitize_text_field($_GET['procedura_contraente']) : '';
 $current_stato                 = isset($_GET['stato']) ? sanitize_text_field($_GET['stato']) : '';
 $current_anno                  = isset($_GET['anno']) ? intval($_GET['anno']) : '';
+
+$form_action = '';
+$current_object = get_queried_object();
+if ($current_object instanceof WP_Term) {
+    $term_link = get_term_link($current_object);
+    $form_action = !is_wp_error($term_link) ? $term_link : '';
+} elseif (get_queried_object_id()) {
+    $form_action = get_permalink(get_queried_object_id());
+}
 
 
 // Funzione per ottenere gli anni disponibili (es. ultimi 10 anni, o da un CPT specifico)
@@ -36,43 +50,6 @@ if ( ! function_exists( 'dci_get_available_states' ) ) {
     }
 }
 
-// Funzione per ottenere i tipi di procedura contraente
-// QUESTA È LA FUNZIONE CHE HO SPOSTATO PIÙ IN ALTO E INCLUSO NELL'if (!function_exists)
-if ( ! function_exists( 'dci_tipi_procedura_contraente_array' ) ) {
-    function dci_tipi_procedura_contraente_array() {
-        return [
-            "01 - Procedura aperta",
-            "02 - Procedura ristretta",
-            "03 - Procedura negoziata previa pubblicazione",
-            "04 - Procedura negoziata senza previa pubblicazione",
-            "05 - Dialogo competitivo",
-            "06 - Procedura negoziata senza previa i nozione cl gara (settori speciali)",
-            "07 - Sistema dinamico dl acquisizione",
-            "08-Affloamento in economia - cottimo fiduciario",
-            "14-Procedura selettiva ex art 238 c7, d.lgs.",
-            "17-Affidamento diretto ex art. 5 cella legge",
-            "21-Procedura ristretta derivante da avvisi con cui si indice la gara",
-            "22-Procedura negoziata previa indizione dl gara (settori speciali}",
-            "23-Affloamento diretto",
-            "24-Affloamento diretto a societa' in house",
-            "25-Affloamento diretto a societa raggruppate/consorziate o controllate nelle concessioni e nei partenariati",
-            "26.Affldamento diretto in adesione ad accordo quadro/convenzione",
-            "27 -Confronto competitivo in adesione ad accordo quadro/convenzione",
-            "28. Procedura al sensi dei regolamenti degli organi costituzionali",
-            "29 - Procedura ristretta semplificata",
-            "30 - Procedura derivante oa legge regionale",
-            "31 -Affidamento diretto per variante superiore al dell'importo contrattuale",
-            "32-Affidamento riservato",
-            "33 -Procedura negoziata per affidamenti sotto soglia",
-            "34 - Procedura art. 16 comma 2. opr 280/2001 per opere urbanizzazione a scomputo primarie sotto soglia comunitaria",
-            "35. Parternariato per l'innovazione",
-            "36.Affloamento diretto per lavori. servizi o forniture supplementari",
-            "37 - Procedura competitiva con negoziazione",
-            "38. Procedura disciplinata da regolamento interno per settori speciali",
-            "39 - Diretto per modifiche contrattuali o varianti per le quali é necessaria una nuova procedura dl affidamento",
-        ];
-    }
-}
 
 // --- FINE DEFINIZIONI FUNZIONI NECESSARIE ---
 
@@ -216,8 +193,7 @@ $prefix = "_dci_bando_";
 </style>
 
 <div class="search-bar-container dci-filter-panel">
-    <form role="search" method="get" class="search-form" action="<?php // echo esc_url(home_url('/')); ?>">
-        <input type="hidden" name="post_type" value="bando" />
+    <form role="search" method="get" class="search-form" action="<?php echo esc_url($form_action); ?>">
         <h3 class="dci-filter-panel__title text-decoration-none">Filtra i bandi</h3>
         <p class="dci-filter-panel__intro text-decoration-none">Restringi l'elenco per oggetto, CIG, procedura, stato o anno.</p>
         <div class="row g-3">
@@ -284,7 +260,7 @@ $prefix = "_dci_bando_";
         wp_reset_postdata();?>
         <div class="row my-4">
     <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
-        <?php echo dci_bootstrap_pagination(); ?>
+        <?php echo dci_bootstrap_pagination($the_query, false); ?>
     </nav>
 </div>
     <?php else : ?>

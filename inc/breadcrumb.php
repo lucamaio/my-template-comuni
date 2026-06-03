@@ -393,39 +393,23 @@ class Breadcrumb_Trail {
 			    	   if (get_post_type() == 'bando') {					
 	                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
 
-                                           $sezione_bando = get_post_meta( get_the_ID(), '_dci_bando_sezione', true );
-                                           $sezioni_bando = function_exists( 'dci_get_sezioni_bando' ) ? dci_get_sezioni_bando() : [];
-                                           $sezione_label = isset( $sezioni_bando[ $sezione_bando ] ) ? $sezioni_bando[ $sezione_bando ] : '';
-                                           $sezione_term  = $sezione_label ? get_term_by( 'name', $sezione_label, 'tipi_cat_amm_trasp' ) : false;
+                                           $parent_term = get_term_by( 'name', 'Bandi di Gara e contratti', 'tipi_cat_amm_trasp' );
+                                           $bdncp_term  = get_term_by( 'name', 'Atti, documenti e link a BDNCP', 'tipi_cat_amm_trasp' );
 
-                                           if ( $sezione_term && ! is_wp_error( $sezione_term ) ) {
-                                               if ( ! empty( $sezione_term->parent ) ) {
-                                                   $parent_term = get_term( $sezione_term->parent, 'tipi_cat_amm_trasp' );
-
-                                                   if ( $parent_term && ! is_wp_error( $parent_term ) ) {
-                                                       $this->items[] = sprintf(
-                                                           '<a href="%s">%s</a>',
-                                                           esc_url( get_term_link( $parent_term, 'tipi_cat_amm_trasp' ) ),
-                                                           $parent_term->name
-                                                       );
-                                                   }
-                                               }
-
+                                           if ( $parent_term && ! is_wp_error( $parent_term ) ) {
                                                $this->items[] = sprintf(
                                                    '<a href="%s">%s</a>',
-                                                   esc_url( get_term_link( $sezione_term, 'tipi_cat_amm_trasp' ) ),
-                                                   $sezione_term->name
+                                                   esc_url( get_term_link( $parent_term, 'tipi_cat_amm_trasp' ) ),
+                                                   $parent_term->name
                                                );
-                                           } else {
-                                               $parent_term = get_term_by( 'name', 'Bandi di Gara e contratti', 'tipi_cat_amm_trasp' );
+                                           }
 
-                                               if ( $parent_term && ! is_wp_error( $parent_term ) ) {
-                                                   $this->items[] = sprintf(
-                                                       '<a href="%s">%s</a>',
-                                                       esc_url( get_term_link( $parent_term, 'tipi_cat_amm_trasp' ) ),
-                                                       $parent_term->name
-                                                   );
-                                               }
+                                           if ( $bdncp_term && ! is_wp_error( $bdncp_term ) ) {
+                                               $this->items[] = sprintf(
+                                                   '<a href="%s">%s</a>',
+                                                   esc_url( get_term_link( $bdncp_term, 'tipi_cat_amm_trasp' ) ),
+                                                   $bdncp_term->name
+                                               );
                                            }
 
 					   // Recupera il titolo della pagina e troncalo a 35 caratteri

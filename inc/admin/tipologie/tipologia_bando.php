@@ -26,7 +26,7 @@ function dci_register_post_type_bando()
         'supports'            => array('title', 'author'),
         'hierarchical'        => false,
         'public'              => true,
-        'show_in_menu'        => true,
+        'show_in_menu'        => false,
         //'menu_position'       => 5,
         'menu_icon'           => 'dashicons-media-interactive',
         'has_archive'         => false,
@@ -281,14 +281,14 @@ function dci_add_bando_metaboxes()
         'attributes'        => array('required' => 'required'),
     ));
 
-    $cmb_apertura->add_field(array(
-        'id'         => '_dci_bando_sezione',
-        'name'       => __('Sezione trasparenza *', 'design_comuni_italia'),
-        'desc'       => __('Selezionare la sezione corretta in cui pubblicare il bando di gara. Ogni voce contiene una breve descrizione di supporto.', 'design_comuni_italia'),
-        'type'       => 'radio',
-        'options'    => dci_get_sezioni_bando(),
-        'attributes' => array('required' => 'required'),
-    ));
+    // $cmb_apertura->add_field(array(
+    //     'id'         => '_dci_bando_sezione',
+    //     'name'       => __('Sezione trasparenza *', 'design_comuni_italia'),
+    //     'desc'       => __('Selezionare la sezione corretta in cui pubblicare il bando di gara. Ogni voce contiene una breve descrizione di supporto.', 'design_comuni_italia'),
+    //     'type'       => 'radio',
+    //     'options'    => dci_get_sezioni_bando(),
+    //     'attributes' => array('required' => 'required'),
+    // ));
 
     $cmb_apertura->add_field(array(
         'id'          => $prefix . 'data_inizio',

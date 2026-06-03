@@ -291,7 +291,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     <div class="bg-grey-card dci-at-layout">
         
       <?php 
-          if ($obj->name == "Contratti Pubblici" && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '') 
+          if ($obj->name == "Atti, documenti e link a BDNCP" && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '') 
                { 
         ?>
                 <div class="container my-5">
@@ -341,19 +341,6 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
             </div>
         </div>
     
-    <?php }  else if(($obj->name === "Pubblicazione" || $obj->name === "Affidamento" || $obj->name === "Esecutiva" || $obj->name === "Sponsorizzazioni") && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '' ){?>
-        <div class="container my-5">
-                    <div class="row g-4">
-                        <h2 class="visually-hidden">Esplora tutti i bandi di gara</h2>
-                        <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
-                            <?php 
-                            $tipo_personalizzato = get_queried_object()->name;                       
-                            get_template_part("template-parts/bandi-di-gara/tipi-personalizzati"); ?>
-                        </div>
-                        <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
-                    </div>
-                </div>
-            </div>
    <?php } else if($obj->name === "Telefono e posta elettronica" && dci_get_option("ck_portalesoloperusoesterno") !== 'true' ){?>
         <div class="container my-5">
             <div class="row g-4">

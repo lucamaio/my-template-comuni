@@ -1,9 +1,15 @@
 <?php
 global $wpdb;
 
-$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 10;
+$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 10, 5, 100);
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
-$paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+$paged = max(
+    1,
+    (int) get_query_var('paged'),
+    (int) get_query_var('page'),
+    isset($_GET['paged']) ? absint($_GET['paged']) : 0,
+    isset($_GET['page']) ? absint($_GET['page']) : 0
+);
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
 
 // Anni disponibili
@@ -37,28 +43,23 @@ if ($selected_year > 0) {
     ];
 }
 
-$the_query = new WP_Query($args);
 $prefix = "_dci_titolare_incarico_";
 
 // Query personalizzata
 $the_query = new WP_Query($args);
 
-// Prendi permalink pagina corrente (senza query string)
-$current_url = get_permalink();
-
-// Costruiamo la base URL per paginazione mantenendo tutti i parametri
-$base_url = add_query_arg(array(
-    'search'      => $main_search_query ? $main_search_query : '',
-    'filter_year' => $selected_year > 0 ? $selected_year : 0,
-    'max_posts'   => $max_posts,
-    'page'        => '%#%',
-), $current_url);
-
-
+$form_action = '';
+$current_object = get_queried_object();
+if ($current_object instanceof WP_Term) {
+    $term_link = get_term_link($current_object);
+    $form_action = !is_wp_error($term_link) ? $term_link : '';
+} elseif (get_queried_object_id()) {
+    $form_action = get_permalink(get_queried_object_id());
+}
 
 // SEARCH BAR
 ?>
-<form method="get" class="incarichi-filtro-form">
+<form method="get" class="incarichi-filtro-form" action="<?php echo esc_url($form_action); ?>">
     <div class="incarichi-filtro-form__head">
         <h3 class="incarichi-filtro-form__title text-decoration-none">Filtra i titolari</h3>
         <p class="incarichi-filtro-form__intro text-decoration-none">Usa i campi qui sotto per trovare più velocemente i contenuti pubblicati.</p>
@@ -104,7 +105,7 @@ $base_url = add_query_arg(array(
     wp_reset_postdata();?>
         <div class="row my-4">
         <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
-            <?php echo dci_bootstrap_pagination(); ?>
+            <?php echo dci_bootstrap_pagination($the_query, false); ?>
         </nav>
     </div>
 <?php } else{?>

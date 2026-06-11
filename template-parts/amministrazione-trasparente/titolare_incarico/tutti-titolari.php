@@ -1,7 +1,7 @@
 <?php
 global $wpdb;
 
-$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 10;
+$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 10, 10, 50);
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
 $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
@@ -37,7 +37,6 @@ if ($selected_year > 0) {
     ];
 }
 
-$the_query = new WP_Query($args);
 $prefix = "_dci_titolare_incarico_";
 
 // Query personalizzata

@@ -31,7 +31,7 @@ if ($luogo->post_status == "publish") {
                     <div class="row">
                         <div class="col-lg-5">
                             <div class="full-image">
-                                <?php dci_get_img($img, 'rounded-top img-fluid'); ?>
+                                <?php dci_get_img($img, 'rounded-top img-fluid', array('loading' => 'lazy', 'decoding' => 'async', 'fetchpriority' => 'low')); ?>
                             </div>
                         </div>
                         <div class="col-lg-7">

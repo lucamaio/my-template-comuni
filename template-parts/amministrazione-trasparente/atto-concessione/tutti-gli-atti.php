@@ -5,7 +5,7 @@ remove_filter('template_redirect', 'redirect_canonical');
 global $wpdb;
 
 // Lettura parametri da URL
-$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 10;
+$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 10, 10, 50);
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
 $paged_from_query = max(1, (int) get_query_var('paged'));
 $paged_from_page  = max(1, (int) get_query_var('page'));

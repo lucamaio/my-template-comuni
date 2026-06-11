@@ -8,18 +8,23 @@
 global $the_query, $load_posts, $load_card_type, $documento, $tax_query, $title, $description, $data_element, $hide_categories;
 
 $obj = get_queried_object();
-$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 6, 6, 50);
-$load_posts = 3;
+$per_page = dci_sanitize_posts_per_page(apply_filters('dci_document_taxonomy_posts_per_page', 9), 9, 24);
+$load_posts = $per_page;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
+$paged_from_query = get_query_var('paged');
+$paged_from_get = isset($_GET['paged']) ? absint($_GET['paged']) : 0;
+$paged = max(1, (int) ($paged_from_query ? $paged_from_query : $paged_from_get));
 
 // Aggiungi un filtro tax_query per limitare i risultati ai documenti della tassonomia selezionata
 $args = array(
     's' => $query,
-    'posts_per_page' => $max_posts,
+    'posts_per_page' => $per_page,
     'post_status'    => 'publish',
     'post_type'      => 'documento_pubblico',
     'orderby'        => 'text_date_timestamp',    
     'order'          => 'DESC',
+    'ignore_sticky_posts' => true,
+    'paged'          => $paged,
     'tax_query'      => array(
         array(
             'taxonomy' => 'tipi_documento', // La tassonomia personalizzata
@@ -30,7 +35,6 @@ $args = array(
 );
 
 $the_query = new WP_Query($args);
-$documenti = $the_query->posts;
 
 get_header();
 ?>
@@ -58,7 +62,7 @@ get_header();
                     placeholder="Cerca una parola chiave"
                     id="autocomplete-two"
                     name="search"
-                    value="<?php echo $query; ?>"
+                    value="<?php echo esc_attr($query); ?>"
                     data-bs-autocomplete="[]">
                   <div class="input-group-append">
                       <button class="btn btn-primary" type="submit" id="button-3">
@@ -73,14 +77,28 @@ get_header();
                   <p id="autocomplete-label" class="mb-4"><strong><?php echo $the_query->found_posts; ?> </strong>documenti trovati in ordine alfabetico</p>
                 </div>
                 <div class="row g-4" id="load-more">
-                    <?php foreach ($documenti as $post) { 
-                        $load_card_type = "documento";
-                        $hide_categories = true;
-                        $full_width = true;
-                        get_template_part("template-parts/documento/cards-list");    
-                    } ?>
+                    <?php
+                    $load_card_type = "documento";
+                    $hide_categories = true;
+                    $full_width = true;
+
+                    if ($the_query->have_posts()) {
+                        while ($the_query->have_posts()) {
+                            $the_query->the_post();
+                            get_template_part("template-parts/documento/cards-list");
+                        }
+                    } else {
+                        get_template_part('template-parts/content', 'none');
+                    }
+                    ?>
                 </div>
-                <?php get_template_part("template-parts/search/more-results"); ?>
+                <?php if ($the_query->max_num_pages > 1) : ?>
+                    <div class="row my-4">
+                        <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine documenti">
+                            <?php echo dci_bootstrap_pagination($the_query, false); ?>
+                        </nav>
+                    </div>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -91,5 +109,6 @@ get_header();
     <?php echo get_template_part( 'template-parts/common/assistenza-contatti'); ?>
 </main>
 <?php
+wp_reset_postdata();
 get_footer();
 ?>

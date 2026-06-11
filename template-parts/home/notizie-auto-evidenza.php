@@ -213,7 +213,7 @@ if ($totale === 0) {
                         <!-- IMMAGINE -->
                         <?php if ($img) { ?>
                             <div class="col-12 col-lg-6 order-1 order-lg-2 col-img d-none d-lg-flex">
-                                <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
+                                <?php dci_get_img($img, 'img-fluid img-evidenza', array('loading' => 'lazy', 'decoding' => 'async', 'fetchpriority' => 'low')); ?>
                             </div>
                         <?php } ?>
 
@@ -354,7 +354,7 @@ if ($totale === 0) {
     <div class="row align-items-start align-items-lg-center">
         <?php if ($img) { ?>
             <div class="col-lg-6 offset-lg-1 order-1 order-lg-2 px-0 px-lg-2 col-img d-none d-lg-flex">
-                <?php dci_get_img($img, 'img-fluid img-evidenza'); ?>
+                <?php dci_get_img($img, 'img-fluid img-evidenza', array('loading' => 'lazy', 'decoding' => 'async', 'fetchpriority' => 'low')); ?>
             </div>
         <?php } ?>
 

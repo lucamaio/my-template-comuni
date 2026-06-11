@@ -31,7 +31,7 @@ $is_evento_attivo = ($current_timestamp >= $start_timestamp && $current_timestam
             <div class="img-responsive-wrapper">
                 <div class="img-responsive img-responsive-panoramic">
                     <figure class="img-wrapper">
-                        <?php dci_get_img($img ?: get_template_directory_uri()."/assets/img/repertorio/abdul-a-CxRBtNe243k-unsplash.jpg", 'rounded-top img-fluid', 'medium_large'); ?>
+                        <?php dci_get_img($img ?: get_template_directory_uri()."/assets/img/repertorio/abdul-a-CxRBtNe243k-unsplash.jpg", 'rounded-top img-fluid', array('loading' => 'lazy', 'decoding' => 'async', 'fetchpriority' => 'low')); ?>
                     </figure>
                     <div class="card-calendar d-flex flex-column justify-content-center">
                         <span class="card-date"><?php echo $arrdata[0]; ?></span>

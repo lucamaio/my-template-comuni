@@ -62,7 +62,7 @@ $url_eventi = dci_get_template_page_url("page-templates/eventi.php");
 																$img = dci_get_meta('immagine', '_dci_evento_', $evento['id']);
 														?>
 																<p class="card-text px-2 pb-10 mb-10 d-flex">
-																	<?php if ($img) dci_get_img($img, 'me-3 rounded'); ?>
+																	<?php if ($img) dci_get_img($img, 'me-3 rounded', array('loading' => 'lazy', 'decoding' => 'async', 'fetchpriority' => 'low')); ?>
 																	<a href="<?php echo $evento['link'] ?>"><?php echo $evento['titolo'] ?></a>
 																</p>
 														<?php }

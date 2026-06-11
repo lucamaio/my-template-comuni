@@ -22,7 +22,7 @@ if ($img) {
             <div class="card no-after rounded">
             <div class="row g-2 g-md-0 flex-md-column">
                 <div class="row g-2 g-md-0 flex-md-column">
-                    <?php dci_get_img($img, 'rounded-top img-fluid img-responsive'); ?>
+                    <?php dci_get_img($img, 'rounded-top img-fluid img-responsive', array('loading' => 'lazy', 'decoding' => 'async', 'fetchpriority' => 'low')); ?>
                 </div>
                 <div class="col-12 order-1 order-md-2">
                 <div class="card-body">

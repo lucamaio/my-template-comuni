@@ -22,14 +22,18 @@ $tax_query = array(
 $args_incarichi = array(
     'post_type' => 'incarico',
     'tax_query' => $tax_query,
-    'posts_per_page' => -1
+    'posts_per_page' => -1,
+    'fields' => 'ids',
+    'no_found_rows' => true,
+    'update_post_meta_cache' => false,
+    'update_post_term_cache' => false,
 );
 
 $incarichi_posts = get_posts($args_incarichi);
 $persone_ids = array();
 
-foreach($incarichi_posts as $incarico) {
-    $persone = get_post_meta($incarico->ID, '_dci_incarico_persona');
+foreach($incarichi_posts as $incarico_id) {
+    $persone = get_post_meta($incarico_id, '_dci_incarico_persona');
     foreach($persone as $persona) {
         $persone_ids[] = $persona;
     }
@@ -47,6 +51,7 @@ $args = array(
     'orderby' => 'post_title',
     'order' => 'ASC',
     'post__in' => empty($persone_ids) ? [0] : $filter_ids,
+    'no_found_rows' => true,
 );
 
 $the_query = new WP_Query($args);

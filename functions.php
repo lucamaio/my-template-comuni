@@ -162,6 +162,46 @@ function dci_async_template_parts_cache_ttl() {
     return 60;
 }
 
+/**
+ * Usa la cache persistente solo quando WordPress dispone di un object cache esterno.
+ *
+ * I transient salvati nel database generano letture/scritture continue su wp_options
+ * per ogni frammento AJAX e possono diventare un collo di bottiglia sui portali
+ * Aruba senza Redis/Memcached.
+ *
+ * @return bool
+ */
+function dci_async_template_parts_use_persistent_cache() {
+    return (bool) apply_filters('dci_async_template_parts_use_persistent_cache', wp_using_ext_object_cache());
+}
+
+function dci_async_template_parts_cache_group() {
+    return 'dci_async_template_parts';
+}
+
+
+/**
+ * Impostazioni conservative per i caricamenti asincroni.
+ *
+ * Sono filtrabili per poter intervenire rapidamente in produzione senza cambiare
+ * template o JavaScript se un hosting condiviso richiede valori ancora più bassi.
+ *
+ * @return array
+ */
+function dci_async_template_parts_frontend_settings() {
+    $settings = apply_filters('dci_async_template_parts_frontend_settings', array(
+        'maxConcurrent' => 2,
+        'timeoutMs' => 12000,
+        'retryTimeoutMs' => 10 * MINUTE_IN_SECONDS * 1000,
+    ));
+
+    return array(
+        'maxConcurrent' => max(1, min(3, absint($settings['maxConcurrent'] ?? 2))),
+        'timeoutMs' => max(5000, min(30000, absint($settings['timeoutMs'] ?? 12000))),
+        'retryTimeoutMs' => max(60000, min(30 * MINUTE_IN_SECONDS * 1000, absint($settings['retryTimeoutMs'] ?? 10 * MINUTE_IN_SECONDS * 1000))),
+    );
+}
+
 function dci_async_template_parts_cache_version() {
     $version = get_option('dci_async_template_parts_cache_version');
 
@@ -220,7 +260,7 @@ add_action('deleted_option', 'dci_maybe_bump_async_template_parts_cache_version_
 function dci_async_template_parts_cache_key($template_key, $page_id, $term_id, $taxonomy, $query_string, $current_url = '') {
     return 'dci_async_tpl_' . md5(wp_json_encode(array(
         'version' => dci_async_template_parts_cache_version(),
-        'schema' => 'pagination-path-v2',
+        'schema' => 'object-cache-v1',
         'template_key' => $template_key,
         'page_id' => (int) $page_id,
         'term_id' => (int) $term_id,
@@ -322,9 +362,11 @@ function dci_load_template_part_ajax() {
         }
     }
 
-    $cache_key = dci_async_template_parts_cache_key($template_key, $page_id, $term_id, $taxonomy, $query_string, $current_url);
-    if (!is_user_logged_in()) {
-        $cached_html = get_transient($cache_key);
+    $use_persistent_cache = !is_user_logged_in() && dci_async_template_parts_use_persistent_cache();
+    $cache_key = '';
+    if ($use_persistent_cache) {
+        $cache_key = dci_async_template_parts_cache_key($template_key, $page_id, $term_id, $taxonomy, $query_string, $current_url);
+        $cached_html = wp_cache_get($cache_key, dci_async_template_parts_cache_group());
         if (false !== $cached_html) {
             wp_send_json_success(array('html' => $cached_html, 'cached' => true));
         }
@@ -346,8 +388,8 @@ function dci_load_template_part_ajax() {
         wp_reset_postdata();
     }
 
-    if (!is_user_logged_in()) {
-        set_transient($cache_key, $html, dci_async_template_parts_cache_ttl());
+    if ($use_persistent_cache) {
+        wp_cache_set($cache_key, $html, dci_async_template_parts_cache_group(), dci_async_template_parts_cache_ttl());
     }
 
     wp_send_json_success(array('html' => $html, 'cached' => false));
@@ -555,7 +597,7 @@ function dci_scripts() {
 
     wp_enqueue_style( 'dci-font', get_template_directory_uri() . '/assets/css/fonts.css', array('dci-comuni'));
     wp_enqueue_style( 'dci-wp-style', get_template_directory_uri()."/style.css", array('dci-comuni'), filemtime(get_template_directory() . '/style.css'));
-    wp_enqueue_style( 'dci-accessibility-toolbar', get_template_directory_uri() . '/assets/css/accessibility-toolbar.css', array('dci-wp-style'), false );
+    wp_enqueue_style( 'dci-accessibility-toolbar', get_template_directory_uri() . '/assets/css/accessibility-toolbar.css', array('dci-wp-style'), filemtime(get_template_directory() . '/assets/css/accessibility-toolbar.css') );
 
 
     wp_enqueue_script( 'dci-modernizr', get_template_directory_uri() . '/assets/js/modernizr.custom.js');
@@ -583,14 +625,15 @@ function dci_scripts() {
 	wp_enqueue_script( 'dci-sticky-header-nav', get_template_directory_uri() . '/assets/js/sticky-header-nav.js', array(), false, true);
 	wp_enqueue_script( 'dci-deferred-images', get_template_directory_uri() . '/assets/js/deferred-images.js', array(), filemtime(get_template_directory() . '/assets/js/deferred-images.js'), true);
 	wp_script_add_data( 'dci-deferred-images', 'defer', true );
-	wp_enqueue_script( 'dci-accessibility-toolbar', get_template_directory_uri() . '/assets/js/accessibility-toolbar.js', array(), false, true);
+	wp_enqueue_script( 'dci-accessibility-toolbar', get_template_directory_uri() . '/assets/js/accessibility-toolbar.js', array(), filemtime(get_template_directory() . '/assets/js/accessibility-toolbar.js'), true);
 	wp_script_add_data( 'dci-accessibility-toolbar', 'defer', true );
 	wp_enqueue_script( 'dci-async-template-parts', get_template_directory_uri() . '/assets/js/async-template-parts.js', array(), filemtime(get_template_directory() . '/assets/js/async-template-parts.js'), true );
+	$async_template_parts_settings = dci_async_template_parts_frontend_settings();
 	wp_localize_script( 'dci-async-template-parts', 'dciAsyncTemplateParts', array(
 		'ajaxurl' => admin_url( 'admin-ajax.php', 'relative' ),
-		'maxConcurrent' => 2,
-		'maxRetries' => 4,
-		'timeoutMs' => 20000,
+		'maxConcurrent' => $async_template_parts_settings['maxConcurrent'],
+		'timeoutMs' => $async_template_parts_settings['timeoutMs'],
+		'retryTimeoutMs' => $async_template_parts_settings['retryTimeoutMs'],
 	) );
 	wp_script_add_data( 'dci-async-template-parts', 'defer', true );
 	wp_add_inline_script( 'dci-comuni', 'window.wpRestApi = "' . get_rest_url() . '"', 'before' );

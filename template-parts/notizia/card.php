@@ -28,7 +28,7 @@ $argomenti = dci_get_meta("argomenti", '_dci_notizia_', $post->ID);
                 <p class="card-text"><?php echo $descrizione_breve ?></p>
             </div>
             <div class="card-image card-image-rounded pb-5">
-                <?php dci_get_img($img); ?>
+                <?php dci_get_img($img, '', array('loading' => 'lazy', 'decoding' => 'async', 'fetchpriority' => 'low')); ?>
             </div>
         </div>
 

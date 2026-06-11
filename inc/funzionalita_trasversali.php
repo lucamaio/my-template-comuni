@@ -193,6 +193,27 @@ function dci_should_fetch_external_footer() {
 }
 
 
+/**
+ * Argomenti HTTP prudenti per recuperare frammenti dal portale principale.
+ *
+ * Timeout più bassi e cache negativa evitano che un portale esterno lento blocchi
+ * troppo a lungo il render PHP del sito Trasparenza.
+ *
+ * @param string $context Contesto usato nello user-agent.
+ * @return array
+ */
+function dci_get_external_fragment_request_args($context = 'Fragment') {
+    $timeout = (int) apply_filters('dci_external_fragment_request_timeout', 2, $context);
+
+    return array(
+        'timeout' => max(1, min(4, $timeout)),
+        'redirection' => 2,
+        'user-agent' => 'PSR-Theme-' . sanitize_key($context) . '-Fetch/1.0 (+' . home_url('/') . ')',
+        'sslverify' => false,
+    );
+}
+
+
 
 /**
  * Restituisce la base pubblica da usare negli HTML header/footer esportati via API.
@@ -332,12 +353,7 @@ function dci_get_external_footer_payload() {
 
         $current_home = trailingslashit(home_url('/'));
         $external_parts = wp_parse_url($external_home);
-        $request_args = array(
-            'timeout' => 4,
-            'redirection' => 3,
-            'user-agent' => 'PSR-Theme-Footer-Fetch/1.0 (+'. home_url('/') .')',
-            'sslverify' => false,
-        );
+        $request_args = dci_get_external_fragment_request_args('Footer');
         $attempted_sources = array();
 
         $candidate_homes = array();
@@ -423,10 +439,10 @@ function dci_get_external_footer_payload() {
         }
 
         // Negative cache per evitare timeout ripetuti ad ogni request.
-        set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
+        set_transient($cache_key, array('html' => ''), 5 * MINUTE_IN_SECONDS);
     }
 
-    set_transient($footer_cache_key, array('success' => false, 'html' => ''), MINUTE_IN_SECONDS);
+    set_transient($footer_cache_key, array('success' => false, 'html' => ''), 5 * MINUTE_IN_SECONDS);
     return null;
 }
 
@@ -711,7 +727,7 @@ function dci_get_external_head_html() {
 
     $external_html = dci_get_external_home_snapshot($external_home, $candidate_homes);
     if ($external_html === '') {
-        set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
+        set_transient($cache_key, array('html' => ''), 5 * MINUTE_IN_SECONDS);
         return '';
     }
 
@@ -722,7 +738,7 @@ function dci_get_external_head_html() {
         return $head_html;
     }
 
-    set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
+    set_transient($cache_key, array('html' => ''), 5 * MINUTE_IN_SECONDS);
     return '';
 }
 
@@ -744,12 +760,7 @@ function dci_get_external_home_snapshot($external_home, $candidate_homes = array
         $candidate_homes = array(trailingslashit($external_home));
     }
 
-    $request_args = array(
-        'timeout' => 4,
-        'redirection' => 3,
-        'user-agent' => 'PSR-Theme-Head-Fetch/1.0 (+'. home_url('/') .')',
-        'sslverify' => false,
-    );
+    $request_args = dci_get_external_fragment_request_args('Head');
 
     foreach ($candidate_homes as $candidate_home) {
         $response = wp_remote_get($candidate_home, $request_args);
@@ -762,7 +773,7 @@ function dci_get_external_home_snapshot($external_home, $candidate_homes = array
         }
     }
 
-    set_transient($cache_key, array('html' => ''), 2 * MINUTE_IN_SECONDS);
+    set_transient($cache_key, array('html' => ''), 5 * MINUTE_IN_SECONDS);
     return '';
 }
 
@@ -803,12 +814,7 @@ function dci_get_external_header_html() {
     $candidate_homes[] = $external_parts['scheme'] . '://' . $external_parts['host'] . '/';
     $candidate_homes = array_values(array_unique(array_filter($candidate_homes)));
 
-    $request_args = array(
-        'timeout' => 4,
-        'redirection' => 3,
-        'user-agent' => 'PSR-Theme-Header-Fetch/1.0 (+'. home_url('/') .')',
-        'sslverify' => false,
-    );
+    $request_args = dci_get_external_fragment_request_args('Header');
 
     foreach ($candidate_homes as $candidate_home) {
         $external_api = trailingslashit($candidate_home) . 'wp-json/wp/v2/header/rendered/';
@@ -836,7 +842,7 @@ function dci_get_external_header_html() {
         }
     }
 
-    set_transient($header_cache_key, '__empty__', MINUTE_IN_SECONDS);
+    set_transient($header_cache_key, '__empty__', 5 * MINUTE_IN_SECONDS);
     return '';
 }
 

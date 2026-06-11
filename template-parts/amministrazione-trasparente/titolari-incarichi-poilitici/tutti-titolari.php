@@ -19,7 +19,9 @@ if($portale_esterno === 'false'){
 
     $args = array(
         'post_type' => 'unita_organizzativa',
-        'posts_per_page' => -1,
+        'posts_per_page' => 100,
+        'no_found_rows' => true,
+        'update_post_meta_cache' => false,
         'tax_query' => array(
             array(
                 'taxonomy' => 'tipi_unita_organizzativa',

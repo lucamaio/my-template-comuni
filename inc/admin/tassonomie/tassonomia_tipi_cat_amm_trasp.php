@@ -423,6 +423,117 @@ function dci_expand_tipi_cat_amm_trasp_ids_with_ancestors( $term_ids ) {
 	return array_values( array_unique( $expanded_ids ) );
 }
 
+
+function dci_current_user_can_reset_empty_tipi_cat_amm_trasp_terms() {
+	return 1 === (int) get_current_user_id() && current_user_can( 'manage_options' );
+}
+
+function dci_tipi_cat_amm_trasp_term_has_objects_in_tree( $term_id ) {
+	$term_id  = (int) $term_id;
+	$term_ids = [ $term_id ];
+	$children = get_term_children( $term_id, 'tipi_cat_amm_trasp' );
+
+	if ( is_wp_error( $children ) ) {
+		return true;
+	}
+
+	if ( ! empty( $children ) ) {
+		$term_ids = array_merge( $term_ids, array_map( 'intval', $children ) );
+	}
+
+	$object_ids = get_objects_in_term( array_values( array_unique( $term_ids ) ), 'tipi_cat_amm_trasp' );
+
+	if ( is_wp_error( $object_ids ) ) {
+		return true;
+	}
+
+	return ! empty( $object_ids );
+}
+
+function dci_reset_empty_tipi_cat_amm_trasp_terms() {
+	$results = [
+		'deleted' => 0,
+		'skipped' => 0,
+		'failed'  => 0,
+	];
+
+	remove_filter( 'terms_clauses', 'dci_filter_tipi_cat_amm_trasp_admin_terms', 15 );
+
+	$terms = get_terms(
+		[
+			'taxonomy'   => 'tipi_cat_amm_trasp',
+			'hide_empty' => false,
+		]
+	);
+
+	add_filter( 'terms_clauses', 'dci_filter_tipi_cat_amm_trasp_admin_terms', 15, 3 );
+
+	if ( is_wp_error( $terms ) || empty( $terms ) ) {
+		return $results;
+	}
+
+	usort(
+		$terms,
+		function ( $term_a, $term_b ) {
+			$depth_a = count( get_ancestors( $term_a->term_id, 'tipi_cat_amm_trasp', 'taxonomy' ) );
+			$depth_b = count( get_ancestors( $term_b->term_id, 'tipi_cat_amm_trasp', 'taxonomy' ) );
+
+			return $depth_b <=> $depth_a;
+		}
+	);
+
+	foreach ( $terms as $term ) {
+		$current_term = get_term( $term->term_id, 'tipi_cat_amm_trasp' );
+		if ( ! $current_term || is_wp_error( $current_term ) ) {
+			continue;
+		}
+
+		if ( dci_tipi_cat_amm_trasp_term_has_objects_in_tree( $current_term->term_id ) ) {
+			$results['skipped']++;
+			continue;
+		}
+
+		$deleted = wp_delete_term( $current_term->term_id, 'tipi_cat_amm_trasp' );
+		if ( is_wp_error( $deleted ) || false === $deleted ) {
+			$results['failed']++;
+			continue;
+		}
+
+		$results['deleted']++;
+	}
+
+	return $results;
+}
+
+add_action( 'admin_post_dci_reset_empty_tipi_cat_amm_trasp_terms', 'dci_handle_reset_empty_tipi_cat_amm_trasp_terms' );
+function dci_handle_reset_empty_tipi_cat_amm_trasp_terms() {
+	if ( ! dci_current_user_can_reset_empty_tipi_cat_amm_trasp_terms() ) {
+		wp_die(
+			esc_html__( 'Non hai i permessi per eseguire questa operazione.', 'design_comuni_italia' ),
+			'',
+			[ 'response' => 403 ]
+		);
+	}
+
+	check_admin_referer( 'dci_reset_empty_tipi_cat_amm_trasp_terms' );
+
+	$results = dci_reset_empty_tipi_cat_amm_trasp_terms();
+	set_transient( 'dci_reset_empty_tipi_cat_amm_trasp_terms_' . get_current_user_id(), $results, MINUTE_IN_SECONDS );
+
+	$post_type = isset( $_POST['post_type'] ) ? sanitize_key( wp_unslash( $_POST['post_type'] ) ) : 'elemento_trasparenza';
+	$redirect = add_query_arg(
+		[
+			'taxonomy'              => 'tipi_cat_amm_trasp',
+			'post_type'             => $post_type,
+			'dci_empty_terms_reset' => '1',
+		],
+		admin_url( 'edit-tags.php' )
+	);
+
+	wp_safe_redirect( $redirect );
+	exit;
+}
+
 /**
  * 5. Filtri admin nella lista termini della tassonomia
  */
@@ -450,7 +561,14 @@ function dci_render_tipi_cat_amm_trasp_admin_filters() {
 		],
 		admin_url( 'edit-tags.php' )
 	);
-	$stats = dci_get_tipi_cat_amm_trasp_admin_stats();
+	$stats        = dci_get_tipi_cat_amm_trasp_admin_stats();
+	$reset_notice = false;
+
+	if ( dci_current_user_can_reset_empty_tipi_cat_amm_trasp_terms() && isset( $_GET['dci_empty_terms_reset'] ) ) {
+		$reset_notice = get_transient( 'dci_reset_empty_tipi_cat_amm_trasp_terms_' . get_current_user_id() );
+		delete_transient( 'dci_reset_empty_tipi_cat_amm_trasp_terms_' . get_current_user_id() );
+	}
+
 	$duplicate_url = add_query_arg(
 		[
 			'taxonomy'          => 'tipi_cat_amm_trasp',
@@ -468,6 +586,22 @@ function dci_render_tipi_cat_amm_trasp_admin_filters() {
 		admin_url( 'edit-tags.php' )
 	);
 	?>
+	<?php if ( is_array( $reset_notice ) ) { ?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php
+				echo esc_html(
+					sprintf(
+						__( 'Reset categorie vuote completato: %1$d eliminate, %2$d mantenute perche contengono elementi, %3$d non eliminate per errore.', 'design_comuni_italia' ),
+						(int) $reset_notice['deleted'],
+						(int) $reset_notice['skipped'],
+						(int) $reset_notice['failed']
+					)
+				);
+				?>
+			</p>
+		</div>
+	<?php } ?>
 	<div class="notice notice-info" style="padding:12px 16px;">
 		<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
 			<span class="button button-secondary" style="pointer-events:none;"><?php echo esc_html( sprintf( 'Totali: %d', $stats['total'] ) ); ?></span>
@@ -505,6 +639,25 @@ function dci_render_tipi_cat_amm_trasp_admin_filters() {
 				<a class="button" href="<?php echo esc_url( $reset_url ); ?>"><?php esc_html_e( 'Reset', 'design_comuni_italia' ); ?></a>
 			</div>
 		</form>
+
+		<?php if ( dci_current_user_can_reset_empty_tipi_cat_amm_trasp_terms() ) { ?>
+			<hr style="margin:12px 0;" />
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0;">
+				<input type="hidden" name="action" value="dci_reset_empty_tipi_cat_amm_trasp_terms" />
+				<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>" />
+				<?php wp_nonce_field( 'dci_reset_empty_tipi_cat_amm_trasp_terms' ); ?>
+				<button
+					type="submit"
+					class="button button-secondary"
+					onclick="return confirm('<?php echo esc_js( __( 'Confermi il reset? Verranno eliminate solo le categorie senza elementi associati, mentre quelle con contenuti o sotto-categorie con contenuti saranno mantenute.', 'design_comuni_italia' ) ); ?>');"
+				>
+					<?php esc_html_e( 'Reset categorie vuote', 'design_comuni_italia' ); ?>
+				</button>
+				<span class="description">
+					<?php esc_html_e( 'Visibile solo all\'amministratore con ID 1. Non elimina categorie che contengono elementi, anche nei livelli figli.', 'design_comuni_italia' ); ?>
+				</span>
+			</form>
+		<?php } ?>
 	</div>
 	<?php
 }

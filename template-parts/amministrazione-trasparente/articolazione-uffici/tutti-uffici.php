@@ -3,7 +3,7 @@ global $the_query, $load_posts;
 global $siti_tematici, $dci_amm_sidebar_embedded, $dci_amm_sidebar_sections;
 
 $count = 0;
-$max_posts = isset($_GET['max_posts']) ? (int) $_GET['max_posts'] : 1000000;
+$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 300, 300, 300);
 $load_posts = 6;
 $query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
 $siti_tematici = !empty(dci_get_option('siti_tematici', 'trasparenza')) ? dci_get_option('siti_tematici', 'trasparenza') : [];

@@ -383,10 +383,7 @@ if (!function_exists('dci_elemento_trasparenza_get_terms_hidden_for_new_items'))
         if (dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '') {
             $hidden = array_merge($hidden, array(
                 'Contratti Pubblici',
-                'Pubblicazione',
-                'Affidamento',
-                'Esecutiva',
-                'Sponsorizzazioni',
+                'Atti, documenti e link a BDNCP'
             ));
         }
 

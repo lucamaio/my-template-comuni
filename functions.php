@@ -1521,6 +1521,8 @@ if (!function_exists('dci_get_notizia_rest_payload')) {
             return array(
                 'descrizione_breve' => '',
                 'data_scadenza' => null,
+                'hide_webapp' => false,
+                'hide_totem' => false,
                 'descrizione_completa' => '',
                 'allegati' => array(),
             );
@@ -1528,10 +1530,12 @@ if (!function_exists('dci_get_notizia_rest_payload')) {
 
 
 
-        $cache_key = 'dci_notizia_rest_v2_' . $post_id;
+        $cache_key = 'dci_notizia_rest_v3_' . $post_id;
         $cached_payload = get_transient($cache_key);
         if (is_array($cached_payload)) {
             $cached_payload['data_scadenza'] = dci_format_notizia_rest_date($cached_payload['data_scadenza'] ?? '');
+            $cached_payload['hide_webapp'] = !empty($cached_payload['hide_webapp']);
+            $cached_payload['hide_totem'] = !empty($cached_payload['hide_totem']);
             return $cached_payload;
         }
 
@@ -1642,6 +1646,8 @@ if (!$immagine) {
         $payload = array(
             'descrizione_breve' => $meta['_dci_notizia_descrizione_breve'][0] ?? '',
             'data_scadenza' => dci_format_notizia_rest_date($meta['_dci_notizia_data_scadenza'][0] ?? ''),
+            'hide_webapp' => !empty($meta['_dci_notizia_hide_webapp'][0]),
+            'hide_totem' => !empty($meta['_dci_notizia_hide_totem'][0]),
             'descrizione_completa' => $full_text,
             'allegati' => $allegati,
 			'immagine' => $immagine,
@@ -1724,7 +1730,25 @@ if (!function_exists('dci_get_evento_rest_payload')) {
 add_action('save_post_notizia', function ($post_id) {
     delete_transient('dci_notizia_rest_' . absint($post_id));
     delete_transient('dci_notizia_rest_v2_' . absint($post_id));
+    delete_transient('dci_notizia_rest_v3_' . absint($post_id));
 });
+
+function dci_delete_notizia_rest_cache_on_meta_change($meta_id, $post_id, $meta_key = '') {
+    if (get_post_type($post_id) !== 'notizia') {
+        return;
+    }
+
+    if ($meta_key !== '' && strpos((string) $meta_key, '_dci_notizia_') !== 0) {
+        return;
+    }
+
+    delete_transient('dci_notizia_rest_' . absint($post_id));
+    delete_transient('dci_notizia_rest_v2_' . absint($post_id));
+    delete_transient('dci_notizia_rest_v3_' . absint($post_id));
+}
+add_action('added_post_meta', 'dci_delete_notizia_rest_cache_on_meta_change', 10, 3);
+add_action('updated_post_meta', 'dci_delete_notizia_rest_cache_on_meta_change', 10, 3);
+add_action('deleted_post_meta', 'dci_delete_notizia_rest_cache_on_meta_change', 10, 3);
 
 add_action('save_post_evento', function ($post_id) {
     delete_transient('dci_evento_rest_' . absint($post_id));

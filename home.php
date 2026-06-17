@@ -19,7 +19,6 @@ if ($is_external_only) {
 
 get_header();
 
-
 ?>
 	    
        <main id="main-container" class="main-container redbrown">

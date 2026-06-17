@@ -94,4 +94,3 @@ $is_evento_attivo = ($current_timestamp >= $start_timestamp && $current_timestam
         </div>
     </div>
 </div>
-

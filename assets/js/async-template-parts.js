@@ -177,7 +177,7 @@
 
   function boot() {
     var placeholders = Array.prototype.slice.call(document.querySelectorAll('.dci-async-template[data-template-key]'));
-    var maxConcurrent = parseInt(settings.maxConcurrent, 10) || 2;
+    var maxConcurrent = parseInt(settings.maxConcurrent, 10) || 4;
     var active = 0;
     var index = 0;
 

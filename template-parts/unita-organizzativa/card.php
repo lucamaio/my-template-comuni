@@ -1,19 +1,26 @@
 <?php
-    global $uo_id, $with_border;
-    $ufficio = get_post( $uo_id );
+global $uo_id, $with_border;
 
-    $prefix = '_dci_unita_organizzativa_';
-    $img = dci_get_meta('immagine', $prefix, $uo_id);
-	$sede_principale = dci_get_meta('sede_principale', $prefix, $uo_id);
-	$prefix = '_dci_luogo_';
-    $indirizzo = dci_get_meta('indirizzo', $prefix, $sede_principale);
+$ufficio = get_post($uo_id);
 
-    $prefix = '_dci_luogo_';
-    
-    //  Ho rimosso i Contatti perchè non venivano utilizzati
-    
-    if($with_border) {
+if (!$ufficio instanceof WP_Post) {
+    return;
+}
+
+$prefix = '_dci_unita_organizzativa_';
+$img = dci_get_meta('immagine', $prefix, $uo_id);
+$sede_principale = dci_get_meta('sede_principale', $prefix, $uo_id);
+
+$prefix = '_dci_luogo_';
+$indirizzo = dci_get_meta('indirizzo', $prefix, $sede_principale);
+
+$prefix = '_dci_luogo_';
+
+// Ho rimosso i Contatti perchè non venivano utilizzati
+
+if($with_border) {
 ?>
+
 <div class="card card-teaser border rounded shadow p-4 flex-nowrap">
     <div class="card-body pe-3">
         <h4 class="u-main-black mb-1 title-small-semi-bold-medium">
@@ -43,8 +50,8 @@
         </p>
         <div class="card-text">
             <p class="u-main-black">
-				<?php echo $indirizzo;  ?>
-			</p>
+                <?php echo $indirizzo; ?>
+            </p>
         </div>
     </div>
     <?php if ($img) { ?>
@@ -54,6 +61,7 @@
     <?php } ?>
 </div>
 
-<?php } 
+<?php }
+
 $with_border = false;
 ?>

@@ -38,40 +38,39 @@ function dci_add_page_metaboxes() {
      * disabilito editor body e title per le pagine del Sito dei Comuni
      * rendo il campo descrivione_breve readonly
      */
-    global $pagenow;
-    if (( $pagenow == 'post.php' ) || (get_post_type() == 'post')) {
 
-        if(isset($_GET['post']))
-            $curr_page_id = $_GET['post'];
-        else if(isset($_POST['post_ID']))
-            $curr_page_id = $_POST['post_ID'];
+global $pagenow;
+if (($pagenow == 'post.php') || (get_post_type() == 'post')) {
 
-        if ( ! isset( $curr_page_id ) ) {
-            return;
-        }
-
+    if (isset($_GET['post'])) {
         $curr_page_id = $_GET['post'];
-        $slug = get_post_field( 'post_name', $curr_page_id );
-
-        // Get the name of the Page Template file.
-        $template_file = get_post_meta( $curr_page_id, '_wp_page_template', true );
-        $template_name = basename($template_file, ".php");
-
-        //se la pagina utilizza un template del Sito dei Comuni
-        if (in_array($template_name, dci_get_pagine_template_names())) {
-
-            
-          //  remove_post_type_support( 'page', 'editor' );
-           //   remove_post_type_support( 'page', 'title' );
-
-            $args['attributes'] = array(
-                'required' => 'required',
-                'maxlength' => 255,
-                'readonly' => false
-            );
-        }
-
+    } elseif (isset($_POST['post_ID'])) {
+        $curr_page_id = $_POST['post_ID'];
     }
+
+    if (!isset($curr_page_id)) {
+        return;
+    }
+
+    $slug = get_post_field('post_name', $curr_page_id);
+
+    // Get the name of the Page Template file.
+    $template_file = get_post_meta($curr_page_id, '_wp_page_template', true);
+    $template_name = basename($template_file, ".php");
+
+    // se la pagina utilizza un template del Sito dei Comuni
+    if (in_array($template_name, dci_get_pagine_template_names())) {
+
+        // remove_post_type_support( 'page', 'editor' );
+        // remove_post_type_support( 'page', 'title' );
+
+        $args['attributes'] = array(
+            'required' => 'required',
+            'maxlength' => 255,
+            'readonly' => false
+        );
+    }
+}
 
     $cmb_descrizione->add_field($args);
 

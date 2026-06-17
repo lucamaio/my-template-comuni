@@ -1,81 +1,124 @@
 <?php
-global $the_query, $load_posts, $load_card_type;
+global $load_card_type;
 
 $per_page = 9;
-$load_posts = $per_page;
-$query = isset($_GET['search']) ? dci_removeslashes($_GET['search']) : null;
-$paged_from_query = get_query_var('paged');
-$paged_from_get = isset($_GET['paged']) ? absint($_GET['paged']) : 0;
-$paged = max(1, (int) ($paged_from_query ? $paged_from_query : $paged_from_get));
+
+$query = isset($_GET['search'])
+    ? sanitize_text_field($_GET['search'])
+    : '';
+
+$page = isset($_GET['pagina'])
+    ? max(1, intval($_GET['pagina']))
+    : 1;
 
 $args = array(
-    's' => $query,
-    'post_type' => 'evento',
-    'posts_per_page' => $per_page,
-    'orderby' => 'meta_value',
-    'order' => 'ASC',
-    'meta_key' => '_dci_evento_data_orario_inizio',
-    'post_status' => 'publish',
-    'ignore_sticky_posts' => true,
-    'paged' => $paged,
+    'post_type'           => 'evento',
+    'post_status'         => 'publish',
+    'posts_per_page'      => $per_page,
+    'paged'               => $page,
+    's'                   => $query,
+    'orderby'             => 'meta_value',
+    'order'               => 'ASC',
+    'meta_key'            => '_dci_evento_data_orario_inizio',
+    'ignore_sticky_posts' => true
 );
 
 $the_query = new WP_Query($args);
 ?>
 
 <div class="bg-card bg-grey-card py-5">
-    <form role="search" id="search-form" method="get" class="search-form">
-        <button type="submit" class="d-none"></button>
+
+    <form role="search" method="get">
+
         <div class="container">
+
             <h2 class="title-xxlarge mb-4">
                 Esplora tutti gli eventi
             </h2>
-            <div>
-                <div class="cmp-input-search">
-                    <div class="form-group autocomplete-wrapper mb-0">
-                        <div class="input-group">
-                            <label for="autocomplete-two" class="visually-hidden">Cerca</label>
-                            <input type="search" class="autocomplete form-control" placeholder="Cerca per parola chiave"
-                                id="autocomplete-two" name="search" value="<?php echo $query; ?>"
-                                data-bs-autocomplete="[]" />
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="submit" id="button-3">
-                                    Invio
-                                </button>
-                            </div>
-                            <span class="autocomplete-icon" aria-hidden="true"><svg class="icon icon-sm icon-primary"
-                                    role="img" aria-labelledby="autocomplete-label">
-                                    <use href="#it-search"></use>
-                                </svg>
-                            </span>
-                        </div>
-                        <p id="autocomplete-label" class="u-grey-light text-paragraph-card mt-2 mb-30 mt-lg-3 mb-lg-40">
-                            <?php echo $the_query->found_posts; ?> eventi trovate in ordine alfabetico
-                        </p>
-                    </div>
+
+            <div class="cmp-input-search mb-4">
+
+                <div class="input-group">
+
+                    <input
+                        type="search"
+                        class="form-control"
+                        placeholder="Cerca per parola chiave"
+                        name="search"
+                        value="<?php echo esc_attr($query); ?>">
+
+                    <button class="btn btn-primary" type="submit">
+                        Cerca
+                    </button>
+
                 </div>
+
+                <p class="mt-3">
+                    <?php echo $the_query->found_posts; ?> eventi trovati
+                </p>
+
             </div>
-            <div class="row g-4" id="load-more">
-                <?php 
-                    if ($the_query->have_posts()) {
-                        while ($the_query->have_posts()) {
-                            $the_query->the_post();
-                            $load_card_type = 'evento';
-                            get_template_part("template-parts/evento/card-full");
-                        }
-                    } else {
-                        get_template_part('template-parts/content', 'none');
-                    }
-                ?>
+
+            <div class="row g-4">
+
+                <?php if ($the_query->have_posts()) : ?>
+
+                    <?php while ($the_query->have_posts()) : $the_query->the_post(); ?>
+
+                        <?php
+                        $load_card_type = 'evento';
+                        get_template_part('template-parts/evento/card-full');
+                        ?>
+
+                    <?php endwhile; ?>
+
+                <?php else : ?>
+
+                    <div class="col-12">
+                        Nessun evento trovato.
+                    </div>
+
+                <?php endif; ?>
+
             </div>
+
             <?php if ($the_query->max_num_pages > 1) : ?>
-            <div class="row my-4">
-                <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine eventi">
-                    <?php echo dci_bootstrap_pagination($the_query, false); ?>
-                </nav>
-            </div>
+
+                <div class="text-center mt-5">
+
+                    <?php
+                    $base_url = strtok($_SERVER['REQUEST_URI'], '?');
+
+                    for ($i = 1; $i <= $the_query->max_num_pages; $i++) {
+
+                        $url = add_query_arg(array(
+                            'pagina' => $i,
+                            'search' => $query
+                        ), $base_url);
+
+                        if ($i == $page) {
+
+                            echo '<span class="btn btn-primary mx-1">' . $i . '</span>';
+
+                        } else {
+
+                            echo '<a class="btn btn-outline-primary mx-1" href="' .
+                                esc_url($url) .
+                                '">' .
+                                $i .
+                                '</a>';
+                        }
+                    }
+                    ?>
+
+                </div>
+
             <?php endif; ?>
+
         </div>
+
     </form>
+
 </div>
+
 <?php wp_reset_postdata(); ?>

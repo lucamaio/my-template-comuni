@@ -281,9 +281,11 @@ function dci_add_notizia_metaboxes()
     //IMPOSTAZIONI HOMEPAGE NOTIZIA AUTOMATICA
     $notizie_automatiche = dci_get_option("ck_notizie_automatico", "homepage") ?: false;  // valore opzione visualizzazione notizie automatiche in homepage
     $check_notizie_evidenziate_auto = dci_get_option('ck_notizie_evidenza','homepage') ?: false;  // valore opzione visualizzazione notizie in evidenza automatiche in homepage
+    $webapp_url = trim((string) get_option('dci_webapp_mobile_url', ''));
+    $totem_comune = dci_get_option('ck_totemComune', 'dci_options') ?: false;
 
     // mostro la sezione solo se una delle due opzioni è attiva
-   if ($notizie_automatiche === 'true' || $notizie_automatiche === true || $check_notizie_evidenziate_auto === 'true' || $check_notizie_evidenziate_auto === true){
+   if ($notizie_automatiche === 'true' || $notizie_automatiche === true || $check_notizie_evidenziate_auto === 'true' || $check_notizie_evidenziate_auto === true || ($webapp_url !== "" && $webapp_url !== null) || ($totem_comune === 'true' || $totem_comune === true)) {
         $cmb_check = new_cmb2_box(array(
             'id'           => $prefix . 'box_check',
             'title'        => __('Impostazioni di visualizzazione in homepage notizia', 'design_comuni_italia'),
@@ -339,6 +341,34 @@ function dci_add_notizia_metaboxes()
             //     ),
             // ));
 
+            }
+
+            // Visualizzo le opzioni nascondi notizia in homepage solo se sono attivate nelle opzioni della homepage
+            if ( $webapp_url !== "" && $webapp_url !== null) {
+                $cmb_check->add_field(array(
+                    'id'    => $prefix . 'hide_webapp',
+                    'name'  => __('Escludi dalla WebApp', 'design_comuni_italia'),
+                    'desc'  => __(
+                        'Se selezionato, la notizia non verrà visualizzata nella WebApp mobile collegata al sito.<br>' .
+                        'Questa opzione consente di escludere determinate notizie dalla visualizzazione nella WebApp, se necessario.',
+                        'design_comuni_italia'
+                    ),
+                    'type'  => 'checkbox',
+                ));
+            }
+
+            // Visualizzo le opzioni evidenzia notizia in homepage solo se sono attivate nelle opzioni della homepage
+            if ($totem_comune === 'true' || $totem_comune === true) {
+                $cmb_check->add_field(array(
+                    'id'    => $prefix . 'hide_totem',
+                    'name'  => __('Escludi dal Totem', 'design_comuni_italia'),
+                    'desc'  => __(
+                        'Se selezionato, la notizia non verrà visualizzata nel Totem multimediale del Comune (se presente).<br>' .
+                        'Questa opzione consente di escludere determinate notizie dalla visualizzazione nel Totem, se necessario.',
+                        'design_comuni_italia'
+                    ),
+                    'type'  => 'checkbox',
+                ));
             }
         }
 

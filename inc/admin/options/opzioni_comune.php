@@ -208,6 +208,8 @@ function dci_register_comune_options(){
         ),
     ));
 
+    // Opzioni di accessibilità
+
 
     $header_options->add_field(array(
         'id'      => $prefix . 'ck_accessibility_toolbar',
@@ -261,39 +263,39 @@ function dci_register_comune_options(){
         'show_on_cb' => 'dci_show_only_admin_field',
     ));
 
-        $header_options->add_field( array(
-            'id'    => $prefix . 'url_homesoloesterno',
-            'name'  => __( 'Url Home Page Personalizzato', 'design_comuni_italia' ),
-            'desc'  => __( 'Inserisci url del portale del comune in modo da indirizzare allo loro homepage.', 'design_comuni_italia' ),
-            'type'  => 'text_url',
-            'show_on_cb' => 'dci_show_only_super_admin_field', // Usa la funzione per mostrare il campo solo al super admin
-        ));
+    $header_options->add_field( array(
+        'id'    => $prefix . 'url_homesoloesterno',
+        'name'  => __( 'Url Home Page Personalizzato', 'design_comuni_italia' ),
+        'desc'  => __( 'Inserisci url del portale del comune in modo da indirizzare allo loro homepage.', 'design_comuni_italia' ),
+        'type'  => 'text_url',
+        'show_on_cb' => 'dci_show_only_super_admin_field', // Usa la funzione per mostrare il campo solo al super admin
+    ));
 
-        $header_options->add_field( array(
-            'id'      => $prefix . 'ck_richiama_footer_portale_principale',
-            'name'    => __('Richiama footer da Url Home', 'design_comuni_italia'),
-            'desc'    => __('Abilita/disabilita il recupero del footer dal portale principale indicato nel campo Url Home Page Personalizzato.', 'design_comuni_italia'),
-            'type'    => 'radio_inline',
-            'default' => 'false',
-            'options' => array(
-                'true'  => __('Sì', 'design_comuni_italia'),
-                'false' => __('No', 'design_comuni_italia'),
-            ),
-            'show_on_cb' => 'dci_show_only_super_admin_field',
-        ));
+    $header_options->add_field( array(
+        'id'      => $prefix . 'ck_richiama_footer_portale_principale',
+        'name'    => __('Richiama footer da Url Home', 'design_comuni_italia'),
+        'desc'    => __('Abilita/disabilita il recupero del footer dal portale principale indicato nel campo Url Home Page Personalizzato.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'show_on_cb' => 'dci_show_only_super_admin_field',
+    ));
 
-        $header_options->add_field( array(
-            'id'      => $prefix . 'ck_richiama_head_portale_principale',
-            'name'    => __('Richiama head da Url Home', 'design_comuni_italia'),
-            'desc'    => __('Abilita/disabilita il recupero del blocco head dal portale principale indicato nel campo Url Home Page Personalizzato.', 'design_comuni_italia'),
-            'type'    => 'radio_inline',
-            'default' => 'false',
-            'options' => array(
-                'true'  => __('Sì', 'design_comuni_italia'),
-                'false' => __('No', 'design_comuni_italia'),
-            ),
-            'show_on_cb' => 'dci_show_only_super_admin_field',
-        ));
+    $header_options->add_field( array(
+        'id'      => $prefix . 'ck_richiama_head_portale_principale',
+        'name'    => __('Richiama head da Url Home', 'design_comuni_italia'),
+        'desc'    => __('Abilita/disabilita il recupero del blocco head dal portale principale indicato nel campo Url Home Page Personalizzato.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'show_on_cb' => 'dci_show_only_super_admin_field',
+    ));
 
     $header_options->add_field( array(
         'id'      => $prefix . 'ck_portaleElencoConsigliComunali',
@@ -311,6 +313,30 @@ function dci_register_comune_options(){
         'show_on_cb' => 'dci_show_only_admin_field',
     ));
 
+    // Nuova sezione per la gestione delle operazioni sul totem del comune, visibile solo agli utenti Administrator
+    $header_options->add_field( array(
+        'id'    => $prefix . 'TotemComune',
+        'name'  => __('<br><br><center>Totem Comune <br> (Questa sezione viene visualizzata solo agli utenti Administrator.)</center>', 'design_comuni_italia'),
+        'desc'  => __('<center>Opzione che consente di abilitare la visualizzaione delle opzioni per gestire un nostro totem configurato.</center><br><br>', 'design_comuni_italia'),
+        'type'  => 'title',
+        'show_on_cb' => 'dci_show_only_admin_field',
+    ));
+
+    $header_options->add_field( array(
+        'id'      => $prefix . 'ck_totemComune',
+        'name'    => __('Totem Comune', 'design_comuni_italia'),
+        'desc'    => __('Abilitare questa opzione solo se il comune dispone di un totem configurato.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'false',
+        ),
+        'show_on_cb' => 'dci_show_only_admin_field',
+    ));
 
 
 

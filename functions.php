@@ -1341,6 +1341,30 @@ add_action('rest_api_init', function () {
         return $payload['immagine'];
     }
 	]);
+
+    // Aggiugo dei campi etra per la gestione della scadenza e della visibilità su webapp/totem 
+
+    register_rest_field('notizia', 'data_scadenza', [
+    'get_callback' => function ($post) {
+        $payload = dci_get_notizia_rest_payload($post['id']);
+        return $payload['data_scadenza'];
+    }
+	]);
+
+
+    register_rest_field('notizia', 'hide_webapp', [
+    'get_callback' => function ($post) {
+        $payload = dci_get_notizia_rest_payload($post['id']);
+        return $payload['hide_webapp'];
+    }
+	]);
+
+    register_rest_field('notizia', 'hide_totem', [
+    'get_callback' => function ($post) {
+        $payload = dci_get_notizia_rest_payload($post['id']);
+        return $payload['hide_totem'];
+    }
+	]);
 	
     /*
     =====================================
@@ -1454,6 +1478,36 @@ add_filter('rest_notizia_query', function ($args, $request) {
     return $args;
 }, 10, 2);
 
+if (!function_exists('dci_format_notizia_rest_date')) {
+    /**
+     * Formatta una data CMB2 salvata come timestamp per la REST API.
+     *
+     * @param mixed $timestamp
+     * @return array|null
+     */
+    function dci_format_notizia_rest_date($timestamp) {
+        if (is_array($timestamp)) {
+            if (isset($timestamp['timestamp'])) {
+                $timestamp = $timestamp['timestamp'];
+            } else {
+                return $timestamp;
+            }
+        }
+
+        $timestamp = absint($timestamp);
+        if ($timestamp <= 0) {
+            return null;
+        }
+
+        return array(
+            'timestamp' => $timestamp,
+            'date' => wp_date('Y-m-d\TH:i:s', $timestamp),
+            'date_gmt' => gmdate('Y-m-d\TH:i:s', $timestamp),
+            'label' => date_i18n('j F Y', $timestamp),
+        );
+    }
+}
+
 if (!function_exists('dci_get_notizia_rest_payload')) {
     /**
      * Payload REST notizia con cache breve per alleggerire richieste ripetute.
@@ -1466,7 +1520,7 @@ if (!function_exists('dci_get_notizia_rest_payload')) {
         if ($post_id <= 0) {
             return array(
                 'descrizione_breve' => '',
-                'data_scadenza' => '',
+                'data_scadenza' => null,
                 'descrizione_completa' => '',
                 'allegati' => array(),
             );
@@ -1474,9 +1528,10 @@ if (!function_exists('dci_get_notizia_rest_payload')) {
 
 
 
-        $cache_key = 'dci_notizia_rest_' . $post_id;
+        $cache_key = 'dci_notizia_rest_v2_' . $post_id;
         $cached_payload = get_transient($cache_key);
         if (is_array($cached_payload)) {
+            $cached_payload['data_scadenza'] = dci_format_notizia_rest_date($cached_payload['data_scadenza'] ?? '');
             return $cached_payload;
         }
 
@@ -1586,7 +1641,7 @@ if (!$immagine) {
 
         $payload = array(
             'descrizione_breve' => $meta['_dci_notizia_descrizione_breve'][0] ?? '',
-            'data_scadenza' => $meta['_dci_notizia_data_scadenza'][0] ?? '',
+            'data_scadenza' => dci_format_notizia_rest_date($meta['_dci_notizia_data_scadenza'][0] ?? ''),
             'descrizione_completa' => $full_text,
             'allegati' => $allegati,
 			'immagine' => $immagine,
@@ -1668,6 +1723,7 @@ if (!function_exists('dci_get_evento_rest_payload')) {
 
 add_action('save_post_notizia', function ($post_id) {
     delete_transient('dci_notizia_rest_' . absint($post_id));
+    delete_transient('dci_notizia_rest_v2_' . absint($post_id));
 });
 
 add_action('save_post_evento', function ($post_id) {

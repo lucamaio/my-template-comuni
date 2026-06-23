@@ -77,15 +77,11 @@ function openNext() {
     progressBar.classList.add("d-block");
     progressBar.classList.remove("d-none");
 
-    if (currentStep < steps.length) {
+    if (currentStep <= steps.length) {
       navscroll = document.querySelector(
         '[data-index="'.concat(currentStep, '"]')
       );
       navscroll.classList.add("d-lg-block");
-    }
-
-    if (currentStep == steps.length) {
-      content.classList.remove("offset-lg-1");
     }
 
     if (currentStep == steps.length) {
@@ -146,6 +142,53 @@ function backPrevious() {
   }
 }
 
+function goToStep(stepNumber) {
+  var steps = content.querySelectorAll("[data-steps]");
+  if (stepNumber < 1 || stepNumber > steps.length) return;
+
+  var activeStep = content.querySelector("[data-steps].active");
+  var targetStep = content.querySelector(
+    '[data-steps="'.concat(stepNumber, '"]')
+  );
+  var btnSave = content.querySelectorAll(".saveBtn");
+
+  if (activeStep) {
+    activeStep.classList.add("d-none");
+    activeStep.classList.remove("active");
+  }
+  if (navscroll) navscroll.classList.remove("d-lg-block");
+  if (progressBar) progressBar.classList.add("d-none");
+
+  targetStep.classList.remove("d-none");
+  targetStep.classList.add("active");
+  currentStep = stepNumber;
+  progressBar = document.querySelector(
+    '[data-progress="'.concat(currentStep, '"]')
+  );
+  navscroll = document.querySelector(
+    '[data-index="'.concat(currentStep, '"]')
+  );
+  progressBar.classList.remove("d-none");
+  progressBar.classList.add("d-block");
+  navscroll.classList.add("d-lg-block");
+  content.classList.add("offset-lg-1");
+
+  btnBack.disabled = currentStep === 1;
+  content.querySelector(".steppers-btn-confirm span").innerHTML =
+    currentStep === steps.length ? "Invia" : "Avanti";
+
+  btnSave.forEach(function (element) {
+    element.classList.toggle("invisible", currentStep !== steps.length);
+    element.classList.toggle("visible", currentStep === steps.length);
+  });
+
+  if (currentStep === steps.length) setReviews();
+  checkMandatoryFields();
+
+  var heading = document.querySelector(".cmp-hero");
+  if (heading) heading.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 pageSteps();
 
 /* Define an empty object to collect answers */
@@ -155,7 +198,11 @@ const encodeObject = (obj) => encodeURIComponent(JSON.stringify(obj));
 const decodeObj = (str) => JSON.parse(decodeURIComponent(str));
 
 const saveAnswerByValue = (key, value, toBeDecoded = false) => {
-  if (key == "office") for (k in answers) delete answers[k];
+  if (key == "office") {
+    for (const answerKey in answers) {
+      if (answerKey !== "privacy") delete answers[answerKey];
+    }
+  }
   if (toBeDecoded) {
     const newValue = decodeObj(value);
     answers[key] = newValue;
@@ -169,7 +216,13 @@ const saveAnswerById = (key, id, callback) => {
   checkMandatoryFields();
 };
 
-/* Get Luoghi by Unità organizzativa - Step 1 */
+/* Privacy - Step 1 */
+const privacyConsent = document.getElementById("booking-privacy-consent");
+privacyConsent.addEventListener("change", () => {
+  saveAnswerByValue("privacy", privacyConsent.checked ? "1" : "");
+});
+
+/* Get Luoghi by Unità organizzativa - Step 2 */
 const officeSelect = document.getElementById("office-choice");
 officeSelect.addEventListener("change", () => {
   const id = officeSelect?.value;
@@ -262,10 +315,17 @@ appointment.addEventListener("change", () => {
   answers.appointment = null;
   checkMandatoryFields();
 
+  const now = new Date();
+  const selectedMonth = Number(appointment?.value);
+  const appointmentYear =
+    selectedMonth < now.getMonth() + 1
+      ? now.getFullYear() + 1
+      : now.getFullYear();
+
   const urlParam = new URLSearchParams({
     id: answers?.office?.id,
-    month: appointment?.value,
-    year: new Date().getFullYear(),
+    month: selectedMonth,
+    year: appointmentYear,
   });
 
   fetch(`${window.wpRestApi}wp/v2/appuntamenti/ufficio/?${urlParam}`)
@@ -277,6 +337,11 @@ appointment.addEventListener("change", () => {
     })
     .then((data) => {
       data = Array.isArray(data) ? data : data?.[appointment?.value] || [];
+      const currentTime = new Date();
+      data = data.filter((dates) => {
+        const slotStart = new Date(dates?.startDate);
+        return !Number.isNaN(slotStart.getTime()) && slotStart > currentTime;
+      });
       document.querySelector("#radio-appointment").innerHTML =
         '<legend class="visually-hidden">Seleziona un giorno e orario</legend>';
 
@@ -384,7 +449,19 @@ emailInput.addEventListener("input", () => {
   saveAnswerByValue("email", emailInput?.value);
 });
 
-/* Step 5 */
+const phoneInput = document.getElementById("phone");
+phoneInput.addEventListener("input", () => {
+  saveAnswerByValue("phone", phoneInput?.value);
+});
+
+const editButtons = content.querySelectorAll(".booking-edit-step");
+editButtons.forEach(function (button) {
+  button.addEventListener("click", function () {
+    goToStep(Number(button.dataset.editStep));
+  });
+});
+
+/* Step 6 */
 const getDay = () => {
   const day = answers?.appointment?.startDate?.split("T")[0];
   return new Date(day).toLocaleString([], {
@@ -413,28 +490,43 @@ const setReviews = () => {
   document.getElementById("review-name").innerHTML = answers?.name;
   document.getElementById("review-surname").innerHTML = answers?.surname;
   document.getElementById("review-email").innerHTML = answers?.email;
+  document.getElementById("review-phone").innerHTML =
+    answers?.phone || "Non indicato";
 };
 
 /* Check mandatory fields */
+const validatePhone = (phone) =>
+  !phone || (/^[0-9+().\s/-]{6,30}$/.test(phone) && /[0-9]/.test(phone));
+
 const checkMandatoryFields = () => {
   switch (currentStep) {
     case 1:
-      if (answers?.office && answers?.place) btnNext.disabled = false;
+      if (answers?.privacy) btnNext.disabled = false;
       else btnNext.disabled = true;
       break;
 
     case 2:
-      if (answers?.appointment) btnNext.disabled = false;
+      if (answers?.office && answers?.place) btnNext.disabled = false;
       else btnNext.disabled = true;
       break;
 
     case 3:
-      if (answers?.service && answers?.moreDetails) btnNext.disabled = false;
+      if (answers?.appointment) btnNext.disabled = false;
       else btnNext.disabled = true;
       break;
 
     case 4:
-      if (answers?.name && answers?.surname && answers?.email)
+      if (answers?.service && answers?.moreDetails) btnNext.disabled = false;
+      else btnNext.disabled = true;
+      break;
+
+    case 5:
+      if (
+        answers?.name &&
+        answers?.surname &&
+        answers?.email &&
+        validatePhone(answers?.phone)
+      )
         btnNext.disabled = false;
       else btnNext.disabled = true;
       break;

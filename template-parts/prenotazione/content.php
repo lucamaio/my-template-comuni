@@ -64,12 +64,53 @@
 <div class="it-page-sections-container">
 
     <!-- Step 1 -->
-    <section class="firstStep page-step active it-page-section" data-steps="1">
+    <section class="firstStep page-step active it-page-section" data-steps="1" id="booking-privacy">
+        <div class="row justify-content-center">
+            <div class="col-12 pb-40 pb-lg-60">
+                <h2 class="title-xxlarge mb-3">Informativa sulla privacy</h2>
+                <p class="text-paragraph mb-3 booking-privacy-description">
+                    Il <?php echo esc_html(dci_get_option('nome_comune')); ?> utilizza i dati inseriti nel modulo
+                    esclusivamente per gestire la richiesta di appuntamento e comunicare eventuali aggiornamenti.
+                </p>
+                <p class="text-paragraph mb-4 booking-privacy-description">
+                    Nome, cognome ed email sono necessari per identificare il richiedente e confermare la prenotazione.
+                    I dati non saranno pubblicati e saranno trattati nel rispetto del Regolamento (UE) 2016/679 e
+                    della normativa vigente.
+                </p>
+                <a
+                    href="<?php echo esc_url($privacy_url); ?>"
+                    class="btn btn-outline-primary booking-privacy-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <svg class="icon icon-primary icon-sm me-2" aria-hidden="true">
+                        <use href="#it-external-link"></use>
+                    </svg>
+                    Leggi l’informativa completa
+                    <span class="visually-hidden">(si apre in una nuova finestra)</span>
+                </a>
+                <div class="form-check mt-4 mb-3">
+                    <div class="checkbox-body d-flex align-items-center">
+                        <input type="checkbox" id="booking-privacy-consent" name="booking-privacy-consent" value="1" required>
+                        <label class="title-small-semi-bold pt-1" for="booking-privacy-consent">
+                            Ho letto e compreso l’informativa sulla privacy
+                            <span class="text-danger" aria-hidden="true">*</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Step 2 -->
+    <section class="d-none page-step it-page-section" data-steps="2">
         <div class="cmp-card mb-40" id="office">
             <div class="card has-bkg-grey shadow-sm p-big">
                 <div class="card-header border-0 p-0 mb-lg-30">
                     <div class="d-flex">
-                        <h2 class="title-xxlarge mb-0">Ufficio*</h2>
+                        <h2 class="title-xxlarge mb-0">
+                            Ufficio <span class="text-danger" aria-hidden="true">*</span>
+                        </h2>
                     </div>
                     <p class="subtitle-small mb-0">
                         Scegli l’ufficio a cui vuoi richiedere l’appuntamento
@@ -80,7 +121,7 @@
                         <label for="office-choice" class="visually-hidden">
                             Tipo di ufficio
                         </label>
-                        <select id="office-choice" class="">
+                        <select id="office-choice" class="" required>
                             <option selected="selected" value="">
                                 Seleziona opzione
                             </option>
@@ -96,14 +137,14 @@
         </div>
     </section>
 
-    <!-- Step 2 -->
-    <section class="d-none page-step it-page-section" data-steps="2">
+    <!-- Step 3 -->
+    <section class="d-none page-step it-page-section" data-steps="3">
         <div class="cmp-card mb-40" id="appointment-available" >
             <div class="card has-bkg-grey shadow-sm p-big">
                 <div class="card-header border-0 p-0 mb-lg-30">
                     <div class="d-flex">
                     <h2 class="title-xxlarge mb-2">
-                        Appuntamenti disponibili*
+                        Appuntamenti disponibili <span class="text-danger" aria-hidden="true">*</span>
                     </h2>
                     </div>
                 </div>
@@ -148,13 +189,15 @@
         </div>
     </section>
 
-    <!-- Step 3 -->
-    <section class="d-none page-step it-page-section" data-steps="3">
+    <!-- Step 4 -->
+    <section class="d-none page-step it-page-section" data-steps="4">
         <div class="cmp-card mb-40" id="reason">
             <div class="card has-bkg-grey shadow-sm p-big">
                 <div class="card-header border-0 p-0 mb-lg-30 mb-3">
                     <div class="d-flex">
-                        <h2 class="title-xxlarge mb-0" >Motivo*</h2>
+                        <h2 class="title-xxlarge mb-0">
+                            Motivo <span class="text-danger" aria-hidden="true">*</span>
+                        </h2>
                     </div>
                     <p class="subtitle-small mb-0">
                         Scegli il motivo dell’appuntamento
@@ -165,7 +208,7 @@
                         <label for="motivo-appuntamento" class="visually-hidden">
                             Motivo dell&#x27;appuntamento
                         </label>
-                        <select id="motivo-appuntamento" class="">
+                        <select id="motivo-appuntamento" class="" required>
                         </select>
                     </div>
                 </div>
@@ -177,7 +220,7 @@
                 <div class="card-header border-0 p-0 mb-lg-30 m-0">
                     <div class="d-flex">
                         <h2 class="title-xxlarge mb-0" >
-                            Dettagli*
+                            Dettagli <span class="text-danger" aria-hidden="true">*</span>
                         </h2>
                     </div>
                     <p class="subtitle-small mb-0 mb-3">
@@ -194,6 +237,7 @@
                                 class="text-area form-control"
                                 id="form-details"
                                 rows="2"
+                                required
                             ></textarea>
                             <span class="label">
                                 Inserire massimo 200 caratteri
@@ -205,12 +249,8 @@
         </div>
     </section>
 
-    <!-- Step 4 -->
-    <section class="d-none page-step it-page-section" data-steps="4">
-        <p class="text-paragraph mb-3">
-            Per i dettagli sul trattamento dei dati personali consulta l’
-            <a href="<?php echo esc_url($privacy_url); ?>" class="t-primary">informativa sulla privacy.</a>
-        </p>
+    <!-- Step 5 -->
+    <section class="d-none page-step it-page-section" data-steps="5">
         <p class="subtitle-small pb-40 mb-0 d-lg-none">
             Hai un’identità digitale SPID o CIE?
             <a class="title-small-semi-bold t-primary underline"
@@ -232,7 +272,7 @@
                     <div class="form-wrapper bg-white p-4">
                         <div class="form-group cmp-input mb-0">
                             <label class="cmp-input__label" for="name">
-                                Nome*
+                                Nome <span class="text-danger" aria-hidden="true">*</span>
                             </label>
                             <input
                                 type="text"
@@ -250,7 +290,7 @@
 
                         <div class="form-group cmp-input mb-0">
                             <label class="cmp-input__label" for="surname">
-                                Cognome*
+                                Cognome <span class="text-danger" aria-hidden="true">*</span>
                             </label>
                             <input
                                 type="text"
@@ -268,7 +308,7 @@
 
                         <div class="form-group cmp-input mb-0">
                             <label class="cmp-input__label" for="email">
-                                Email*
+                                Email <span class="text-danger" aria-hidden="true">*</span>
                             </label>
                             <input
                                 type="email"
@@ -283,173 +323,130 @@
                                 </span>
                             </div>
                         </div>
+
+                        <div class="form-group cmp-input mb-0">
+                            <label class="cmp-input__label" for="phone">
+                                Telefono
+                            </label>
+                            <input
+                                type="tel"
+                                class="form-control"
+                                id="phone"
+                                name="phone"
+                                autocomplete="tel"
+                                maxlength="30"
+                            />
+                            <div class="d-flex">
+                                <span class="form-text cmp-input__text">
+                                    Facoltativo. Inserisci anche il prefisso, se necessario.
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Step 5 -->
-    <section class="d-none page-step it-page-section" data-steps="5">
-        <div class="mt-2">
-            <h2 class="visually-hidden">Dettagli dell'appuntamento</h2>
+    <!-- Step 6 -->
+    <section class="d-none page-step it-page-section" data-steps="6">
+        <div class="mt-2" id="booking-summary">
+            <h2 class="title-xxlarge mb-3">Riepilogo dell’appuntamento</h2>
+            <p class="text-paragraph mb-4">
+                Controlla i dati prima dell’invio. Puoi tornare direttamente alla sezione da modificare.
+            </p>
             <div class="cmp-card mb-4">
                 <div class="card has-bkg-grey shadow-sm mb-0">
-                    <div class="card-header border-0 p-0 mb-lg-30">
-                        <div class="d-flex">
-                            <h3 class="subtitle-large mb-0">Riepilogo</h3>
-                        </div>
-                    </div>
                     <div class="card-body p-0">
-                        <div class="cmp-info-summary bg-white mb-3 mb-lg-4 p-3 p-lg-4">
+                        <div class="cmp-info-summary bg-white mb-3 p-3 p-lg-4">
                             <div class="card">
-                                <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between d-flex justify-content-end">
-                                    <h4 class="title-large-semi-bold mb-3">
-                                        Ufficio
-                                    </h4>
-                                    <a
-                                        href="#"
-                                        class="text-decoration-none"
-                                        title="Modifica Ufficio"
-                                        aria-label="Modifica Ufficio"
-                                    >
-                                        <span class="text-button-sm-semi t-primary">
-                                            Modifica
-                                        </span>
-                                    </a>
+                                <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between">
+                                    <h3 class="title-large-semi-bold mb-3">Ufficio</h3>
+                                    <button type="button" class="btn btn-link p-0 booking-edit-step" data-edit-step="2">
+                                        Modifica
+                                    </button>
                                 </div>
-
                                 <div class="card-body p-0">
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">
-                                        Tipologia ufficio
-                                    </div>
-                                    <div class="border-light">
+                                        <div class="text-paragraph-small">Ufficio</div>
                                         <p class="data-text" id="review-office"></p>
                                     </div>
-                                    </div>
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">
-                                        Municipalità
-                                    </div>
-                                    <div class="border-light">
+                                        <div class="text-paragraph-small">Sede</div>
                                         <p class="data-text" id="review-place"></p>
                                     </div>
-                                    </div>
                                 </div>
-                                <div class="card-footer p-0"></div>
                             </div>
                         </div>
-                        <div class="cmp-info-summary bg-white mb-3 mb-lg-4 p-3 p-lg-4">
-                            <div class="card">
-                                <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between d-flex justify-content-end">
-                                    <h4 class="title-large-semi-bold mb-3">
-                                        Data e orario
-                                    </h4>
-                                    <a
-                                        href="#"
-                                        class="text-decoration-none"
-                                        title="Modifica Data e orario"
-                                        aria-label="Modifica Data e orario"
-                                    >
-                                        <span class="text-button-sm-semi t-primary">
-                                            Modifica
-                                        </span>
-                                    </a>
-                                </div>
 
+                        <div class="cmp-info-summary bg-white mb-3 p-3 p-lg-4">
+                            <div class="card">
+                                <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between">
+                                    <h3 class="title-large-semi-bold mb-3">Data e orario</h3>
+                                    <button type="button" class="btn btn-link p-0 booking-edit-step" data-edit-step="3">
+                                        Modifica
+                                    </button>
+                                </div>
                                 <div class="card-body p-0">
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">Data</div>
-                                    <div class="border-light">
+                                        <div class="text-paragraph-small">Data</div>
                                         <p class="data-text" id="review-date"></p>
                                     </div>
-                                    </div>
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">Ora</div>
-                                    <div class="border-light">
+                                        <div class="text-paragraph-small">Ora</div>
                                         <p class="data-text" id="review-hour"></p>
                                     </div>
-                                    </div>
                                 </div>
-                                <div class="card-footer p-0"></div>
                             </div>
                         </div>
-                        <div class="cmp-info-summary bg-white mb-3 mb-lg-4 p-3 p-lg-4">
-                            <div class="card">
-                                <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between d-flex justify-content-end">
-                                    <h4 class="title-large-semi-bold mb-3">
-                                        Dettagli appuntamento
-                                    </h4>
-                                    <a
-                                        href="#"
-                                        class="text-decoration-none"
-                                        title="Modifica Dettagli appuntamento"
-                                        aria-label="Modifica Dettagli appuntamento"
-                                    >
-                                        <span class="text-button-sm-semi t-primary">
-                                            Modifica
-                                        </span>
-                                    </a
-                                    >
-                                </div>
 
+                        <div class="cmp-info-summary bg-white mb-3 p-3 p-lg-4">
+                            <div class="card">
+                                <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between">
+                                    <h3 class="title-large-semi-bold mb-3">Dettagli appuntamento</h3>
+                                    <button type="button" class="btn btn-link p-0 booking-edit-step" data-edit-step="4">
+                                        Modifica
+                                    </button>
+                                </div>
                                 <div class="card-body p-0">
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">Motivo</div>
-                                    <div class="border-light">
+                                        <div class="text-paragraph-small">Motivo</div>
                                         <p class="data-text" id="review-service"></p>
                                     </div>
-                                    </div>
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">Dettagli</div>
-                                    <div class="border-light">
-                                        <p class="data-text" id="review-details"></p>
-                                    </div>
+                                        <div class="text-paragraph-small">Dettagli</div>
+                                        <p class="data-text booking-review-multiline" id="review-details"></p>
                                     </div>
                                 </div>
-                                <div class="card-footer p-0"></div>
                             </div>
                         </div>
+
                         <div class="cmp-info-summary bg-white p-3 p-lg-4 mb-0">
                             <div class="card">
-                                <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between d-flex justify-content-end">
-                                    <h4 class="title-large-semi-bold mb-3">
-                                        Richiedente
-                                    </h4>
-                                    <a
-                                        href="#"
-                                        class="text-decoration-none"
-                                        title="Modifica Richiedente"
-                                        aria-label="Modifica Richiedente"
-                                    >
-                                        <span class="text-button-sm-semi t-primary">
-                                            Modifica
-                                        </span>
-                                    </a>
+                                <div class="card-header border-bottom border-light p-0 mb-0 d-flex justify-content-between">
+                                    <h3 class="title-large-semi-bold mb-3">Richiedente</h3>
+                                    <button type="button" class="btn btn-link p-0 booking-edit-step" data-edit-step="5">
+                                        Modifica
+                                    </button>
                                 </div>
-
                                 <div class="card-body p-0">
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">Nome</div>
-                                    <div class="border-light">
+                                        <div class="text-paragraph-small">Nome</div>
                                         <p class="data-text" id="review-name"></p>
                                     </div>
-                                    </div>
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">Cognome</div>
-                                    <div class="border-light">
+                                        <div class="text-paragraph-small">Cognome</div>
                                         <p class="data-text" id="review-surname"></p>
                                     </div>
-                                    </div>
                                     <div class="single-line-info border-light">
-                                    <div class="text-paragraph-small">Email</div>
-                                    <div class="border-light">
+                                        <div class="text-paragraph-small">Email</div>
                                         <p class="data-text" id="review-email"></p>
                                     </div>
+                                    <div class="single-line-info border-light">
+                                        <div class="text-paragraph-small">Telefono</div>
+                                        <p class="data-text" id="review-phone"></p>
                                     </div>
                                 </div>
-                                <div class="card-footer p-0"></div>
                             </div>
                         </div>
                     </div>

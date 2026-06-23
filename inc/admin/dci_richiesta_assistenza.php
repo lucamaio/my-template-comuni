@@ -89,6 +89,12 @@ function dci_add_richiesta_assistenza_metaboxes() {
         'type' => 'text_email',
         'attributes' => array('readonly' => true)
     ));
+    $cmb_richiedente->add_field(array(
+        'id' => $prefix . 'telefono',
+        'name' => __('Telefono', 'design_comuni_italia'),
+        'type' => 'text',
+        'attributes' => array('readonly' => true)
+    ));
 
     // Richiesta
     $cmb_richiesta = new_cmb2_box(array(
@@ -106,7 +112,25 @@ function dci_add_richiesta_assistenza_metaboxes() {
     ));
     $cmb_richiesta->add_field(array(
         'id' => $prefix . 'servizio',
-        'name' => __('Servizio', 'design_comuni_italia'),
+        'name' => __('Tipologia di disservizio', 'design_comuni_italia'),
+        'type' => 'text',
+        'attributes' => array('readonly' => true)
+    ));
+    $cmb_richiesta->add_field(array(
+        'id' => $prefix . 'luogo',
+        'name' => __('Luogo', 'design_comuni_italia'),
+        'type' => 'text',
+        'attributes' => array('readonly' => true)
+    ));
+    $cmb_richiesta->add_field(array(
+        'id' => $prefix . 'riferimento_luogo',
+        'name' => __('Indirizzo o riferimento', 'design_comuni_italia'),
+        'type' => 'text',
+        'attributes' => array('readonly' => true)
+    ));
+    $cmb_richiesta->add_field(array(
+        'id' => $prefix . 'motivo',
+        'name' => __('Motivo', 'design_comuni_italia'),
         'type' => 'text',
         'attributes' => array('readonly' => true)
     ));

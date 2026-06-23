@@ -1188,3 +1188,209 @@ body.dci-sticky-header-nav-active .dci-sticky-nav-search .search-link {
   height: 100%;
   object-fit: cover;
 }
+
+/* Percorso Segnala disservizio */
+.report-progress-navigation {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #d8dfe5;
+}
+
+.report-privacy-description {
+  max-width: 50rem;
+  line-height: 1.65;
+}
+
+.report-privacy-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+}
+
+.report-form-layout .report-side-navigation {
+  padding-right: 2rem;
+  border-right: 1px solid #d8dfe5;
+}
+
+.report-form-layout .section-wrapper {
+  padding-left: 2rem;
+}
+
+.report-select-field {
+  margin-top: 1.5rem;
+}
+
+.report-select-field label {
+  background-color: #fff;
+  line-height: 1.25;
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+}
+
+.report-select-field select {
+  min-height: 3rem;
+}
+
+.report-side-navigation .sticky-top {
+  top: 1rem;
+  z-index: 2;
+}
+
+#report-description {
+  min-height: 12rem;
+  resize: vertical;
+}
+
+#description-counter {
+  float: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.report-review-multiline {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.report-edit-step {
+  min-width: auto;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+#report-success {
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+}
+
+.report-success-heading {
+  margin-bottom: 1.5rem;
+}
+
+.report-success-heading .text-paragraph {
+  max-width: 44rem;
+}
+
+/* Percorso Prenota appuntamento, allineato al layout Segnala disservizio */
+.booking-hero-description {
+  max-width: 48rem;
+  margin-top: 0.125rem;
+  line-height: 1.6;
+}
+
+.booking-privacy-description {
+  max-width: 50rem;
+  line-height: 1.65;
+}
+
+.booking-privacy-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+}
+
+.booking-progress-navigation {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #d8dfe5;
+}
+
+.booking-form-layout .booking-side-navigation {
+  padding-right: 2rem;
+  border-right: 1px solid #d8dfe5;
+}
+
+.booking-form-layout .section-wrapper {
+  padding-left: 2rem;
+}
+
+.booking-side-navigation .sticky-top {
+  top: 1rem;
+  z-index: 2;
+}
+
+.booking-edit-step {
+  min-width: auto;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.booking-review-multiline {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 991.98px) {
+  .report-progress-navigation {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .report-form-layout .report-side-navigation,
+  .report-form-layout .section-wrapper {
+    padding-right: calc(var(--bs-gutter-x) * 0.5);
+    padding-left: calc(var(--bs-gutter-x) * 0.5);
+  }
+
+  .report-form-layout .report-side-navigation {
+    border-right: 0;
+  }
+
+  .report-side-navigation {
+    position: static;
+  }
+
+  .report-side-navigation .cmp-navscroll {
+    margin-bottom: 1rem;
+  }
+
+  .booking-progress-navigation {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  #form-steps .cmp-hero,
+  .booking-hero-description,
+  .booking-form-layout,
+  .booking-form-layout .section-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .booking-hero-description {
+    overflow-wrap: anywhere;
+  }
+
+  .booking-form-layout {
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  .booking-form-layout .booking-side-navigation,
+  .booking-form-layout .section-wrapper {
+    padding-right: calc(var(--bs-gutter-x) * 0.5);
+    padding-left: calc(var(--bs-gutter-x) * 0.5);
+  }
+
+  .booking-form-layout .booking-side-navigation {
+    border-right: 0;
+  }
+
+  .booking-side-navigation {
+    position: static;
+  }
+
+  .booking-side-navigation .cmp-navscroll {
+    margin-bottom: 1rem;
+  }
+
+  .booking-form-layout .steppers-btn-save.invisible {
+    display: none !important;
+  }
+
+  .booking-form-layout .steppers-nav {
+    gap: 0.75rem;
+  }
+}

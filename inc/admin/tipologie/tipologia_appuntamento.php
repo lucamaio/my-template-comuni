@@ -89,6 +89,16 @@ function dci_add_appuntamento_metaboxes()
     ) );
 
     $cmb_dati->add_field( array(
+        'id' => $prefix . 'telefono_richiedente',
+        'desc' => __( 'Telefono facoltativo del richiedente', 'design_comuni_italia' ),
+        'name' => __( 'Telefono richiedente', 'design_comuni_italia' ),
+        'type' => 'text',
+        'attributes' => array(
+            'readonly' => true
+        ),
+    ) );
+
+    $cmb_dati->add_field( array(
         'id' => $prefix . 'dettaglio_richiesta',
         'desc' => __( 'Testo della richiesta' , 'design_comuni_italia' ),
         'name'  => __( 'Dettaglio richiesta *', 'design_comuni_italia' ),

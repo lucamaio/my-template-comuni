@@ -117,6 +117,20 @@ function dci_get_tassonomie_names(){
 function dci_get_disservizi_names(){
     $disservizi = array(
         'Danneggiamento luogo pubblico',
+        'Illuminazione pubblica non funzionante',
+        'Buche o dissesto stradale',
+        'Segnaletica stradale danneggiata o mancante',
+        'Semaforo non funzionante',
+        'Rifiuti abbandonati o mancata raccolta',
+        'Verde pubblico e alberature',
+        'Arredo urbano danneggiato',
+        'Barriere architettoniche o problemi di accessibilità',
+        'Perdita d’acqua o problema alla rete idrica',
+        'Fognatura o caditoia ostruita',
+        'Rumore o disturbo della quiete pubblica',
+        'Animali vaganti o problematiche igienico-sanitarie',
+        'Problema su sito, app o servizio digitale del Comune',
+        'Altro disservizio',
     );
     return $disservizi;
 }

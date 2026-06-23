@@ -856,6 +856,7 @@ function dci_get_appuntamenti_ufficio(WP_REST_Request $request) {
     $office_id = absint($request->get_param('id'));
     $month = absint($request->get_param('month'));
     $year = absint($request->get_param('year'));
+    $timezone = wp_timezone();
 
     if ($office_id <= 0) {
         return array(
@@ -893,14 +894,18 @@ function dci_get_appuntamenti_ufficio(WP_REST_Request $request) {
     $data_inizio_raw = get_post_meta($orario_id, $prefix . 'data_inizio', true);
     $data_fine_raw = get_post_meta($orario_id, $prefix . 'data_fine', true);
 
-    $data_inizio = DateTime::createFromFormat('d-m-Y', $data_inizio_raw) ?: null;
-    $data_fine = DateTime::createFromFormat('d-m-Y', $data_fine_raw) ?: null;
+    $data_inizio = DateTime::createFromFormat('!d-m-Y', $data_inizio_raw, $timezone) ?: null;
+    $data_fine = DateTime::createFromFormat('!d-m-Y', $data_fine_raw, $timezone) ?: null;
     if (!$data_inizio || !$data_fine) {
         set_transient($cache_key, array(), 2 * MINUTE_IN_SECONDS);
         return array();
     }
 
-    $first_day = DateTime::createFromFormat('Y-n-j H:i:s', $year . '-' . $month . '-1 00:00:00');
+    $first_day = DateTime::createFromFormat(
+        '!Y-n-j H:i:s',
+        $year . '-' . $month . '-1 00:00:00',
+        $timezone
+    );
     $last_day = clone $first_day;
     $last_day->modify('last day of this month')->setTime(23, 59, 59);
 
@@ -917,7 +922,7 @@ function dci_get_appuntamenti_ufficio(WP_REST_Request $request) {
 
     $slots = array();
     $cursor = clone $first_day;
-    $now = new DateTime('now', wp_timezone());
+    $now = new DateTime('now', $timezone);
 
     while ($cursor <= $last_day) {
         if ($cursor >= $data_inizio && $cursor <= $data_fine && !dci_is_festivo_nazionale($cursor)) {
@@ -1701,6 +1706,116 @@ add_action("wp_ajax_save_richiesta_assistenza" , "dci_save_richiesta_assistenza"
 add_action("wp_ajax_nopriv_save_richiesta_assistenza" , "dci_save_richiesta_assistenza");
 
 /**
+ * Salva una segnalazione di disservizio proveniente dal relativo percorso guidato.
+ */
+function dci_save_segnalazione_disservizio() {
+    if (!check_ajax_referer('dci_segnalazione_disservizio', 'nonce', false)) {
+        wp_send_json_error(array(
+            'message' => __('La sessione è scaduta. Ricarica la pagina e riprova.', 'design_comuni_italia'),
+        ), 403);
+    }
+
+    $params = wp_unslash($_POST);
+
+    // Campo esca invisibile: se compilato, la richiesta è quasi certamente automatizzata.
+    if (!empty($params['website'])) {
+        wp_send_json_success(array('ticket' => 'SEG-RICEVUTA'));
+    }
+
+    $nome = sanitize_text_field($params['nome'] ?? '');
+    $cognome = sanitize_text_field($params['cognome'] ?? '');
+    $email = sanitize_email($params['email'] ?? '');
+    $telefono = sanitize_text_field($params['telefono'] ?? '');
+    $luogo_id = sanitize_text_field($params['luogo_id'] ?? '');
+    $luogo = sanitize_text_field($params['luogo'] ?? '');
+    $riferimento_luogo = sanitize_text_field($params['riferimento_luogo'] ?? '');
+    $tipologia = sanitize_text_field($params['tipologia'] ?? '');
+    $motivo = sanitize_text_field($params['motivo'] ?? '');
+    $dettagli = sanitize_textarea_field($params['dettagli'] ?? '');
+    $privacy = isset($params['privacy']) && '1' === (string) $params['privacy'];
+
+    $tipologie_ammesse = dci_get_disservizi_names();
+    $telefono_valido = '' === $telefono || (bool) preg_match('/^[0-9+().\s\/-]{6,30}$/', $telefono);
+    $luogo_valido = 'altro' === $luogo_id;
+
+    if (!$luogo_valido && ctype_digit($luogo_id)) {
+        $luogo_post = get_post((int) $luogo_id);
+        $luogo_valido = $luogo_post && 'luogo' === $luogo_post->post_type && 'publish' === $luogo_post->post_status;
+        if ($luogo_valido) {
+            $luogo = get_the_title($luogo_post);
+        }
+    }
+
+    if (
+        !$privacy
+        || '' === $nome
+        || '' === $cognome
+        || !is_email($email)
+        || !$telefono_valido
+        || !$luogo_valido
+        || !in_array($tipologia, $tipologie_ammesse, true)
+        || '' === $motivo
+    ) {
+        wp_send_json_error(array(
+            'message' => __('Alcuni dati non sono validi o risultano mancanti. Controlla la segnalazione e riprova.', 'design_comuni_italia'),
+        ), 422);
+    }
+
+    $post_id = wp_insert_post(array(
+        'post_type' => 'richiesta_assistenza',
+        'post_title' => 'Segnalazione in acquisizione',
+        // La segnalazione contiene dati personali e non deve essere pubblica sul frontend.
+        'post_status' => 'private',
+    ), true);
+
+    if (is_wp_error($post_id) || !$post_id) {
+        wp_send_json_error(array(
+            'message' => __('Non è stato possibile registrare la segnalazione. Riprova tra qualche istante.', 'design_comuni_italia'),
+        ), 500);
+    }
+
+    $ticket_code = 'SEG-' . date_i18n('Ymd') . '-' . str_pad((string) $post_id, 5, '0', STR_PAD_LEFT);
+    wp_update_post(array(
+        'ID' => $post_id,
+        'post_title' => $ticket_code,
+    ));
+
+    $dettagli_completi = implode("\n", array_filter(array(
+        'Motivo: ' . $motivo,
+        'Luogo: ' . $luogo,
+        $riferimento_luogo ? 'Indirizzo o riferimento: ' . $riferimento_luogo : '',
+        $dettagli ? 'Ulteriori dettagli: ' . $dettagli : '',
+    )));
+
+    update_post_meta($post_id, '_dci_richiesta_assistenza_nome', $nome);
+    update_post_meta($post_id, '_dci_richiesta_assistenza_cognome', $cognome);
+    update_post_meta($post_id, '_dci_richiesta_assistenza_email', $email);
+    update_post_meta($post_id, '_dci_richiesta_assistenza_telefono', $telefono);
+    update_post_meta($post_id, '_dci_richiesta_assistenza_servizio', $tipologia);
+    update_post_meta($post_id, '_dci_richiesta_assistenza_dettagli', $dettagli_completi);
+    update_post_meta($post_id, '_dci_richiesta_assistenza_luogo', $luogo);
+    update_post_meta($post_id, '_dci_richiesta_assistenza_riferimento_luogo', $riferimento_luogo);
+    update_post_meta($post_id, '_dci_richiesta_assistenza_motivo', $motivo);
+
+    $notification_params = array(
+        'nome' => $nome,
+        'cognome' => $cognome,
+        'email' => $email,
+        'telefono' => $telefono,
+        'servizio' => $tipologia,
+        'dettagli' => $dettagli_completi,
+    );
+    $mail_sent = dci_send_richiesta_assistenza_notification($post_id, $notification_params, $ticket_code);
+
+    wp_send_json_success(array(
+        'ticket' => $ticket_code,
+        'mail_sent' => $mail_sent,
+    ));
+}
+add_action('wp_ajax_save_segnalazione_disservizio', 'dci_save_segnalazione_disservizio');
+add_action('wp_ajax_nopriv_save_segnalazione_disservizio', 'dci_save_segnalazione_disservizio');
+
+/**
  * Invia notifica e-mail per nuove richieste assistenza/disservizio.
  *
  * @param int   $postId
@@ -1738,6 +1853,7 @@ function dci_send_richiesta_assistenza_notification($postId, $params, $ticket_ti
         'Nome: ' . ($params['nome'] ?? ''),
         'Cognome: ' . ($params['cognome'] ?? ''),
         'Email: ' . ($params['email'] ?? ''),
+        'Telefono: ' . ($params['telefono'] ?? ''),
         'Servizio: ' . ($params['servizio'] ?? ''),
         'Dettagli: ' . ($params['dettagli'] ?? ''),
         '',
@@ -1769,6 +1885,22 @@ function dci_save_appuntamento(){
     $params = json_decode(json_encode($_POST), true);
     $postId = 0;
     $appuntamento_title = '';
+    $appointment_obj = array();
+
+    if (array_key_exists('appointment', $params) && $params['appointment'] !== 'null') {
+        $appointment_obj = json_decode(stripslashes($params['appointment']), true);
+    }
+
+    $appointment_start = !empty($appointment_obj['startDate'])
+        ? DateTime::createFromFormat('!Y-m-d\TH:i', $appointment_obj['startDate'], wp_timezone())
+        : false;
+    $now = new DateTime('now', wp_timezone());
+
+    if (!$appointment_start || $appointment_start <= $now) {
+        wp_send_json_error(array(
+            'message' => 'L’orario selezionato non è più disponibile. Seleziona una data e un orario successivi.'
+        ), 400);
+    }
 
     date_default_timezone_set('Europe/Rome');
     $data = date('Y-m-d\TH:i:s');
@@ -1800,6 +1932,10 @@ function dci_save_appuntamento(){
         update_post_meta($postId, '_dci_appuntamento_email_richiedente',  $params['email']);
     }
 
+    if(array_key_exists("phone", $params) && $params['phone'] != "null") {
+        update_post_meta($postId, '_dci_appuntamento_telefono_richiedente', sanitize_text_field($params['phone']));
+    }
+
     if(array_key_exists("moreDetails", $params) && $params['moreDetails'] != "null") {
         update_post_meta($postId, '_dci_appuntamento_dettaglio_richiesta',  $params['moreDetails']);
     }
@@ -1818,7 +1954,6 @@ function dci_save_appuntamento(){
 
     if(array_key_exists("appointment", $params) && $params['appointment'] != "null") {
 
-        $appointment_obj = json_decode(stripslashes($params['appointment']), true);
         $startDate = $appointment_obj['startDate'];
         $endDate = $appointment_obj['endDate'];
 
@@ -1897,6 +2032,7 @@ function dci_send_appuntamento_notification($postId, $params, $data) {
         'Nome: ' . ($params['name'] ?? ''),
         'Cognome: ' . ($params['surname'] ?? ''),
         'Email richiedente: ' . ($params['email'] ?? ''),
+        'Telefono richiedente: ' . ($params['phone'] ?? ''),
         'Ufficio: ' . $office_name,
         'Servizio: ' . $service_name,
         'Dettagli: ' . ($params['moreDetails'] ?? ''),

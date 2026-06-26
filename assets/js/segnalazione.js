@@ -1,16 +1,12 @@
 (function () {
-  'use strict';
-
   var content = document.querySelector('.section-wrapper');
-  if (!content || typeof dciSegnalazione === 'undefined') return;
+  if (!content) return;
 
   var steps = Array.prototype.slice.call(content.querySelectorAll('[data-steps]'));
   var btnNext = content.querySelector('.btn-next-step');
   var btnBack = content.querySelector('.btn-back-step');
-  var errorBox = document.getElementById('report-error');
-  var successBox = document.getElementById('report-success');
+  var alertMessage = document.getElementById('alert-message');
   var currentStep = 1;
-  var submitting = false;
 
   function getEl(id) {
     return document.getElementById(id);
@@ -21,239 +17,198 @@
     return el ? (el.value || '').trim() : '';
   }
 
-  function getSelectedText(id) {
-    var select = getEl(id);
-    if (!select || select.selectedIndex < 0 || !select.value) return '';
-    return (select.options[select.selectedIndex].text || '').trim();
-  }
-
-  function validateEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-
-  function validatePhone(phone) {
-    return !phone || (/^[0-9+().\s/-]{6,30}$/.test(phone) && /[0-9]/.test(phone));
-  }
-
-  function setText(id, value, fallback) {
-    var el = getEl(id);
-    if (el) el.textContent = value || fallback || 'Non indicato';
-  }
-
   function setProgress() {
     var progresses = document.querySelectorAll('[data-progress]');
     for (var i = 0; i < progresses.length; i++) {
-      progresses[i].classList.toggle('d-none', Number(progresses[i].getAttribute('data-progress')) !== currentStep);
+      progresses[i].classList.add('d-none');
     }
-
-    var indexes = document.querySelectorAll('[data-index-step]');
-    for (var j = 0; j < indexes.length; j++) {
-      indexes[j].classList.toggle('d-none', Number(indexes[j].getAttribute('data-index-step')) !== currentStep);
-    }
+    var currentProgress = document.querySelector('[data-progress="' + currentStep + '"]');
+    if (currentProgress) currentProgress.classList.remove('d-none');
   }
 
-  function updateSummary() {
-    setText('review-place', getSelectedText('luogo-disservizio'));
-    setText('review-location-details', getValue('location-details'));
-    setText('review-type', getSelectedText('report-type'));
-    setText('review-reason', getValue('report-reason'));
-    setText('review-description', getValue('report-description'));
-    setText('review-name', getValue('name'));
-    setText('review-surname', getValue('surname'));
-    setText('review-email', getValue('email'));
-    setText('review-phone', getValue('phone'));
+  function showStep(stepNumber) {
+    var node = content.querySelector('[data-steps="' + stepNumber + '"]');
+    if (!node) return;
+    node.classList.remove('d-none');
+    node.classList.add('active');
   }
 
-  function isStepValid(step) {
-    if (step === 1) {
-      return Boolean(getEl('privacy') && getEl('privacy').checked);
-    }
+  function hideStep(stepNumber) {
+    var node = content.querySelector('[data-steps="' + stepNumber + '"]');
+    if (!node) return;
+    node.classList.add('d-none');
+    node.classList.remove('active');
+  }
 
-    if (step === 2) {
-      return Boolean(
-        getValue('luogo-disservizio') &&
-        getValue('report-type') &&
-        getValue('report-reason')
-      );
-    }
-
-    if (step === 3) {
-      return Boolean(
-        getValue('name') &&
-        getValue('surname') &&
-        validateEmail(getValue('email')) &&
-        validatePhone(getValue('phone'))
-      );
-    }
-
-    return true;
+  function validateEmail(email) {
+    var regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
   }
 
   function updateNextState() {
     if (!btnNext) return;
-    btnNext.disabled = submitting || !isStepValid(currentStep);
-  }
 
-  function updateButtons() {
-    if (!btnNext || !btnBack) return;
-    btnBack.disabled = submitting || currentStep === 1;
-
-    var label = btnNext.querySelector('span');
-    if (label) label.textContent = currentStep === steps.length ? 'Invia segnalazione' : 'Avanti';
-    updateNextState();
-  }
-
-  function showError(message) {
-    if (!errorBox) return;
-    errorBox.textContent = message;
-    errorBox.classList.remove('d-none');
-    errorBox.focus();
-  }
-
-  function clearError() {
-    if (!errorBox) return;
-    errorBox.textContent = '';
-    errorBox.classList.add('d-none');
-  }
-
-  function goToStep(stepNumber, shouldScroll) {
-    if (stepNumber < 1 || stepNumber > steps.length) return;
-
-    for (var i = 0; i < steps.length; i++) {
-      var isActive = Number(steps[i].getAttribute('data-steps')) === stepNumber;
-      steps[i].classList.toggle('d-none', !isActive);
-      steps[i].classList.toggle('active', isActive);
+    if (currentStep === 1) {
+      var privacy = getEl('privacy');
+      btnNext.disabled = !(privacy && privacy.checked);
+      return;
     }
 
-    currentStep = stepNumber;
-    if (currentStep === steps.length) updateSummary();
-    clearError();
-    setProgress();
-    updateButtons();
-
-    if (shouldScroll !== false) {
-      var heading = document.querySelector('.cmp-hero');
-      if (heading) heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (currentStep === 2) {
+      var place = getValue('luogo-disservizio');
+      var service = getValue('motivo-appuntamento');
+      var title = getValue('title');
+      var details = getValue('details');
+      btnNext.disabled = !(place && service && title && details);
+      return;
     }
+
+    if (currentStep === 3) {
+      btnNext.disabled = false;
+      return;
+    }
+
+    if (currentStep === 4) {
+      var name = getValue('name');
+      var surname = getValue('surname');
+      var email = getValue('email');
+      btnNext.disabled = !(name && surname && email && validateEmail(email));
+      return;
+    }
+
+    btnNext.disabled = false;
+  }
+
+  function getSelectedText(selectId) {
+    var select = getEl(selectId);
+    if (!select || select.selectedIndex < 0) return '';
+    return select.options[select.selectedIndex].text || '';
   }
 
   function submitReport() {
-    if (submitting) return;
+    var title = getValue('title');
+    var details = getValue('details');
+    var name = getValue('name');
+    var surname = getValue('surname');
+    var email = getValue('email');
+    var placeText = getSelectedText('luogo-disservizio');
+    var serviceText = getSelectedText('motivo-appuntamento');
 
-    submitting = true;
-    clearError();
-    updateButtons();
+    var fullDetails = [
+      'Titolo: ' + title,
+      'Luogo: ' + placeText,
+      'Tipologia disservizio: ' + serviceText,
+      'Dettagli: ' + details
+    ].join('\n');
 
+    var url = (typeof urlConfirm !== 'undefined' && Array.isArray(urlConfirm)) ? urlConfirm[0] : urlConfirm;
     var body = new URLSearchParams();
-    body.append('action', 'save_segnalazione_disservizio');
-    body.append('nonce', dciSegnalazione.nonce);
-    body.append('luogo_id', getValue('luogo-disservizio'));
-    body.append('luogo', getSelectedText('luogo-disservizio'));
-    body.append('riferimento_luogo', getValue('location-details'));
-    body.append('tipologia', getSelectedText('report-type'));
-    body.append('motivo', getValue('report-reason'));
-    body.append('dettagli', getValue('report-description'));
-    body.append('nome', getValue('name'));
-    body.append('cognome', getValue('surname'));
-    body.append('email', getValue('email'));
-    body.append('telefono', getValue('phone'));
-    body.append('privacy', getEl('privacy') && getEl('privacy').checked ? '1' : '0');
-    body.append('website', getValue('report-website'));
+    body.append('action', 'save_richiesta_assistenza');
+    body.append('nome', name);
+    body.append('cognome', surname);
+    body.append('email', email);
+    body.append('categoria_servizio', '');
+    body.append('servizio', serviceText);
+    body.append('dettagli', fullDetails);
+    body.append('privacyChecked', (getEl('privacy') && getEl('privacy').checked) ? 'true' : 'false');
 
-    fetch(dciSegnalazione.ajaxUrl, {
+    return fetch(url, {
       method: 'POST',
       credentials: 'same-origin',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Content-Type': 'application/x-www-form-urlencoded',
         'Cache-Control': 'no-cache'
       },
-      body: body.toString()
-    })
-      .then(function (response) {
-        return response.json().catch(function () {
-          throw new Error('Il server ha restituito una risposta non valida.');
-        }).then(function (result) {
-          if (!response.ok || !result || !result.success) {
-            var message = result && result.data && result.data.message
-              ? result.data.message
-              : 'Non è stato possibile inviare la segnalazione.';
-            throw new Error(message);
-          }
-          return result.data;
-        });
-      })
-      .then(function (data) {
-        var formSteps = getEl('form-steps');
-        if (formSteps) formSteps.classList.add('d-none');
-        setText('report-ticket-code', data.ticket || '');
-        if (successBox) {
-          successBox.classList.remove('d-none');
-          successBox.focus();
-          successBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      })
-      .catch(function (error) {
-        submitting = false;
-        updateButtons();
-        showError(error.message || 'Si è verificato un errore. Riprova tra qualche istante.');
-      });
-  }
+      body: body
+    }).then(function (response) {
+      if (!response.ok) {
+        throw new Error('HTTP error ' + response.status);
+      }
+      return response.json();
+    }).then(function (result) {
+      if (!result || !result.success) {
+        throw new Error('Salvataggio segnalazione non riuscito');
+      }
 
-  btnNext.addEventListener('click', function () {
-    if (!isStepValid(currentStep)) {
-      showError('Controlla i campi obbligatori prima di proseguire.');
-      return;
-    }
+      var formSteps = getEl('form-steps');
+      if (formSteps) formSteps.classList.add('d-none');
+      if (alertMessage) alertMessage.classList.remove('d-none');
 
-    if (currentStep === steps.length) {
-      submitReport();
-      return;
-    }
-
-    goToStep(currentStep + 1);
-  });
-
-  btnBack.addEventListener('click', function () {
-    if (!submitting && currentStep > 1) goToStep(currentStep - 1);
-  });
-
-  var editButtons = content.querySelectorAll('.report-edit-step');
-  for (var i = 0; i < editButtons.length; i++) {
-    editButtons[i].addEventListener('click', function () {
-      goToStep(Number(this.getAttribute('data-edit-step')));
+      var mainContainer = document.querySelector('#main-container');
+      if (mainContainer) {
+        mainContainer.scrollIntoView({ behavior: 'smooth' });
+      }
     });
   }
+
+  function openNext() {
+    if (!btnNext || !btnBack) return;
+
+    if (currentStep >= steps.length) {
+      btnNext.disabled = true;
+      submitReport().catch(function (err) {
+        console.error(err);
+        btnNext.disabled = false;
+      });
+      return;
+    }
+
+    hideStep(currentStep);
+    currentStep += 1;
+    showStep(currentStep);
+
+    btnBack.disabled = currentStep === 1;
+
+    var nextLabel = btnNext.querySelector('span');
+    if (nextLabel) {
+      nextLabel.innerHTML = currentStep === steps.length ? 'Invia' : 'Avanti';
+    }
+
+    setProgress();
+    updateNextState();
+  }
+
+  function backPrevious() {
+    if (!btnNext || !btnBack || currentStep === 1) return;
+
+    hideStep(currentStep);
+    currentStep -= 1;
+    showStep(currentStep);
+
+    btnBack.disabled = currentStep === 1;
+
+    var nextLabel = btnNext.querySelector('span');
+    if (nextLabel) nextLabel.innerHTML = 'Avanti';
+
+    setProgress();
+    updateNextState();
+  }
+
+  btnNext.addEventListener('click', openNext);
+  btnBack.addEventListener('click', backPrevious);
 
   var fields = [
     'privacy',
     'luogo-disservizio',
-    'location-details',
-    'report-type',
-    'report-reason',
-    'report-description',
+    'motivo-appuntamento',
+    'title',
+    'details',
     'name',
     'surname',
-    'email',
-    'phone'
+    'email'
   ];
 
-  for (var j = 0; j < fields.length; j++) {
-    var field = getEl(fields[j]);
-    if (!field) continue;
-    field.addEventListener(field.tagName === 'SELECT' || field.type === 'checkbox' ? 'change' : 'input', function () {
-      clearError();
-      updateNextState();
-      if (currentStep === steps.length) updateSummary();
-    });
+  for (var i = 0; i < fields.length; i++) {
+    var el = getEl(fields[i]);
+    if (!el) continue;
+
+    if (el.tagName === 'SELECT' || el.type === 'checkbox') {
+      el.addEventListener('change', updateNextState);
+    } else {
+      el.addEventListener('input', updateNextState);
+    }
   }
 
-  var description = getEl('report-description');
-  var counter = getEl('description-counter');
-  if (description && counter) {
-    description.addEventListener('input', function () {
-      counter.textContent = description.value.length + '/1000';
-    });
-  }
-
-  goToStep(1, false);
+  setProgress();
+  updateNextState();
 })();

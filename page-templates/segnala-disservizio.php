@@ -93,7 +93,13 @@ add_action( 'wp_enqueue_scripts', 'dci_enqueue_segnalazione_disservizio_script' 
          </div>
       </div>
    </section>
-   <?php get_template_part("template-parts/common/assistenza-contatti"); ?>
+   <?php get_template_part("template-parts/common/valuta-servizio"); ?>
+   <?php
+      $visualizza_contatto = dci_get_option('visualizzaContatto', 'footer');
+      if ($visualizza_contatto == 'visible') {
+         get_template_part("template-parts/common/assistenza-contatti");
+      }
+   ?>
    <?php
       endwhile; // End of the loop.
       ?>

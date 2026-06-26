@@ -99,7 +99,14 @@
     btnBack.disabled = submitting || currentStep === 1;
 
     var label = btnNext.querySelector('span');
-    if (label) label.textContent = currentStep === steps.length ? 'Invia richiesta' : 'Avanti';
+    if (label) {
+      if (submitting) {
+        label.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Invio in corso...';
+      } else {
+        label.textContent = currentStep === steps.length ? 'Invia richiesta' : 'Avanti';
+      }
+    }
+    btnNext.setAttribute('aria-busy', submitting ? 'true' : 'false');
     updateNextState();
   }
 

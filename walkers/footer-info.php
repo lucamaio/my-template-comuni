@@ -52,11 +52,11 @@ class Footer_Menu_Walker extends Walker_Nav_Menu {
         }
 
          // Sovrascrivi l'URL per "Segnala disservizio" se è vuoto
-        if ($item->title == 'Segnalazione disservizio') {
-            $email = dci_get_option("email_principale");
-            $item->url = (!empty($email) && strlen($email) > 4)
-                ? "mailto:" . $email
-                : dci_get_template_page_url('page-templates/segnala-disservizio.php');
+        if ($item->title == 'Segnalazione disservizio' || $item->title == 'Segnala disservizio') {
+            $item->url = dci_get_template_page_url('page-templates/segnala-disservizio.php');
+            if (empty($item->url)) {
+                $item->url = home_url('/segnala-disservizio/');
+            }
         }
         
 
@@ -110,7 +110,7 @@ class Footer_Menu_Walker extends Walker_Nav_Menu {
         if ($item->title == 'Leggi le FAQ') {
             $data_element = "data-element='faq'";
         }
-        if ($item->title == 'Segnalazione disservizio') {
+        if ($item->title == 'Segnalazione disservizio' || $item->title == 'Segnala disservizio') {
             $data_element = "data-element='report-inefficiency'";
         }
         if ($item->title == 'Informativa privacy') {

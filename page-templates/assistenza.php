@@ -387,31 +387,35 @@ get_header();
         </div>
     </div>
 
-    <section id="assistance-success" class="container d-none" aria-live="polite" tabindex="-1">
-        <div class="row justify-content-center">
-            <div class="col-12 col-lg-10">
-                <div class="report-success-heading">
-                    <p class="text-uppercase title-xsmall-semi-bold t-primary mb-2">Richiesta assistenza</p>
-                    <h1 class="title-xxlarge mb-2">Richiesta inviata</h1>
-                    <p class="text-paragraph mb-4">
-                        La richiesta di assistenza e&rsquo; stata inviata correttamente.
-                    </p>
-                </div>
-                <div class="alert alert-success cmp-disclaimer rounded p-4" role="status">
-                    <h2 class="title-large mb-2">Richiesta acquisita</h2>
-                    <p class="mb-2">
-                        Grazie. Il Comune potra&rsquo; contattarti all&rsquo;email
-                        <strong id="assistance-email-recap"></strong>.
-                    </p>
-                    <p class="mb-0">Se serviranno ulteriori informazioni riceverai una comunicazione ai recapiti indicati.</p>
+    <section id="assistance-success" class="d-none" aria-live="polite" tabindex="-1">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <div class="report-success-heading">
+                        <p class="text-uppercase title-xsmall-semi-bold t-primary mb-2">Richiesta assistenza</p>
+                        <h1 class="title-xxlarge mb-2">Richiesta inviata</h1>
+                        <p class="text-paragraph mb-4">
+                            La richiesta di assistenza e&rsquo; stata inviata correttamente.
+                        </p>
+                    </div>
+                    <div class="alert alert-success rounded p-4 mb-5" role="status">
+                        <h2 class="title-large mb-2">Richiesta acquisita</h2>
+                        <p class="mb-2">
+                            Grazie. Il Comune potra&rsquo; contattarti all&rsquo;email
+                            <strong id="assistance-email-recap"></strong>.
+                        </p>
+                        <p class="mb-0">Se serviranno ulteriori informazioni riceverai una comunicazione ai recapiti indicati.</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <?php get_template_part("template-parts/common/valuta-servizio"); ?>
+
     </section>
 
+    <?php get_template_part("template-parts/common/valuta-servizio"); ?>
+
     <?php
-        $visualizza_contatto = dci_get_option('visualizzaContatto', 'footer');
+        $visualizza_contatto = dci_get_option('visualizzaContatto', 'footer'); // Opzione non definita nella sezione options footer
         if($visualizza_contatto == 'visible') {
             get_template_part("template-parts/common/assistenza-contatti");
         }

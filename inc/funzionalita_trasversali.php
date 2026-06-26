@@ -1698,7 +1698,7 @@ function dci_save_richiesta_assistenza(){
         update_post_meta($postId, '_dci_richiesta_assistenza_dettagli',  $params['dettagli']);
     }
 
-    $mail_sent = dci_send_richiesta_assistenza_notification($postId, $params, $ticket_title, 'assistenza');
+    $mail_sent = dci_queue_richiesta_assistenza_notification($postId, $params, $ticket_title, 'assistenza');
 
     echo json_encode(array(
         "success" => true,
@@ -1815,7 +1815,7 @@ function dci_save_segnalazione_disservizio() {
         'motivo' => $motivo,
         'dettagli' => $dettagli_completi,
     );
-    $mail_sent = dci_send_richiesta_assistenza_notification($post_id, $notification_params, $ticket_code, 'disservizio');
+    $mail_sent = dci_queue_richiesta_assistenza_notification($post_id, $notification_params, $ticket_code, 'disservizio');
 
     wp_send_json_success(array(
         'ticket' => $ticket_code,
@@ -1824,6 +1824,38 @@ function dci_save_segnalazione_disservizio() {
 }
 add_action('wp_ajax_save_segnalazione_disservizio', 'dci_save_segnalazione_disservizio');
 add_action('wp_ajax_nopriv_save_segnalazione_disservizio', 'dci_save_segnalazione_disservizio');
+
+/**
+ * Accoda l'invio e-mail senza bloccare la risposta AJAX del cittadino.
+ *
+ * @param int    $postId
+ * @param array  $params
+ * @param string $ticket_title
+ * @param string $tipo
+ * @return bool
+ */
+function dci_queue_richiesta_assistenza_notification($postId, $params, $ticket_title, $tipo = 'assistenza') {
+    if (empty($postId)) {
+        return false;
+    }
+
+    $scheduled = wp_schedule_single_event(
+        time() + 1,
+        'dci_send_richiesta_assistenza_notification_event',
+        array((int) $postId, $params, (string) $ticket_title, (string) $tipo)
+    );
+
+    if (is_wp_error($scheduled) || false === $scheduled) {
+        return dci_send_richiesta_assistenza_notification($postId, $params, $ticket_title, $tipo);
+    }
+
+    if (function_exists('spawn_cron')) {
+        spawn_cron(time());
+    }
+
+    return true;
+}
+add_action('dci_send_richiesta_assistenza_notification_event', 'dci_send_richiesta_assistenza_notification', 10, 4);
 
 /**
  * Invia notifica e-mail per nuove richieste assistenza/disservizio.
@@ -1854,23 +1886,8 @@ function dci_send_richiesta_assistenza_notification($postId, $params, $ticket_ti
         return false;
     }
 
-    $subject = sprintf('[%s] Nuova segnalazione disservizio', wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES));
-    $message = implode("\n", array(
-        'È stata creata una nuova segnalazione di disservizio.',
-        '',
-        'ID richiesta: ' . $postId,
-        'Ticket: ' . $ticket_title,
-        'Nome: ' . ($params['nome'] ?? ''),
-        'Cognome: ' . ($params['cognome'] ?? ''),
-        'Email: ' . ($params['email'] ?? ''),
-        'Telefono: ' . ($params['telefono'] ?? ''),
-        'Servizio: ' . ($params['servizio'] ?? ''),
-        'Dettagli: ' . ($params['dettagli'] ?? ''),
-        '',
-        'Link nel pannello admin: ' . admin_url('post.php?post=' . $postId . '&action=edit'),
-    ));
-
     $is_disservizio = 'disservizio' === $tipo;
+    $tipologia_richiesta = $is_disservizio ? 'Segnalazione disservizio' : 'Richiesta assistenza';
     $subject = sprintf(
         '[%s] Nuova %s',
         wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES),
@@ -1885,7 +1902,8 @@ function dci_send_richiesta_assistenza_notification($postId, $params, $ticket_ti
         'Cognome: ' . ($params['cognome'] ?? ''),
         'Email: ' . ($params['email'] ?? ''),
         'Telefono: ' . ($params['telefono'] ?? ''),
-        $is_disservizio ? 'Tipologia: ' . ($params['servizio'] ?? '') : 'Servizio: ' . ($params['servizio'] ?? ''),
+        'Tipologia richiesta: ' . $tipologia_richiesta,
+        $is_disservizio ? 'Tipologia disservizio: ' . ($params['servizio'] ?? '') : 'Servizio: ' . ($params['servizio'] ?? ''),
     );
 
     if ($is_disservizio) {

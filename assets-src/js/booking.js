@@ -26,6 +26,29 @@ var progressBar = document.querySelector(
 // need to define btns globally
 var btnNext = content.querySelector(".btn-next-step");
 var btnBack = content.querySelector(".btn-back-step");
+var submitting = false;
+
+function setBookingSubmitting(isSubmitting) {
+  submitting = isSubmitting;
+
+  if (btnNext) {
+    btnNext.disabled = isSubmitting;
+    btnNext.setAttribute("aria-busy", isSubmitting ? "true" : "false");
+
+    const label = btnNext.querySelector("span");
+    if (label) {
+      label.innerHTML = isSubmitting
+        ? '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Invio in corso...'
+        : currentStep == content.querySelectorAll("[data-steps]").length
+          ? "Invia"
+          : "Avanti";
+    }
+  }
+
+  if (btnBack) {
+    btnBack.disabled = isSubmitting || currentStep == 1;
+  }
+}
 
 function pageSteps() {
   if (!content) return;
@@ -50,6 +73,8 @@ function pageSteps() {
 }
 
 function openNext() {
+  if (submitting) return;
+
   btnBack.disabled = false;
   var btnSave = content.querySelectorAll(".saveBtn");
   var steps = content.querySelectorAll("[data-steps]");
@@ -499,6 +524,11 @@ const validatePhone = (phone) =>
   !phone || (/^[0-9+().\s/-]{6,30}$/.test(phone) && /[0-9]/.test(phone));
 
 const checkMandatoryFields = () => {
+  if (submitting) {
+    btnNext.disabled = true;
+    return;
+  }
+
   switch (currentStep) {
     case 1:
       if (answers?.privacy) btnNext.disabled = false;
@@ -574,6 +604,9 @@ async function successFeedback() {
 }
 
 const confirmAppointment = () => {
+  if (submitting) return;
+
+  setBookingSubmitting(true);
   const body = new URLSearchParams();
 
   for (var key in answers) {
@@ -607,6 +640,8 @@ const confirmAppointment = () => {
       if (mainContainer) mainContainer.scrollIntoView({ behavior: "smooth" });
     })
     .catch((err) => {
+      setBookingSubmitting(false);
+      checkMandatoryFields();
       console.log("err", err);
     });
 };

@@ -1642,6 +1642,7 @@ add_action("wp_ajax_nopriv_save_rating" , "dci_save_rating");
 function dci_save_richiesta_assistenza(){
 
     $params = json_decode(json_encode($_POST), true);
+    $postId = 0;
 
     date_default_timezone_set('Europe/Rome');
     $start = date('Y-m-d H:i:s');
@@ -1678,9 +1679,15 @@ function dci_save_richiesta_assistenza(){
         update_post_meta($postId, '_dci_richiesta_assistenza_email',  $params['email']);
     }
 
+    if(array_key_exists("telefono", $params) && $params['telefono'] != "null") {
+        update_post_meta($postId, '_dci_richiesta_assistenza_telefono', sanitize_text_field($params['telefono']));
+    }
+
     if(array_key_exists("categoria_servizio", $params) && $params['categoria_servizio'] != "null") {
         $categoria = get_term_by('term_id', $params['categoria_servizio'], 'categorie_servizio');
-        update_post_meta($postId, '_dci_richiesta_assistenza_categoria_servizio', $categoria->name );
+        if ($categoria) {
+            update_post_meta($postId, '_dci_richiesta_assistenza_categoria_servizio', $categoria->name );
+        }
     }
 
     if(array_key_exists("servizio", $params) && $params['servizio'] != "null") {
@@ -1691,7 +1698,7 @@ function dci_save_richiesta_assistenza(){
         update_post_meta($postId, '_dci_richiesta_assistenza_dettagli',  $params['dettagli']);
     }
 
-    $mail_sent = dci_send_richiesta_assistenza_notification($postId, $params, $ticket_title);
+    $mail_sent = dci_send_richiesta_assistenza_notification($postId, $params, $ticket_title, 'assistenza');
 
     echo json_encode(array(
         "success" => true,
@@ -1762,7 +1769,7 @@ function dci_save_segnalazione_disservizio() {
     }
 
     $post_id = wp_insert_post(array(
-        'post_type' => 'richiesta_assistenza',
+        'post_type' => 'segnala_disservizio',
         'post_title' => 'Segnalazione in acquisizione',
         // La segnalazione contiene dati personali e non deve essere pubblica sul frontend.
         'post_status' => 'private',
@@ -1787,15 +1794,15 @@ function dci_save_segnalazione_disservizio() {
         $dettagli ? 'Ulteriori dettagli: ' . $dettagli : '',
     )));
 
-    update_post_meta($post_id, '_dci_richiesta_assistenza_nome', $nome);
-    update_post_meta($post_id, '_dci_richiesta_assistenza_cognome', $cognome);
-    update_post_meta($post_id, '_dci_richiesta_assistenza_email', $email);
-    update_post_meta($post_id, '_dci_richiesta_assistenza_telefono', $telefono);
-    update_post_meta($post_id, '_dci_richiesta_assistenza_servizio', $tipologia);
-    update_post_meta($post_id, '_dci_richiesta_assistenza_dettagli', $dettagli_completi);
-    update_post_meta($post_id, '_dci_richiesta_assistenza_luogo', $luogo);
-    update_post_meta($post_id, '_dci_richiesta_assistenza_riferimento_luogo', $riferimento_luogo);
-    update_post_meta($post_id, '_dci_richiesta_assistenza_motivo', $motivo);
+    update_post_meta($post_id, '_dci_segnala_disservizio_nome', $nome);
+    update_post_meta($post_id, '_dci_segnala_disservizio_cognome', $cognome);
+    update_post_meta($post_id, '_dci_segnala_disservizio_email', $email);
+    update_post_meta($post_id, '_dci_segnala_disservizio_telefono', $telefono);
+    update_post_meta($post_id, '_dci_segnala_disservizio_tipologia', $tipologia);
+    update_post_meta($post_id, '_dci_segnala_disservizio_dettagli', $dettagli_completi);
+    update_post_meta($post_id, '_dci_segnala_disservizio_luogo', $luogo);
+    update_post_meta($post_id, '_dci_segnala_disservizio_riferimento_luogo', $riferimento_luogo);
+    update_post_meta($post_id, '_dci_segnala_disservizio_motivo', $motivo);
 
     $notification_params = array(
         'nome' => $nome,
@@ -1803,9 +1810,12 @@ function dci_save_segnalazione_disservizio() {
         'email' => $email,
         'telefono' => $telefono,
         'servizio' => $tipologia,
+        'luogo' => $luogo,
+        'riferimento_luogo' => $riferimento_luogo,
+        'motivo' => $motivo,
         'dettagli' => $dettagli_completi,
     );
-    $mail_sent = dci_send_richiesta_assistenza_notification($post_id, $notification_params, $ticket_code);
+    $mail_sent = dci_send_richiesta_assistenza_notification($post_id, $notification_params, $ticket_code, 'disservizio');
 
     wp_send_json_success(array(
         'ticket' => $ticket_code,
@@ -1823,7 +1833,7 @@ add_action('wp_ajax_nopriv_save_segnalazione_disservizio', 'dci_save_segnalazion
  * @param string $ticket_title
  * @return bool
  */
-function dci_send_richiesta_assistenza_notification($postId, $params, $ticket_title) {
+function dci_send_richiesta_assistenza_notification($postId, $params, $ticket_title, $tipo = 'assistenza') {
     if (empty($postId)) {
         return false;
     }
@@ -1859,6 +1869,35 @@ function dci_send_richiesta_assistenza_notification($postId, $params, $ticket_ti
         '',
         'Link nel pannello admin: ' . admin_url('post.php?post=' . $postId . '&action=edit'),
     ));
+
+    $is_disservizio = 'disservizio' === $tipo;
+    $subject = sprintf(
+        '[%s] Nuova %s',
+        wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES),
+        $is_disservizio ? 'segnalazione disservizio' : 'richiesta assistenza'
+    );
+    $message_rows = array(
+        $is_disservizio ? 'E stata creata una nuova segnalazione di disservizio.' : 'E stata creata una nuova richiesta di assistenza.',
+        '',
+        'ID richiesta: ' . $postId,
+        'Ticket: ' . $ticket_title,
+        'Nome: ' . ($params['nome'] ?? ''),
+        'Cognome: ' . ($params['cognome'] ?? ''),
+        'Email: ' . ($params['email'] ?? ''),
+        'Telefono: ' . ($params['telefono'] ?? ''),
+        $is_disservizio ? 'Tipologia: ' . ($params['servizio'] ?? '') : 'Servizio: ' . ($params['servizio'] ?? ''),
+    );
+
+    if ($is_disservizio) {
+        $message_rows[] = 'Luogo: ' . ($params['luogo'] ?? '');
+        $message_rows[] = 'Indirizzo o riferimento: ' . ($params['riferimento_luogo'] ?? '');
+        $message_rows[] = 'Motivo: ' . ($params['motivo'] ?? '');
+    }
+
+    $message_rows[] = 'Dettagli: ' . ($params['dettagli'] ?? '');
+    $message_rows[] = '';
+    $message_rows[] = 'Link nel pannello admin: ' . admin_url('post.php?post=' . $postId . '&action=edit');
+    $message = implode("\n", $message_rows);
 
     $headers = array('Content-Type: text/plain; charset=UTF-8');
     if (is_email($email_principale)) {

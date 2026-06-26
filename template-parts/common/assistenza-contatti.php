@@ -48,7 +48,7 @@
               </h2>
               <ul class="contact-list p-0">
                 <li>
-                  <a class="list-item" data-element="report-inefficiency" href="<?php echo dci_get_option("email_principale") ? "mailto:".dci_get_option("email_principale") : dci_get_template_page_url('page-templates/segnala-disservizio.php'); ?>"
+                  <a class="list-item" data-element="report-inefficiency" href="<?php echo dci_get_template_page_url('page-templates/segnala-disservizio.php'); ?>"
                     ><svg class="icon icon-primary icon-sm" aria-hidden="true">
                       <use
                         href="#it-map-marker-circle"

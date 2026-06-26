@@ -11,17 +11,17 @@ add_action( 'init', 'dci_register_post_type_richiesta_assistenza', 100 );
 function dci_register_post_type_richiesta_assistenza() {
 
     $labels = array(
-        'name'               => _x( 'Tickets', 'Post Type General Name', 'design_comuni_italia' ),
-        'singular_name'      => _x( 'Ticket', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'add_new'            => _x( 'Aggiungi un Ticket', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'add_new_item'       => _x( 'Aggiungi un nuovo Ticket', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'edit_item'          => _x( 'Dettagli Ticket', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'view_item'          => _x( 'Visualizza il Ticket', 'Post Type Singular Name', 'design_comuni_italia' ),
-        'all_items'          => _x( 'Tutti i Ticket', 'Post Type General Name', 'design_comuni_italia' ),
+        'name'               => _x( 'Richiesta assistenza', 'Post Type General Name', 'design_comuni_italia' ),
+        'singular_name'      => _x( 'Richiesta assistenza', 'Post Type Singular Name', 'design_comuni_italia' ),
+        'add_new'            => _x( 'Aggiungi una Richiesta assistenza', 'Post Type Singular Name', 'design_comuni_italia' ),
+        'add_new_item'       => _x( 'Aggiungi un nuova Richiesta assistenza', 'Post Type Singular Name', 'design_comuni_italia' ),
+        'edit_item'          => _x( 'Dettagli Richiesta assistenza', 'Post Type Singular Name', 'design_comuni_italia' ),
+        'view_item'          => _x( 'Visualizza la Richiesta assistenza', 'Post Type Singular Name', 'design_comuni_italia' ),
+        'all_items'          => _x( 'Tutte le Richieste assistenza', 'Post Type General Name', 'design_comuni_italia' ),
     );
 
     $args = array(
-        'label'              => __( 'Richiesta Assistenza', 'design_comuni_italia' ),
+        'label'              => __( 'Richieste assistenza', 'design_comuni_italia' ),
         'labels'             => $labels,
         'public'             => true,
         'show_ui'            => true,
@@ -63,7 +63,7 @@ add_action( 'cmb2_init', 'dci_add_richiesta_assistenza_metaboxes' );
 function dci_add_richiesta_assistenza_metaboxes() {
     $prefix = '_dci_richiesta_assistenza_';
 
-    // Richiedente
+    // Dati del Richiedente
     $cmb_richiedente = new_cmb2_box(array(
         'id' => $prefix . 'box_richiedente',
         'title' => __('Richiedente'),
@@ -96,7 +96,7 @@ function dci_add_richiesta_assistenza_metaboxes() {
         'attributes' => array('readonly' => true)
     ));
 
-    // Richiesta
+    // Dati della Richiesta assistenza
     $cmb_richiesta = new_cmb2_box(array(
         'id' => $prefix . 'box_richiesta',
         'title' => __('Richiesta'),
@@ -112,25 +112,7 @@ function dci_add_richiesta_assistenza_metaboxes() {
     ));
     $cmb_richiesta->add_field(array(
         'id' => $prefix . 'servizio',
-        'name' => __('Tipologia di disservizio', 'design_comuni_italia'),
-        'type' => 'text',
-        'attributes' => array('readonly' => true)
-    ));
-    $cmb_richiesta->add_field(array(
-        'id' => $prefix . 'luogo',
-        'name' => __('Luogo', 'design_comuni_italia'),
-        'type' => 'text',
-        'attributes' => array('readonly' => true)
-    ));
-    $cmb_richiesta->add_field(array(
-        'id' => $prefix . 'riferimento_luogo',
-        'name' => __('Indirizzo o riferimento', 'design_comuni_italia'),
-        'type' => 'text',
-        'attributes' => array('readonly' => true)
-    ));
-    $cmb_richiesta->add_field(array(
-        'id' => $prefix . 'motivo',
-        'name' => __('Motivo', 'design_comuni_italia'),
+        'name' => __('Servizio', 'design_comuni_italia'),
         'type' => 'text',
         'attributes' => array('readonly' => true)
     ));
@@ -138,6 +120,33 @@ function dci_add_richiesta_assistenza_metaboxes() {
         'id' => $prefix . 'dettagli',
         'name' => __('Dettagli', 'design_comuni_italia'),
         'type' => 'textarea',
+        'attributes' => array('readonly' => true)
+    ));
+
+    // Dati storici disservizio
+    $cmb_legacy_disservizio = new_cmb2_box(array(
+        'id' => $prefix . 'box_legacy_disservizio',
+        'title' => __('Segnalazione disservizio (dati storici)'),
+        'object_types' => array('richiesta_assistenza'),
+        'context' => 'normal',
+        'priority' => 'low',
+    ));
+    $cmb_legacy_disservizio->add_field(array(
+        'id' => $prefix . 'luogo',
+        'name' => __('Luogo', 'design_comuni_italia'),
+        'type' => 'text',
+        'attributes' => array('readonly' => true)
+    ));
+    $cmb_legacy_disservizio->add_field(array(
+        'id' => $prefix . 'riferimento_luogo',
+        'name' => __('Indirizzo o riferimento', 'design_comuni_italia'),
+        'type' => 'text',
+        'attributes' => array('readonly' => true)
+    ));
+    $cmb_legacy_disservizio->add_field(array(
+        'id' => $prefix . 'motivo',
+        'name' => __('Motivo', 'design_comuni_italia'),
+        'type' => 'text',
         'attributes' => array('readonly' => true)
     ));
 }
@@ -194,6 +203,7 @@ function dci_richiesta_assistenza_sortable_columns($columns){
 add_action( 'pre_get_posts', 'dci_richiesta_assistenza_posts_orderby' );
 function dci_richiesta_assistenza_posts_orderby($query){
     if(!is_admin() || !$query->is_main_query()) return;
+    if('richiesta_assistenza' !== $query->get('post_type')) return;
 
     $orderby = $query->get('orderby');
 

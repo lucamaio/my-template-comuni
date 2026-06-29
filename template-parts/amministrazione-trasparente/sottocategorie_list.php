@@ -87,12 +87,6 @@ if (!function_exists('dci_stampa_sottocategorie')) {
             }
             echo '</a>';
 
-            if ($has_children) {
-                echo '<button class="sub-sub-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr($toggle_id) . '">';
-                echo '<svg class="icon icon-xs" aria-hidden="true"><use href="#it-expand"></use></svg>';
-                echo '<span class="visually-hidden">Mostra o nascondi le sottovoci di ' . esc_html($term->name) . '</span>';
-                echo '</button>';
-            }
             echo '</div>';
 
             if ($has_children) {

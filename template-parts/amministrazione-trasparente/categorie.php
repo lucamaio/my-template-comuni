@@ -186,41 +186,38 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    margin-top: 0.05rem;
+    width: 1.25rem;
+    height: 1.5rem;
+    margin-top: 0.1rem;
     padding: 0;
-    border: 1px solid color-mix(in srgb, var(--main-color-trasparenza) 35%, white);
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--main-color-trasparenza) 8%, white);
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
     color: var(--main-color-trasparenza);
     cursor: pointer;
-    box-shadow: 0 1px 2px rgba(23, 50, 77, 0.08);
-    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+    transition: color 0.2s ease;
 }
 
 .content .list-marker-toggle:hover {
-    background: color-mix(in srgb, var(--main-color-trasparenza) 16%, white);
-    border-color: color-mix(in srgb, var(--main-color-trasparenza) 55%, white);
-    box-shadow: 0 2px 6px rgba(23, 50, 77, 0.16);
+    color: var(--main-color-light-trasparenza);
 }
 
 .content .list-marker-toggle:focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--main-color-trasparenza) 30%, white);
+    outline: 2px solid currentColor;
     outline-offset: 2px;
 }
 
 .content .list-marker-toggle__icon {
     display: block;
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     font-weight: 700;
     line-height: 1;
-    transform: translateX(0.04rem);
     transition: transform 0.2s ease;
 }
 
 .content .list-marker-toggle.is-open .list-marker-toggle__icon {
-    transform: translateX(0.04rem) rotate(90deg);
+    transform: rotate(90deg);
 }
 
 .content .list-marker--dash {
@@ -357,48 +354,6 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 .content a.has-children::before,
 .content a.has-children:hover::before {
     display: none;
-}
-
-.content .subcat-toggle,
-.content .sub-sub-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.85rem;
-    height: 1.85rem;
-    padding: 0;
-    border: 1px solid color-mix(in srgb, var(--main-color-trasparenza) 28%, white);
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--main-color-trasparenza) 10%, white);
-    color: var(--main-color-trasparenza);
-    flex: 0 0 auto;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-    transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.content .subcat-toggle:hover,
-.content .sub-sub-toggle:hover {
-    color: var(--main-color-trasparenza);
-    background: color-mix(in srgb, var(--main-color-trasparenza) 18%, white);
-    border-color: color-mix(in srgb, var(--main-color-trasparenza) 45%, white);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-}
-
-.content .subcat-toggle .icon,
-.content .sub-sub-toggle .icon {
-    width: 1rem;
-    height: 1rem;
-    transition: transform 0.25s ease;
-}
-
-.content .subcat-toggle.is-open .icon,
-.content .sub-sub-toggle.is-open .icon {
-    transform: rotate(180deg);
-}
-
-.content .subcat-toggle.is-open,
-.content .sub-sub-toggle.is-open {
-    color: var(--main-color-trasparenza);
 }
 
 .sub-sub-list .sub-sub-item-head {
@@ -706,15 +661,6 @@ document.addEventListener('keydown', function(event) {
                                                         <?php } ?>
                                                     </a>
 
-                                                    <?php if ($has_children) {
-                                                        ?>
-                                                        <button class="subcat-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="<?= esc_attr($toggle_id); ?>">
-                                                            <svg class="icon icon-xs" aria-hidden="true">
-                                                                <use href="#it-expand"></use>
-                                                            </svg>
-                                                            <span class="visually-hidden">Mostra o nascondi le sottovoci di <?= esc_html($sotto->name); ?></span>
-                                                        </button>
-                                                    <?php } ?>
                                                 </div>
 
                                                 <?php if ($has_children) { ?>

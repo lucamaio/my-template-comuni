@@ -181,6 +181,48 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     opacity: 0.9;
 }
 
+.content .list-marker-toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-top: 0.05rem;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--main-color-trasparenza) 35%, white);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--main-color-trasparenza) 8%, white);
+    color: var(--main-color-trasparenza);
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(23, 50, 77, 0.08);
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.content .list-marker-toggle:hover {
+    background: color-mix(in srgb, var(--main-color-trasparenza) 16%, white);
+    border-color: color-mix(in srgb, var(--main-color-trasparenza) 55%, white);
+    box-shadow: 0 2px 6px rgba(23, 50, 77, 0.16);
+}
+
+.content .list-marker-toggle:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--main-color-trasparenza) 30%, white);
+    outline-offset: 2px;
+}
+
+.content .list-marker-toggle__icon {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    transform: translateX(0.04rem);
+    transition: transform 0.2s ease;
+}
+
+.content .list-marker-toggle.is-open .list-marker-toggle__icon {
+    transform: translateX(0.04rem) rotate(90deg);
+}
+
 .content .list-marker--dash {
     width: 0.8rem;
     height: 1rem;
@@ -513,10 +555,17 @@ document.addEventListener('click', function(event) {
         return;
     }
 
-    var isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-    toggle.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
-    toggle.classList.toggle('is-open', !isExpanded);
-    panel.hidden = isExpanded;
+    var nextExpanded = panel.hidden;
+    panel.hidden = !nextExpanded;
+
+    document.querySelectorAll('.js-subcat-toggle').forEach(function(candidate) {
+        if (candidate.getAttribute('aria-controls') !== controlsId) {
+            return;
+        }
+
+        candidate.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+        candidate.classList.toggle('is-open', nextExpanded);
+    });
 });
 
 document.addEventListener('keydown', function(event) {
@@ -626,6 +675,7 @@ document.addEventListener('keydown', function(event) {
                                                 return $visible == 1;
                                             });
                                             $has_children = !empty($child_terms);
+                                            $toggle_id = $has_children ? 'subcat-children-' . $sotto->term_id : '';
 
                                             if (!empty($term_url)) {
                                                 $link = $term_url;
@@ -637,10 +687,15 @@ document.addEventListener('keydown', function(event) {
                                         ?>
                                             <li class="mb-3 mt-3">
                                                 <div class="subcat-item-head">
+                                                    <?php if ($has_children) { ?>
+                                                        <button class="list-marker-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="<?= esc_attr($toggle_id); ?>">
+                                                            <span class="list-marker-toggle__icon" aria-hidden="true">›</span>
+                                                            <span class="visually-hidden">Mostra o nascondi le sottovoci di <?= esc_html($sotto->name); ?></span>
+                                                        </button>
+                                                    <?php } ?>
+
                                                     <a class="list-item ps-0 title-medium underline<?= $is_external ? ' is-external' : ''; ?><?= $has_children ? ' has-children' : ' no-children'; ?>" style="text-decoration:none;" href="<?= esc_url($link); ?>" aria-label="<?= esc_attr($sotto->name); ?>"<?= $target; ?>>
-                                                        <?php if ($has_children) { ?>
-                                                            <span class="list-marker list-marker--arrow" aria-hidden="true">›</span>
-                                                        <?php } else { ?>
+                                                        <?php if (!$has_children) { ?>
                                                             <span class="list-marker list-marker--dash" aria-hidden="true">-</span>
                                                         <?php } ?>
                                                         <span><?= $nome_sotto; ?></span>
@@ -652,7 +707,6 @@ document.addEventListener('keydown', function(event) {
                                                     </a>
 
                                                     <?php if ($has_children) {
-                                                        $toggle_id = 'subcat-children-' . $sotto->term_id;
                                                         ?>
                                                         <button class="subcat-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="<?= esc_attr($toggle_id); ?>">
                                                             <svg class="icon icon-xs" aria-hidden="true">

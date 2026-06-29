@@ -71,10 +71,14 @@ if (!function_exists('dci_stampa_sottocategorie')) {
 
             echo '<li class="sub-sub-item' . ($has_children ? ' has-children' : ' no-children') . '">';
             echo '<div class="sub-sub-item-head">';
-            echo '<a class="' . esc_attr(trim(($is_external ? 'is-external ' : '') . ($has_children ? 'has-children' : 'no-children'))) . '" href="' . esc_url($link) . '" aria-label="' . esc_attr($term->name) . '"' . $target . '>';
             if ($has_children) {
-                echo '<span class="list-marker list-marker--arrow" aria-hidden="true">›</span>';
-            } else {
+                echo '<button class="list-marker-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr($toggle_id) . '">';
+                echo '<span class="list-marker-toggle__icon" aria-hidden="true">›</span>';
+                echo '<span class="visually-hidden">Mostra o nascondi le sottovoci di ' . esc_html($term->name) . '</span>';
+                echo '</button>';
+            }
+            echo '<a class="' . esc_attr(trim(($is_external ? 'is-external ' : '') . ($has_children ? 'has-children' : 'no-children'))) . '" href="' . esc_url($link) . '" aria-label="' . esc_attr($term->name) . '"' . $target . '>';
+            if (!$has_children) {
                 echo '<span class="list-marker list-marker--dash" aria-hidden="true">-</span>';
             }
             echo '<span>' . esc_html($term->name) . '</span>';

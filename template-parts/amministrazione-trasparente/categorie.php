@@ -186,7 +186,8 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.25rem;
+    gap: 0.05rem;
+    min-width: 1.5rem;
     height: 1.5rem;
     margin-top: 0.1rem;
     padding: 0;
@@ -211,13 +212,27 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 .content .list-marker-toggle__icon {
     display: block;
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: 400;
     line-height: 1;
     transition: transform 0.2s ease;
 }
 
+.content .list-marker-toggle::after {
+    content: '+';
+    align-self: flex-start;
+    margin-top: 0.1rem;
+    font-size: 0.65rem;
+    font-weight: 400;
+    line-height: 1;
+    opacity: 0.8;
+}
+
 .content .list-marker-toggle.is-open .list-marker-toggle__icon {
     transform: rotate(90deg);
+}
+
+.content .list-marker-toggle.is-open::after {
+    content: '−';
 }
 
 .content .list-marker--dash {
@@ -643,7 +658,7 @@ document.addEventListener('keydown', function(event) {
                                             <li class="mb-3 mt-3">
                                                 <div class="subcat-item-head">
                                                     <?php if ($has_children) { ?>
-                                                        <button class="list-marker-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="<?= esc_attr($toggle_id); ?>">
+                                                        <button class="list-marker-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="<?= esc_attr($toggle_id); ?>" title="<?= esc_attr(sprintf('Mostra o nascondi le sottovoci di %s', $sotto->name)); ?>">
                                                             <span class="list-marker-toggle__icon" aria-hidden="true">›</span>
                                                             <span class="visually-hidden">Mostra o nascondi le sottovoci di <?= esc_html($sotto->name); ?></span>
                                                         </button>

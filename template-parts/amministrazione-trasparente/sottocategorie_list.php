@@ -72,7 +72,7 @@ if (!function_exists('dci_stampa_sottocategorie')) {
             echo '<li class="sub-sub-item' . ($has_children ? ' has-children' : ' no-children') . '">';
             echo '<div class="sub-sub-item-head">';
             if ($has_children) {
-                echo '<button class="list-marker-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr($toggle_id) . '">';
+                echo '<button class="list-marker-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr($toggle_id) . '" title="' . esc_attr(sprintf('Mostra o nascondi le sottovoci di %s', $term->name)) . '">';
                 echo '<span class="list-marker-toggle__icon" aria-hidden="true">›</span>';
                 echo '<span class="visually-hidden">Mostra o nascondi le sottovoci di ' . esc_html($term->name) . '</span>';
                 echo '</button>';

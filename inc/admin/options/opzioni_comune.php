@@ -239,6 +239,23 @@ function dci_register_comune_options(){
     ));
 
 
+$header_options->add_field( array(
+    'id'      => $prefix . 'ck_abilita_trasparenza',
+    'name'    => __('Abilita Amministrazione Trasparente', 'design_comuni_italia'),
+    'desc'    => __('Abilita o disabilita l\'intero portale Amministrazione Trasparente.', 'design_comuni_italia'),
+    'type'    => 'radio_inline',
+    'default' => 'false',
+    'options' => array(
+        'true'  => __('Sì', 'design_comuni_italia'),
+        'false' => __('No', 'design_comuni_italia'),
+    ),
+    'show_on_cb' => 'dci_show_only_super_admin_field',
+));
+
+
+
+    
+
     $header_options->add_field( array(
         'id'    => $prefix . 'portalesoloperusoesterno',
         'name'  => __('<br><br><center>Portale personalizzato per uso Esterno. <br> (Questa sezione viene visualizzata solo agli utenti Administrator.)</center>', 'design_comuni_italia'),

@@ -76,7 +76,7 @@ get_header();
 
         <?php info(); ?>
 
-        <?php dci_get_template_part_async("trasparenza-categorie"); ?>
+        <?php dci_get_template_part_server_cached("trasparenza-categorie"); ?>
 
         <?php
         // Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.

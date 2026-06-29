@@ -99,7 +99,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 }
 
 .content {
-    display: none;
+    display: block;
     padding: 4px 14px;
     font-size: 18px;
     line-height: 1.6;
@@ -108,6 +108,10 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     border-left: 3px solid var(--main-color-trasparenza);
     border-radius: 0 6px 6px 0;
     margin-bottom: 6px;
+}
+
+.content:not(.js-category-content) {
+    display: none;
 }
 
 .content a {
@@ -428,34 +432,24 @@ if (slimWrapper) {
 
 <script>
 function toggleContent(id) {
-    var allContents = document.querySelectorAll('.content');
-    var allTitles = document.querySelectorAll('.title-custom');
-    allContents.forEach(function(content) {
-        if (content.id === id) {
-            content.style.display = (content.style.display === "block") ? "none" : "block";
-        } else {
-            content.style.display = "none";
-        }
-    });
-    allTitles.forEach(function(title) {
-        var targetId = title.getAttribute('data-target');
-        if (title.classList.contains('no-children')) {
-            title.classList.remove('is-open');
-            return;
-        }
-        if (targetId === id) {
-            title.classList.toggle('is-open');
-        } else {
-            title.classList.remove('is-open');
-        }
-    });
+    var content = document.getElementById(id);
+    var title = document.querySelector('.title-custom[data-target="' + id + '"]');
+
+    if (!content || !title || title.classList.contains('no-children')) {
+        return;
+    }
+
+    var isOpen = window.getComputedStyle(content).display !== 'none';
+    content.style.display = isOpen ? 'none' : 'block';
+    title.classList.toggle('is-open', !isOpen);
+    title.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
     updateToggleAllButton();
 }
 
 function toggleAllCategories() {
-    var allContents = document.querySelectorAll('.content');
+    var allContents = document.querySelectorAll('.js-category-content');
     var toggleAllBtn = document.getElementById('toggle-all-btn');
-    var anyClosed = Array.from(allContents).some(content => content.style.display !== 'block');
+    var anyClosed = Array.from(allContents).some(content => window.getComputedStyle(content).display === 'none');
     var nestedToggles = document.querySelectorAll('.js-subcat-toggle');
     var nestedPanels = document.querySelectorAll('.js-subcat-children');
 
@@ -464,6 +458,7 @@ function toggleAllCategories() {
         document.querySelectorAll('.title-custom').forEach(title => {
             if (!title.classList.contains('no-children')) {
                 title.classList.add('is-open');
+                title.setAttribute('aria-expanded', 'true');
             }
         });
         nestedPanels.forEach(function(panel) {
@@ -476,7 +471,12 @@ function toggleAllCategories() {
         toggleAllBtn.textContent = 'Chiudi tutte le Voci';
     } else {
         allContents.forEach(content => content.style.display = 'none');
-        document.querySelectorAll('.title-custom').forEach(title => title.classList.remove('is-open'));
+        document.querySelectorAll('.title-custom').forEach(title => {
+            title.classList.remove('is-open');
+            if (!title.classList.contains('no-children')) {
+                title.setAttribute('aria-expanded', 'false');
+            }
+        });
         nestedPanels.forEach(function(panel) {
             panel.hidden = true;
         });
@@ -489,13 +489,19 @@ function toggleAllCategories() {
 }
 
 function updateToggleAllButton() {
-    var allContents = document.querySelectorAll('.content');
+    var allContents = document.querySelectorAll('.js-category-content');
     var toggleAllBtn = document.getElementById('toggle-all-btn');
-    var allOpen = Array.from(allContents).every(content => content.style.display === 'block');
+    var allOpen = Array.from(allContents).every(content => window.getComputedStyle(content).display !== 'none');
     toggleAllBtn.textContent = allOpen ? 'Chiudi tutte' : 'Espandi tutte le Voci';
 }
 
 document.addEventListener('click', function(event) {
+    var categoryTitle = event.target.closest('.title-custom:not(.no-children)');
+    if (categoryTitle) {
+        toggleContent(categoryTitle.getAttribute('data-target'));
+        return;
+    }
+
     var toggle = event.target.closest('.js-subcat-toggle');
     if (!toggle) {
         return;
@@ -511,6 +517,16 @@ document.addEventListener('click', function(event) {
     toggle.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
     toggle.classList.toggle('is-open', !isExpanded);
     panel.hidden = isExpanded;
+});
+
+document.addEventListener('keydown', function(event) {
+    var categoryTitle = event.target.closest('.title-custom:not(.no-children)');
+    if (!categoryTitle || (event.key !== 'Enter' && event.key !== ' ')) {
+        return;
+    }
+
+    event.preventDefault();
+    toggleContent(categoryTitle.getAttribute('data-target'));
 });
 </script>
 
@@ -528,7 +544,7 @@ document.addEventListener('click', function(event) {
                                 <div>Elenco di tutte le voci</div>
                                 <div id="toggle-all-container" class="d-flex justify-content-end mb-3">
                                     <button type="button" id="toggle-all-btn" class="btn btn-outline-primary py-1 px-3" style="font-size:14px; height: 30px;" onclick="toggleAllCategories()">
-                                        Espandi tutte le Voci
+                                        Chiudi tutte le Voci
                                     </button>
                                 </div>
                             </div>
@@ -548,7 +564,16 @@ document.addEventListener('click', function(event) {
                                 });
                                 $genitore_has_children = !empty($genitore_children);
                             ?>
-                                <h2 class="title-custom<?= !$genitore_has_children ? ' no-children' : ''; ?>" data-target="<?= $id_genitore ?>" onclick="<?= $genitore_has_children ? "toggleContent('{$id_genitore}')" : 'void(0)' ?>">
+                                <h2
+                                    class="title-custom<?= $genitore_has_children ? ' is-open' : ' no-children'; ?>"
+                                    data-target="<?= esc_attr($id_genitore); ?>"
+                                    <?php if ($genitore_has_children) { ?>
+                                        role="button"
+                                        tabindex="0"
+                                        aria-expanded="true"
+                                        aria-controls="<?= esc_attr($id_genitore); ?>"
+                                    <?php } ?>
+                                >
                                     <span class="title-custom__inner">
                                         <span><?= $nome_genitore ?></span>
                                         <?php if ($genitore_is_external) { ?>
@@ -559,7 +584,7 @@ document.addEventListener('click', function(event) {
                                     </span>
                                 </h2>
 
-                                <div id="<?= $id_genitore ?>" class="content">
+                                <div id="<?= esc_attr($id_genitore); ?>" class="content<?= $genitore_has_children ? ' js-category-content' : ''; ?>">
                                     <?php
                                     $sottocategorie = get_terms('tipi_cat_amm_trasp', [
                                         'hide_empty' => false,

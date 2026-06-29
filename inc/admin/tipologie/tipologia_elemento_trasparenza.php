@@ -53,6 +53,244 @@ function dci_register_post_type_elemento_trasparenza()
     remove_post_type_support('elemento_trasparenza', 'editor');
 }
 
+/**
+ * Mostra i collegamenti rapidi e la guida nella pagina principale degli
+ * Elementi di Amministrazione Trasparente.
+ */
+add_filter('views_edit-elemento_trasparenza', 'dci_elemento_trasparenza_render_admin_help', 5);
+function dci_elemento_trasparenza_render_admin_help($views)
+{
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+
+    if (
+        ! $screen ||
+        'edit' !== $screen->base ||
+        'elemento_trasparenza' !== $screen->post_type
+    ) {
+        return $views;
+    }
+
+    $trasparenza_attiva = 'true' === dci_get_option('ck_abilita_trasparenza');
+    $pagina_pubblica = home_url('/amministrazione-trasparente/');
+    ?>
+    <style>
+        .dci-trasparenza-admin-tools {
+            margin: 16px 0 20px;
+            padding: 16px 18px;
+            background: #fff;
+            border: 1px solid #c3c4c7;
+            border-left: 4px solid #2271b1;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+        }
+
+        .dci-trasparenza-admin-tools__actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .dci-trasparenza-admin-tools .button {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .dci-trasparenza-admin-tools .dashicons {
+            flex: 0 0 18px;
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            font-size: 18px;
+            line-height: 18px;
+            color: inherit;
+            vertical-align: middle;
+        }
+
+        .dci-trasparenza-admin-tools__warning {
+            margin: 0 0 16px;
+            padding: 12px 14px;
+            background: #fcf9e8;
+            border-left: 4px solid #dba617;
+        }
+
+        .dci-trasparenza-admin-tools__warning p {
+            margin: 4px 0 0;
+        }
+
+        .dci-trasparenza-admin-tools__warning--always {
+            margin: 16px 0 0;
+        }
+
+        .dci-trasparenza-admin-guide {
+            max-width: 850px;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid #dcdcde;
+        }
+
+        .dci-trasparenza-admin-guide h2 {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
+
+        .dci-trasparenza-admin-guide ol {
+            margin: 0 0 10px 20px;
+        }
+
+        .dci-trasparenza-admin-guide li {
+            margin-bottom: 6px;
+        }
+
+        .dci-trasparenza-admin-guide p {
+            margin-bottom: 0;
+        }
+    </style>
+
+    <div class="dci-trasparenza-admin-tools">
+        <?php if (!$trasparenza_attiva) : ?>
+            <div class="dci-trasparenza-admin-tools__warning" role="status">
+                <strong><?php esc_html_e('Amministrazione Trasparente non attiva', 'design_comuni_italia'); ?></strong>
+                <p>
+                    <?php esc_html_e(
+                        'La sezione pubblica è attualmente disabilitata. Puoi continuare a gestire gli elementi, ma i contenuti non saranno visibili ai cittadini finché la funzionalità non verrà abilitata.',
+                        'design_comuni_italia'
+                    ); ?>
+                </p>
+            </div>
+        <?php endif; ?>
+
+        <div class="dci-trasparenza-admin-tools__actions">
+            <a
+                class="button button-primary"
+                href="<?php echo esc_url($pagina_pubblica); ?>"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+                <?php esc_html_e('Visualizza Amministrazione Trasparente', 'design_comuni_italia'); ?>
+            </a>
+
+            <button
+                type="button"
+                class="button"
+                id="dci-trasparenza-guide-toggle"
+                aria-expanded="false"
+                aria-controls="dci-trasparenza-admin-guide"
+                data-open-label="<?php echo esc_attr__('Mostra guida', 'design_comuni_italia'); ?>"
+                data-close-label="<?php echo esc_attr__('Nascondi guida', 'design_comuni_italia'); ?>"
+            >
+                <span class="dashicons dashicons-book-alt" aria-hidden="true"></span>
+                <span class="dci-trasparenza-guide-toggle__label">
+                    <?php esc_html_e('Mostra guida', 'design_comuni_italia'); ?>
+                </span>
+            </button>
+        </div>
+
+        <div class="dci-trasparenza-admin-tools__warning dci-trasparenza-admin-tools__warning--always" role="note">
+            <strong><?php esc_html_e('Avviso sull’aggiornamento delle categorie', 'design_comuni_italia'); ?></strong>
+            <p>
+                <?php esc_html_e(
+                    'È in corso l’aggiornamento della mappa dell’Amministrazione Trasparente per adeguarla agli standard normativi vigenti. L’eventuale aggiunta o mantenimento di voci ulteriori rispetto alla mappa prevista dovrà essere supportato da un documento ufficiale firmato digitalmente dal Segretario comunale.',
+                    'design_comuni_italia'
+                ); ?>
+            </p>
+        </div>
+
+        
+
+        <div
+            class="dci-trasparenza-admin-guide"
+            id="dci-trasparenza-admin-guide"
+            hidden
+        >
+            <h2><?php esc_html_e('Come pubblicare un elemento', 'design_comuni_italia'); ?></h2>
+            <p>
+                <?php esc_html_e(
+                    'Per pubblicare un elemento nell’Amministrazione Trasparente, segui questi passaggi:',
+                    'design_comuni_italia'
+                ); ?>
+            </p>
+            <ol>
+                <li>
+                    <?php
+                    printf(
+                        /* translators: %s: Button label. */
+                        esc_html__('Fai clic sul pulsante %s, accanto al titolo “Amministrazione Trasparente”. Si aprirà la schermata per l’inserimento dei dati.', 'design_comuni_italia'),
+                        '<strong>' . esc_html__('Aggiungi un Elemento Trasparenza', 'design_comuni_italia') . '</strong>'
+                    );
+                    ?>
+                </li>
+                <li><?php esc_html_e('Inserisci un titolo chiaro e riconoscibile per l’elemento da pubblicare.', 'design_comuni_italia'); ?></li>
+                <li><?php esc_html_e('Seleziona la categoria nella quale pubblicare l’elemento. Nell’elenco sono disponibili soltanto le categorie interne al sito che non rimandano a collegamenti esterni.', 'design_comuni_italia'); ?></li>
+                <li><?php esc_html_e('Se necessario, inserisci una breve descrizione del contenuto.', 'design_comuni_italia'); ?></li>
+                <li>
+                    <?php
+                    printf(
+                        /* translators: %s: Field label. */
+                        esc_html__('Inserisci il documento o il collegamento da pubblicare nel campo %s.', 'design_comuni_italia'),
+                        '<strong>' . esc_html__('Documento/link', 'design_comuni_italia') . '</strong>'
+                    );
+                    ?>
+                </li>
+                <li>
+                    <?php
+                    printf(
+                        /* translators: %s: Button label. */
+                        esc_html__('Controlla attentamente i dati inseriti, quindi pubblica l’elemento tramite il pulsante laterale %s.', 'design_comuni_italia'),
+                        '<strong>' . esc_html__('Pubblica', 'design_comuni_italia') . '</strong>'
+                    );
+                    ?>
+                </li>
+                <li>
+                    <?php
+                    printf(
+                        /* translators: %s: Link label. */
+                        esc_html__('Dopo la pubblicazione, apri l’elemento tramite il collegamento %s e verifica che contenuto, documento e categoria siano corretti.', 'design_comuni_italia'),
+                        '<strong>' . esc_html__('Visualizza', 'design_comuni_italia') . '</strong>'
+                    );
+                    ?>
+                </li>
+            </ol>
+            <p>
+                <strong><?php esc_html_e('Nota:', 'design_comuni_italia'); ?></strong>
+                <?php esc_html_e(
+                    'le categorie principali servono a organizzare l’alberatura; per la pubblicazione seleziona una delle relative sottocategorie disponibili.',
+                    'design_comuni_italia'
+                ); ?>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var toggle = document.getElementById('dci-trasparenza-guide-toggle');
+            var guide = document.getElementById('dci-trasparenza-admin-guide');
+
+            if (!toggle || !guide) {
+                return;
+            }
+
+            toggle.addEventListener('click', function () {
+                var isOpen = toggle.getAttribute('aria-expanded') === 'true';
+                var label = toggle.querySelector('.dci-trasparenza-guide-toggle__label');
+
+                toggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+                guide.hidden = isOpen;
+
+                if (label) {
+                    label.textContent = isOpen
+                        ? toggle.getAttribute('data-open-label')
+                        : toggle.getAttribute('data-close-label');
+                }
+            });
+        }());
+    </script>
+    <?php
+
+    return $views;
+}
+
 
 
 

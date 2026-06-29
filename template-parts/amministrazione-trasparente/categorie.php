@@ -572,6 +572,7 @@ document.addEventListener('keydown', function(event) {
                                         tabindex="0"
                                         aria-expanded="true"
                                         aria-controls="<?= esc_attr($id_genitore); ?>"
+                                        aria-label="<?= esc_attr(sprintf('Apri o chiudi la categoria %s', $genitore->name)); ?>"
                                     <?php } ?>
                                 >
                                     <span class="title-custom__inner">
@@ -628,7 +629,7 @@ document.addEventListener('keydown', function(event) {
 
                                             if (!empty($term_url)) {
                                                 $link = $term_url;
-                                                $target = $open_new_window ? ' target="_blank"' : '';
+                                                $target = $open_new_window ? ' target="_blank" rel="noopener noreferrer"' : '';
                                                 $is_external = true;
                                             } else {
                                                 $target = '';
@@ -636,7 +637,7 @@ document.addEventListener('keydown', function(event) {
                                         ?>
                                             <li class="mb-3 mt-3">
                                                 <div class="subcat-item-head">
-                                                    <a class="list-item ps-0 title-medium underline<?= $is_external ? ' is-external' : ''; ?><?= $has_children ? ' has-children' : ' no-children'; ?>" style="text-decoration:none;" href="<?= esc_url($link); ?>"<?= $target; ?>>
+                                                    <a class="list-item ps-0 title-medium underline<?= $is_external ? ' is-external' : ''; ?><?= $has_children ? ' has-children' : ' no-children'; ?>" style="text-decoration:none;" href="<?= esc_url($link); ?>" aria-label="<?= esc_attr($sotto->name); ?>"<?= $target; ?>>
                                                         <?php if ($has_children) { ?>
                                                             <span class="list-marker list-marker--arrow" aria-hidden="true">›</span>
                                                         <?php } else { ?>

@@ -197,7 +197,7 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
                 ?>
                 <li class="dci-amm-sidebar__term-item<?php echo $is_active ? ' is-active' : ''; ?><?php echo $is_open ? ' is-open' : ''; ?>">
                     <div class="dci-amm-sidebar__term-row">
-                        <a class="dci-amm-sidebar__term-link text-decoration-none" href="<?php echo esc_url($link_data['url']); ?>"<?php echo $link_data['target']; ?>>
+                        <a class="dci-amm-sidebar__term-link text-decoration-none" href="<?php echo esc_url($link_data['url']); ?>" aria-label="<?php echo esc_attr($child->name); ?>"<?php echo $link_data['target']; ?>>
                             <span class="dci-amm-sidebar__term-marker dci-amm-sidebar__term-marker--level-<?php echo (int) $level; ?>" aria-hidden="true">
                                 <?php if ($has_children) { ?>
                                     <span class="dci-amm-sidebar__term-marker-arrow">›</span>
@@ -507,7 +507,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
                     <h2 class="title-medium-semi-bold dci-amm-sidebar__title">Voci della sezione</h2>
                     <?php $root_link_data = dci_amm_sidebar_get_term_link_data($root_term); ?>
                     <p class="dci-amm-sidebar__term-root<?php echo dci_amm_sidebar_term_is_active($root_term, $current_term) ? ' is-active' : ''; ?>">
-                        <a class="text-decoration-none d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>"<?php echo $root_link_data['target']; ?>>
+                        <a class="text-decoration-none d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>" aria-label="<?php echo esc_attr($root_term->name); ?>"<?php echo $root_link_data['target']; ?>>
                             <span><?php echo esc_html($root_term->name); ?></span>
                             <?php if (!empty($root_link_data['is_external'])) { ?>
                                 <svg class="icon icon-xs dci-amm-sidebar__external-icon" aria-hidden="true">

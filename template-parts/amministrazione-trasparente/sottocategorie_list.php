@@ -60,7 +60,7 @@ if (!function_exists('dci_stampa_sottocategorie')) {
 
             if (!empty($term_url)) {
                 $link = $term_url;
-                $target = $open_new_window ? ' target="_blank"' : '';
+                $target = $open_new_window ? ' target="_blank" rel="noopener noreferrer"' : '';
                 $is_external = true;
             } else {
                 $link = get_term_link($term->term_id);
@@ -71,7 +71,7 @@ if (!function_exists('dci_stampa_sottocategorie')) {
 
             echo '<li class="sub-sub-item' . ($has_children ? ' has-children' : ' no-children') . '">';
             echo '<div class="sub-sub-item-head">';
-            echo '<a class="' . esc_attr(trim(($is_external ? 'is-external ' : '') . ($has_children ? 'has-children' : 'no-children'))) . '" href="' . esc_url($link) . '"' . $target . '>';
+            echo '<a class="' . esc_attr(trim(($is_external ? 'is-external ' : '') . ($has_children ? 'has-children' : 'no-children'))) . '" href="' . esc_url($link) . '" aria-label="' . esc_attr($term->name) . '"' . $target . '>';
             if ($has_children) {
                 echo '<span class="list-marker list-marker--arrow" aria-hidden="true">›</span>';
             } else {

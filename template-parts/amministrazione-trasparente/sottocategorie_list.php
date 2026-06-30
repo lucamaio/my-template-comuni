@@ -47,6 +47,7 @@ if (!function_exists('dci_stampa_sottocategorie')) {
         echo '<ul class="sub-sub-list depth-' . (int) $depth . '">';
 
         foreach ($terms as $term) {
+            $display_name = dci_format_trasparenza_section_title($term->name);
             $term_url = get_term_meta($term->term_id, 'term_url', true);
             $open_new_window = get_term_meta($term->term_id, 'open_new_window', true);
             $child_terms = get_terms([
@@ -71,21 +72,20 @@ if (!function_exists('dci_stampa_sottocategorie')) {
 
             echo '<li class="sub-sub-item' . ($has_children ? ' has-children' : ' no-children') . '">';
             echo '<div class="sub-sub-item-head">';
-            if ($has_children) {
-                echo '<button class="list-marker-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr($toggle_id) . '" title="' . esc_attr(sprintf('Mostra o nascondi le sottovoci di %s', $term->name)) . '">';
-                echo '<span class="list-marker-toggle__icon" aria-hidden="true">›</span>';
-                echo '<span class="visually-hidden">Mostra o nascondi le sottovoci di ' . esc_html($term->name) . '</span>';
-                echo '</button>';
-            }
-            echo '<a class="' . esc_attr(trim(($is_external ? 'is-external ' : '') . ($has_children ? 'has-children' : 'no-children'))) . '" href="' . esc_url($link) . '" aria-label="' . esc_attr($term->name) . '"' . $target . '>';
-            if (!$has_children) {
-                echo '<span class="list-marker list-marker--dash" aria-hidden="true">-</span>';
-            }
-            echo '<span>' . esc_html($term->name) . '</span>';
+            echo '<a class="' . esc_attr(trim(($is_external ? 'is-external ' : '') . ($has_children ? 'has-children' : 'no-children'))) . '" href="' . esc_url($link) . '" aria-label="' . esc_attr($display_name) . '"' . $target . '>';
+            echo '<span class="list-marker list-marker--dash" aria-hidden="true">-</span>';
+            echo '<span>' . esc_html($display_name) . '</span>';
             if ($is_external) {
                 echo '<svg class="icon icon-xs external-link-icon" aria-hidden="true"><use href="#it-external-link"></use></svg>';
             }
             echo '</a>';
+            if ($has_children) {
+                echo '<button class="sub-sub-toggle js-subcat-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr($toggle_id) . '" title="' . esc_attr(sprintf('Mostra o nascondi le sottovoci di %s', $display_name)) . '">';
+                echo '<span class="js-subcat-toggle-label">Mostra sottovoci</span>';
+                echo '<svg class="icon icon-xs" aria-hidden="true"><use href="#it-expand"></use></svg>';
+                echo '<span class="visually-hidden">Mostra o nascondi le sottovoci di ' . esc_html($display_name) . '</span>';
+                echo '</button>';
+            }
 
             echo '</div>';
 

@@ -26,6 +26,7 @@ if ($yearTwoDigits < 100) {
 }
 
 $ck_sowh_section = dci_get_option("ck_show_section", "Trasparenza");
+$show_search_categories = !empty($args['show_search_categories']);
 
 if($ck_link && !empty($url)){
      $link = esc_url($url);
@@ -42,7 +43,57 @@ if ($elemento->post_status === "publish") :
     <div class="card shadow-sm px-4 pt-4 pb-4 rounded border border-light">
         <span class="visually-hidden">Categoria:</span>
         <div class="card-header border-0 p-0">
-            <?php if ($ck_sowh_section === 'true') {?>
+            <?php if ($show_search_categories) {
+                $categorie = get_the_terms($elemento->ID, 'tipi_cat_amm_trasp');
+                if ($categorie && !is_wp_error($categorie)) {
+                    $categorie = array_filter($categorie, static function ($cat) {
+                        return get_term_meta($cat->term_id, 'visualizza_elemento', true) == 1;
+                    });
+                }
+
+                if (!empty($categorie)) { ?>
+                    <div class="dci-at-result-categories">
+                        <span class="dci-at-result-categories__label">Pubblicato in:</span>
+                        <ul class="dci-at-result-categories__list">
+                            <?php foreach ($categorie as $cat) {
+                                $cat_link = get_term_link($cat);
+                                $cat_url = trim((string) get_term_meta($cat->term_id, 'term_url', true));
+                                $cat_new_window = !empty(get_term_meta($cat->term_id, 'open_new_window', true));
+                                $cat_is_external = $cat_url !== '';
+
+                                if ($cat_is_external) {
+                                    $cat_link = $cat_url;
+                                }
+
+                                if (is_wp_error($cat_link)) {
+                                    continue;
+                                }
+
+                                $cat_name = function_exists('dci_format_trasparenza_section_title')
+                                    ? dci_format_trasparenza_section_title($cat->name)
+                                    : $cat->name;
+                                ?>
+                                <li>
+                                    <a
+                                        class="dci-at-result-categories__link"
+                                        href="<?php echo esc_url($cat_link); ?>"
+                                        <?php if ($cat_is_external && $cat_new_window) { ?>
+                                            target="_blank" rel="noopener noreferrer"
+                                        <?php } ?>
+                                    >
+                                        <?php echo esc_html($cat_name); ?>
+                                        <?php if ($cat_is_external) { ?>
+                                            <svg class="icon icon-xs dci-at-result-categories__external" aria-hidden="true">
+                                                <use href="#it-external-link"></use>
+                                            </svg>
+                                        <?php } ?>
+                                    </a>
+                                </li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                <?php }
+            } elseif ($ck_sowh_section === 'true') {?>
             <?php
                     $categorie = get_the_terms($elemento->ID, 'tipi_cat_amm_trasp');
                     if ($categorie && !is_wp_error($categorie)) {

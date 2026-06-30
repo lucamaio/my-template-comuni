@@ -189,6 +189,7 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
         ?>
         <ul class="dci-amm-sidebar__term-list dci-amm-sidebar__term-list--level-<?php echo (int) $level; ?>">
             <?php foreach ($children as $child) {
+                $child_display_name = dci_format_trasparenza_section_title($child->name);
                 $is_active = dci_amm_sidebar_term_is_active($child, $current_term);
                 $grandchildren = ($level < $max_level) ? dci_amm_sidebar_get_term_children($child->term_id, $child->taxonomy) : [];
                 $has_children = !empty($grandchildren);
@@ -197,7 +198,7 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
                 ?>
                 <li class="dci-amm-sidebar__term-item<?php echo $is_active ? ' is-active' : ''; ?><?php echo $is_open ? ' is-open' : ''; ?>">
                     <div class="dci-amm-sidebar__term-row">
-                        <a class="dci-amm-sidebar__term-link text-decoration-none" href="<?php echo esc_url($link_data['url']); ?>" aria-label="<?php echo esc_attr($child->name); ?>"<?php echo $link_data['target']; ?>>
+                        <a class="dci-amm-sidebar__term-link text-decoration-none" href="<?php echo esc_url($link_data['url']); ?>" aria-label="<?php echo esc_attr($child_display_name); ?>"<?php echo $link_data['target']; ?>>
                             <span class="dci-amm-sidebar__term-marker dci-amm-sidebar__term-marker--level-<?php echo (int) $level; ?>" aria-hidden="true">
                                 <?php if ($has_children) { ?>
                                     <span class="dci-amm-sidebar__term-marker-arrow">›</span>
@@ -205,7 +206,7 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
                                     <span class="dci-amm-sidebar__term-marker-dash">-</span>
                                 <?php } ?>
                             </span>
-                            <span class="dci-amm-sidebar__term-label"><?php echo esc_html($child->name); ?></span>
+                            <span class="dci-amm-sidebar__term-label"><?php echo esc_html($child_display_name); ?></span>
                             <?php if (!empty($link_data['is_external'])) { ?>
                                 <svg class="icon icon-xs dci-amm-sidebar__external-icon" aria-hidden="true">
                                     <use href="#it-external-link"></use>
@@ -217,7 +218,7 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
                                 type="button"
                                 class="dci-amm-sidebar__toggle"
                                 aria-expanded="<?php echo $is_open ? 'true' : 'false'; ?>"
-                                aria-label="<?php echo esc_attr(sprintf('Mostra le sottovoci di %s', $child->name)); ?>">
+                                aria-label="<?php echo esc_attr(sprintf('Mostra le sottovoci di %s', $child_display_name)); ?>">
                                 <svg class="icon icon-sm" aria-hidden="true">
                                     <use href="#it-expand"></use>
                                 </svg>
@@ -503,12 +504,13 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
             <?php } ?>
 
             <?php if ($root_term instanceof WP_Term) { ?>
+                <?php $root_display_name = dci_format_trasparenza_section_title($root_term->name); ?>
                 <div class="dci-amm-sidebar__box">
                     <h2 class="title-medium-semi-bold dci-amm-sidebar__title">Voci della sezione</h2>
                     <?php $root_link_data = dci_amm_sidebar_get_term_link_data($root_term); ?>
                     <p class="dci-amm-sidebar__term-root<?php echo dci_amm_sidebar_term_is_active($root_term, $current_term) ? ' is-active' : ''; ?>">
-                        <a class="text-decoration-none d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>" aria-label="<?php echo esc_attr($root_term->name); ?>"<?php echo $root_link_data['target']; ?>>
-                            <span><?php echo esc_html($root_term->name); ?></span>
+                        <a class="text-decoration-none d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>" aria-label="<?php echo esc_attr($root_display_name); ?>"<?php echo $root_link_data['target']; ?>>
+                            <span><?php echo esc_html($root_display_name); ?></span>
                             <?php if (!empty($root_link_data['is_external'])) { ?>
                                 <svg class="icon icon-xs dci-amm-sidebar__external-icon" aria-hidden="true">
                                     <use href="#it-external-link"></use>

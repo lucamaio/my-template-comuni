@@ -9,6 +9,22 @@
 
 global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici, $tipo_personalizzato, $dci_amm_sidebar_column_classes;
 
+if (!function_exists('dci_format_trasparenza_section_title')) {
+    function dci_format_trasparenza_section_title($title)
+    {
+        $title = (string) $title;
+
+        if (!preg_match('/\p{Lu}{7,}/u', $title)) {
+            return $title;
+        }
+
+        $lowercase_title = mb_strtolower($title, 'UTF-8');
+
+        return mb_strtoupper(mb_substr($lowercase_title, 0, 1, 'UTF-8'), 'UTF-8')
+            . mb_substr($lowercase_title, 1, null, 'UTF-8');
+    }
+}
+
 $obj = get_queried_object();
 
 if ($obj instanceof WP_Term && isset($obj->taxonomy) && $obj->taxonomy === 'tipi_cat_amm_trasp') {
@@ -27,7 +43,7 @@ if ($obj instanceof WP_Term && isset($obj->taxonomy) && $obj->taxonomy === 'tipi
                 <head>
                     <meta charset="<?php bloginfo('charset'); ?>">
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <title><?php echo esc_html($obj->name); ?></title>
+                    <title><?php echo esc_html(dci_format_trasparenza_section_title($obj->name)); ?></title>
                     <script>
                         window.addEventListener('load', function () {
                             window.open(<?php echo wp_json_encode($redirect_url); ?>, '_blank', 'noopener');
@@ -282,10 +298,11 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
 
 <main>
     <?php
-    $title = $obj->name;
+    $title = dci_format_trasparenza_section_title($obj->name);
     $description = $obj->description;
     $data_element = 'data-element="page-name"';
     get_template_part("template-parts/hero/hero");
+    $title = $obj->name;
 get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
     ?>
 

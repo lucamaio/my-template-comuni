@@ -7,6 +7,22 @@
  */
 global $post, $with_shadow, $url_img;
 
+if (!function_exists('dci_format_trasparenza_section_title')) {
+    function dci_format_trasparenza_section_title($title)
+    {
+        $title = (string) $title;
+
+        if (!preg_match('/\p{Lu}{7,}/u', $title)) {
+            return $title;
+        }
+
+        $lowercase_title = mb_strtolower($title, 'UTF-8');
+
+        return mb_strtoupper(mb_substr($lowercase_title, 0, 1, 'UTF-8'), 'UTF-8')
+            . mb_substr($lowercase_title, 1, null, 'UTF-8');
+    }
+}
+
 $search_url = esc_url( home_url( '/' ));
 $link_amministrazione=dci_get_option("link_ammtrasparente");
 $url_img="https://saassipa.cultura.gov.it/wp-content/uploads/2020/04/amm_trasp-1024x381.png";

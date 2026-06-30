@@ -43,8 +43,120 @@ if ( ! empty( $categoria_genitore ) && ! is_wp_error( $categoria_genitore ) ) {
 ?>
 
 <?php if ( ! empty( $sottocategorie ) ) { ?>
-<div class="container py-5" id="categorie">
-    <div class="row g-2">           
+<style>
+    .dci-at-subcategories {
+        padding-top: 2rem;
+        padding-bottom: 2.5rem;
+    }
+
+    .dci-at-subcategories__heading {
+        margin-bottom: 1.25rem;
+        color: #17324d;
+        font-size: 1.5rem;
+        line-height: 1.25;
+        font-weight: 700;
+    }
+
+    .dci-at-subcategories__grid {
+        row-gap: 1rem;
+    }
+
+    .dci-at-subcategory {
+        display: flex;
+        height: 100%;
+        min-height: 10.5rem;
+        overflow: hidden;
+        color: #17324d;
+        background: #fff;
+        border: 1px solid #d8e1ea;
+        border-left: 4px solid #17324d;
+        border-radius: 4px;
+        box-shadow: 0 3px 12px rgba(23, 50, 77, 0.07);
+        text-decoration: none;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .dci-at-subcategory:hover {
+        color: #17324d;
+        border-color: #17324d;
+        box-shadow: 0 8px 20px rgba(23, 50, 77, 0.13);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .dci-at-subcategory:focus-visible {
+        outline: 3px solid #17324d;
+        outline-offset: 3px;
+    }
+
+    .dci-at-subcategory__body {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        padding: 1.35rem 1.4rem 1.25rem;
+    }
+
+    .dci-at-subcategory__title-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .dci-at-subcategory__title {
+        margin: 0;
+        color: #17324d;
+        font-size: 1.35rem;
+        line-height: 1.22;
+        font-weight: 700;
+    }
+
+    .dci-at-subcategory__external {
+        flex: 0 0 auto;
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: 0.15rem;
+        fill: currentColor;
+    }
+
+    .dci-at-subcategory__description {
+        margin: 0.65rem 0 0;
+        color: #455a64;
+        font-size: 1rem;
+        line-height: 1.45;
+    }
+
+    @media (max-width: 767.98px) {
+        .dci-at-subcategories {
+            padding-top: 1.5rem;
+            padding-bottom: 2rem;
+        }
+
+        .dci-at-subcategory {
+            min-height: auto;
+        }
+
+        .dci-at-subcategory__body {
+            padding: 1.15rem 1.2rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .dci-at-subcategory {
+            transition: none;
+        }
+
+        .dci-at-subcategory:hover {
+            transform: none;
+        }
+    }
+</style>
+
+<section class="container dci-at-subcategories" id="categorie" aria-labelledby="dci-at-subcategories-title">
+    <h2 class="dci-at-subcategories__heading" id="dci-at-subcategories-title">
+        <?php esc_html_e('In questa sezione', 'design_comuni_italia'); ?>
+    </h2>
+    <div class="row dci-at-subcategories__grid">
 
         <?php foreach ( $sottocategorie as $sottocategoria ) { 
 
@@ -63,35 +175,49 @@ if ( ! empty( $categoria_genitore ) && ! is_wp_error( $categoria_genitore ) ) {
 
                 // 👉 DEFAULT
                 $target = '';
+                $opens_new_window = false;
+                $is_external_section = false;
 
                 // 👉 LINK PERSONALIZZATO
                 if (!empty($term_url)) {
                     $link = esc_url($term_url);
                     $target = ($open_new_window) ? ' target="_blank" rel="noopener noreferrer"' : '';
+                    $opens_new_window = !empty($open_new_window);
+                    $is_external_section = true;
                 }
         ?>
-            <div class="col-md-3 col-xl-4">
-                <div class="cmp-card-simple card-wrapper pb-0 rounded border border-light">
-                  <div class="card shadow-sm rounded">
-                    <div class="card-body">
+            <div class="col-12 col-md-6 col-xl-4">
+                <a class="dci-at-subcategory" href="<?php echo esc_url($link); ?>"<?php echo $target; ?>>
+                    <div class="dci-at-subcategory__body">
+                        <div class="dci-at-subcategory__title-row">
+                            <h3 class="dci-at-subcategory__title">
+                                <?php echo esc_html(dci_format_trasparenza_section_title($sottocategoria->name)); ?>
+                            </h3>
+                            <?php if ($is_external_section) { ?>
+                                <svg class="icon dci-at-subcategory__external" aria-hidden="true">
+                                    <use href="#it-external-link"></use>
+                                </svg>
+                                <span class="visually-hidden">
+                                    <?php
+                                    echo $opens_new_window
+                                        ? esc_html__('Sezione esterna all’Amministrazione Trasparente. Si apre in una nuova finestra', 'design_comuni_italia')
+                                        : esc_html__('Sezione esterna all’Amministrazione Trasparente', 'design_comuni_italia');
+                                    ?>
+                                </span>
+                            <?php } ?>
+                        </div>
 
-                        <a class="text-decoration-none" href="<?php echo esc_url($link); ?>"<?php echo $target; ?>>
-                            <h4 class="card-title t-primary title-xlarge">
-                                <?php echo ucfirst($sottocategoria->name); ?>
-                            </h4>
-                        </a>
-
-                        <p class="titillium text-paragraph mb-0 description">
-                            <?php echo $sottocategoria->description; ?>
-                        </p>
-
+                        <?php if (!empty($sottocategoria->description)) { ?>
+                            <p class="dci-at-subcategory__description">
+                                <?php echo wp_kses_post($sottocategoria->description); ?>
+                            </p>
+                        <?php } ?>
                     </div>
-                  </div>
-                </div>
+                </a>
             </div>
 
         <?php } } ?>
 
     </div>
-</div>
+</section>
 <?php } ?>

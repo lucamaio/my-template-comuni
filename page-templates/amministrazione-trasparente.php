@@ -78,7 +78,7 @@ get_header();
 
         <?php // dci_get_template_part_server_cached("trasparenza-categorie"); // ripistino il vecchio sistema?>
 
-        <?php get_template_part("template-parts/amministrazione-trasparente/categorie"); ?>
+        <?php  get_template_part("template-parts/amministrazione-trasparente/categorie"); ?>
         <?php
         // Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.
         $portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");

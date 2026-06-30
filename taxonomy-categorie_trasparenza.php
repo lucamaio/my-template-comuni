@@ -286,6 +286,7 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     $description = $obj->description;
     $data_element = 'data-element="page-name"';
     get_template_part("template-parts/hero/hero");
+get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
     ?>
 
     <div class="bg-grey-card dci-at-layout">

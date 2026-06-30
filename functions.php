@@ -271,51 +271,6 @@ function dci_get_template_part_async($template_key) {
     <?php
 }
 
-/**
- * Renderizza un template registrato direttamente nell'HTML iniziale.
- *
- * Per gli utenti anonimi riutilizza per un breve periodo lo stesso sistema di
- * cache e invalidazione dei frammenti asincroni, senza richiedere JavaScript o
- * una seconda chiamata HTTP.
- *
- * @param string $template_key Chiave presente in dci_async_template_parts_map().
- * @return void
- */
-function dci_get_template_part_server_cached($template_key) {
-    $templates = dci_async_template_parts_map();
-
-    if (!isset($templates[$template_key])) {
-        return;
-    }
-
-    if (is_admin() || wp_doing_ajax() || is_user_logged_in()) {
-        get_template_part($templates[$template_key]['slug']);
-        return;
-    }
-
-    $cache_key = dci_async_template_parts_cache_key(
-        $template_key,
-        get_queried_object_id(),
-        0,
-        '',
-        '',
-        'server-render'
-    );
-    $cached_html = get_transient($cache_key);
-
-    if (false !== $cached_html) {
-        echo $cached_html;
-        return;
-    }
-
-    ob_start();
-    get_template_part($templates[$template_key]['slug']);
-    $html = ob_get_clean();
-
-    set_transient($cache_key, $html, dci_async_template_parts_cache_ttl());
-    echo $html;
-}
-
 add_action('wp_ajax_dci_load_template_part', 'dci_load_template_part_ajax');
 add_action('wp_ajax_nopriv_dci_load_template_part', 'dci_load_template_part_ajax');
 function dci_load_template_part_ajax() {

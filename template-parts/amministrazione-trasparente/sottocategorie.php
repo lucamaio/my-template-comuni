@@ -40,6 +40,23 @@ if ( ! empty( $categoria_genitore ) && ! is_wp_error( $categoria_genitore ) ) {
         });
     }
 }
+
+$conteggi_sottovoci = [];
+$termini_trasparenza = get_terms('tipi_cat_amm_trasp', [
+    'hide_empty' => false,
+]);
+
+if (!is_wp_error($termini_trasparenza)) {
+    foreach ($termini_trasparenza as $termine_trasparenza) {
+        if (
+            (int) $termine_trasparenza->parent > 0
+            && get_term_meta($termine_trasparenza->term_id, 'visualizza_elemento', true) == 1
+        ) {
+            $parent_id = (int) $termine_trasparenza->parent;
+            $conteggi_sottovoci[$parent_id] = ($conteggi_sottovoci[$parent_id] ?? 0) + 1;
+        }
+    }
+}
 ?>
 
 <?php if ( ! empty( $sottocategorie ) ) { ?>
@@ -126,6 +143,19 @@ if ( ! empty( $categoria_genitore ) && ! is_wp_error( $categoria_genitore ) ) {
         line-height: 1.45;
     }
 
+    .dci-at-subcategory__count {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 0.55rem;
+        margin: 0.75rem 0 0;
+        padding-top: 0.65rem;
+        color: #455a64;
+        border-top: 1px solid #e6edf3;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        font-weight: 600;
+    }
+
     @media (max-width: 767.98px) {
         .dci-at-subcategories {
             padding-top: 1.5rem;
@@ -210,6 +240,39 @@ if ( ! empty( $categoria_genitore ) && ! is_wp_error( $categoria_genitore ) ) {
                         <?php if (!empty($sottocategoria->description)) { ?>
                             <p class="dci-at-subcategory__description">
                                 <?php echo wp_kses_post($sottocategoria->description); ?>
+                            </p>
+                        <?php } ?>
+
+                        <?php if (empty($term_url)) { ?>
+                            <p class="dci-at-subcategory__count">
+                                <span>
+                                    <?php
+                                    printf(
+                                        esc_html(_n(
+                                            '%s elemento pubblicato',
+                                            '%s elementi pubblicati',
+                                            (int) $sottocategoria->count,
+                                            'design_comuni_italia'
+                                        )),
+                                        esc_html(number_format_i18n((int) $sottocategoria->count))
+                                    );
+                                    ?>
+                                </span>
+                                <span aria-hidden="true">·</span>
+                                <span>
+                                    <?php
+                                    $numero_sottovoci = $conteggi_sottovoci[$sottocategoria->term_id] ?? 0;
+                                    printf(
+                                        esc_html(_n(
+                                            '%s sottovoce',
+                                            '%s sottovoci',
+                                            $numero_sottovoci,
+                                            'design_comuni_italia'
+                                        )),
+                                        esc_html(number_format_i18n($numero_sottovoci))
+                                    );
+                                    ?>
+                                </span>
                             </p>
                         <?php } ?>
                     </div>

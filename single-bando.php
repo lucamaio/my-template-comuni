@@ -544,195 +544,279 @@ get_header();
                     <?php if (
                         !empty($link_bdncp) || !empty($link_piattaforma) || $has_atti_indizione || $has_determine_aggiudicazione || $has_altri_link
                     ) { ?>
-                        <article class="it-page-section anchor-offset mt-5">
-                            <h4 id="link-esterni">Link e riferimenti esterni</h4>
+                        <?php
+                        $riferimenti_esterni = array();
 
-                            <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
+                        if (!empty($link_bdncp)) {
+                            $riferimenti_esterni[] = array(
+                                'url'     => $link_bdncp,
+                                'titolo'  => 'BDNCP (ANAC)',
+                                'is_file' => false,
+                            );
+                        }
 
-                                <?php if (!empty($link_bdncp)) { ?>
-                                    <div class="card card-teaser p-4 mt-3 rounded border border-light flex-nowrap dci-bando-link-card">
-                                        <svg class="icon" aria-hidden="true">
-                                            <use xlink:href="#it-link"></use>
-                                        </svg>
+                        if (!empty($link_piattaforma)) {
+                            $riferimenti_esterni[] = array(
+                                'url'     => $link_piattaforma,
+                                'titolo'  => 'Piattaforma di approvvigionamento',
+                                'is_file' => false,
+                            );
+                        }
 
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a href="<?php echo esc_url($link_bdncp); ?>" target="_blank" rel="noopener noreferrer">
-                                                    BDNCP (ANAC)
-                                                </a>
-                                            </h5>
-                                            <p class="card-text">
-                                                Consulta la scheda del bando sulla Banca Dati Nazionale Contratti Pubblici.
-                                            </p>
-                                        </div>
+                        if (is_array($atti_indizione)) {
+                            foreach ($atti_indizione as $atto) {
+                                $url = isset($atto['url']) ? trim((string) $atto['url']) : '';
+                                $file_value = $atto['file'] ?? '';
+                                $file_url = is_array($file_value)
+                                    ? trim((string) ($file_value['url'] ?? ''))
+                                    : trim((string) $file_value);
+                                $file_id = isset($atto['file_id']) ? absint($atto['file_id']) : 0;
+                                $is_file = $file_id || $file_url !== '';
+                                $link_finale = $file_id
+                                    ? wp_get_attachment_url($file_id)
+                                    : ($file_url !== '' ? $file_url : $url);
+
+                                if (empty($link_finale)) {
+                                    continue;
+                                }
+
+                                $riferimenti_esterni[] = array(
+                                    'url'     => $link_finale,
+                                    'titolo'  => !empty($atto['title']) ? trim((string) $atto['title']) : 'Atto di indizione',
+                                    'is_file' => (bool) $is_file,
+                                );
+                            }
+                        }
+
+                        if (is_array($determine_aggiudicazione)) {
+                            foreach ($determine_aggiudicazione as $det) {
+                                $url = isset($det['url']) ? trim((string) $det['url']) : '';
+                                $file_value = $det['file'] ?? '';
+                                $file_url = is_array($file_value)
+                                    ? trim((string) ($file_value['url'] ?? ''))
+                                    : trim((string) $file_value);
+                                $file_id = isset($det['file_id']) ? absint($det['file_id']) : 0;
+                                $is_file = $file_id || $file_url !== '';
+                                $link_finale = $file_id
+                                    ? wp_get_attachment_url($file_id)
+                                    : ($file_url !== '' ? $file_url : $url);
+
+                                if (empty($link_finale)) {
+                                    continue;
+                                }
+
+                                $riferimenti_esterni[] = array(
+                                    'url'     => $link_finale,
+                                    'titolo'  => !empty($det['title']) ? trim((string) $det['title']) : 'Determina di aggiudicazione',
+                                    'is_file' => (bool) $is_file,
+                                );
+                            }
+                        }
+
+                        if (is_array($altri_link)) {
+                            foreach ($altri_link as $link) {
+                                $url = isset($link['url']) ? trim((string) $link['url']) : '';
+
+                                if ($url === '') {
+                                    continue;
+                                }
+
+                                $riferimenti_esterni[] = array(
+                                    'url'     => $url,
+                                    'titolo'  => !empty($link['label']) ? trim((string) $link['label']) : 'Link',
+                                    'is_file' => false,
+                                );
+                            }
+                        }
+                        ?>
+
+                        <style>
+                            .dci-bando-resources {
+                                --dci-resource-primary: var(--tema-primary, #0d2b45);
+                                --dci-resource-hover: var(--tema-hover, #133b5c);
+                                --dci-resource-focus: var(--tema-focus, #1e5a8a);
+                            }
+
+                            .dci-bando-resources__heading {
+                                color: var(--dci-resource-primary);
+                            }
+
+                            .dci-bando-resources__grid {
+                                row-gap: 1rem;
+                            }
+
+                            .dci-bando-resources__item {
+                                display: flex;
+                            }
+
+                            .dci-bando-resources__card {
+                                position: relative;
+                                display: flex;
+                                align-items: flex-start;
+                                gap: 1rem;
+                                width: 100%;
+                                min-height: 112px;
+                                padding: 1.15rem 3.25rem 1.15rem 1.15rem;
+                                overflow: hidden;
+                                color: var(--dci-resource-primary);
+                                background-color: #ffffff;
+                                border-radius: 12px;
+                                box-shadow: 0 8px 22px rgba(13, 43, 69, 0.08);
+                                text-decoration: none;
+                                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                            }
+
+                            .dci-bando-resources__card::before {
+                                position: absolute;
+                                inset: 0 auto 0 0;
+                                width: 4px;
+                                background: var(--dci-resource-primary);
+                                content: "";
+                            }
+
+                            .dci-bando-resources__card:hover {
+                                color: var(--dci-resource-hover);
+                                background-color: #fbfcfd;
+                                box-shadow: 0 12px 28px rgba(13, 43, 69, 0.14);
+                                text-decoration: none;
+                                transform: translateY(-2px);
+                            }
+
+                            .dci-bando-resources__card:focus-visible {
+                                outline: 3px solid var(--dci-resource-focus);
+                                outline-offset: 3px;
+                            }
+
+                            .dci-bando-resources__icon {
+                                flex: 0 0 auto;
+                                width: 42px;
+                                height: 42px;
+                                padding: 9px;
+                                background-color: #f6f8fa;
+                                border-radius: 10px;
+                                box-shadow: 0 4px 12px rgba(13, 43, 69, 0.1);
+                            }
+
+                            .dci-bando-resources__content {
+                                min-width: 0;
+                            }
+
+                            .dci-bando-resources__type {
+                                display: block;
+                                margin-bottom: 0.3rem;
+                                color: var(--dci-resource-primary);
+                                font-size: 0.76rem;
+                                font-weight: 700;
+                                letter-spacing: 0.035em;
+                                line-height: 1.25;
+                                text-transform: uppercase;
+                            }
+
+                            .dci-bando-resources__title {
+                                display: block;
+                                overflow-wrap: anywhere;
+                                font-size: 1rem;
+                                font-weight: 700;
+                                line-height: 1.35;
+                            }
+
+                            .dci-bando-resources__meta {
+                                display: block;
+                                margin-top: 0.35rem;
+                                overflow: hidden;
+                                color: #455a64;
+                                font-size: 0.85rem;
+                                line-height: 1.35;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+                            }
+
+                            .dci-bando-resources__arrow {
+                                position: absolute;
+                                top: 50%;
+                                right: 1rem;
+                                width: 22px;
+                                height: 22px;
+                                color: var(--dci-resource-primary);
+                                transform: translateY(-50%);
+                            }
+
+                            .dci-bando-resources__arrow .icon {
+                                width: 100%;
+                                height: 100%;
+                                fill: currentColor;
+                            }
+
+                            @media (prefers-reduced-motion: reduce) {
+                                .dci-bando-resources__card {
+                                    transition: none;
+                                }
+
+                                .dci-bando-resources__card:hover {
+                                    transform: none;
+                                }
+                            }
+                        </style>
+
+                        <article class="it-page-section anchor-offset mt-5 dci-bando-resources"
+                            aria-labelledby="link-esterni">
+                            <h4 class="h3 mb-3 dci-bando-resources__heading" id="link-esterni">
+                                Link e riferimenti esterni
+                            </h4>
+                            <div class="row dci-bando-resources__grid">
+                                <?php foreach ($riferimenti_esterni as $riferimento) {
+                                    $riferimento_url = $riferimento['url'];
+                                    $riferimento_titolo = $riferimento['titolo'];
+                                    $is_file = !empty($riferimento['is_file']);
+                                    $riferimento_path = (string) parse_url($riferimento_url, PHP_URL_PATH);
+                                    $riferimento_host = (string) parse_url($riferimento_url, PHP_URL_HOST);
+                                    $riferimento_estensione = strtoupper(
+                                        (string) pathinfo($riferimento_path, PATHINFO_EXTENSION)
+                                    );
+                                    $tipo_riferimento = $is_file ? 'Documento' : 'Link esterno';
+                                    $meta_riferimento = $is_file
+                                        ? ($riferimento_estensione ? 'Formato ' . $riferimento_estensione : 'Documento allegato')
+                                        : $riferimento_host;
+                                    $etichetta_riferimento = $is_file
+                                        ? sprintf('Apri il documento %s in una nuova scheda', $riferimento_titolo)
+                                        : sprintf('Apri il link %s in una nuova scheda', $riferimento_titolo);
+                                    $icon_src = $is_file
+                                        ? "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230D2B45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.75h8l4 4v14.5H6z'/%3E%3Cpath d='M14 2.75v4h4M9 12h6M9 16h6'/%3E%3C/svg%3E"
+                                        : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230D2B45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.07.07l2-2A5 5 0 0 0 12 4l-1.15 1.15'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15'/%3E%3C/svg%3E";
+                                    ?>
+                                    <div class="col-12 col-md-6 dci-bando-resources__item">
+                                        <a class="dci-bando-resources__card"
+                                            href="<?php echo esc_url($riferimento_url); ?>"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title="<?php echo esc_attr($etichetta_riferimento); ?>"
+                                            aria-label="<?php echo esc_attr($etichetta_riferimento); ?>">
+                                            <img class="dci-bando-resources__icon"
+                                                src="<?php echo esc_attr($icon_src); ?>"
+                                                alt="<?php echo esc_attr(sprintf('Icona %s', $tipo_riferimento)); ?>"
+                                                width="42"
+                                                height="42">
+                                            <span class="dci-bando-resources__content">
+                                                <span class="dci-bando-resources__type">
+                                                    <?php echo esc_html($tipo_riferimento); ?>
+                                                </span>
+                                                <span class="dci-bando-resources__title">
+                                                    <?php echo esc_html($riferimento_titolo); ?>
+                                                </span>
+                                                <?php if (!empty($meta_riferimento)) { ?>
+                                                    <span class="dci-bando-resources__meta">
+                                                        <?php echo esc_html($meta_riferimento); ?>
+                                                    </span>
+                                                <?php } ?>
+                                            </span>
+                                            <span class="dci-bando-resources__arrow" aria-hidden="true">
+                                                <svg class="icon">
+                                                    <use href="<?php echo $is_file ? '#it-download' : '#it-external-link'; ?>"></use>
+                                                </svg>
+                                            </span>
+                                        </a>
                                     </div>
                                 <?php } ?>
-
-                                <?php if (!empty($link_piattaforma)) { ?>
-                                    <div class="card card-teaser p-4 mt-3 rounded border border-light flex-nowrap dci-bando-link-card">
-                                        <svg class="icon" aria-hidden="true">
-                                            <use xlink:href="#it-link"></use>
-                                        </svg>
-
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a href="<?php echo esc_url($link_piattaforma); ?>" target="_blank" rel="noopener noreferrer">
-                                                    Piattaforma di approvvigionamento
-                                                </a>
-                                            </h5>
-                                            <p class="card-text">
-                                                Accedi alla piattaforma telematica utilizzata per la gestione della procedura.
-                                            </p>
-                                        </div>
-                                    </div>
-                                <?php } ?>
-
-                                <?php
-                                // ============================================================
-                                // ATTI DI INDIZIONE
-                                // Gestisce sia il link esterno sia il file caricato
-                                // ============================================================
-                                if (is_array($atti_indizione) && !empty($atti_indizione)) {
-                                    foreach ($atti_indizione as $atto) {
-                                        $url      = isset($atto['url']) ? trim($atto['url']) : '';
-                                        $file_url = isset($atto['file']) ? trim($atto['file']) : '';
-                                        $file_id  = isset($atto['file_id']) ? absint($atto['file_id']) : 0;
-                                        $title    = isset($atto['title']) && trim($atto['title']) !== '' ? trim($atto['title']) : 'Atto di indizione';
-
-                                        /*
-                                         * Se è presente un file caricato, viene data priorità al file.
-                                         * Se non è presente il file, viene usato il link esterno.
-                                         */
-                                        if ($file_id) {
-                                            $link_finale = wp_get_attachment_url($file_id);
-                                        } elseif (!empty($file_url)) {
-                                            $link_finale = $file_url;
-                                        } else {
-                                            $link_finale = $url;
-                                        }
-
-                                        if (empty($link_finale)) {
-                                            continue;
-                                        }
-
-                                        $icona = (!empty($file_id) || !empty($file_url)) ? '#it-clip' : '#it-link';
-                                        $tipo_collegamento = (!empty($file_id) || !empty($file_url)) ? 'Documento allegato' : 'Link esterno';
-                                        $aria_label = (!empty($file_id) || !empty($file_url)) ? 'Scarica atto ' : 'Apri atto ';
-                                        ?>
-                                        <div class="card card-teaser p-4 mt-3 rounded border border-light flex-nowrap dci-bando-link-card">
-                                            <svg class="icon" aria-hidden="true">
-                                                <use xlink:href="<?php echo esc_attr($icona); ?>"></use>
-                                            </svg>
-
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <a 
-                                                        href="<?php echo esc_url($link_finale); ?>" 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        aria-label="<?php echo esc_attr($aria_label . $title); ?>"
-                                                        title="<?php echo esc_attr($title); ?>"
-                                                    >
-                                                        <?php echo esc_html($title); ?>
-                                                    </a>
-                                                </h5>
-                                                <p class="card-text"><?php echo esc_html($tipo_collegamento); ?></p>
-                                            </div>
-                                        </div>
-                                        <?php
-                                    }
-                                }
-                                ?>
-
-                                <?php
-                                // ============================================================
-                                // DETERMINE DI AGGIUDICAZIONE
-                                // Gestisce sia il link esterno sia il file caricato
-                                // ============================================================
-                                if (is_array($determine_aggiudicazione) && !empty($determine_aggiudicazione)) {
-                                    foreach ($determine_aggiudicazione as $det) {
-                                        $url      = isset($det['url']) ? trim($det['url']) : '';
-                                        $file_url = isset($det['file']) ? trim($det['file']) : '';
-                                        $file_id  = isset($det['file_id']) ? absint($det['file_id']) : 0;
-                                        $title    = isset($det['title']) && trim($det['title']) !== '' ? trim($det['title']) : 'Determina di aggiudicazione';
-
-                                        /*
-                                         * Se è presente un file caricato, viene data priorità al file.
-                                         * Se non è presente il file, viene usato il link esterno.
-                                         */
-                                        if ($file_id) {
-                                            $link_finale = wp_get_attachment_url($file_id);
-                                        } elseif (!empty($file_url)) {
-                                            $link_finale = $file_url;
-                                        } else {
-                                            $link_finale = $url;
-                                        }
-
-                                        if (empty($link_finale)) {
-                                            continue;
-                                        }
-
-                                        $icona = (!empty($file_id) || !empty($file_url)) ? '#it-clip' : '#it-link';
-                                        $tipo_collegamento = (!empty($file_id) || !empty($file_url)) ? 'Documento allegato' : 'Link esterno';
-                                        $aria_label = (!empty($file_id) || !empty($file_url)) ? 'Scarica determina ' : 'Apri determina ';
-                                        ?>
-                                        <div class="card card-teaser p-4 mt-3 rounded border border-light flex-nowrap dci-bando-link-card">
-                                            <svg class="icon" aria-hidden="true">
-                                                <use xlink:href="<?php echo esc_attr($icona); ?>"></use>
-                                            </svg>
-
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <a 
-                                                        href="<?php echo esc_url($link_finale); ?>" 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        aria-label="<?php echo esc_attr($aria_label . $title); ?>"
-                                                        title="<?php echo esc_attr($title); ?>"
-                                                    >
-                                                        <?php echo esc_html($title); ?>
-                                                    </a>
-                                                </h5>
-                                                <p class="card-text"><?php echo esc_html($tipo_collegamento); ?></p>
-                                            </div>
-                                        </div>
-                                        <?php
-                                    }
-                                }
-                                ?>
-
-                                <?php
-                                // ============================================================
-                                // ALTRI LINK
-                                // ============================================================
-                                if (is_array($altri_link) && !empty($altri_link)) {
-                                    foreach ($altri_link as $link) {
-                                        $url = isset($link['url']) ? trim($link['url']) : '';
-                                        $label = isset($link['label']) && trim($link['label']) !== '' ? trim($link['label']) : 'Link';
-
-                                        if (empty($url)) {
-                                            continue;
-                                        }
-                                        ?>
-                                        <div class="card card-teaser p-4 mt-3 rounded border border-light flex-nowrap dci-bando-link-card">
-                                            <svg class="icon" aria-hidden="true">
-                                                <use xlink:href="#it-link"></use>
-                                            </svg>
-
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer">
-                                                        <?php echo esc_html($label); ?>
-                                                    </a>
-                                                </h5>
-                                                <p class="card-text">Link esterno</p>
-                                            </div>
-                                        </div>
-                                        <?php
-                                    }
-                                }
-                                ?>
-
                             </div>
                         </article>
                     <?php } ?>
@@ -806,8 +890,16 @@ get_header();
             </div>
         </div>
 
-        <?php get_template_part("template-parts/common/valuta-servizio"); ?>
-        <?php get_template_part("template-parts/common/assistenza-contatti"); ?>
+        <?php 
+
+        // Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.
+        $portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");
+
+        // Se è attiva la trasparenza esterna, non visualizzare questi elementi
+        if ($portalesoloperusoesterno !== 'true') { 
+            get_template_part("template-parts/common/valuta-servizio"); 
+            get_template_part("template-parts/common/assistenza-contatti"); 
+        }?>
 
     <?php
     endwhile; // End of the loop.

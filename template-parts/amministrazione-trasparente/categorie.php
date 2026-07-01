@@ -28,47 +28,7 @@ usort($categorie_genitori, function ($a, $b) {
 
 $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_get_option("siti_tematici", "trasparenza") : [];
 
-$at_search_term = isset($_GET['at_search']) && is_string($_GET['at_search'])
-    ? sanitize_text_field(wp_unslash($_GET['at_search']))
-    : '';
-$at_search_page = isset($_GET['at_page']) && is_scalar($_GET['at_page'])
-    ? max(1, absint($_GET['at_page']))
-    : 1;
-$at_search_query = null;
-$at_category_results = [];
-$at_search_too_short = $at_search_term !== ''
-    && mb_strlen($at_search_term, 'UTF-8') < 2;
-
-if ($at_search_term !== '' && !$at_search_too_short) {
-    $at_category_query = get_terms([
-        'taxonomy'   => 'tipi_cat_amm_trasp',
-        'hide_empty' => false,
-        'search'     => $at_search_term,
-        'orderby'    => 'name',
-        'order'      => 'ASC',
-        'number'     => 50,
-    ]);
-
-    if (!is_wp_error($at_category_query)) {
-        $at_category_results = array_values(array_filter(
-            $at_category_query,
-            static function ($term) {
-                return get_term_meta($term->term_id, 'visualizza_elemento', true) == 1;
-            }
-        ));
-    }
-
-    $at_search_query = new WP_Query([
-        'post_type'           => 'elemento_trasparenza',
-        'post_status'         => 'publish',
-        'posts_per_page'      => 10,
-        'paged'               => $at_search_page,
-        's'                   => $at_search_term,
-        'orderby'             => 'date',
-        'order'               => 'DESC',
-        'ignore_sticky_posts' => true,
-    ]);
-}
+require locate_template('template-parts/amministrazione-trasparente/search.php');
 ?>
 
 <script>
@@ -881,14 +841,14 @@ document.addEventListener('keydown', function(event) {
                     <div class="col-12 col-lg-8 pt-30 pt-lg-50 pb-lg-50">
                         <section class="dci-at-main-search" aria-labelledby="dci-at-main-search-title">
                             <h2 class="dci-at-main-search__title" id="dci-at-main-search-title">
-                                Cerca nei documenti pubblicati
+                                Cerca nei contenuti pubblicati
                             </h2>
                             <p class="dci-at-main-search__intro" id="dci-at-main-search-help">
                                 Inserisci almeno due caratteri per cercare in tutta l’Amministrazione Trasparente.
                             </p>
                             <div class="dci-at-main-search__row">
                                 <label class="visually-hidden" for="dci-at-main-search-input">
-                                    Cerca nei documenti pubblicati
+                                    Cerca nei contenuti pubblicati
                                 </label>
                                 <input
                                     class="form-control dci-at-main-search__input"
@@ -984,13 +944,13 @@ document.addEventListener('keydown', function(event) {
                                 <?php } ?>
 
                                 <div class="dci-at-search-results__group">
-                                    <h3 class="dci-at-search-results__subheading">Documenti</h3>
+                                    <h3 class="dci-at-search-results__subheading">Contenuti</h3>
                                     <p class="dci-at-search-results__status" role="status">
                                         <?php
                                         printf(
                                             esc_html(_n(
-                                                '%s documento trovato',
-                                                '%s documenti trovati',
+                                                    '%s contenuto trovato',
+                                                    '%s contenuti trovati',
                                                 $at_search_query->found_posts,
                                                 'design_comuni_italia'
                                             )),
@@ -1007,7 +967,10 @@ document.addEventListener('keydown', function(event) {
                                             get_template_part(
                                                 'template-parts/amministrazione-trasparente/card',
                                                 null,
-                                                ['show_search_categories' => true]
+                                                [
+                                                    'show_search_categories' => true,
+                                                    'section_term' => $at_search_section_terms[$elemento->post_type] ?? null,
+                                                ]
                                             );
                                             echo '</div>';
                                         }
@@ -1055,7 +1018,7 @@ document.addEventListener('keydown', function(event) {
                                         <?php } ?>
                                     <?php } else { ?>
                                         <p class="dci-at-search-results__empty">
-                                            Nessun documento corrisponde ai termini inseriti.
+                                            Nessun contenuto corrisponde ai termini inseriti.
                                         </p>
                                     <?php } ?>
                                 </div>

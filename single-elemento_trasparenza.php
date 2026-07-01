@@ -37,7 +37,7 @@ global $uo_id, $inline, $audio;
             //$data_scadenza = date_i18n('d F Y', mktime(0, 0, 0, $data_scadenza_arr[1], $data_scadenza_arr[0], $data_scadenza_arr[2]));
     
             
-            $documenti_collegati = dci_get_meta("post_trasparenza", $prefix, $post->ID);
+            $elementi_collegati = dci_get_meta("post_trasparenza", $prefix, $post->ID);
             
         
              $ck_link = dci_get_meta('open_direct', $prefix, $post->ID);
@@ -169,10 +169,10 @@ global $uo_id, $inline, $audio;
                                                                     </a>
                                                                 </li>
                                                             <?php } ?>
-                                                            <?php if (!empty($documenti_collegati)) { ?>
+                                                            <?php if (!empty($elementi_collegati)) { ?>
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#doc">
-                                                                        <span class="title-medium">Documenti Collegati</span>
+                                                                        <span class="title-medium">Elementi trasparenza correlati</span>
                                                                     </a>
                                                                 </li>
                                                             <?php } ?>
@@ -188,9 +188,9 @@ global $uo_id, $inline, $audio;
                     </div>
                 </aside>
                 <section class="col-lg-8 it-page-sections-container border-light">
-                    <?php if (!empty($descrizione)) { ?>
+                    <?php if (!empty($descrizione) && $descrizione !== '' && $descrizione !== null) { ?>
                         <article class="it-page-section anchor-offset" data-audio>
-                            <h4 id="descrizione">Descrizione</h4>
+                            <h4 id="descrizione" class="h3 mb-3 dci-transparency-resources__heading">Descrizione</h4>
                             <div class="richtext-wrapper lora">
                                 <?php
                                 if (preg_match('/[A-Z]{5,}/', $descrizione)) {
@@ -203,26 +203,192 @@ global $uo_id, $inline, $audio;
                         </article>
                     <?php } ?>
 
+                    <?php if (
+                        (is_array($file) && !empty($file))
+                        || !empty($url1)
+                        || !empty($url_documento_group)
+                    ) { ?>
+                        <style>
+                            .dci-transparency-resources {
+                                --dci-resource-primary: var(--tema-primary, #0d2b45);
+                                --dci-resource-hover: var(--tema-hover, #133b5c);
+                                --dci-resource-focus: var(--tema-focus, #1e5a8a);
+                            }
+
+                            .dci-transparency-resources__heading {
+                                color: var(--dci-resource-primary);
+                            }
+
+                            .dci-transparency-resources__grid {
+                                row-gap: 1rem;
+                            }
+
+                            .dci-transparency-resources__item {
+                                display: flex;
+                            }
+
+                            .dci-transparency-resources__card {
+                                position: relative;
+                                display: flex;
+                                align-items: flex-start;
+                                gap: 1rem;
+                                width: 100%;
+                                min-height: 112px;
+                                padding: 1.15rem 3.25rem 1.15rem 1.15rem;
+                                overflow: hidden;
+                                color: var(--dci-resource-primary);
+                                background-color: #ffffff;
+                                border-radius: 12px;
+                                box-shadow: 0 8px 22px rgba(13, 43, 69, 0.08);
+                                text-decoration: none;
+                                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                            }
+
+                            .dci-transparency-resources__card::before {
+                                position: absolute;
+                                inset: 0 auto 0 0;
+                                width: 4px;
+                                background: var(--dci-resource-primary);
+                                content: "";
+                            }
+
+                            .dci-transparency-resources__card:hover {
+                                color: var(--dci-resource-hover);
+                                background-color: #fbfcfd;
+                                box-shadow: 0 12px 28px rgba(13, 43, 69, 0.14);
+                                text-decoration: none;
+                                transform: translateY(-2px);
+                            }
+
+                            .dci-transparency-resources__card:focus-visible {
+                                outline: 3px solid var(--dci-resource-focus);
+                                outline-offset: 3px;
+                            }
+
+                            .dci-transparency-resources__icon {
+                                flex: 0 0 auto;
+                                width: 42px;
+                                height: 42px;
+                                padding: 9px;
+                                background-color: #f6f8fa;
+                                border-radius: 10px;
+                                box-shadow: 0 4px 12px rgba(13, 43, 69, 0.1);
+                            }
+
+                            .dci-transparency-resources__content {
+                                min-width: 0;
+                            }
+
+                            .dci-transparency-resources__type {
+                                display: block;
+                                margin-bottom: 0.3rem;
+                                color: var(--dci-resource-primary);
+                                font-size: 0.76rem;
+                                font-weight: 700;
+                                letter-spacing: 0.035em;
+                                line-height: 1.25;
+                                text-transform: uppercase;
+                            }
+
+                            .dci-transparency-resources__title {
+                                display: block;
+                                overflow-wrap: anywhere;
+                                font-size: 1rem;
+                                font-weight: 700;
+                                line-height: 1.35;
+                            }
+
+                            .dci-transparency-resources__meta {
+                                display: block;
+                                margin-top: 0.35rem;
+                                overflow: hidden;
+                                color: #455a64;
+                                font-size: 0.85rem;
+                                line-height: 1.35;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+                            }
+
+                            .dci-transparency-resources__arrow {
+                                position: absolute;
+                                top: 50%;
+                                right: 1rem;
+                                width: 22px;
+                                height: 22px;
+                                color: var(--dci-resource-primary);
+                                transform: translateY(-50%);
+                            }
+
+                            .dci-transparency-resources__arrow .icon {
+                                width: 100%;
+                                height: 100%;
+                                fill: currentColor;
+                            }
+
+                            @media (prefers-reduced-motion: reduce) {
+                                .dci-transparency-resources__card {
+                                    transition: none;
+                                }
+
+                                .dci-transparency-resources__card:hover {
+                                    transform: none;
+                                }
+                            }
+                        </style>
+                    <?php } ?>
+
                     <?php if (is_array($file) && !empty($file)) { ?>
-                        <article class="it-page-section anchor-offset mt-5">
-                            <h4 id="documenti">Documenti</h4>
-                            <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
+                        <article class="it-page-section anchor-offset mt-5 dci-transparency-resources"
+                            aria-labelledby="documenti">
+                            <h4 class="h3 mb-3 dci-transparency-resources__heading" id="documenti">
+                                Documenti
+                            </h4>
+                            <div class="row dci-transparency-resources__grid">
                                 <?php foreach ($file as $file_url) {
+                                    if (empty($file_url)) {
+                                        continue;
+                                    }
+
                                     $documento_id = attachment_url_to_postid($file_url);
-                                    $documento = get_post($documento_id);
-                                    $titolo = $documento ? $documento->post_title : basename($file_url);
-                                ?>
-                                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                        <svg class="icon" aria-hidden="true">
-                                            <use xlink:href="#it-clip"></use>
-                                        </svg>
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a class="text-decoration-none" href="<?php echo $file_url ?>" aria-label="Visualizza il documento" title="Visualizza il documento">
-                                                    <?= $titolo ?>
-                                                </a>
-                                            </h5>
-                                        </div>
+                                    $documento = $documento_id ? get_post($documento_id) : null;
+                                    $file_path = (string) parse_url($file_url, PHP_URL_PATH);
+                                    $file_extension = strtoupper((string) pathinfo($file_path, PATHINFO_EXTENSION));
+                                    $file_name = urldecode((string) pathinfo($file_path, PATHINFO_FILENAME));
+                                    $titolo = $documento instanceof WP_Post
+                                        ? get_the_title($documento)
+                                        : ($file_name ?: 'Documento');
+                                    $etichetta_documento = sprintf(
+                                        'Visualizza il documento: %s',
+                                        wp_strip_all_tags($titolo)
+                                    );
+                                    ?>
+                                    <div class="col-12 col-md-6 dci-transparency-resources__item">
+                                        <a class="dci-transparency-resources__card"
+                                            href="<?php echo esc_url($file_url); ?>"
+                                            title="<?php echo esc_attr($etichetta_documento); ?>"
+                                            aria-label="<?php echo esc_attr($etichetta_documento); ?>">
+                                            <img class="dci-transparency-resources__icon"
+                                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230D2B45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.75h8l4 4v14.5H6z'/%3E%3Cpath d='M14 2.75v4h4M9 12h6M9 16h6'/%3E%3C/svg%3E"
+                                                alt="<?php echo esc_attr(sprintf('Icona del documento %s', wp_strip_all_tags($titolo))); ?>"
+                                                width="42"
+                                                height="42">
+                                            <span class="dci-transparency-resources__content">
+                                                <span class="dci-transparency-resources__type">Documento</span>
+                                                <span class="dci-transparency-resources__title">
+                                                    <?php echo esc_html($titolo); ?>
+                                                </span>
+                                                <?php if (!empty($file_extension)) { ?>
+                                                    <span class="dci-transparency-resources__meta">
+                                                        Formato <?php echo esc_html($file_extension); ?>
+                                                    </span>
+                                                <?php } ?>
+                                            </span>
+                                            <span class="dci-transparency-resources__arrow" aria-hidden="true">
+                                                <svg class="icon">
+                                                    <use href="#it-download"></use>
+                                                </svg>
+                                            </span>
+                                        </a>
                                     </div>
                                 <?php } ?>
                             </div>
@@ -230,71 +396,296 @@ global $uo_id, $inline, $audio;
                     <?php } ?>
 
                     <?php if (!empty($url1) || !empty($url_documento_group)) { ?>
-                <article class="it-page-section anchor-offset mt-5">
-                <h4 id="url">Link</h4>
-                <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-
-                <?php if (!empty($url1)) { ?>
-                    <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                        <svg class="icon" aria-hidden="true">
-                            <use xlink:href="#it-clip"></use>
-                        </svg>
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a class="text-decoration-none" href="<?php echo esc_url($url1); ?>" aria-label="Vai alla pagina" title="Vai alla pagina">
-                                    Vai alla pagina
-                                </a>
-                            </h5>
-                        </div>
-                    </div>
-                <?php } ?>
-
-                    <?php
-                    // Mostra i link multipli (url_documento_group)
-                    if (!empty($url_documento_group) && is_array($url_documento_group)) {
-                        foreach ($url_documento_group as $link_item) {
-                            $url = !empty($link_item['url_documento']) ? esc_url($link_item['url_documento']) : '';
-                            $nome = !empty($link_item['titolo']) ? esc_html($link_item['titolo']) : basename($url);
-                            $target_blank = !empty($link_item['target_blank']) ? ' target="_blank" rel="noopener noreferrer"' : '';
-        
-                            if ($url) {
-                    ?>
-                                <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                    <svg class="icon" aria-hidden="true">
-                                        <use xlink:href="#it-clip"></use>
-                                    </svg>
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="text-decoration-none" href="<?= $url ?>" <?= $target_blank ?>
-                                                aria-label="Scarica il documento <?= $nome ?>"
-                                                title="Scarica il documento <?= $nome ?>">
-                                                <?= $nome ?>
-                                            </a>
-                                        </h5>
+                        <article class="it-page-section anchor-offset mt-5 dci-transparency-resources"
+                            aria-labelledby="url">
+                            <h4 class="h3 mb-3 dci-transparency-resources__heading" id="url">Link</h4>
+                            <div class="row dci-transparency-resources__grid">
+                                <?php if (!empty($url1)) {
+                                    $url1_host = (string) parse_url($url1, PHP_URL_HOST);
+                                    $etichetta_url1 = 'Vai alla pagina collegata';
+                                    ?>
+                                    <div class="col-12 col-md-6 dci-transparency-resources__item">
+                                        <a class="dci-transparency-resources__card"
+                                            href="<?php echo esc_url($url1); ?>"
+                                            title="<?php echo esc_attr($etichetta_url1); ?>"
+                                            aria-label="<?php echo esc_attr($etichetta_url1); ?>">
+                                            <img class="dci-transparency-resources__icon"
+                                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230D2B45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.07.07l2-2A5 5 0 0 0 12 4l-1.15 1.15'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15'/%3E%3C/svg%3E"
+                                                alt="Icona link alla pagina collegata"
+                                                width="42"
+                                                height="42">
+                                            <span class="dci-transparency-resources__content">
+                                                <span class="dci-transparency-resources__type">Link</span>
+                                                <span class="dci-transparency-resources__title">Vai alla pagina</span>
+                                                <?php if (!empty($url1_host)) { ?>
+                                                    <span class="dci-transparency-resources__meta">
+                                                        <?php echo esc_html($url1_host); ?>
+                                                    </span>
+                                                <?php } ?>
+                                            </span>
+                                            <span class="dci-transparency-resources__arrow" aria-hidden="true">
+                                                <svg class="icon">
+                                                    <use href="#it-chevron-right"></use>
+                                                </svg>
+                                            </span>
+                                        </a>
                                     </div>
-                                </div>
-                    <?php
-                            }
-                        }
-                    }
-                    ?>
-        
-                </div> <!-- .card-wrapper -->
-            </article>
-        <?php } ?>
+                                <?php } ?>
 
-                    <?php if (!empty($documenti_collegati)) { ?>
-                        <article class="it-page-section anchor-offset mt-5"">
-                    <h2 class=" h3 mb-3" id="doc">Documenti correlati</h2>
-                            <div class="richtext-wrapper lora" data-element="service-document">
-                                <div class="row">
-                                    <?php
-                                    foreach ($documenti_collegati as $documento_id) { ?>
-                                        <div class="col-12 col-md-6 mb-3 card-wrapper">
-                                            <?php
-                                            $documento = get_post($documento_id);
-                                            get_template_part("template-parts/documento/card");
-                                            ?>
+                                <?php
+                                if (!empty($url_documento_group) && is_array($url_documento_group)) {
+                                    foreach ($url_documento_group as $link_item) {
+                                        $raw_url = !empty($link_item['url_documento'])
+                                            ? $link_item['url_documento']
+                                            : '';
+
+                                        if (empty($raw_url)) {
+                                            continue;
+                                        }
+
+                                        $link_path = (string) parse_url($raw_url, PHP_URL_PATH);
+                                        $link_host = (string) parse_url($raw_url, PHP_URL_HOST);
+                                        $nome = !empty($link_item['titolo'])
+                                            ? wp_strip_all_tags($link_item['titolo'])
+                                            : urldecode(basename($link_path));
+                                        $nome = $nome ?: 'Vai al link';
+                                        $target_blank = !empty($link_item['target_blank']);
+                                        $etichetta_link = $target_blank
+                                            ? sprintf('Apri %s in una nuova scheda', $nome)
+                                            : sprintf('Vai al link: %s', $nome);
+                                        ?>
+                                        <div class="col-12 col-md-6 dci-transparency-resources__item">
+                                            <a class="dci-transparency-resources__card"
+                                                href="<?php echo esc_url($raw_url); ?>"
+                                                <?php if ($target_blank) { ?>
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                <?php } ?>
+                                                title="<?php echo esc_attr($etichetta_link); ?>"
+                                                aria-label="<?php echo esc_attr($etichetta_link); ?>">
+                                                <img class="dci-transparency-resources__icon"
+                                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230D2B45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.07.07l2-2A5 5 0 0 0 12 4l-1.15 1.15'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15'/%3E%3C/svg%3E"
+                                                    alt="<?php echo esc_attr(sprintf('Icona del link %s', $nome)); ?>"
+                                                    width="42"
+                                                    height="42">
+                                                <span class="dci-transparency-resources__content">
+                                                    <span class="dci-transparency-resources__type">
+                                                        <?php echo $target_blank ? 'Link esterno' : 'Link'; ?>
+                                                    </span>
+                                                    <span class="dci-transparency-resources__title">
+                                                        <?php echo esc_html($nome); ?>
+                                                    </span>
+                                                    <?php if (!empty($link_host)) { ?>
+                                                        <span class="dci-transparency-resources__meta">
+                                                            <?php echo esc_html($link_host); ?>
+                                                        </span>
+                                                    <?php } ?>
+                                                </span>
+                                                <span class="dci-transparency-resources__arrow" aria-hidden="true">
+                                                    <svg class="icon">
+                                                        <use href="<?php echo $target_blank ? '#it-external-link' : '#it-chevron-right'; ?>"></use>
+                                                    </svg>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    <?php }
+                                } ?>
+                            </div>
+                        </article>
+                    <?php } ?>
+
+                    <?php if (!empty($elementi_collegati)) { ?>
+                        <style>
+                            .dci-related-transparency {
+                                --dci-related-primary: var(--tema-primary, #0d2b45);
+                                --dci-related-hover: var(--tema-hover, #133b5c);
+                                --dci-related-focus: var(--tema-focus, #1e5a8a);
+                            }
+
+                            .dci-related-transparency__heading {
+                                color: var(--dci-related-primary);
+                            }
+
+                            .dci-related-transparency__grid {
+                                row-gap: 1rem;
+                            }
+
+                            .dci-related-transparency__item {
+                                display: flex;
+                            }
+
+                            .dci-related-transparency__card {
+                                position: relative;
+                                display: flex;
+                                align-items: flex-start;
+                                gap: 1rem;
+                                width: 100%;
+                                min-height: 126px;
+                                padding: 1.25rem;
+                                overflow: hidden;
+                                color: var(--dci-related-primary);
+                                background-color: #ffffff;
+                                border-radius: 12px;
+                                box-shadow: 0 8px 24px rgba(13, 43, 69, 0.09);
+                                text-decoration: none;
+                                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                            }
+
+                            .dci-related-transparency__card::before {
+                                position: absolute;
+                                inset: 0 auto 0 0;
+                                width: 4px;
+                                background: var(--dci-related-primary);
+                                content: "";
+                            }
+
+                            .dci-related-transparency__card:hover {
+                                color: var(--dci-related-hover);
+                                background-color: #fbfcfd;
+                                box-shadow: 0 12px 30px rgba(13, 43, 69, 0.15);
+                                text-decoration: none;
+                                transform: translateY(-2px);
+                            }
+
+                            .dci-related-transparency__card:focus-visible {
+                                outline: 3px solid var(--dci-related-focus);
+                                outline-offset: 3px;
+                            }
+
+                            .dci-related-transparency__icon {
+                                flex: 0 0 auto;
+                                width: 42px;
+                                height: 42px;
+                                padding: 9px;
+                                background-color: #f6f8fa;
+                                border-radius: 10px;
+                                box-shadow: 0 4px 12px rgba(13, 43, 69, 0.1);
+                            }
+
+                            .dci-related-transparency__content {
+                                min-width: 0;
+                                padding-right: 1.75rem;
+                            }
+
+                            .dci-related-transparency__eyebrow {
+                                display: block;
+                                margin-bottom: 0.35rem;
+                                color: var(--dci-related-primary);
+                                font-size: 0.78rem;
+                                font-weight: 700;
+                                letter-spacing: 0.035em;
+                                line-height: 1.25;
+                                text-transform: uppercase;
+                            }
+
+                            .dci-related-transparency__title {
+                                display: block;
+                                font-size: 1.05rem;
+                                font-weight: 700;
+                                line-height: 1.35;
+                            }
+
+                            .dci-related-transparency__description {
+                                display: block;
+                                margin-top: 0.45rem;
+                                color: #455a64;
+                                font-size: 0.92rem;
+                                font-weight: 400;
+                                line-height: 1.45;
+                            }
+
+                            .dci-related-transparency__arrow {
+                                position: absolute;
+                                top: 50%;
+                                right: 1.15rem;
+                                width: 22px;
+                                height: 22px;
+                                color: var(--dci-related-primary);
+                                transform: translateY(-50%);
+                            }
+
+                            .dci-related-transparency__arrow .icon {
+                                width: 100%;
+                                height: 100%;
+                                fill: currentColor;
+                            }
+
+                            @media (prefers-reduced-motion: reduce) {
+                                .dci-related-transparency__card {
+                                    transition: none;
+                                }
+
+                                .dci-related-transparency__card:hover {
+                                    transform: none;
+                                }
+                            }
+                        </style>
+
+                        <article class="it-page-section anchor-offset mt-5 dci-related-transparency"
+                            aria-labelledby="doc">
+                            <h2 class="h3 mb-3 dci-related-transparency__heading" id="doc">
+                                Elementi della trasparenza correlati
+                            </h2>
+                            <div data-element="service-document">
+                                <div class="row dci-related-transparency__grid">
+                                    <?php foreach ($elementi_collegati as $elemento_id) {
+                                        $elemento = get_post($elemento_id);
+
+                                        if (!$elemento instanceof WP_Post) {
+                                            continue;
+                                        }
+
+                                        $titolo_elemento = get_the_title($elemento);
+                                        $url_elemento = get_permalink($elemento);
+                                        $descrizione_elemento = dci_get_meta(
+                                            'descrizione_breve',
+                                            '_dci_elemento_trasparenza_',
+                                            $elemento->ID
+                                        );
+                                        $descrizione_elemento = preg_replace(
+                                            '/\s+/u',
+                                            ' ',
+                                            trim(wp_strip_all_tags((string) $descrizione_elemento))
+                                        );
+                                        $descrizione_elemento = wp_html_excerpt(
+                                            $descrizione_elemento,
+                                            100,
+                                            '...'
+                                        );
+                                        $etichetta_link = sprintf(
+                                            'Vai all’elemento della trasparenza: %s',
+                                            wp_strip_all_tags($titolo_elemento)
+                                        );
+                                        ?>
+                                        <div class="col-12 col-md-6 dci-related-transparency__item">
+                                            <a class="dci-related-transparency__card"
+                                                href="<?php echo esc_url($url_elemento); ?>"
+                                                title="<?php echo esc_attr($etichetta_link); ?>"
+                                                aria-label="<?php echo esc_attr($etichetta_link); ?>">
+                                                <img class="dci-related-transparency__icon"
+                                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230D2B45' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9h18L12 3zM4 20h16M3 22h18M6 10v8M10 10v8M14 10v8M18 10v8'/%3E%3C/svg%3E"
+                                                    alt="<?php echo esc_attr(sprintf('Icona amministrazione trasparente per %s', wp_strip_all_tags($titolo_elemento))); ?>"
+                                                    width="42"
+                                                    height="42">
+                                                <span class="dci-related-transparency__content">
+                                                    <span class="dci-related-transparency__eyebrow">
+                                                        Amministrazione trasparente
+                                                    </span>
+                                                    <span class="dci-related-transparency__title">
+                                                        <?php echo esc_html($titolo_elemento); ?>
+                                                    </span>
+                                                    <?php if (!empty($descrizione_elemento)) { ?>
+                                                        <span class="dci-related-transparency__description">
+                                                            <?php echo esc_html($descrizione_elemento); ?>
+                                                        </span>
+                                                    <?php } ?>
+                                                </span>
+                                                <span class="dci-related-transparency__arrow" aria-hidden="true">
+                                                    <svg class="icon">
+                                                        <use href="#it-chevron-right"></use>
+                                                    </svg>
+                                                </span>
+                                            </a>
                                         </div>
                                     <?php } ?>
                                 </div>
@@ -304,8 +695,17 @@ global $uo_id, $inline, $audio;
                 </section>
             </div>
         </div>
-        <?php get_template_part("template-parts/common/valuta-servizio"); ?>
-        <?php get_template_part("template-parts/common/assistenza-contatti"); ?>
+
+        <?php 
+
+        // Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.
+        $portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");
+
+        // Se è attiva la trasparenza esterna, non visualizzare questi elementi
+        if ($portalesoloperusoesterno !== 'true') { 
+            get_template_part("template-parts/common/valuta-servizio"); 
+            get_template_part("template-parts/common/assistenza-contatti"); 
+        }?>
 </main>
 
 <?php

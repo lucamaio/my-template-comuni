@@ -12,18 +12,6 @@ $url               = dci_get_meta('url', $prefix, $elemento->ID);
 $documenti         = dci_get_meta('file', $prefix, $elemento->ID);
 $documento = is_array($documenti) && !empty($documenti) ? get_permalink($elemento->ID) : $documenti;
 $data= get_the_date('j F Y', $elemento->ID);
-$arrayDataPubblicazione = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $elemento->ID); 
-
-// Mese scritto per intero con prima lettera maiuscola
-$monthNamePubblicazione = ucfirst(strtolower(date_i18n('F', mktime(0, 0, 0, $arrayDataPubblicazione[1], 10))));
-
-// Gestione anno a 4 cifre
-$yearTwoDigits = intval($arrayDataPubblicazione[2]);
-if ($yearTwoDigits < 100) {
-    $yearFull = 2000 + $yearTwoDigits;
-} else {
-    $yearFull = $yearTwoDigits;
-}
 
 $ck_sowh_section = dci_get_option("ck_show_section", "Trasparenza");
 $show_search_categories = !empty($args['show_search_categories']);
@@ -44,11 +32,49 @@ if ($elemento->post_status === "publish") :
         <span class="visually-hidden">Categoria:</span>
         <div class="card-header border-0 p-0">
             <?php if ($show_search_categories) {
-                $categorie = get_the_terms($elemento->ID, 'tipi_cat_amm_trasp');
+                $search_section_term = $args['section_term'] ?? null;
+                $categorie = $search_section_term instanceof WP_Term
+                    ? [$search_section_term]
+                    : get_the_terms($elemento->ID, 'tipi_cat_amm_trasp');
                 if ($categorie && !is_wp_error($categorie)) {
-                    $categorie = array_filter($categorie, static function ($cat) {
-                        return get_term_meta($cat->term_id, 'visualizza_elemento', true) == 1;
-                    });
+                    $categorie_visibili = [];
+
+                    foreach ($categorie as $cat) {
+                        $categoria_corrente = $cat;
+
+                        while ($categoria_corrente instanceof WP_Term) {
+                            $visibilita = (string) get_term_meta(
+                                $categoria_corrente->term_id,
+                                'visualizza_elemento',
+                                true
+                            );
+
+                            /*
+                             * I termini creati prima dell'introduzione del campo non
+                             * hanno il meta: sono pubblici. Solo il valore esplicito
+                             * "0" identifica una voce nascosta.
+                             */
+                            if ($visibilita !== '0') {
+                                $categorie_visibili[$categoria_corrente->term_id] = $categoria_corrente;
+                                break;
+                            }
+
+                            if ((int) $categoria_corrente->parent <= 0) {
+                                break;
+                            }
+
+                            $categoria_corrente = get_term(
+                                (int) $categoria_corrente->parent,
+                                'tipi_cat_amm_trasp'
+                            );
+
+                            if (is_wp_error($categoria_corrente)) {
+                                break;
+                            }
+                        }
+                    }
+
+                    $categorie = array_values($categorie_visibili);
                 }
 
                 if (!empty($categorie)) { ?>
@@ -72,16 +98,21 @@ if ($elemento->post_status === "publish") :
                                 $cat_name = function_exists('dci_format_trasparenza_section_title')
                                     ? dci_format_trasparenza_section_title($cat->name)
                                     : $cat->name;
+                                $cat_name_short = mb_strlen($cat_name, 'UTF-8') > 70
+                                    ? rtrim(mb_substr($cat_name, 0, 70, 'UTF-8')) . '...'
+                                    : $cat_name;
                                 ?>
                                 <li>
                                     <a
                                         class="dci-at-result-categories__link"
                                         href="<?php echo esc_url($cat_link); ?>"
+                                        title="<?php echo esc_attr($cat_name); ?>"
+                                        aria-label="<?php echo esc_attr(sprintf('Sezione: %s', $cat_name)); ?>"
                                         <?php if ($cat_is_external && $cat_new_window) { ?>
                                             target="_blank" rel="noopener noreferrer"
                                         <?php } ?>
                                     >
-                                        <?php echo esc_html($cat_name); ?>
+                                        <?php echo esc_html($cat_name_short); ?>
                                         <?php if ($cat_is_external) { ?>
                                             <svg class="icon icon-xs dci-at-result-categories__external" aria-hidden="true">
                                                 <use href="#it-external-link"></use>

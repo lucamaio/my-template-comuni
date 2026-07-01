@@ -22,29 +22,69 @@ get_header();
         $user_can_view_post = dci_members_can_user_view_post(get_current_user_id(), $post->ID);
 
         $prefix = '_dci_atto_concessione_';
-        $stato_atto = get_post_meta($post->ID, $prefix . 'stato_atto', true);
-        $descrizione_breve = get_post_meta($post->ID, $prefix . 'descrizione_breve', true); // Assicurati sia lo stesso meta key
+
+        $dci_atto_display_value = static function ($value) {
+            if (is_array($value) || is_object($value)) {
+                return '-';
+            }
+
+            $value = trim((string) $value);
+
+            if (
+                $value === ''
+                || preg_match('/^null+$/i', $value)
+                || strcasecmp($value, 'Non specificato') === 0
+            ) {
+                return '-';
+            }
+
+            return $value;
+        };
+
+        $stato_terms = get_the_terms($post->ID, 'tipi_stato_bando');
+        $stato_atto = '-';
+
+        if (!empty($stato_terms) && !is_wp_error($stato_terms)) {
+            $stato_names = wp_list_pluck($stato_terms, 'name');
+            $stato_names = array_filter(array_map('trim', $stato_names));
+            $stato_atto = !empty($stato_names) ? implode(', ', $stato_names) : '-';
+        }
+
+        $descrizione_breve = get_post_meta($post->ID, $prefix . 'descrizione_breve', true);
 
         $data = get_the_date('j F Y', $post->ID);
         $anno_beneficio_raw = get_post_meta($post->ID, $prefix . 'anno_beneficio', true);
-        // Formatta l'anno beneficio se è un timestamp, altrimenti usa il valore così com'è se è già l'anno.
-        $anno_beneficio = !empty($anno_beneficio_raw) ? date_i18n('Y', $anno_beneficio_raw) : '-';
+        $anno_beneficio_value = $dci_atto_display_value($anno_beneficio_raw);
+        $anno_beneficio = $anno_beneficio_value === '-'
+            ? '-'
+            : (preg_match('/^\d{4}$/', $anno_beneficio_value)
+                ? $anno_beneficio_value
+                : date_i18n('Y', (int) $anno_beneficio_value));
 
         $importo_raw = get_post_meta($post->ID, $prefix . 'importo', true);
-        // Pulizia e formattazione dell'importo
         $importo_numeric = floatval(str_replace(',', '.', preg_replace('/[^\d,]+/', '', $importo_raw)));
-        $importo = $importo_numeric !== 0.0 ? esc_html(number_format($importo_numeric, 2, ',', '.')) . '€' : 'Non specificato';
+        $importo = $dci_atto_display_value($importo_raw) !== '-'
+            ? number_format($importo_numeric, 2, ',', '.') . ' €'
+            : '-';
 
-        $responsabile = !empty(get_post_meta($post->ID, $prefix . 'responsabile', true)) ? get_post_meta($post->ID, $prefix . 'responsabile', true) : "Non specificato";
-        
-        $rag_incarico = get_post_meta($post->ID, $prefix . 'rag_incarico', true); // Recupera il valore della tassonomia o meta box
-        $rag_incarico_display = !empty($rag_incarico) ? esc_html($rag_incarico) : 'Non specificato';
+        $importo_liquidato_raw = get_post_meta($post->ID, $prefix . 'importo_liquidato', true);
+        $importo_liquidato_numeric = floatval(
+            str_replace(',', '.', preg_replace('/[^\d,]+/', '', $importo_liquidato_raw))
+        );
+        $importo_liquidato_display = $dci_atto_display_value($importo_liquidato_raw) !== '-'
+            ? number_format($importo_liquidato_numeric, 2, ',', '.') . ' €'
+            : '-';
 
+        $responsabile = $dci_atto_display_value(
+            get_post_meta($post->ID, $prefix . 'responsabile', true)
+        );
+        $rag_incarico_display = $dci_atto_display_value(
+            get_post_meta($post->ID, $prefix . 'rag_incarico', true)
+        );
         $rag_soc = get_post_meta($post->ID, $prefix . 'ragione_sociale', true);
         $cod_fisc = get_post_meta($post->ID, $prefix . 'codice_fiscale', true);
-
-        $codice_fiscale = !empty($cod_fisc) ? esc_html($cod_fisc) : 'Non specificato';
-        $ragione_sociale = !empty($rag_soc) ? esc_html($rag_soc) : 'Non specificato';
+        $codice_fiscale = $dci_atto_display_value($cod_fisc);
+        $ragione_sociale = $dci_atto_display_value($rag_soc);
 
         // Gli allegati, assumendo che dci_get_meta restituisca un array di URL
         $documenti = get_post_meta($post->ID, $prefix . 'allegati', true);
@@ -95,12 +135,6 @@ get_header();
                         <?php echo esc_html($data); ?>
                     </p>
                 </div>
-                <div class="col-6">
-                    <small>Anno Beneficio:</small>
-                    <p class="fw-semibold font-monospace">
-                        <?php echo esc_html($anno_beneficio); ?>
-                    </p>
-                </div>
             </div>
         </div>
 
@@ -140,34 +174,9 @@ get_header();
                                                                     </a>
                                                                 </li>
                                                             <?php } ?>
-                                                            <?php if ($ragione_sociale !== 'Non specificato' || $codice_fiscale !== 'Non specificato') { ?>
-                                                                <li class="nav-item">
-                                                                    <a class="nav-link" href="#beneficiario">
-                                                                        <span class="title-medium">Beneficiario</span>
-                                                                    </a>
-                                                                </li>
-                                                            <?php } ?>
-                                                            <?php if ($importo !== 'Non specificato') { ?>
-                                                                <li class="nav-item">
-                                                                    <a class="nav-link" href="#importo">
-                                                                        <span class="title-medium">Importo</span>
-                                                                    </a>
-                                                                </li>
-                                                            <?php } ?>
-                                                            <?php
-                                                            // Recupero l'importo liquidato qui, se esiste un meta box per esso
-                                                            $importo_liquidato_raw = get_post_meta($post->ID, $prefix . 'importo_liquidato', true);
-                                                            $importo_liquidato = floatval(str_replace(',', '.', preg_replace('/[^\d,]+/', '', $importo_liquidato_raw)));
-                                                            if ($importo_liquidato !== 0.0) { ?>
-                                                                <li class="nav-item">
-                                                                    <a class="nav-link" href="#liquidato">
-                                                                        <span class="title-medium">Importo Liquidato</span>
-                                                                    </a>
-                                                                </li>
-                                                            <?php } ?>
                                                             <li class="nav-item">
-                                                                <a class="nav-link" href="#more-info">
-                                                                    <span class="title-medium">Ulteriori informazioni</span>
+                                                                <a class="nav-link" href="#dati-principali">
+                                                                    <span class="title-medium">Dati principali</span>
                                                                 </a>
                                                             </li>
                                                             <?php if (!empty($documenti) && is_array($documenti)) { ?>
@@ -205,87 +214,332 @@ get_header();
                         </article>
                     <?php } ?>
 
-                    <?php if ($ragione_sociale !== 'Non specificato' || $codice_fiscale !== 'Non specificato') { ?>
-                        <article class="it-page-section anchor-offset mt-5">
-                            <h4 id="beneficiario">Beneficiario</h4>
-                            <div class="card card-border-top mb-0">
-                                <p class="mb-0" style="text-align:justify">
-                                    <strong>Ragione Sociale: </strong> <?php echo $ragione_sociale; ?>
-                                </p>
-                                <p class="mb-0" style="text-align:justify">
-                                    <strong>Codice Fiscale: </strong> <?php echo $codice_fiscale; ?>
-                                </p>
-                            </div>
-                        </article>
-                    <?php } ?>
+                    <style>
+                        .dci-concession-summary {
+                            --dci-concession-primary: var(--tema-primary, #0d2b45);
+                            margin-bottom: 2rem;
+                            padding-bottom: 1.5rem;
+                            border-bottom: 1px solid #e5e7eb;
+                        }
 
-                    <?php if ($importo !== 'Non specificato') { ?>
-                        <section class="it-page-section mb-3">
-                            <h5 id="importo">Importo</h5>
-                            <div class="richtext-wrapper lora" data-element="service-cost">
-                                <?php echo $importo; ?>
-                            </div>
-                        </section>
-                    <?php } ?>
+                        .dci-concession-summary__title {
+                            margin-bottom: 1rem;
+                            color: var(--dci-concession-primary);
+                            font-size: 1.25rem;
+                            font-weight: 700;
+                        }
 
-                    <?php if ($importo_liquidato !== 0.0) { // Controlla la variabile già formattata/pulita ?>
-                        <section class="it-page-section mb-3">
-                            <h5 id="liquidato">Importo Liquidato</h5>
-                            <div class="richtext-wrapper lora" data-element="service-cost">
-                                <?php echo esc_html(number_format($importo_liquidato, 2, ',', '.')) . '€'; ?>
-                            </div>
-                        </section>
-                    <?php } ?>
+                        .dci-concession-summary__grid {
+                            display: grid;
+                            grid-template-columns: repeat(2, minmax(0, 1fr));
+                            gap: 0.75rem;
+                        }
 
-                    <section class="it-page-section mb-3">
-                        <h5 id="more-info">Ulteriori informazioni</h5>
-                        <div class="card card-border-top mb-0">
-                            <p class="mb-0" style="text-align:justify">
-                                <strong>Ragione dell'incarico: </strong> <?php echo $rag_incarico_display; ?>
-                            </p>
-                            <p class="mb-0" style="text-align:justify">
-                                <strong>Responsabile: </strong> <?php echo $responsabile; ?>
-                            </p>
+                        .dci-concession-summary__item {
+                            padding: 0.85rem 1rem;
+                            background-color: #f7f9fb;
+                            border: 1px solid #edf0f3;
+                            border-radius: 10px;
+                        }
+
+                        .dci-concession-summary__item--full {
+                            grid-column: 1 / -1;
+                        }
+
+                        .dci-concession-summary__label {
+                            display: block;
+                            margin-bottom: 0.25rem;
+                            color: #5b6f82;
+                            font-size: 0.72rem;
+                            font-weight: 700;
+                            letter-spacing: 0.04em;
+                            text-transform: uppercase;
+                        }
+
+                        .dci-concession-summary__value {
+                            display: block;
+                            color: var(--dci-concession-primary);
+                            font-size: 0.95rem;
+                            font-weight: 600;
+                            line-height: 1.4;
+                            overflow-wrap: anywhere;
+                        }
+
+                        @media (max-width: 767.98px) {
+                            .dci-concession-summary__grid {
+                                grid-template-columns: 1fr;
+                            }
+
+                            .dci-concession-summary__item--full {
+                                grid-column: auto;
+                            }
+
+                            .dci-concession-summary__item {
+                                padding: 0.8rem;
+                            }
+                        }
+                    </style>
+
+                    <article class="it-page-section anchor-offset mt-5 dci-concession-summary"
+                        aria-labelledby="dati-principali">
+                        <h4 class="dci-concession-summary__title" id="dati-principali">
+                            Dati principali
+                        </h4>
+                        <div class="dci-concession-summary__grid">
+                            <div class="dci-concession-summary__item">
+                                <span class="dci-concession-summary__label">Stato dell’atto</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($dci_atto_display_value($stato_atto)); ?>
+                                </span>
+                            </div>
+                            <div class="dci-concession-summary__item">
+                                <span class="dci-concession-summary__label">Data pubblicazione</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($dci_atto_display_value($data)); ?>
+                                </span>
+                            </div>
+                            <div class="dci-concession-summary__item">
+                                <span class="dci-concession-summary__label">Anno beneficio</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($dci_atto_display_value($anno_beneficio)); ?>
+                                </span>
+                            </div>
+                            <div class="dci-concession-summary__item">
+                                <span class="dci-concession-summary__label">Ragione sociale</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($ragione_sociale); ?>
+                                </span>
+                            </div>
+                            <div class="dci-concession-summary__item">
+                                <span class="dci-concession-summary__label">Codice fiscale / P.IVA</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($codice_fiscale); ?>
+                                </span>
+                            </div>
+                            <div class="dci-concession-summary__item">
+                                <span class="dci-concession-summary__label">Importo</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($importo); ?>
+                                </span>
+                            </div>
+                            <div class="dci-concession-summary__item">
+                                <span class="dci-concession-summary__label">Importo liquidato</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($importo_liquidato_display); ?>
+                                </span>
+                            </div>
+                            <div class="dci-concession-summary__item">
+                                <span class="dci-concession-summary__label">Responsabile</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($responsabile); ?>
+                                </span>
+                            </div>
+                            <div class="dci-concession-summary__item dci-concession-summary__item--full">
+                                <span class="dci-concession-summary__label">Ragione dell’incarico</span>
+                                <span class="dci-concession-summary__value">
+                                    <?php echo esc_html($rag_incarico_display); ?>
+                                </span>
+                            </div>
                         </div>
-                    </section>
+                    </article>
                     
                     <?php if (!empty($documenti) && is_array($documenti)) { ?>
-                        <article class="it-page-section anchor-offset mt-5">
-                            <h4 id="documenti">Documenti</h4>
-                            <div class="card-wrapper card-teaser-wrapper card-teaser-wrapper-equal">
-                                <?php
-                                foreach ($documenti as $file_url) { // Assumo che $documenti sia un array di URL
-                                    $file_id = attachment_url_to_postid($file_url); // Ottieni l'ID dal URL
-                                    $allegato = get_post($file_id); // Ottieni l'oggetto WP_Post per l'allegato
+                        <style>
+                            .dci-document-resources {
+                                --dci-document-primary: var(--tema-primary, #0d2b45);
+                                --dci-document-hover: var(--tema-hover, #133b5c);
+                                --dci-document-focus: var(--tema-focus, #1e5a8a);
+                            }
 
-                                    if ($allegato) { // Assicurati che l'allegato esista
-                                        $title_allegato = $allegato->post_title;
-                                        
-                                        if (strlen($title_allegato) > 50) {
-                                            $title_allegato = substr($title_allegato, 0, 50) . '...';
-                                        }
-                                        if (preg_match('/[A-Z]{5,}/', $title_allegato)) {
-                                            $title_allegato = ucfirst(strtolower($title_allegato));
-                                        }
-                                        ?>
-                                        <div class="card card-teaser shadow-sm p-4 mt-3 rounded border border-light flex-nowrap">
-                                            <svg class="icon" aria-hidden="true">
-                                                <use xlink:href="#it-clip"></use>
-                                            </svg>
-                                            <div class="card-body">
-                                                <h5 class="card-title">
-                                                    <a class="text-decoration-none" href="<?php echo esc_url($file_url); ?>"
-                                                        aria-label="Scarica l'allegato <?php echo esc_attr($allegato->post_title); ?>"
-                                                        title="Scarica l'allegato <?php echo esc_attr($allegato->post_title); ?>"
-                                                        target="_blank" rel="noopener noreferrer">
-                                                        <?php echo esc_html($title_allegato); ?>
-                                                    </a>
-                                                </h5>
-                                            </div>
-                                        </div>
-                                    <?php
+                            .dci-document-resources__heading {
+                                color: var(--dci-document-primary);
+                            }
+
+                            .dci-document-resources__grid {
+                                row-gap: 1rem;
+                            }
+
+                            .dci-document-resources__item {
+                                display: flex;
+                            }
+
+                            .dci-document-resources__card {
+                                position: relative;
+                                display: flex;
+                                align-items: flex-start;
+                                gap: 1rem;
+                                width: 100%;
+                                min-height: 112px;
+                                padding: 1.15rem 3.25rem 1.15rem 1.15rem;
+                                overflow: hidden;
+                                color: var(--dci-document-primary);
+                                background-color: #ffffff;
+                                border-radius: 12px;
+                                box-shadow: 0 8px 22px rgba(13, 43, 69, 0.08);
+                                text-decoration: none;
+                                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                            }
+
+                            .dci-document-resources__card::before {
+                                position: absolute;
+                                inset: 0 auto 0 0;
+                                width: 4px;
+                                background: var(--dci-document-primary);
+                                content: "";
+                            }
+
+                            .dci-document-resources__card:hover {
+                                color: var(--dci-document-hover);
+                                background-color: #fbfcfd;
+                                box-shadow: 0 12px 28px rgba(13, 43, 69, 0.14);
+                                text-decoration: none;
+                                transform: translateY(-2px);
+                            }
+
+                            .dci-document-resources__card:focus-visible {
+                                outline: 3px solid var(--dci-document-focus);
+                                outline-offset: 3px;
+                            }
+
+                            .dci-document-resources__icon {
+                                flex: 0 0 auto;
+                                width: 42px;
+                                height: 42px;
+                                padding: 9px;
+                                background-color: #f6f8fa;
+                                border-radius: 10px;
+                                box-shadow: 0 4px 12px rgba(13, 43, 69, 0.1);
+                            }
+
+                            .dci-document-resources__content {
+                                min-width: 0;
+                            }
+
+                            .dci-document-resources__type {
+                                display: block;
+                                margin-bottom: 0.3rem;
+                                color: var(--dci-document-primary);
+                                font-size: 0.76rem;
+                                font-weight: 700;
+                                letter-spacing: 0.035em;
+                                line-height: 1.25;
+                                text-transform: uppercase;
+                            }
+
+                            .dci-document-resources__title {
+                                display: block;
+                                overflow-wrap: anywhere;
+                                font-size: 1rem;
+                                font-weight: 700;
+                                line-height: 1.35;
+                            }
+
+                            .dci-document-resources__meta {
+                                display: block;
+                                margin-top: 0.35rem;
+                                color: #455a64;
+                                font-size: 0.85rem;
+                                line-height: 1.35;
+                            }
+
+                            .dci-document-resources__arrow {
+                                position: absolute;
+                                top: 50%;
+                                right: 1rem;
+                                width: 22px;
+                                height: 22px;
+                                color: var(--dci-document-primary);
+                                transform: translateY(-50%);
+                            }
+
+                            .dci-document-resources__arrow .icon {
+                                width: 100%;
+                                height: 100%;
+                                fill: currentColor;
+                            }
+
+                            @media (prefers-reduced-motion: reduce) {
+                                .dci-document-resources__card {
+                                    transition: none;
+                                }
+
+                                .dci-document-resources__card:hover {
+                                    transform: none;
+                                }
+                            }
+                        </style>
+
+                        <article class="it-page-section anchor-offset mt-5 dci-document-resources"
+                            aria-labelledby="documenti">
+                            <h4 class="h3 mb-3 dci-document-resources__heading" id="documenti">Documenti</h4>
+                            <div class="row dci-document-resources__grid">
+                                <?php foreach ($documenti as $file_key => $file_value) {
+                                    $file_id = 0;
+                                    $file_title = '';
+
+                                    if (is_array($file_value)) {
+                                        $file_id = absint($file_value['id'] ?? $file_key);
+                                        $file_url = $file_value['url'] ?? '';
+                                        $file_title = $file_value['title'] ?? '';
+                                    } else {
+                                        $file_url = (string) $file_value;
                                     }
-                                } ?>
+
+                                    if (empty($file_url) && $file_id) {
+                                        $file_url = wp_get_attachment_url($file_id);
+                                    }
+
+                                    if (empty($file_url)) {
+                                        continue;
+                                    }
+
+                                    if (!$file_id) {
+                                        $file_id = attachment_url_to_postid($file_url);
+                                    }
+
+                                    $allegato = $file_id ? get_post($file_id) : null;
+                                    $file_path = (string) parse_url($file_url, PHP_URL_PATH);
+                                    $file_extension = strtoupper((string) pathinfo($file_path, PATHINFO_EXTENSION));
+                                    $file_name = urldecode((string) pathinfo($file_path, PATHINFO_FILENAME));
+                                    $title_allegato = $file_title
+                                        ?: ($allegato instanceof WP_Post ? get_the_title($allegato) : $file_name);
+                                    $title_allegato = $title_allegato ?: 'Documento';
+                                    $etichetta_documento = sprintf(
+                                        'Apri il documento %s in una nuova scheda',
+                                        wp_strip_all_tags($title_allegato)
+                                    );
+                                    ?>
+                                    <div class="col-12 col-md-6 dci-document-resources__item">
+                                        <a class="dci-document-resources__card"
+                                            href="<?php echo esc_url($file_url); ?>"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title="<?php echo esc_attr($etichetta_documento); ?>"
+                                            aria-label="<?php echo esc_attr($etichetta_documento); ?>">
+                                            <img class="dci-document-resources__icon"
+                                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230D2B45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.75h8l4 4v14.5H6z'/%3E%3Cpath d='M14 2.75v4h4M9 12h6M9 16h6'/%3E%3C/svg%3E"
+                                                alt="<?php echo esc_attr(sprintf('Icona del documento %s', wp_strip_all_tags($title_allegato))); ?>"
+                                                width="42"
+                                                height="42">
+                                            <span class="dci-document-resources__content">
+                                                <span class="dci-document-resources__type">Documento</span>
+                                                <span class="dci-document-resources__title">
+                                                    <?php echo esc_html($title_allegato); ?>
+                                                </span>
+                                                <?php if (!empty($file_extension)) { ?>
+                                                    <span class="dci-document-resources__meta">
+                                                        Formato <?php echo esc_html($file_extension); ?>
+                                                    </span>
+                                                <?php } ?>
+                                            </span>
+                                            <span class="dci-document-resources__arrow" aria-hidden="true">
+                                                <svg class="icon">
+                                                    <use href="#it-download"></use>
+                                                </svg>
+                                            </span>
+                                        </a>
+                                    </div>
+                                <?php } ?>
                             </div>
                         </article>
                     <?php } ?>
@@ -293,8 +547,16 @@ get_header();
                 </section>
             </div>
         </div>
-        <?php get_template_part("template-parts/common/valuta-servizio"); ?>
-        <?php get_template_part("template-parts/common/assistenza-contatti"); ?>
+        <?php 
+
+        // Se il portale gestisce solo la nostra Trasparenza in modo esterno, indirizza all'home del comune.
+        $portalesoloperusoesterno = dci_get_option("ck_portalesoloperusoesterno");
+
+        // Se è attiva la trasparenza esterna, non visualizzare questi elementi
+        if ($portalesoloperusoesterno !== 'true') { 
+            get_template_part("template-parts/common/valuta-servizio"); 
+            get_template_part("template-parts/common/assistenza-contatti"); 
+        }?>
 </main>
 
 <?php

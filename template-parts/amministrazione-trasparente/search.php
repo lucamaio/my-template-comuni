@@ -12,6 +12,20 @@ $at_search_term = isset($_GET['at_search']) && is_string($_GET['at_search'])
 $at_search_page = isset($_GET['at_page']) && is_scalar($_GET['at_page'])
     ? max(1, absint($_GET['at_page']))
     : 1;
+$at_search_order = isset($_GET['at_order']) && is_scalar($_GET['at_order'])
+    ? sanitize_key(wp_unslash($_GET['at_order']))
+    : 'data_desc';
+$at_search_orders = [
+    'data_desc'       => ['orderby' => 'date', 'order' => 'DESC'],
+    'data_asc'        => ['orderby' => 'date', 'order' => 'ASC'],
+    'alfabetico_asc'  => ['orderby' => 'title', 'order' => 'ASC'],
+    'alfabetico_desc' => ['orderby' => 'title', 'order' => 'DESC'],
+];
+
+if (!isset($at_search_orders[$at_search_order])) {
+    $at_search_order = 'data_desc';
+}
+
 $at_search_query = null;
 $at_category_results = [];
 $at_search_too_short = $at_search_term !== ''
@@ -111,7 +125,7 @@ $at_search_query = new WP_Query([
     'posts_per_page'      => 10,
     'paged'               => $at_search_page,
     's'                   => $at_search_term,
-    'orderby'             => 'date',
-    'order'               => 'DESC',
+    'orderby'             => $at_search_orders[$at_search_order]['orderby'],
+    'order'               => $at_search_orders[$at_search_order]['order'],
     'ignore_sticky_posts' => true,
 ]);

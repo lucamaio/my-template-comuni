@@ -990,10 +990,16 @@ function dci_add_elemento_trasparenza_metaboxes()
         'desc'          => __('Link diretto al link senza visualizzare alcuna pagina intermedia', 'design_comuni_italia'),
         'type'          => 'checkbox',
     ));
+    $cmb_extra->add_field(array(
+        'id'            => $prefix . 'in_evidenza',
+        'name'          => __('Metti in evidenza', 'design_comuni_italia'),
+        'desc'          => __('Evidenzia questo elemento negli elenchi dell’Amministrazione Trasparente.', 'design_comuni_italia'),
+        'type'          => 'checkbox',
+    ));
 
     $cmb_post_collegati = new_cmb2_box(array(
         'id'            => $prefix . 'box_postcollegati',
-        'title'         => __('Documenti correlati', 'design_comuni_italia'),
+        'title'         => __('Contenuti collegati', 'design_comuni_italia'),
         'object_types'  => array('elemento_trasparenza'),
         'context'       => 'normal',
         'priority'      => 'low',
@@ -1001,12 +1007,12 @@ function dci_add_elemento_trasparenza_metaboxes()
 
     $cmb_post_collegati->add_field( array(
         'id' => $prefix . 'post_trasparenza',
-        'name'          => __( 'Documenti correlati', 'design_comuni_italia' ),
-        'desc' => __( 'Selezionare i documenti di trasparenza correlati a quello attualmente pubblicato.', 'design_comuni_italia' ),
+        'name'          => __( 'Elementi di Amministrazione Trasparente collegati', 'design_comuni_italia' ),
+        'desc' => __( 'Seleziona uno o più elementi di Amministrazione Trasparente da mostrare come contenuti correlati nella pagina corrente.', 'design_comuni_italia' ),
         'type'          => 'pw_multiselect',
         'options' => dci_get_posts_options('elemento_trasparenza'),
         'attributes'    => array(
-            'placeholder' =>  __( 'Seleziona i documenti correlati', 'design_comuni_italia' ),
+            'placeholder' =>  __( 'Seleziona gli elementi collegati', 'design_comuni_italia' ),
         ),
     ) );
 

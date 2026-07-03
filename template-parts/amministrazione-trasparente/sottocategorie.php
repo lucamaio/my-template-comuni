@@ -1,16 +1,16 @@
 <?php
-GLOBAL $title, $title;
+$sottocategorie = [];
+$termine_corrente = get_queried_object();
 
-// Recupero categoria genitore
-$categoria_genitore = get_terms('tipi_cat_amm_trasp', array(
-    'hide_empty' => false,
-    'field' => 'slug',
-    'name' => $title
-));
-
-if ( ! empty( $categoria_genitore ) && ! is_wp_error( $categoria_genitore ) ) {
-
-    $parent_term_id = $categoria_genitore[0]->term_id; 
+/*
+ * Un nome può appartenere a più termini della gerarchia. WordPress ha già
+ * risolto il termine richiesto: il suo ID è l'unico riferimento affidabile.
+ */
+if (
+    $termine_corrente instanceof WP_Term
+    && $termine_corrente->taxonomy === 'tipi_cat_amm_trasp'
+) {
+    $parent_term_id = (int) $termine_corrente->term_id;
 
     // Recupero sottocategorie
     $sottocategorie = get_terms('tipi_cat_amm_trasp', array(
@@ -188,9 +188,7 @@ if (!is_wp_error($termini_trasparenza)) {
     </h2>
     <div class="row dci-at-subcategories__grid">
 
-        <?php foreach ( $sottocategorie as $sottocategoria ) { 
-
-            if($title != $sottocategoria->name){
+        <?php foreach ( $sottocategorie as $sottocategoria ) {
 
                 // 👉 LINK DEFAULT
                 $link = get_term_link($sottocategoria->term_id);
@@ -279,7 +277,7 @@ if (!is_wp_error($termini_trasparenza)) {
                 </a>
             </div>
 
-        <?php } } ?>
+        <?php } ?>
 
     </div>
 </section>

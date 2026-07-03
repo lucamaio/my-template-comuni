@@ -3,7 +3,14 @@ global $wpdb;
 
 $max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 10, 10, 50);
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
-$paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+$paged = max(1, (int) get_query_var('paged'), (int) get_query_var('page'));
+if ($paged < 2) {
+    $paged = max(
+        isset($_GET['paged']) ? max(1, absint($_GET['paged'])) : 1,
+        isset($_GET['page']) ? max(1, absint($_GET['page'])) : 1,
+        isset($_GET['titolari_page']) ? max(1, absint($_GET['titolari_page'])) : 1
+    );
+}
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
 
 // Anni disponibili
@@ -41,19 +48,6 @@ $prefix = "_dci_titolare_incarico_";
 
 // Query personalizzata
 $the_query = new WP_Query($args);
-
-// Prendi permalink pagina corrente (senza query string)
-$current_url = get_permalink();
-
-// Costruiamo la base URL per paginazione mantenendo tutti i parametri
-$base_url = add_query_arg(array(
-    'search'      => $main_search_query ? $main_search_query : '',
-    'filter_year' => $selected_year > 0 ? $selected_year : 0,
-    'max_posts'   => $max_posts,
-    'page'        => '%#%',
-), $current_url);
-
-
 
 // SEARCH BAR
 ?>
@@ -95,6 +89,17 @@ $base_url = add_query_arg(array(
     </div>
 </form>
 
+<p class="dci-results-count mb-4 text-decoration-none" role="status">
+    <strong>
+        <?php
+        printf(
+            esc_html__('Totale elementi: %s', 'design_comuni_italia'),
+            esc_html(number_format_i18n((int) $the_query->found_posts))
+        );
+        ?>
+    </strong>
+</p>
+
 <?php if ($the_query->have_posts()){
     while ($the_query->have_posts()){
         $the_query->the_post();
@@ -103,7 +108,17 @@ $base_url = add_query_arg(array(
     wp_reset_postdata();?>
         <div class="row my-4">
         <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
-            <?php echo dci_bootstrap_pagination(); ?>
+            <?php
+            get_template_part(
+                'template-parts/amministrazione-trasparente/paginazione-personalizzata',
+                null,
+                [
+                    'query'    => $the_query,
+                    'current'  => $paged,
+                    'page_arg' => 'titolari_page',
+                ]
+            );
+            ?>
         </nav>
     </div>
 <?php } else{?>

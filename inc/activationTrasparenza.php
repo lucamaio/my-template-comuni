@@ -32,31 +32,65 @@ function dci_reload_trasparenza_option_page() {
         wp_die('Non hai i permessi per accedere a questa pagina.');
     }
 
-    if (isset($_GET["action"]) && $_GET["action"] === "reload") {
-        $stats = dci_trasparenza_activation(); // Esegue nuovamente l'attivazione
-        $inserted = isset($stats['inserted']) ? (int) $stats['inserted'] : 0;
-        $updated = isset($stats['updated']) ? (int) $stats['updated'] : 0;
-        $descriptions = isset($stats['descriptions_updated']) ? (int) $stats['descriptions_updated'] : 0;
-        echo '<div class="notice notice-success is-dismissible"><p>Dati ricaricati con successo. Voci inserite: <strong>' . esc_html($inserted) . '</strong>, voci aggiornate: <strong>' . esc_html($updated) . '</strong>, descrizioni aggiornate: <strong>' . esc_html($descriptions) . '</strong>.</p></div>';
+    $action = isset($_GET['action']) ? sanitize_key(wp_unslash($_GET['action'])) : '';
+
+    if (in_array($action, ['reload', 'reload_descriptions', 'reload_ordering'], true)) {
+        check_admin_referer('dci_trasparenza_' . $action);
+
+        if ($action === 'reload') {
+            $stats = dci_trasparenza_activation();
+            $inserted = isset($stats['inserted']) ? (int) $stats['inserted'] : 0;
+            $updated = isset($stats['updated']) ? (int) $stats['updated'] : 0;
+            $descriptions = isset($stats['descriptions_updated']) ? (int) $stats['descriptions_updated'] : 0;
+            echo '<div class="notice notice-success is-dismissible"><p>Dati ricaricati con successo. Voci inserite: <strong>' . esc_html($inserted) . '</strong>, voci aggiornate: <strong>' . esc_html($updated) . '</strong>, descrizioni aggiornate: <strong>' . esc_html($descriptions) . '</strong>.</p></div>';
+        } elseif ($action === 'reload_descriptions') {
+            $stats = insertTaxonomyTrasparenzaTerms(['descriptions']);
+            $descriptions = isset($stats['descriptions_updated']) ? (int) $stats['descriptions_updated'] : 0;
+            echo '<div class="notice notice-success is-dismissible"><p>Descrizioni ricaricate. Termini aggiornati: <strong>' . esc_html($descriptions) . '</strong>. Struttura, slug, visibilità e ordinamento non sono stati modificati.</p></div>';
+        } else {
+            $stats = dci_reload_trasparenza_ordering();
+            $ordering_updated = isset($stats['ordering_updated']) ? (int) $stats['ordering_updated'] : 0;
+            $missing = isset($stats['missing']) ? (int) $stats['missing'] : 0;
+            echo '<div class="notice notice-success is-dismissible"><p>Ordinamento ricaricato. Termini aggiornati: <strong>' . esc_html($ordering_updated) . '</strong>, termini della struttura predefinita non presenti e ignorati: <strong>' . esc_html($missing) . '</strong>. Nessun termine è stato creato o spostato.</p></div>';
+        }
     }
+
+    $page_url = admin_url('themes.php?page=reload-trasparenza-theme-options');
+    $reload_url = wp_nonce_url(add_query_arg('action', 'reload', $page_url), 'dci_trasparenza_reload');
+    $descriptions_url = wp_nonce_url(add_query_arg('action', 'reload_descriptions', $page_url), 'dci_trasparenza_reload_descriptions');
+    $ordering_url = wp_nonce_url(add_query_arg('action', 'reload_ordering', $page_url), 'dci_trasparenza_reload_ordering');
 
     echo "<div class='wrap'>";
     echo "<h1>Ricarica i dati della Trasparenza</h1>";
     echo '<p>Questa operazione reinserisce le tassonomie e opzioni di default relative alla sezione "Amministrazione Trasparente".</p>';
-    echo '<a id="dci-reload-trasparenza-btn" href="' . esc_url(admin_url('themes.php?page=reload-trasparenza-theme-options&action=reload')) . '" class="button button-primary">Ricarica Trasparenza</a>';
+    echo '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">';
+    echo '<a href="' . esc_url($reload_url) . '" class="button button-primary dci-reload-trasparenza-btn" data-confirm="Questa operazione ricarica l’intera struttura della Trasparenza. Continuare?">Ricarica Trasparenza</a>';
+    echo '<a href="' . esc_url($descriptions_url) . '" class="button dci-reload-trasparenza-btn" data-confirm="Aggiornare le descrizioni predefinite dei termini già esistenti?">Ricarica descrizioni</a>';
+    echo '<a href="' . esc_url($ordering_url) . '" class="button dci-reload-trasparenza-btn" data-confirm="Riallineare l’ordinamento dei termini già esistenti?">Ricarica ordinamento</a>';
     echo '<span id="dci-reload-trasparenza-loader" style="display:none; margin-left:12px; align-items:center;"><span class="spinner is-active" style="float:none; margin:0 8px 0 0;"></span>Ricaricamento in corso...</span>';
+    echo '</div>';
+    echo '<p class="description" style="margin-top:12px;">Le azioni “Ricarica descrizioni” e “Ricarica ordinamento” operano solo sui termini già presenti e non modificano struttura, slug o visibilità.</p>';
     echo "<script>
     document.addEventListener('DOMContentLoaded', function () {
-        var reloadBtn = document.getElementById('dci-reload-trasparenza-btn');
+        var reloadButtons = document.querySelectorAll('.dci-reload-trasparenza-btn');
         var loader = document.getElementById('dci-reload-trasparenza-loader');
-        if (!reloadBtn || !loader) {
+        if (!reloadButtons.length || !loader) {
             return;
         }
-        reloadBtn.addEventListener('click', function () {
-            loader.style.display = 'inline-flex';
-            reloadBtn.classList.add('disabled');
-            reloadBtn.setAttribute('aria-disabled', 'true');
-            reloadBtn.style.pointerEvents = 'none';
+        reloadButtons.forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                var message = button.getAttribute('data-confirm');
+                if (message && !window.confirm(message)) {
+                    event.preventDefault();
+                    return;
+                }
+                loader.style.display = 'inline-flex';
+                reloadButtons.forEach(function (candidate) {
+                    candidate.classList.add('disabled');
+                    candidate.setAttribute('aria-disabled', 'true');
+                    candidate.style.pointerEvents = 'none';
+                });
+            });
         });
     });
     </script>";
@@ -385,13 +419,19 @@ if (!function_exists("dci_tipi_stato_bando_array")) {
 // ===========================
 // Funzione di inserimento tassonomie
 // ===========================
-function insertTaxonomyTrasparenzaTerms() {
+function insertTaxonomyTrasparenzaTerms( $operations = ['structure', 'descriptions'], $dry_run = false ) {
+    $operations = array_values(array_intersect(
+        (array) $operations,
+        ['structure', 'descriptions']
+    ));
+
     $stats = [
         'inserted' => 0,
         'updated' => 0,
         'descriptions_updated' => 0,
     ];
 
+    if (in_array('structure', $operations, true)) {
     /* --------------------------- */
     /* 1) Inserimento tassonomie   */
     /* --------------------------- */
@@ -408,6 +448,7 @@ function insertTaxonomyTrasparenzaTerms() {
     // Tipi di stato bando
     $tipi_stato_bando_array = dci_tipi_stato_bando_array();
     recursionInsertTaxonomy( $tipi_stato_bando_array, 'tipi_stato_bando' );
+    }
 
 
     /* ----------------------------------------------------------- */
@@ -1006,8 +1047,16 @@ function insertTaxonomyTrasparenzaTerms() {
         "Ulteriori dati pubblici e informazioni integrative utili alla piena trasparenza dell’ente, non classificabili nelle altre categorie."
 ];
 
-    foreach ( $descrizioni as $term_name => $new_desc ) {
-        dci_update_term_description( $term_name, 'tipi_cat_amm_trasp', $new_desc, $stats );
+    if (in_array('descriptions', $operations, true)) {
+        foreach ( $descrizioni as $term_name => $new_desc ) {
+            dci_update_term_description(
+                $term_name,
+                'tipi_cat_amm_trasp',
+                $new_desc,
+                $stats,
+                $dry_run
+            );
+        }
     }
 
     return $stats;
@@ -1020,29 +1069,159 @@ function insertTaxonomyTrasparenzaTerms() {
  * @param string $taxonomy  Tassonomia di appartenenza.
  * @param string $new_desc  Nuova descrizione (testo con \n\n per i paragrafi).
  */
-function dci_update_term_description( $term_name, $taxonomy, $new_desc, &$stats = null ) {
-    $terms = get_terms(
-        [
+function dci_update_term_description( $term_name, $taxonomy, $new_desc, &$stats = null, $dry_run = false ) {
+    static $terms_by_taxonomy = [];
+
+    if (!isset($terms_by_taxonomy[$taxonomy])) {
+        $all_terms = get_terms([
             'taxonomy'   => $taxonomy,
             'hide_empty' => false,
-            'name'       => $term_name,
-        ]
-    );
+        ]);
+        $terms_by_taxonomy[$taxonomy] = [];
 
-    if ( is_wp_error( $terms ) || empty( $terms ) ) {
+        if (!is_wp_error($all_terms)) {
+            foreach ($all_terms as $available_term) {
+                $terms_by_taxonomy[$taxonomy][$available_term->name][] = $available_term;
+            }
+        }
+    }
+
+    $terms = $terms_by_taxonomy[$taxonomy][$term_name] ?? [];
+
+    if ( empty( $terms ) ) {
         return;
     }
 
     foreach ( $terms as $term ) {
         if ( empty( $term->description ) || $term->description !== $new_desc ) {
-            wp_update_term(
-                $term->term_id,
-                $taxonomy,
-                [ 'description' => $new_desc ]
-            );
-            if ( is_array( $stats ) ) {
+            $updated = $dry_run
+                ? ['term_id' => (int) $term->term_id]
+                : wp_update_term(
+                    $term->term_id,
+                    $taxonomy,
+                    [ 'description' => $new_desc ]
+                );
+
+            if (!is_wp_error($updated) && is_array($stats)) {
                 $stats['descriptions_updated']++;
             }
+        }
+    }
+}
+
+/**
+ * Riallinea esclusivamente il meta di ordinamento dei termini già esistenti.
+ * Non crea termini e non modifica nome, slug, parent o visibilità.
+ *
+ * @param bool $dry_run Se true calcola le modifiche senza salvarle.
+ * @return array
+ */
+function dci_reload_trasparenza_ordering( $dry_run = false ) {
+    $taxonomy = 'tipi_cat_amm_trasp';
+    $all_terms = get_terms([
+        'taxonomy'   => $taxonomy,
+        'hide_empty' => false,
+    ]);
+    $stats = [
+        'ordering_updated' => 0,
+        'unchanged'        => 0,
+        'missing'          => 0,
+        'errors'           => 0,
+    ];
+
+    if (is_wp_error($all_terms)) {
+        $stats['errors']++;
+        return $stats;
+    }
+
+    $term_lookup = [];
+    foreach ($all_terms as $term) {
+        $normalized_name = mb_strtolower(
+            dci_normalize_trasparenza_term_name($term->name),
+            'UTF-8'
+        );
+        $term_lookup[(int) $term->parent][$normalized_name][] = $term;
+    }
+
+    $order = 1;
+    dci_apply_trasparenza_ordering(
+        dci_tipi_cat_amm_trasp_array(),
+        0,
+        true,
+        $order,
+        $term_lookup,
+        $stats,
+        $dry_run
+    );
+
+    return $stats;
+}
+
+/**
+ * Applica ricorsivamente l'ordine previsto ai soli termini individuati
+ * nello stesso ramo gerarchico.
+ */
+function dci_apply_trasparenza_ordering(
+    $terms,
+    $parent_id,
+    $parent_exists,
+    &$order,
+    &$term_lookup,
+    &$stats,
+    $dry_run = false
+) {
+    foreach ((array) $terms as $key => $children) {
+        if (is_int($key)) {
+            $term_name = $children;
+            $children = [];
+        } else {
+            $term_name = $key;
+        }
+
+        $term = null;
+        if ($parent_exists) {
+            $normalized_name = mb_strtolower(
+                dci_normalize_trasparenza_term_name($term_name),
+                'UTF-8'
+            );
+
+            if (!empty($term_lookup[(int) $parent_id][$normalized_name])) {
+                $term = array_shift($term_lookup[(int) $parent_id][$normalized_name]);
+            }
+        }
+
+        if ($term instanceof WP_Term) {
+            $current_order = (string) get_term_meta($term->term_id, 'ordinamento', true);
+
+            if ($current_order !== (string) $order) {
+                $updated = $dry_run
+                    ? true
+                    : update_term_meta($term->term_id, 'ordinamento', $order);
+
+                if ($updated !== false) {
+                    $stats['ordering_updated']++;
+                } else {
+                    $stats['errors']++;
+                }
+            } else {
+                $stats['unchanged']++;
+            }
+        } else {
+            $stats['missing']++;
+        }
+
+        $order++;
+
+        if (!empty($children) && is_array($children)) {
+            dci_apply_trasparenza_ordering(
+                $children,
+                $term instanceof WP_Term ? (int) $term->term_id : 0,
+                $term instanceof WP_Term,
+                $order,
+                $term_lookup,
+                $stats,
+                $dry_run
+            );
         }
     }
 }

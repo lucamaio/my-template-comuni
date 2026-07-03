@@ -8,7 +8,11 @@ $max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
 $paged = max(1, (int) get_query_var('paged'));
 if ($paged < 2) {
-    $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : (isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1);
+    $paged = max(
+        isset($_GET['paged']) ? max(1, absint($_GET['paged'])) : 1,
+        isset($_GET['page']) ? max(1, absint($_GET['page'])) : 1,
+        isset($_GET['incarichi_page']) ? max(1, absint($_GET['incarichi_page'])) : 1
+    );
 }
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
 
@@ -45,16 +49,6 @@ if ($selected_year > 0) {
 // Query personalizzata
 $the_query = new WP_Query($args);
 
-// Prendi permalink pagina corrente (senza query string)
-$current_url = get_permalink();
-
-// Costruiamo la base URL per paginazione mantenendo tutti i parametri
-$base_url = add_query_arg(array(
-    'search'      => $main_search_query ? $main_search_query : '',
-    'filter_year' => $selected_year > 0 ? $selected_year : 0,
-    'max_posts'   => $max_posts,
-    'paged'       => '%#%',
-), $current_url);
 ?>
 
 <!-- FORM FILTRO -->
@@ -96,6 +90,17 @@ $base_url = add_query_arg(array(
     </div>
 </form>
 
+<p class="dci-results-count mb-4 text-decoration-none" role="status">
+    <strong>
+        <?php
+        printf(
+            esc_html__('Totale elementi: %s', 'design_comuni_italia'),
+            esc_html(number_format_i18n((int) $the_query->found_posts))
+        );
+        ?>
+    </strong>
+</p>
+
 <?php if ($the_query->have_posts()) : ?>
 
     <?php while ($the_query->have_posts()) : $the_query->the_post(); ?>
@@ -106,27 +111,16 @@ $base_url = add_query_arg(array(
     <div class="row my-4">
         <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
             <?php
-            $pagination_links = paginate_links(array(
-                'base'      => $base_url,
-                'format'    => '',
-                'current'   => $paged,
-                'total'     => $the_query->max_num_pages,
-                'prev_text' => __('&laquo; Precedente'),
-                'next_text' => __('Successivo &raquo;'),
-                'type'      => 'array',
-            ));
-
-            if ($pagination_links) : ?>
-                <ul class="pagination justify-content-center">
-                    <?php foreach ($pagination_links as $link) :
-                        $active = strpos($link, 'current') !== false ? ' active' : '';
-                        $link = str_replace('<a ', '<a class="page-link" ', $link);
-                        $link = str_replace('<span class="current">', '<span class="page-link active" aria-current="page">', $link);
-                    ?>
-                        <li class="page-item<?php echo $active; ?>"><?php echo $link; ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
+            get_template_part(
+                'template-parts/amministrazione-trasparente/paginazione-personalizzata',
+                null,
+                [
+                    'query'    => $the_query,
+                    'current'  => $paged,
+                    'page_arg' => 'incarichi_page',
+                ]
+            );
+            ?>
         </nav>
     </div>
 

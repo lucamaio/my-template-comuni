@@ -7,7 +7,8 @@ $paged = max(
     1,
     (int) get_query_var('paged'),
     (int) get_query_var('page'),
-    isset($_GET['paged']) ? absint($_GET['paged']) : 0
+    isset($_GET['paged']) ? absint($_GET['paged']) : 0,
+    isset($_GET['bandi_page']) ? absint($_GET['bandi_page']) : 0
 );
 
 // Recupera i valori attuali dei filtri dalla URL per mantenere lo stato della ricerca
@@ -251,7 +252,16 @@ $prefix = "_dci_bando_";
     </form>
 </div>
 
-
+<p class="dci-results-count mb-4 text-decoration-none" role="status">
+    <strong>
+        <?php
+        printf(
+            esc_html__('Totale elementi: %s', 'design_comuni_italia'),
+            esc_html(number_format_i18n((int) $the_query->found_posts))
+        );
+        ?>
+    </strong>
+</p>
 
     <?php if ($the_query->have_posts()) : ?>
         <?php while ($the_query->have_posts()) : $the_query->the_post();
@@ -260,7 +270,17 @@ $prefix = "_dci_bando_";
         wp_reset_postdata();?>
         <div class="row my-4">
     <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
-        <?php echo dci_bootstrap_pagination($the_query, false); ?>
+        <?php
+        get_template_part(
+            'template-parts/amministrazione-trasparente/paginazione-personalizzata',
+            null,
+            [
+                'query'    => $the_query,
+                'current'  => $paged,
+                'page_arg' => 'bandi_page',
+            ]
+        );
+        ?>
     </nav>
 </div>
     <?php else : ?>

@@ -86,6 +86,29 @@ document.documentElement.classList.add('dci-at-menu-js');
     font-weight: 700;
 }
 
+.dci-at-main-search__order {
+    margin-top: 1rem;
+}
+
+.dci-at-main-search__order-label {
+    display: block;
+    margin-bottom: .45rem;
+    color: #17324d;
+    font-weight: 700;
+}
+
+.dci-at-main-search__order-select {
+    min-height: 48px;
+    border: 2px solid #b8c9da;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.dci-at-main-search__order-select:focus {
+    border-color: #17324d;
+    box-shadow: 0 0 0 .2rem rgba(23, 50, 77, .16);
+}
+
 .dci-at-main-search__reset {
     display: inline-block;
     margin-top: .75rem;
@@ -865,8 +888,24 @@ document.addEventListener('keydown', function(event) {
                                 </button>
                             </div>
 
+                            <div class="dci-at-main-search__order">
+                                <label class="dci-at-main-search__order-label" for="dci-at-main-search-order">
+                                    Ordina per
+                                </label>
+                                <select
+                                    class="form-control dci-at-main-search__order-select"
+                                    id="dci-at-main-search-order"
+                                    name="at_order"
+                                >
+                                    <option value="data_desc" <?= selected($at_search_order, 'data_desc', false); ?>>Data (Descendente)</option>
+                                    <option value="data_asc" <?= selected($at_search_order, 'data_asc', false); ?>>Data (Ascendente)</option>
+                                    <option value="alfabetico_asc" <?= selected($at_search_order, 'alfabetico_asc', false); ?>>Alfabetico (Ascendente)</option>
+                                    <option value="alfabetico_desc" <?= selected($at_search_order, 'alfabetico_desc', false); ?>>Alfabetico (Discendente)</option>
+                                </select>
+                            </div>
+
                             <?php if ($at_search_term !== '') { ?>
-                                <a class="dci-at-main-search__reset" href="<?= esc_url(remove_query_arg(['at_search', 'at_page'])); ?>">
+                                <a class="dci-at-main-search__reset" href="<?= esc_url(remove_query_arg(['at_search', 'at_page', 'at_order'])); ?>">
                                     Cancella la ricerca
                                 </a>
                             <?php } ?>
@@ -980,16 +1019,22 @@ document.addEventListener('keydown', function(event) {
                                         <?php if ($at_search_query->max_num_pages > 1) { ?>
                                             <nav class="pagination-wrapper justify-content-center dci-at-search-pagination" aria-label="Pagine dei documenti">
                                                 <?php
+                                                $at_pagination_url = get_permalink(get_queried_object_id());
+                                                if (!$at_pagination_url) {
+                                                    $at_pagination_url = home_url('/amministrazione-trasparente/');
+                                                }
+
                                                 $at_pagination_base = add_query_arg(
                                                     [
                                                         'at_search' => $at_search_term,
+                                                        'at_order'  => $at_search_order,
                                                         'at_page'   => 999999999,
                                                     ],
-                                                    remove_query_arg('at_page')
+                                                    $at_pagination_url
                                                 );
 
                                                 $at_pagination_links = paginate_links([
-                                                    'base'      => str_replace('999999999', '%#%', esc_url($at_pagination_base)),
+                                                    'base'      => str_replace('999999999', '%#%', esc_url_raw($at_pagination_base)),
                                                     'format'    => '',
                                                     'current'   => $at_search_page,
                                                     'total'     => $at_search_query->max_num_pages,

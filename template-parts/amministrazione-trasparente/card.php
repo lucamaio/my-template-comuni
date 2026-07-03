@@ -7,14 +7,76 @@ $prefix = '_dci_elemento_trasparenza_';
 $descrizione_breve = dci_get_meta('descrizione_breve', $prefix, $elemento->ID);
 $ck_target         = dci_get_meta('open_in_new_tab', $prefix, $elemento->ID) === 'on';
 $ck_link           = dci_get_meta('open_direct', $prefix, $elemento->ID) === 'on';
+$in_evidenza       = dci_get_meta('in_evidenza', $prefix, $elemento->ID) === 'on';
 $url               = dci_get_meta('url', $prefix, $elemento->ID);
 
 $documenti         = dci_get_meta('file', $prefix, $elemento->ID);
+$link_documenti    = dci_get_meta('url_documento_group', $prefix, $elemento->ID);
 $documento = is_array($documenti) && !empty($documenti) ? get_permalink($elemento->ID) : $documenti;
 $data= get_the_date('j F Y', $elemento->ID);
+$data_iso = get_the_date('c', $elemento->ID);
 
 $ck_sowh_section = dci_get_option("ck_show_section", "Trasparenza");
 $show_search_categories = !empty($args['show_search_categories']);
+$risorse_card = [];
+
+if (is_array($documenti)) {
+    foreach ($documenti as $file_url) {
+        if (!is_string($file_url) || $file_url === '') {
+            continue;
+        }
+
+        $file_path = (string) wp_parse_url($file_url, PHP_URL_PATH);
+        $file_name = urldecode((string) basename($file_path));
+
+        $risorse_card[$file_url] = [
+            'type'   => 'file',
+            'url'    => $file_url,
+            'name'   => $file_name !== '' ? $file_name : __('Documento allegato', 'design_comuni_italia'),
+            'target' => $ck_target,
+        ];
+    }
+}
+
+if (is_array($link_documenti)) {
+    foreach ($link_documenti as $link_item) {
+        if (!is_array($link_item) || empty($link_item['url_documento'])) {
+            continue;
+        }
+
+        $link_url = (string) $link_item['url_documento'];
+        $link_path = (string) wp_parse_url($link_url, PHP_URL_PATH);
+        $link_host = (string) wp_parse_url($link_url, PHP_URL_HOST);
+        $link_name = !empty($link_item['titolo'])
+            ? trim(wp_strip_all_tags((string) $link_item['titolo']))
+            : urldecode((string) basename($link_path));
+
+        if ($link_name === '') {
+            $link_name = $link_host !== '' ? $link_host : __('Documento collegato', 'design_comuni_italia');
+        }
+
+        $risorse_card[$link_url] = [
+            'type'   => 'file',
+            'url'    => $link_url,
+            'name'   => $link_name,
+            'target' => !empty($link_item['target_blank']),
+        ];
+    }
+}
+
+if (is_string($url) && $url !== '') {
+    $url_host = (string) wp_parse_url($url, PHP_URL_HOST);
+    $risorse_card[$url] = [
+        'type'   => 'link',
+        'url'    => $url,
+        'name'   => $url_host !== '' ? $url_host : __('Pagina collegata', 'design_comuni_italia'),
+        'target' => $ck_target,
+    ];
+}
+
+$risorse_card = array_values($risorse_card);
+$risorse_card_visibili = array_slice($risorse_card, 0, 3);
+$risorse_card_rimanenti = max(0, count($risorse_card) - count($risorse_card_visibili));
 
 if($ck_link && !empty($url)){
      $link = esc_url($url);
@@ -27,8 +89,21 @@ if($ck_link && !empty($url)){
 if ($elemento->post_status === "publish") :
     $title=$elemento->post_title;
 ?>
-<div class="cmp-card-latest-messages card-wrapper" data-bs-toggle="modal" data-bs-target="#">
-    <div class="card shadow-sm px-4 pt-4 pb-4 rounded border border-light">
+<div class="cmp-card-latest-messages card-wrapper<?php echo $in_evidenza ? ' dci-at-card--featured' : ''; ?>" data-bs-toggle="modal" data-bs-target="#">
+    <div
+        class="card shadow-sm px-4 pt-4 pb-4 rounded border border-light"
+        <?php if ($in_evidenza) { ?>
+            style="background:#f7f9fb;border:1px solid #c7d4e2!important;border-left:4px solid #5c7f99!important;"
+        <?php } ?>
+    >
+        <?php if ($in_evidenza) { ?>
+            <div class="dci-at-featured-label" style="display:flex;justify-content:flex-start;margin-bottom:.6rem;">
+                <span
+                    class="dci-at-featured-badge"
+                    style="display:inline-flex;align-items:center;padding:.2rem .5rem;color:#334e68;background:#e9f0f5;border:1px solid #c7d4e2;border-radius:.25rem;font-size:.78rem;line-height:1.25;font-weight:600;"
+                >In evidenza</span>
+            </div>
+        <?php } ?>
         <span class="visually-hidden">Categoria:</span>
         <div class="card-header border-0 p-0">
             <?php if ($show_search_categories) {
@@ -78,9 +153,25 @@ if ($elemento->post_status === "publish") :
                 }
 
                 if (!empty($categorie)) { ?>
-                    <div class="dci-at-result-categories">
-                        <span class="dci-at-result-categories__label">Pubblicato in:</span>
-                        <ul class="dci-at-result-categories__list">
+                    <div
+                        class="dci-at-result-categories"
+                        style="display:flex;align-items:center;gap:.35rem;margin-bottom:.55rem;color:#455a64;font-size:.82rem;line-height:1.35;"
+                    >
+                        <svg
+                            class="icon"
+                            style="flex:0 0 auto;width:.95rem;height:.95rem;fill:currentColor;"
+                            aria-hidden="true"
+                        >
+                            <use href="#it-folder"></use>
+                        </svg>
+                        <span
+                            class="dci-at-result-categories__label"
+                            style="flex:0 0 auto;font-size:.82rem;line-height:1.35;font-weight:600;white-space:nowrap;"
+                        >Pubblicato in:</span>
+                        <ul
+                            class="dci-at-result-categories__list"
+                            style="display:flex;align-items:center;flex-wrap:wrap;gap:.2rem .55rem;min-width:0;margin:0;padding:0;list-style:none;"
+                        >
                             <?php foreach ($categorie as $cat) {
                                 $cat_link = get_term_link($cat);
                                 $cat_url = trim((string) get_term_meta($cat->term_id, 'term_url', true));
@@ -98,14 +189,15 @@ if ($elemento->post_status === "publish") :
                                 $cat_name = function_exists('dci_format_trasparenza_section_title')
                                     ? dci_format_trasparenza_section_title($cat->name)
                                     : $cat->name;
-                                $cat_name_short = mb_strlen($cat_name, 'UTF-8') > 70
-                                    ? rtrim(mb_substr($cat_name, 0, 70, 'UTF-8')) . '...'
+                                $cat_name_short = mb_strlen($cat_name, 'UTF-8') > 60
+                                    ? rtrim(mb_substr($cat_name, 0, 57, 'UTF-8')) . '...'
                                     : $cat_name;
                                 ?>
-                                <li>
+                                <li style="display:flex;align-items:center;min-width:0;margin:0;">
                                     <a
                                         class="dci-at-result-categories__link"
                                         href="<?php echo esc_url($cat_link); ?>"
+                                        style="display:inline-block;max-width:100%;overflow:hidden;color:#17324d;font-size:.82rem;line-height:1.35;font-weight:600;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;text-overflow:ellipsis;white-space:nowrap;"
                                         title="<?php echo esc_attr($cat_name); ?>"
                                         aria-label="<?php echo esc_attr(sprintf('Sezione: %s', $cat_name)); ?>"
                                         <?php if ($cat_is_external && $cat_new_window) { ?>
@@ -134,18 +226,26 @@ if ($elemento->post_status === "publish") :
                     }
                 }?>
 
-            <span class="data">
-                <?php echo($data);?>
-                <?php //echo $arrayDataPubblicazione[0] . ' ' . $monthNamePubblicazione . ' ' . $yearFull; ?>
-            </span>
-            <!-- 
-            <?php /* if($arrayDataPubblicazione[0]!=$arrayDataScadenza[0]) { ?>
-                - <span class="data"><?php echo $arrayDataScadenza[0].' '.strtoupper($monthNameScadenza).' '.$arrayDataScadenza[2] ?></span>
-            <?php } */ ?>
-            -->
         </div>
 
         <div class="card-body p-0 my-2">
+            <span
+                class="data"
+                style="display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.6rem;color:#455a64;font-size:1rem;line-height:1.4;font-weight:600;"
+            >
+                <svg
+                    class="icon"
+                    style="flex:0 0 auto;width:1rem;height:1rem;fill:currentColor;"
+                    aria-hidden="true"
+                >
+                    <use href="#it-calendar"></use>
+                </svg>
+                Pubblicato il
+                <time datetime="<?php echo esc_attr($data_iso); ?>">
+                    <?php echo esc_html($data); ?>
+                </time>
+            </span>
+
             <h3 class="green-title-big t-primary mb-8">
                 <a class="text-decoration-none" href="<?php echo esc_url($link); ?>"
                     <?php echo $ck_target ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
@@ -169,6 +269,87 @@ if ($elemento->post_status === "publish") :
                 <?php echo esc_html($descrizione_breve); ?>
             </p>
             <?php endif; ?>
+
+            <?php if (!empty($risorse_card_visibili)) { ?>
+                <div
+                    class="dci-at-card-resources"
+                    style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid #dfe7f0;"
+                >
+                    <span
+                        style="display:block;margin-bottom:.4rem;color:#455a64;font-size:.82rem;font-weight:600;"
+                    >Allegati e link</span>
+                    <ul style="display:grid;gap:.35rem;margin:0;padding:0;list-style:none;">
+                        <?php foreach ($risorse_card_visibili as $risorsa_card) {
+                            $risorsa_is_file = $risorsa_card['type'] === 'file';
+                            $risorsa_nome_completo = preg_replace(
+                                '/\s+/u',
+                                ' ',
+                                trim((string) $risorsa_card['name'])
+                            );
+
+                            if (preg_match('/\p{Lu}{7,}/u', $risorsa_nome_completo)) {
+                                $risorsa_nome_minuscolo = mb_strtolower($risorsa_nome_completo, 'UTF-8');
+                                $risorsa_nome_completo = mb_strtoupper(
+                                    mb_substr($risorsa_nome_minuscolo, 0, 1, 'UTF-8'),
+                                    'UTF-8'
+                                ) . mb_substr($risorsa_nome_minuscolo, 1, null, 'UTF-8');
+                            }
+
+                            $risorsa_nome_visualizzato = mb_strlen($risorsa_nome_completo, 'UTF-8') > 60
+                                ? rtrim(mb_substr($risorsa_nome_completo, 0, 57, 'UTF-8')) . '...'
+                                : $risorsa_nome_completo;
+                            $risorsa_label = sprintf(
+                                $risorsa_is_file
+                                    ? __('Apri il documento: %s', 'design_comuni_italia')
+                                    : __('Apri il link: %s', 'design_comuni_italia'),
+                                $risorsa_nome_completo
+                            );
+                            ?>
+                            <li style="min-width:0;">
+                                <a
+                                    href="<?php echo esc_url($risorsa_card['url']); ?>"
+                                    style="display:inline-flex;align-items:center;gap:.4rem;max-width:100%;color:#17324d;font-size:.86rem;font-weight:600;text-decoration:none;"
+                                    aria-label="<?php echo esc_attr($risorsa_label); ?>"
+                                    title="<?php echo esc_attr($risorsa_nome_completo); ?>"
+                                    <?php if ($risorsa_card['target']) { ?>
+                                        target="_blank" rel="noopener noreferrer"
+                                    <?php } ?>
+                                >
+                                    <svg
+                                        class="icon icon-sm"
+                                        style="flex:0 0 auto;width:1rem;height:1rem;fill:currentColor;"
+                                        aria-hidden="true"
+                                    >
+                                        <use href="<?php echo $risorsa_is_file ? '#it-file' : '#it-link'; ?>"></use>
+                                    </svg>
+                                    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                        <?php echo esc_html($risorsa_nome_visualizzato); ?>
+                                    </span>
+                                </a>
+                            </li>
+                        <?php } ?>
+                    </ul>
+
+                    <?php if ($risorse_card_rimanenti > 0) { ?>
+                        <a
+                            href="<?php echo esc_url(get_permalink($elemento->ID)); ?>"
+                            style="display:inline-block;margin-top:.45rem;color:#455a64;font-size:.8rem;font-weight:600;"
+                        >
+                            <?php
+                            printf(
+                                esc_html(_n(
+                                    '+ %s altra risorsa',
+                                    '+ %s altre risorse',
+                                    $risorse_card_rimanenti,
+                                    'design_comuni_italia'
+                                )),
+                                esc_html(number_format_i18n($risorse_card_rimanenti))
+                            );
+                            ?>
+                        </a>
+                    <?php } ?>
+                </div>
+            <?php } ?>
         </div>
     </div>
 </div>

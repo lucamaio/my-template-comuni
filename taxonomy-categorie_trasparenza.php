@@ -7,7 +7,7 @@
  */
 
 
-global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici, $tipo_personalizzato, $dci_amm_sidebar_column_classes;
+global $title, $description, $data_element, $elemento, $sito_tematico_id, $siti_tematici, $tipo_personalizzato, $dci_amm_sidebar_column_classes, $sezione;
 
 if (!function_exists('dci_format_trasparenza_section_title')) {
     function dci_format_trasparenza_section_title($title)
@@ -63,6 +63,58 @@ if ($obj instanceof WP_Term && isset($obj->taxonomy) && $obj->taxonomy === 'tipi
             wp_redirect($redirect_url, 302);
             exit;
         }
+    }
+}
+
+if (!function_exists('dci_render_trasparenza_not_applicable_notice')) {
+    /**
+     * Stampa l'avviso solo per una sezione della trasparenza esplicitamente
+     * contrassegnata come non applicabile.
+     */
+    function dci_render_trasparenza_not_applicable_notice($term = null)
+    {
+        if (!$term instanceof WP_Term) {
+            $term = get_queried_object();
+        }
+
+        if (
+            !$term instanceof WP_Term
+            || $term->taxonomy !== 'tipi_cat_amm_trasp'
+            || '1' !== (string) get_term_meta($term->term_id, 'obbligo_non_applicabile', true)
+        ) {
+            return;
+        }
+
+        $message = function_exists('dci_get_trasparenza_not_applicable_message')
+            ? dci_get_trasparenza_not_applicable_message($term->term_id)
+            : __('L’obbligo di pubblicazione non è applicabile all’amministrazione.', 'design_comuni_italia');
+
+        $notice_title_id = 'dci-at-not-applicable-title-' . (int) $term->term_id;
+        ?>
+        <aside
+            class="dci-at-not-applicable"
+            role="note"
+            aria-labelledby="<?php echo esc_attr($notice_title_id); ?>"
+        >
+            <svg class="icon dci-at-not-applicable__icon" aria-hidden="true">
+                <use href="#it-info-circle"></use>
+            </svg>
+            <div class="dci-at-not-applicable__content">
+                <span class="dci-at-not-applicable__label">
+                    <?php esc_html_e('Stato della sezione', 'design_comuni_italia'); ?>
+                </span>
+                <h2
+                    id="<?php echo esc_attr($notice_title_id); ?>"
+                    class="dci-at-not-applicable__title"
+                >
+                    <?php esc_html_e('Informazione sull’applicabilità', 'design_comuni_italia'); ?>
+                </h2>
+                <p class="dci-at-not-applicable__message">
+                    <?php echo nl2br(esc_html($message)); ?>
+                </p>
+            </div>
+        </aside>
+        <?php
     }
 }
 
@@ -247,6 +299,55 @@ if (!function_exists('dci_render_trasparenza_light_bg_style')) {
                 padding-bottom: 2.5rem;
             }
 
+            .dci-at-not-applicable {
+                display: flex;
+                align-items: flex-start;
+                gap: 1rem;
+                margin: 0 0 1.75rem;
+                padding: 1.15rem 1.25rem;
+                border: 1px solid #b9cee2;
+                border-left: 4px solid var(--dci-at-primary, #0066cc);
+                border-radius: 6px;
+                background: linear-gradient(135deg, rgba(237, 246, 255, 0.96), rgba(255, 255, 255, 0.92));
+                box-shadow: 0 8px 24px rgba(23, 50, 77, 0.06);
+                color: #17324d;
+            }
+
+            .dci-at-not-applicable__icon {
+                flex: 0 0 auto;
+                width: 2rem;
+                height: 2rem;
+                margin-top: 0.1rem;
+                fill: var(--dci-at-primary, #0066cc);
+            }
+
+            .dci-at-not-applicable__content {
+                min-width: 0;
+            }
+
+            .dci-at-not-applicable__label {
+                display: block;
+                margin-bottom: 0.2rem;
+                color: var(--dci-at-primary, #0066cc);
+                font-size: 0.78rem;
+                line-height: 1.3;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            .dci-at-not-applicable__title {
+                margin: 0 0 0.35rem;
+                font-size: 1.05rem;
+                line-height: 1.4;
+                font-weight: 700;
+            }
+
+            .dci-at-not-applicable__message {
+                margin: 0;
+                line-height: 1.55;
+            }
+
             @media (max-width: 767.98px) {
                 .dci-at-tools {
                     padding: 1rem;
@@ -262,6 +363,11 @@ if (!function_exists('dci_render_trasparenza_light_bg_style')) {
 
                 .dci-at-layout {
                     padding-bottom: 2rem;
+                }
+
+                .dci-at-not-applicable {
+                    gap: 0.75rem;
+                    padding: 1rem;
                 }
             }
         </style>
@@ -361,10 +467,11 @@ get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
     
    <?php } else if($obj->name === "Telefono e posta elettronica" && dci_get_option("ck_portalesoloperusoesterno") !== 'true' ){?>
         <div class="container my-5">
-            <div class="row g-4">
-                <h2 class="visually-hidden">Esplora i contatti del ente</h2>
-                <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
-                    <?php get_template_part("template-parts/amministrazione-trasparente/contatti/tutti-contatti"); ?>
+                <div class="row g-4">
+                    <h2 class="visually-hidden">Esplora i contatti del ente</h2>
+                    <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
+                        <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
+                        <?php get_template_part("template-parts/amministrazione-trasparente/contatti/tutti-contatti"); ?>
                 </div>
                 <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
             </div>
@@ -372,16 +479,44 @@ get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
    <?php } else if($obj->name === "Articolazione uffici" && dci_get_option("ck_portalesoloperusoesterno") !== 'true' ){?>
         <div class="container py-5">
             <h2 class="visually-hidden">Esplora l'articolazione degli uffici comunali</h2>
+            <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
             <?php get_template_part("template-parts/amministrazione-trasparente/articolazione-uffici/tutti-uffici"); ?>
         </div>
             </div>
    <?php } else if($obj->name === "Titolari di incarichi politici di amministrazione di direzione o di governo" ){?>
         <div class="container py-5">
             <h2 class="visually-hidden">Esplora i Titolari di incarichi politici di amministrazione di direzione o di governo </h2>
+            <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
             <?php get_template_part("template-parts/amministrazione-trasparente/titolari-incarichi-poilitici/tutti-titolari"); ?>
         </div>
             </div>
-   <?php }else { ?>
+   <?php } else if($obj->name === "Titolari di incarichi dirigenziali amministrativi di vertice" ){?>
+         <div class="container my-5">
+            <div class="row g-4">
+                <h2 class="visually-hidden">Titolari di incarichi dirigenziali amministrativi di vertice </h2>
+                <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
+                    <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
+                     <?php $sezione = $obj->name; ?>
+                    <?php get_template_part("template-parts/amministrazione-trasparente/incarichi-dirigenziali/tutti-incarichi"); ?>
+                </div>
+                 <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+            </div> 
+        </div>
+    </div>
+   <?php } else if($obj->name === "Incarichi dirigenziali a qualsiasi titolo conferiti" ){?>
+         <div class="container my-5">
+            <div class="row g-4">
+                <h2 class="visually-hidden">Incarichi dirigenziali a qualsiasi titolo conferiti</h2>
+                <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
+                    <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
+                    <?php $sezione = $obj->name; ?>
+                    <?php get_template_part("template-parts/amministrazione-trasparente/incarichi-dirigenziali/tutti-incarichi"); ?>
+                </div>
+                 <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+            </div> 
+        </div>
+    </div>
+   <?php } else { ?>
         
         <form role="search" id="search-form" method="get" class="search-form">
             <button type="submit" class="d-none"></button>
@@ -429,6 +564,8 @@ get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
                                 </select>
                             </div>
                         </div>
+
+                        <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
 
                         <!-- Risultati della ricerca -->
                         <?php dci_get_template_part_async("trasparenza-risultati-paginati"); ?>

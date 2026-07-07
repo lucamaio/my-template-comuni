@@ -19,7 +19,7 @@ function dci_register_post_type_elemento_trasparenza()
     $args = array(
         'label'                 => __('Elemento Trasparenza', 'design_comuni_italia'),
         'labels'                => $labels,
-        'supports'              => array('title', 'author'),
+        'supports'              => array('title', 'author', 'revisions'),
         'taxonomies'            => array('tipologia'),
         'hierarchical'          => false,
         'public'                => true,
@@ -73,79 +73,6 @@ function dci_elemento_trasparenza_render_admin_help($views)
     $trasparenza_attiva = 'true' === dci_get_option('ck_abilita_trasparenza');
     $pagina_pubblica = home_url('/amministrazione-trasparente/');
     ?>
-    <style>
-        .dci-trasparenza-admin-tools {
-            margin: 16px 0 20px;
-            padding: 16px 18px;
-            background: #fff;
-            border: 1px solid #c3c4c7;
-            border-left: 4px solid #2271b1;
-            box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
-        }
-
-        .dci-trasparenza-admin-tools__actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .dci-trasparenza-admin-tools .button {
-            display: inline-flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .dci-trasparenza-admin-tools .dashicons {
-            flex: 0 0 18px;
-            width: 18px;
-            height: 18px;
-            margin: 0;
-            font-size: 18px;
-            line-height: 18px;
-            color: inherit;
-            vertical-align: middle;
-        }
-
-        .dci-trasparenza-admin-tools__warning {
-            margin: 0 0 16px;
-            padding: 12px 14px;
-            background: #fcf9e8;
-            border-left: 4px solid #dba617;
-        }
-
-        .dci-trasparenza-admin-tools__warning p {
-            margin: 4px 0 0;
-        }
-
-        .dci-trasparenza-admin-tools__warning--always {
-            margin: 16px 0 0;
-        }
-
-        .dci-trasparenza-admin-guide {
-            max-width: 850px;
-            margin-top: 16px;
-            padding-top: 14px;
-            border-top: 1px solid #dcdcde;
-        }
-
-        .dci-trasparenza-admin-guide h2 {
-            margin: 0 0 10px;
-            font-size: 16px;
-        }
-
-        .dci-trasparenza-admin-guide ol {
-            margin: 0 0 10px 20px;
-        }
-
-        .dci-trasparenza-admin-guide li {
-            margin-bottom: 6px;
-        }
-
-        .dci-trasparenza-admin-guide p {
-            margin-bottom: 0;
-        }
-    </style>
 
     <div class="dci-trasparenza-admin-tools">
         <?php if (!$trasparenza_attiva) : ?>
@@ -295,6 +222,19 @@ function dci_elemento_trasparenza_render_admin_help($views)
 
 
 
+/**
+ * Mostra, nella schermata di creazione/modifica di un Elemento Trasparenza,
+ * il riquadro con le categorie gestite da tipologie personalizzate.
+ *
+ * Le card servono a indirizzare l'utente verso il post type corretto
+ * (bandi, atti di concessione, incarichi, uffici, ecc.) quando una sezione
+ * non deve essere compilata tramite il normale campo "Categoria Trasparenza".
+ * Le voci vengono raggruppate per post type, così più sezioni che usano la
+ * stessa tipologia compaiono in una sola card.
+ *
+ * @param WP_Post $post Post in modifica.
+ * @return void
+ */
 add_action('edit_form_after_title', 'dci_elemento_trasparenza_add_content_after_title');
 function dci_elemento_trasparenza_add_content_after_title($post)
 {
@@ -302,94 +242,82 @@ function dci_elemento_trasparenza_add_content_after_title($post)
         return;
     }
 
+    $custom_type_cards = array();
+    foreach (dci_elemento_trasparenza_get_custom_type_terms() as $category_name => $custom_type) {
+        $card_key = !empty($custom_type['post_type'])
+            ? sanitize_key($custom_type['post_type'])
+            : md5((string) $custom_type['url']);
+
+        if (!isset($custom_type_cards[$card_key])) {
+            $custom_type_cards[$card_key] = $custom_type;
+            $custom_type_cards[$card_key]['categories'] = array();
+        }
+
+        $custom_type_cards[$card_key]['categories'][] = $category_name;
+    }
+
+    // Mantiene la card informativa preesistente senza modificare i filtri della tassonomia.
+    if (dci_get_option("ck_portalesoloperusoesterno") === 'false') {
+        $custom_type_cards['persona_pubblica'] = array(
+            'categories'   => array('Titolari di incarichi politici e di amministrazione'),
+            'description'  => __('Questa sezione viene generata dalle Persone pubbliche e dai relativi incarichi politici.', 'design_comuni_italia'),
+            'url'          => admin_url('edit.php?post_type=persona_pubblica'),
+            'action_label' => __('Vai alle persone pubbliche', 'design_comuni_italia'),
+            'post_type'    => 'persona_pubblica',
+        );
+    }
+
     echo "<span><i>Il <b>Titolo</b> è il <b>Nome dell'elemento dell'amministrazione trasparente</b>.</i></span><br><br>";
 
     ?>
-    <style>
-        .dci-section-box {
-            background: #f0f6fc;
-            border-left: 4px solid #0073aa;
-            padding: 20px;
-            margin: 30px 0;
-            border-radius: 6px;
-            box-shadow: inset 0 -1px 0 rgba(0,0,0,0.05);
-        }
-        .dci-section-box h2 {
-            font-size: 18px;
-            font-weight: 600;
-            margin: 0 0 20px;
-            color: #1d2327;
-        }
-        .dci-menu-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .dci-menu-btn {
-            display: inline-block;
-            padding: 14px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            background: #fff;
-            border: 1px solid #ddd;
-            color: #1d2327;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-            min-width: 240px;
-        }
-        .dci-menu-btn:hover {
-            background: #fff;
-            border-color: #0073aa;
-            color: #0073aa;
-            box-shadow: 0 4px 10px rgba(0,115,170,0.15);
-        }
-        .dci-menu-btn b {
-            display: block;
-            font-weight: 700;
-            margin-top: 5px;
-            color: #0073aa;
-        }
-    </style>
-
-    <div class="dci-section-box">
-        <h2>Categorie personalizzate</h2>
-        <div class="dci-menu-container">
-
-            <?php if (dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== 'false' && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== ''): ?>
-                <a href="edit.php?post_type=incarichi_dip" class="dci-menu-btn">
-                    Personale <b>Incarichi conferiti e autorizzati</b>
-                </a>
-            <?php endif; ?>
-
-            <?php if (dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== ''): ?>
-                <a href="edit.php?post_type=bando" class="dci-menu-btn">
-                    Bandi di Gara e contratti <b>Pubblicazione, Affidamento, Esecutiva, Sponsorizzazioni</b>
-                </a>
-            <?php endif; ?>
-
-            <?php if (dci_get_option("ck_attidiconcessione", "Trasparenza") !== 'false' && dci_get_option("ck_attidiconcessione", "Trasparenza") !== ''): ?>
-                <a href="edit.php?post_type=atto_concessione" class="dci-menu-btn">
-                    Sovvenzioni, contributi <b>Atti di concessione</b>
-                </a>
-            <?php endif; ?>
-
-            <?php if (dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_titolariincarico", "Trasparenza") !== ''): ?>
-                <a href="edit.php?post_type=titolare_incarico" class="dci-menu-btn">
-                    Titolari di incarichi <b>Consulenze e Collaborazioni</b>
-                </a>
-            <?php endif; ?>
-
-            <?php if(dci_get_option("ck_portalesoloperusoesterno") === 'false'){?>
-                 <a href="edit.php?post_type=persona_pubblica" class="dci-menu-btn">
-                    Titolari di incarichi <b>Politici e di Amministrazione</b>
-            </a>
-            <?php } ?>
-           
-
+    <?php if (!empty($custom_type_cards)) : ?>
+        <div class="dci-section-box">
+            <h2><?php esc_html_e('Categorie personalizzate', 'design_comuni_italia'); ?></h2>
+            <p class="dci-section-box__description">
+                <?php esc_html_e(
+                    'Queste sezioni sono gestite da tipologie dedicate e non devono essere selezionate nell’elenco delle categorie standard. Usa la relativa scheda per pubblicare o modificare i contenuti.',
+                    'design_comuni_italia'
+                ); ?>
+            </p>
+            <div class="dci-menu-container">
+                <?php foreach ($custom_type_cards as $custom_type_card) :
+                    $post_type_object = get_post_type_object($custom_type_card['post_type'] ?? '');
+                    $required_capability = $custom_type_card['capability'] ?? 'edit_posts';
+                    $can_manage_custom_type = $post_type_object
+                        && isset($post_type_object->cap->{$required_capability})
+                        && current_user_can($post_type_object->cap->{$required_capability});
+                    ?>
+                    <?php if ($can_manage_custom_type) : ?>
+                        <a
+                            href="<?php echo esc_url($custom_type_card['url']); ?>"
+                            class="dci-menu-btn"
+                            aria-label="<?php echo esc_attr($custom_type_card['action_label']); ?>"
+                        >
+                    <?php else : ?>
+                        <div class="dci-menu-btn dci-menu-btn--disabled" aria-disabled="true">
+                    <?php endif; ?>
+                        <strong class="dci-menu-btn__title">
+                            <?php echo esc_html(implode(' / ', $custom_type_card['categories'])); ?>
+                        </strong>
+                        <span class="dci-menu-btn__description">
+                            <?php echo esc_html($custom_type_card['description']); ?>
+                        </span>
+                        <span class="dci-menu-btn__action">
+                            <?php if ($can_manage_custom_type) : ?>
+                                <?php echo esc_html($custom_type_card['action_label']); ?> &rarr;
+                            <?php else : ?>
+                                <?php esc_html_e('Non disponi dei permessi per gestire questa tipologia.', 'design_comuni_italia'); ?>
+                            <?php endif; ?>
+                        </span>
+                    <?php if ($can_manage_custom_type) : ?>
+                        </a>
+                    <?php else : ?>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
     <?php
 }
 
@@ -397,7 +325,16 @@ function dci_elemento_trasparenza_add_content_after_title($post)
 
 
 
-// Aggiungi la nuova voce di sottomenu per la pagina "Multi-Post"
+/**
+ * Registra la pagina amministrativa "Multi-Elemento" sotto il menu
+ * Amministrazione Trasparente.
+ *
+ * La pagina consente di caricare più documenti insieme e creare un elemento
+ * trasparenza per ciascun file, usando una categoria predefinita scelta
+ * dall'operatore.
+ *
+ * @return void
+ */
 add_action('admin_menu', 'dci_add_transparency_multipost_page');
 
 function dci_add_transparency_multipost_page() {
@@ -418,7 +355,14 @@ function dci_add_transparency_multipost_page() {
 
 
 /**
- * Funzione di callback per renderizzare la pagina di amministrazione "Multi-Post Amministrazione Trasparente".
+ * Renderizza e gestisce la pagina "Multi-Elemento".
+ *
+ * La funzione mostra il form di caricamento multiplo, valida il nonce,
+ * carica i file nella libreria media e crea un post "elemento_trasparenza"
+ * per ogni allegato caricato correttamente. Imposta inoltre categoria,
+ * allegato principale e preferenze di apertura del link.
+ *
+ * @return void
  */
 function dci_render_transparency_multipost_page() {
     ?>
@@ -603,49 +547,136 @@ function dci_render_transparency_multipost_page() {
 
 
 /**
- * Esclude i termini:
- * - con visualizza_elemento diverso da 1
- * - tipologie personalizzate attive
- * - con URL esterno valorizzato
- * - o con ruoli dell'utente corrente presenti in excluded_roles
- * SOLO nella pagina di creazione di un Elemento Trasparenza
+ * Restituisce le categorie gestite tramite una tipologia di contenuto dedicata.
+ *
+ * Queste categorie vengono mostrate come riferimento nella schermata di
+ * creazione, ma non possono essere selezionate come Elemento Trasparenza.
+ * La stessa mappa viene usata anche per generare le card informative e per
+ * escludere i relativi termini dal campo "Categoria Trasparenza".
+ *
+ * @return array<string,array<string,mixed>> Mappa nome sezione => dati card/tipologia.
  */
-if (!function_exists('dci_elemento_trasparenza_get_terms_hidden_for_new_items')) {
-    function dci_elemento_trasparenza_get_terms_hidden_for_new_items() {
-        $hidden = [];
+if (!function_exists('dci_elemento_trasparenza_get_custom_type_terms')) {
+    function dci_elemento_trasparenza_get_custom_type_terms() {
+        static $custom_terms = null;
+
+        if (is_array($custom_terms)) {
+            return $custom_terms;
+        }
+
+        $custom_terms = array();
 
         if (dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== 'false' && dci_get_option("ck_incarichieautorizzazioniaidipendenti", "Trasparenza") !== '') {
-            $hidden[] = 'Incarichi conferiti e autorizzati ai dipendenti';
+            $custom_terms['Incarichi conferiti e autorizzati ai dipendenti'] = array(
+                'description'  => __('Il caricamento dei dati in questa sezione avviene creando un Incarico conferito o autorizzato.', 'design_comuni_italia'),
+                'url'          => admin_url('edit.php?post_type=incarichi_dip'),
+                'action_label' => __('Vai agli incarichi dei dipendenti', 'design_comuni_italia'),
+                'post_type'    => 'incarichi_dip',
+            );
         }
 
         if (dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '') {
-            $hidden = array_merge($hidden, array(
-                'Contratti Pubblici',
-                'Atti, documenti e link a BDNCP'
-            ));
+            $bando_data = array(
+                'description'  => __('Il caricamento dei dati in questa sezione avviene creando un Bando di gara o contratto.', 'design_comuni_italia'),
+                'url'          => admin_url('edit.php?post_type=bando'),
+                'action_label' => __('Vai a bandi e contratti', 'design_comuni_italia'),
+                'post_type'    => 'bando',
+            );
+            $custom_terms['Contratti Pubblici'] = $bando_data;
+            $custom_terms['Atti, documenti e link a BDNCP'] = $bando_data;
         }
 
         if (dci_get_option("ck_attidiconcessione", "Trasparenza") !== 'false' && dci_get_option("ck_attidiconcessione", "Trasparenza") !== '') {
-            $hidden[] = 'Atti di concessione';
+            $custom_terms['Atti di concessione'] = array(
+                'description'  => __('Il caricamento dei dati in questa sezione avviene creando un Atto di concessione.', 'design_comuni_italia'),
+                'url'          => admin_url('edit.php?post_type=atto_concessione'),
+                'action_label' => __('Vai agli atti di concessione', 'design_comuni_italia'),
+                'post_type'    => 'atto_concessione',
+            );
         }
 
         if (dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato", "Trasparenza") !== '') {
-            $hidden[] = 'Titolari di incarichi di collaborazione o consulenza';
+            $custom_terms['Titolari di incarichi di collaborazione o consulenza'] = array(
+                'description'  => __('Il caricamento dei dati in questa sezione avviene creando un Titolare di incarico.', 'design_comuni_italia'),
+                'url'          => admin_url('edit.php?post_type=titolare_incarico'),
+                'action_label' => __('Vai ai titolari di incarico', 'design_comuni_italia'),
+                'post_type'    => 'titolare_incarico',
+            );
         }
 
-        if (dci_get_option("ck_portalesoloperusoesterno") !== 'True') {
-            $hidden = array_merge($hidden, array(
-                'Articolazione uffici',
-                'Telefono e posta elettronica',
-            ));
+        if (function_exists('dci_incarico_dirigenziale_custom_template_enabled') && dci_incarico_dirigenziale_custom_template_enabled()) {
+            $incarico_dirigenziale_data = array(
+                'description'  => __('Il caricamento dei dati in questa sezione avviene creando un Incarico dirigenziale.', 'design_comuni_italia'),
+                'url'          => admin_url('post-new.php?post_type=incarico_dirig'),
+                'action_label' => __('Vai agli incarichi dirigenziali', 'design_comuni_italia'),
+                'post_type'    => 'incarico_dirig',
+            );
+
+            $custom_terms['Titolari di incarichi dirigenziali amministrativi di vertice'] = $incarico_dirigenziale_data;
+            $custom_terms['Incarichi dirigenziali a qualsiasi titolo conferiti'] = $incarico_dirigenziale_data;
         }
 
-        return array_values(array_unique(array_filter(array_map('trim', $hidden))));
+        if (dci_get_option("ck_portalesoloperusoesterno") !== 'true' && dci_get_option("ck_portalesoloperusoesterno") !== '') {
+            $custom_terms['Articolazione uffici'] = array(
+                'description'  => __('Il caricamento dei dati in questa sezione avviene creando un Ufficio.', 'design_comuni_italia'),
+                'url'          => admin_url('edit.php?post_type=unita_organizzativa'),
+                'action_label' => __('Vai alle unità organizzative', 'design_comuni_italia'),
+                'post_type'    => 'unita_organizzativa',
+            );
+            $custom_terms['Telefono e posta elettronica'] = array(
+                'description'  => __('Il caricamento dei dati in questa sezione avviene creando un Punto di contatto.', 'design_comuni_italia'),
+                'url'          => admin_url('edit.php?post_type=punto_contatto'),
+                'action_label' => __('Vai ai punti di contatto', 'design_comuni_italia'),
+                'post_type'    => 'punto_contatto',
+            );
+        }
+
+        foreach ($custom_terms as $name => &$custom_term) {
+            $custom_term['name'] = $name;
+        }
+        unset($custom_term);
+
+        return $custom_terms;
     }
 }
 
+/**
+ * Restituisce i nomi dei termini da nascondere nel campo "Categoria Trasparenza".
+ *
+ * I nomi derivano dalle tipologie personalizzate attive: quando un contenuto
+ * deve essere gestito con un CPT dedicato, il termine corrispondente non deve
+ * essere selezionabile nel normale Elemento Trasparenza.
+ *
+ * @return string[] Nomi dei termini da escludere.
+ */
+if (!function_exists('dci_elemento_trasparenza_get_terms_hidden_for_new_items')) {
+    function dci_elemento_trasparenza_get_terms_hidden_for_new_items() {
+        return array_keys(dci_elemento_trasparenza_get_custom_type_terms());
+    }
+}
+
+/**
+ * Calcola gli ID dei termini non selezionabili nel campo "Categoria Trasparenza".
+ *
+ * Vengono esclusi:
+ * - termini non marcati come visualizzabili;
+ * - termini con URL esterno;
+ * - termini bloccati per il ruolo dell'utente corrente;
+ * - termini gestiti da tipologie personalizzate attive.
+ *
+ * Il risultato viene memorizzato in cache statica per evitare query ripetute
+ * durante lo stesso caricamento pagina.
+ *
+ * @return int[] ID dei termini da escludere.
+ */
 if (!function_exists('dci_elemento_trasparenza_get_excluded_term_ids_for_new_items')) {
     function dci_elemento_trasparenza_get_excluded_term_ids_for_new_items() {
+        static $excluded_ids_cache = null;
+
+        if (is_array($excluded_ids_cache)) {
+            return $excluded_ids_cache;
+        }
+
         $excluded_ids = array();
         $hidden_names = dci_elemento_trasparenza_get_terms_hidden_for_new_items();
 
@@ -657,7 +688,8 @@ if (!function_exists('dci_elemento_trasparenza_get_excluded_term_ids_for_new_ite
         ));
 
         if (is_wp_error($terms) || empty($terms)) {
-            return array();
+            $excluded_ids_cache = array();
+            return $excluded_ids_cache;
         }
 
         foreach ($terms as $term) {
@@ -685,10 +717,21 @@ if (!function_exists('dci_elemento_trasparenza_get_excluded_term_ids_for_new_ite
             }
         }
 
-        return array_values(array_unique($excluded_ids));
+        $excluded_ids_cache = array_values(array_unique($excluded_ids));
+        return $excluded_ids_cache;
     }
 }
 
+/**
+ * Restituisce le opzioni visibili della tassonomia Amministrazione Trasparente.
+ *
+ * Usa la stessa logica di esclusione del campo "Categoria Trasparenza" e
+ * mantiene la gerarchia dei termini aggiungendo un prefisso testuale in base
+ * alla profondità. Serve per menu o select custom che devono mostrare solo
+ * sezioni realmente selezionabili.
+ *
+ * @return array<int,string> Mappa term_id => nome visualizzato.
+ */
 if (!function_exists('dci_get_visible_amministrazione_terms')) {
     function dci_get_visible_amministrazione_terms() {
         $excluded_ids = dci_elemento_trasparenza_get_excluded_term_ids_for_new_items();
@@ -733,6 +776,19 @@ if (!function_exists('dci_get_visible_amministrazione_terms')) {
     }
 }
 
+/**
+ * Filtro storico per nascondere termini non selezionabili nelle query termini.
+ *
+ * Al momento il filtro è disattivato dal `return $clauses` iniziale perché la
+ * gestione effettiva dell'esclusione avviene tramite `query_args` dei campi CMB2
+ * e tramite le funzioni dedicate sopra. Il codice successivo rimane come
+ * riferimento della precedente strategia basata su SQL.
+ *
+ * @param array    $clauses    Parti SQL generate da WordPress per la query termini.
+ * @param string[] $taxonomies Tassonomie coinvolte nella query.
+ * @param array    $args       Argomenti originali della query termini.
+ * @return array Parti SQL eventualmente modificate.
+ */
 add_filter( 'terms_clauses', 'dci_hide_invisible_or_blocked_terms', 10, 3 );
 function dci_hide_invisible_or_blocked_terms( $clauses, $taxonomies, $args ) {
     return $clauses;
@@ -828,12 +884,50 @@ function dci_hide_invisible_or_blocked_terms( $clauses, $taxonomies, $args ) {
 
 
 
-// --- Funzioni CMB2 esistenti (rimangono invariate) ---
+/**
+ * Registra i metabox CMB2 per il post type "elemento_trasparenza".
+ *
+ * Definisce i gruppi di campi per apertura, categoria, descrizione, documenti,
+ * collegamenti, opzioni extra e contenuti correlati. Nel campo categoria
+ * applica gli ID esclusi per non mostrare sezioni nascoste, esterne o gestite
+ * da tipologie personalizzate. In modifica preserva il valore storico tramite
+ * input hidden se la categoria salvata non è più selezionabile.
+ *
+ * @return void
+ */
 add_action('cmb2_init', 'dci_add_elemento_trasparenza_metaboxes');
 function dci_add_elemento_trasparenza_metaboxes()
 {
     $prefix = '_dci_elemento_trasparenza_';
     $excluded_term_ids = dci_elemento_trasparenza_get_excluded_term_ids_for_new_items();
+
+    /*
+     * Salvaguardia per i contenuti storici: se la categoria già associata è
+     * esclusa per visibilità, URL, ruolo o tipologia personalizzata, la si
+     * conserva senza renderla nuovamente selezionabile.
+     */
+    $preserved_category_input = '';
+    $editing_post_id = isset($_GET['post']) ? absint($_GET['post']) : 0;
+    if ($editing_post_id > 0 && get_post_type($editing_post_id) === 'elemento_trasparenza') {
+        $assigned_terms = wp_get_object_terms(
+            $editing_post_id,
+            'tipi_cat_amm_trasp',
+            array('fields' => 'all')
+        );
+
+        if (!is_wp_error($assigned_terms)) {
+            foreach ($assigned_terms as $assigned_term) {
+                if (in_array((int) $assigned_term->term_id, $excluded_term_ids, true)) {
+                    $preserved_category_input = sprintf(
+                        '<input type="hidden" name="%1$s" value="%2$s" data-dci-preserved-category="1">',
+                        esc_attr($prefix . 'tipo_cat_amm_trasp'),
+                        esc_attr($assigned_term->slug)
+                    );
+                    break;
+                }
+            }
+        }
+    }
 
     $cmb_apertura = new_cmb2_box(array(
         'id'            => $prefix . 'box_apertura',
@@ -856,7 +950,7 @@ function dci_add_elemento_trasparenza_metaboxes()
     $cmb_apertura->add_field(array(
         'id'            => $prefix . 'descrizione_breve',
         'name'          => __('Descrizione breve ', 'design_comuni_italia'),
-        'desc'          => __('Indicare una sintetica descrizione (max 512 caratteri spazi inclusi)', 'design_comuni_italia'),
+        'desc'          => __('Inserisci una sintesi chiara del contenuto pubblicato. Il testo sarà mostrato negli elenchi dell’Amministrazione Trasparente. Massimo 512 caratteri, spazi inclusi.', 'design_comuni_italia'),
         'type'          => 'textarea',
         'attributes'    => array(
             'maxlength' => '512',
@@ -874,11 +968,12 @@ function dci_add_elemento_trasparenza_metaboxes()
         $cmb_sezione->add_field( array(
             'id'                => $prefix . 'tipo_cat_amm_trasp',
             'name'              => __( 'Categoria Trasparenza *', 'design_comuni_italia' ),
-            'desc'              => __( 'Selezionare una categoria …', 'design_comuni_italia' ),
+            'desc'              => __( 'Cerca e seleziona la sezione nella quale pubblicare questo elemento. Le sezioni gestite con una tipologia personalizzata sono indicate separatamente e non possono essere selezionate qui.', 'design_comuni_italia' ),
             'type'              => 'taxonomy_radio_hierarchical',
             'taxonomy'          => 'tipi_cat_amm_trasp',
             'show_option_none'  => false,
             'remove_default'    => true,
+            'before_field'      => $preserved_category_input,
             'query_args'        => array(
                 'hide_empty' => false,
                 'orderby'    => 'name',
@@ -898,7 +993,7 @@ function dci_add_elemento_trasparenza_metaboxes()
     $cmb_corpo->add_field( array(
         'id' => $prefix . 'descrizione',
         'name'          => __( 'Descrizione', 'design_comuni_italia' ),
-        'desc' => __( 'Testo principale del post' , 'design_comuni_italia' ),
+        'desc' => __('Inserisci eventuali informazioni di approfondimento sul contenuto, sui documenti allegati o sui collegamenti pubblicati. Il testo sarà visualizzato nella pagina di dettaglio dell’elemento.', 'design_comuni_italia'),
         'type' => 'wysiwyg',
         'options' => array(
             'textarea_rows' => 10, 
@@ -1020,8 +1115,8 @@ function dci_add_elemento_trasparenza_metaboxes()
 
 add_action('admin_print_scripts-post-new.php', 'dci_elemento_trasparenza_admin_script', 11);
 add_action('admin_print_scripts-post.php', 'dci_elemento_trasparenza_admin_script', 11);
-// Aggiungi l'hook per la tua pagina di amministrazione personalizzata
 add_action('admin_enqueue_scripts', 'dci_enqueue_multipost_transparency_scripts');
+add_action('admin_enqueue_scripts', 'dci_elemento_trasparenza_admin_style', 20);
 
 
 
@@ -1029,14 +1124,124 @@ add_action('admin_enqueue_scripts', 'dci_enqueue_multipost_transparency_scripts'
 
 
 
+/**
+ * Carica il CSS amministrativo dedicato agli Elementi Trasparenza.
+ *
+ * Il foglio di stile contiene sia la UI del selettore categoria nella pagina
+ * di creazione/modifica, sia il box strumenti/guida nella schermata elenco.
+ * Per questo viene caricato solo quando la schermata corrente riguarda il
+ * post type "elemento_trasparenza" e la base è `post` oppure `edit`.
+ *
+ * @return void
+ */
+function dci_elemento_trasparenza_admin_style()
+{
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if (
+        !$screen ||
+        !in_array($screen->base, array('post', 'edit'), true) ||
+        $screen->post_type !== 'elemento_trasparenza'
+    ) {
+        return;
+    }
+
+    $style_path = get_template_directory() . '/inc/admin-css/elemento-trasparenza.css';
+    wp_enqueue_style(
+        'elemento-trasparenza-admin-style',
+        get_template_directory_uri() . '/inc/admin-css/elemento-trasparenza.css',
+        array(),
+        file_exists($style_path) ? filemtime($style_path) : null
+    );
+}
+
+/**
+ * Carica lo script admin degli Elementi Trasparenza e gli passa i dati utili.
+ *
+ * Lo script migliora il campo "Categoria Trasparenza" con ricerca, conteggi,
+ * descrizioni dei termini e selezione guidata. Prima dell'enqueue vengono
+ * raccolte descrizioni e conteggi dei termini visibili, escludendo quelli non
+ * selezionabili secondo la logica centralizzata del file.
+ *
+ * @return void
+ */
 function dci_elemento_trasparenza_admin_script()
 {
     global $post_type;
     if ($post_type === 'elemento_trasparenza') {
-        wp_enqueue_script('elemento-trasparenza-admin-script', get_template_directory_uri() . '/inc/admin-js/elemento_trasparenza.js', array('jquery'), null, true);
+        $script_path = get_template_directory() . '/inc/admin-js/elemento_trasparenza.js';
+        $term_descriptions = array();
+        $term_counts = array();
+        $term_direct_counts = array();
+        $term_children = array();
+        $transparency_terms = get_terms(array(
+            'taxonomy'   => 'tipi_cat_amm_trasp',
+            'hide_empty' => false,
+            'exclude'    => dci_elemento_trasparenza_get_excluded_term_ids_for_new_items(),
+        ));
+
+        if (!is_wp_error($transparency_terms)) {
+            foreach ($transparency_terms as $transparency_term) {
+                $description = trim(wp_strip_all_tags($transparency_term->description));
+                if ($description !== '') {
+                    $term_descriptions[$transparency_term->slug] = $description;
+                }
+
+                $term_direct_counts[(int) $transparency_term->term_id] = (int) $transparency_term->count;
+                $parent_id = (int) $transparency_term->parent;
+                if (!isset($term_children[$parent_id])) {
+                    $term_children[$parent_id] = array();
+                }
+                $term_children[$parent_id][] = (int) $transparency_term->term_id;
+            }
+
+            $count_cache = array();
+            $calculate_term_count = static function ($term_id) use (&$calculate_term_count, &$count_cache, $term_direct_counts, $term_children) {
+                if (isset($count_cache[$term_id])) {
+                    return $count_cache[$term_id];
+                }
+
+                $count = isset($term_direct_counts[$term_id]) ? $term_direct_counts[$term_id] : 0;
+                foreach ($term_children[$term_id] ?? array() as $child_id) {
+                    $count += $calculate_term_count($child_id);
+                }
+
+                $count_cache[$term_id] = $count;
+                return $count;
+            };
+
+            foreach ($transparency_terms as $transparency_term) {
+                $term_counts[$transparency_term->slug] = $calculate_term_count((int) $transparency_term->term_id);
+            }
+        }
+
+        wp_enqueue_script(
+            'elemento-trasparenza-admin-script',
+            get_template_directory_uri() . '/inc/admin-js/elemento_trasparenza.js',
+            array('jquery'),
+            file_exists($script_path) ? filemtime($script_path) : null,
+            true
+        );
+        wp_localize_script(
+            'elemento-trasparenza-admin-script',
+            'dciElementoTrasparenzaUi',
+            array(
+                'termDescriptions' => $term_descriptions,
+                'termCounts'       => $term_counts,
+            )
+        );
     }
 }
 
+/**
+ * Carica lo script usato nella pagina "Multi-Elemento".
+ *
+ * La pagina di caricamento multiplo riusa lo script admin degli Elementi
+ * Trasparenza per le validazioni lato interfaccia. Il controllo su
+ * `$hook_suffix` evita di caricarlo su altre pagine di amministrazione.
+ *
+ * @param string $hook_suffix Identificativo della pagina admin corrente.
+ * @return void
+ */
 function dci_enqueue_multipost_transparency_scripts($hook_suffix) {
     // Il $hook_suffix per le pagine di sottomenu è tipicamente 'post_type_page_YOUR_PAGE_SLUG'
     if ( 'elemento_trasparenza_page_dci_transparency_multipost_page' === $hook_suffix ) {
@@ -1044,6 +1249,17 @@ function dci_enqueue_multipost_transparency_scripts($hook_suffix) {
     }
 }
 
+/**
+ * Punto di estensione sul contenuto salvato dell'Elemento Trasparenza.
+ *
+ * Il filtro viene eseguito prima dell'inserimento/aggiornamento del post.
+ * Attualmente non modifica il contenuto, ma rimane come punto controllato per
+ * eventuali normalizzazioni future senza intervenire sulla registrazione del
+ * post type o sui metabox.
+ *
+ * @param array $data Dati del post in fase di salvataggio.
+ * @return array Dati del post, invariati salvo future personalizzazioni.
+ */
 add_filter('wp_insert_post_data', 'dci_elemento_trasparenza_set_post_content', 99, 1);
 function dci_elemento_trasparenza_set_post_content($data)
 {
@@ -1056,6 +1272,15 @@ function dci_elemento_trasparenza_set_post_content($data)
 // Questa funzione è rimasta dalla logica precedente (pre-impostare campi in CPT con parametro)
 // Puoi mantenerla se hai ancora un pulsante che aggiunge un "Tipo 2" di Elemento Trasparenza
 // che NON è la pagina di caricamento multiplo. Altrimenti, puoi rimuoverla se non più necessaria.
+/**
+ * Aggancia i valori predefiniti per creazioni speciali di Elemento Trasparenza.
+ *
+ * La logica è storica e si attiva solo quando si apre la pagina di nuovo post
+ * con `tipo_elemento=2`. In quel caso viene aggiunto un filtro CMB2 che può
+ * precompilare alcuni campi del form.
+ *
+ * @return void
+ */
 add_action( 'load-post-new.php', 'dci_handle_specific_elemento_trasparenza_creation' );
 function dci_handle_specific_elemento_trasparenza_creation() {
     if ( 'elemento_trasparenza' !== get_current_screen()->post_type ) {
@@ -1067,7 +1292,19 @@ function dci_handle_specific_elemento_trasparenza_creation() {
     }
 }
 
-// Funzione per impostare valori predefiniti per CMB2 (esempio)
+/**
+ * Fornisce valori predefiniti a CMB2 per la creazione speciale `tipo_elemento=2`.
+ *
+ * La funzione intercetta il valore letto da CMB2 e, per il campo categoria,
+ * può sostituirlo con un valore predefinito. Il valore attuale è un segnaposto
+ * storico e va considerato inattivo finché non viene sostituito con un ID reale.
+ *
+ * @param mixed $value Valore che CMB2 sta per usare.
+ * @param int   $object_id ID del post/oggetto.
+ * @param array $field_args Configurazione del campo CMB2.
+ * @param CMB2  $cmb Oggetto metabox CMB2.
+ * @return mixed Valore originale o valore predefinito.
+ */
 function dci_set_default_cmb2_values_for_type_2( $value, $object_id, $field_args, $cmb ) {
     if ( $field_args['id'] === '_dci_elemento_trasparenza_tipo_cat_amm_trasp' ) {
         // Sostituisci 'ID_DELLA_CATEGORIA_PREDEFINITA' con l'ID reale del tuo termine di tassonomia
@@ -1076,15 +1313,5 @@ function dci_set_default_cmb2_values_for_type_2( $value, $object_id, $field_args
     return $value;
 
 }
-
-
-
-
-
-
-
-
-
-
 
 

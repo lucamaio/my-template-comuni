@@ -78,7 +78,18 @@ if (!is_array($pagination_links)) {
     return;
 }
 ?>
-<div class="pagination">
+<style>
+    .dci-at-custom-pagination .page-item.active .page-link,
+    .dci-at-custom-pagination .page-link.current,
+    .dci-at-custom-pagination .page-link[aria-current="page"] {
+        border-color: var(--bs-primary, #0066cc) !important;
+        background-color: transparent !important;
+        color: var(--bs-primary, #0066cc) !important;
+        box-shadow: none !important;
+        font-weight: 700;
+    }
+</style>
+<div class="pagination dci-at-custom-pagination">
     <ul class="pagination">
         <?php foreach ($pagination_links as $pagination_link) { ?>
             <li class="page-item<?php echo strpos($pagination_link, 'current') !== false ? ' active' : ''; ?>">

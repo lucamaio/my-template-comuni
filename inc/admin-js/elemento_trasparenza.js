@@ -35,6 +35,219 @@ jQuery( document ).ready(function() {
     }
 
     /**
+     * Ricerca e presentazione guidata della categoria Trasparenza.
+     */
+    let taxonomyCategoryField = jQuery('.cmb2-id--dci-elemento-trasparenza-tipo-cat-amm-trasp');
+    let taxonomyCategoryList = taxonomyCategoryField.find('ul.cmb2-radio-list').first();
+
+    if (taxonomyCategoryField.length && taxonomyCategoryList.length) {
+        let categoryItems = taxonomyCategoryList
+            .find('input[type="radio"]')
+            .map(function() {
+                return jQuery(this).closest('li')[0];
+            })
+            .get();
+
+        categoryItems = jQuery(categoryItems);
+
+        let normalizeCategoryText = function(value) {
+            let normalized = String(value || '').toLocaleLowerCase('it-IT');
+
+            if (typeof normalized.normalize === 'function') {
+                normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            }
+
+            return normalized.replace(/\s+/g, ' ').trim();
+        };
+
+        let getPublishedCountLabel = function(count) {
+            let normalizedCount = Math.max(0, parseInt(count, 10) || 0);
+            return normalizedCount.toLocaleString('it-IT') +
+                (normalizedCount === 1 ? ' pubblicato' : ' pubblicati');
+        };
+
+        let categorySearch = jQuery(
+            '<div class="dci-transparency-category-search">' +
+                '<label for="dci-transparency-category-search-input">' +
+                    '<span class="dashicons dashicons-search" aria-hidden="true"></span>' +
+                    '<span>Cerca la sezione in cui pubblicare</span>' +
+                '</label>' +
+                '<div class="dci-transparency-category-search__controls">' +
+                    '<input type="search" id="dci-transparency-category-search-input" ' +
+                        'placeholder="Scrivi il nome della categoria…" autocomplete="off">' +
+                    '<button type="button" class="button dci-transparency-category-search__clear" ' +
+                        'aria-label="Cancella la ricerca">Cancella</button>' +
+                '</div>' +
+                '<p class="description">Cerca per una o più parole, ad esempio “uffici”, “bilanci” o “personale”.</p>' +
+                '<p class="dci-transparency-category-search__status" role="status" aria-live="polite"></p>' +
+            '</div>'
+        );
+        let selectedCategory = jQuery(
+            '<div class="dci-transparency-category-selected" aria-live="polite">' +
+                '<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>' +
+                '<span><strong>Sezione selezionata:</strong> <span class="dci-transparency-category-selected__name"></span></span>' +
+            '</div>'
+        );
+        let noResults = jQuery(
+            '<div class="dci-transparency-category-empty" role="status">' +
+                '<strong>Nessuna sezione trovata.</strong><br>' +
+                '<span>Prova con un termine più breve o con un’altra parola.</span>' +
+            '</div>'
+        ).hide();
+        let categorySelector = jQuery(
+            '<div class="dci-transparency-category-selector" aria-label="Selezione categoria Trasparenza"></div>'
+        );
+
+        taxonomyCategoryList.before(categorySelector);
+        categorySelector.append(categorySearch, selectedCategory, taxonomyCategoryList, noResults);
+        taxonomyCategoryList.addClass('dci-transparency-category-list');
+
+        taxonomyCategoryList.children('li').not('.cmb2-indented-hierarchy')
+            .addClass('dci-transparency-category-item--primary');
+        taxonomyCategoryList.find('.cmb2-indented-hierarchy input[type="radio"]')
+            .closest('li')
+            .addClass('dci-transparency-category-item--child');
+        taxonomyCategoryList.find('li.cmb2-indented-hierarchy').each(function() {
+            jQuery(this)
+                .prevAll('li')
+                .not('.cmb2-indented-hierarchy')
+                .first()
+                .addClass('dci-transparency-category-item--has-children');
+        });
+
+        categoryItems.each(function() {
+            let item = jQuery(this);
+            let input = item.children('input[type="radio"]').first();
+            let categoryName = item.children('label').first().text().replace(/\s+/g, ' ').trim();
+            let categoryDescription = '';
+            let categoryCount = null;
+
+            if (
+                input.length &&
+                typeof dciElementoTrasparenzaUi !== 'undefined' &&
+                dciElementoTrasparenzaUi.termDescriptions &&
+                dciElementoTrasparenzaUi.termDescriptions[input.val()]
+            ) {
+                categoryDescription = dciElementoTrasparenzaUi.termDescriptions[input.val()];
+                jQuery('<span class="dci-transparency-category-description"></span>')
+                    .text(categoryDescription)
+                    .appendTo(item);
+            }
+
+            if (
+                input.length &&
+                typeof dciElementoTrasparenzaUi !== 'undefined' &&
+                dciElementoTrasparenzaUi.termCounts &&
+                Object.prototype.hasOwnProperty.call(dciElementoTrasparenzaUi.termCounts, input.val())
+            ) {
+                categoryCount = dciElementoTrasparenzaUi.termCounts[input.val()];
+            }
+
+            if (categoryCount !== null) {
+                jQuery('<span class="dci-transparency-content-count"></span>')
+                    .text(getPublishedCountLabel(categoryCount))
+                    .attr('aria-label', getPublishedCountLabel(categoryCount) + ' in questa categoria')
+                    .insertAfter(item.children('label').first());
+            }
+
+            item.data(
+                'searchable-text',
+                normalizeCategoryText(categoryName + ' ' + categoryDescription)
+            );
+        });
+
+        let searchInput = categorySearch.find('input[type="search"]');
+        let clearSearch = categorySearch.find('.dci-transparency-category-search__clear');
+        let searchStatus = categorySearch.find('.dci-transparency-category-search__status');
+
+        let getCategoryLabel = function(item) {
+            return jQuery(item).children('label').first().text().replace(/\s+/g, ' ').trim();
+        };
+
+        let showCategoryWithContext = function(item) {
+            let currentItem = jQuery(item);
+            currentItem.show();
+
+            currentItem.parents('li.cmb2-indented-hierarchy').each(function() {
+                let hierarchy = jQuery(this);
+                hierarchy.show();
+
+                let parentItem = hierarchy.prevAll('li').not('.cmb2-indented-hierarchy').first();
+                if (parentItem.length) {
+                    parentItem.show().addClass('dci-transparency-category-item--context');
+                }
+            });
+        };
+
+        let updateSelectedCategory = function() {
+            let checked = taxonomyCategoryList.find('input[type="radio"]:checked').first();
+
+            categoryItems.removeClass('dci-transparency-category-item--selected');
+            if (!checked.length) {
+                selectedCategory.hide();
+                return;
+            }
+
+            let item = checked.closest('li');
+            item.addClass('dci-transparency-category-item--selected');
+            selectedCategory.find('.dci-transparency-category-selected__name').text(getCategoryLabel(item));
+            selectedCategory.show();
+        };
+
+        let filterCategories = function() {
+            let query = normalizeCategoryText(searchInput.val());
+            let words = query.split(' ').filter(Boolean);
+
+            categoryItems.removeClass('dci-transparency-category-item--context');
+            taxonomyCategoryList.find('li').show();
+
+            if (!words.length) {
+                noResults.hide();
+                clearSearch.hide();
+                searchStatus.text(categoryItems.length + ' sezioni selezionabili.');
+                return;
+            }
+
+            clearSearch.show();
+            categoryItems.hide();
+            taxonomyCategoryList.find('li.cmb2-indented-hierarchy').hide();
+
+            let matches = categoryItems.filter(function() {
+                let label = jQuery(this).data('searchable-text') || normalizeCategoryText(getCategoryLabel(this));
+                return words.every(function(word) {
+                    return label.indexOf(word) !== -1;
+                });
+            });
+
+            matches.each(function() {
+                showCategoryWithContext(this);
+            });
+
+            noResults.toggle(matches.length === 0);
+            searchStatus.text(
+                matches.length === 1
+                    ? '1 sezione trovata.'
+                    : matches.length + ' sezioni trovate.'
+            );
+        };
+
+        searchInput.on('input', filterCategories);
+        searchInput.on('keydown', function(event) {
+            if (event.key === 'Escape') {
+                searchInput.val('');
+                filterCategories();
+            }
+        });
+        clearSearch.on('click', function() {
+            searchInput.val('').trigger('input').focus();
+        });
+        taxonomyCategoryList.on('change', 'input[type="radio"]', updateSelectedCategory);
+
+        filterCategories();
+        updateSelectedCategory();
+    }
+
+    /**
      * gestione campi obbligatori
      */
 
@@ -79,7 +292,11 @@ jQuery( document ).ready(function() {
         }
 
         // *** Controllo compilazione campo Categoria Trasparenza ***
-        if(is_publish_button && jQuery('input[name^="_dci_elemento_trasparenza_tipo_cat_amm_trasp"]:checked').length === 0) {
+        let hasSelectedTransparencyCategory =
+            jQuery('input[name^="_dci_elemento_trasparenza_tipo_cat_amm_trasp"]:checked').length > 0 ||
+            jQuery('input[data-dci-preserved-category="1"]').length > 0;
+
+        if(is_publish_button && !hasSelectedTransparencyCategory) {
             dci_highlight_missing_field('.cmb2-id--dci-elemento-trasparenza-tipo-cat-amm-trasp');
             e.preventDefault(); // Impedisce l'invio del form
             return false;

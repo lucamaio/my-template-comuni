@@ -133,6 +133,21 @@ function dci_register_pagina_trasparenza_options()
         ),
     ));
 
+    $trasparenza_options->add_field(array(
+        'id'      => $prefix . 'ck_incarichidirigenzialitemplatepersonalizzato',
+        'name'    => __('Incarichi dirigenziali con template personalizzato.', 'design_comuni_italia'),
+        'desc'    => __('Consente di utilizzare la visualizzazione personalizzata per gli incarichi dirigenziali nelle relative sezioni dell’Amministrazione Trasparente. Non modifica la visibilità della tipologia nel backend.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'false',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
+
     // LINK  uffici Titolari di incarichi politici di amministrazione di direzione o di governo
 
     $trasparenza_options->add_field(array(

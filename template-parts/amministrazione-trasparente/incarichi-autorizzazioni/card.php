@@ -1,19 +1,62 @@
 <?php
 global $prefix;
+require_once get_template_directory() . '/template-parts/amministrazione-trasparente/custom-section-card-helpers.php';
 
 if ( ! isset( $prefix ) ) {
     $prefix = '_dci_icad_';
 }
 ?>
 
-<div class="card mb-2 rounded-3 bg-body-secondary shadow-sm">
+<?php
+global $dci_custom_section_card_style_printed;
+if (empty($dci_custom_section_card_style_printed)) :
+    $dci_custom_section_card_style_printed = true;
+?>
+<style>
+    .dci-custom-section-card {
+        margin-bottom: 1.25rem !important;
+        border: 1px solid #d7e2ec !important;
+        border-radius: 4px !important;
+        background: #fff !important;
+        box-shadow: 0 8px 22px rgba(23, 50, 77, .07) !important;
+        overflow: hidden;
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .dci-custom-section-card:hover {
+        border-color: #c9d7e5 !important;
+        box-shadow: 0 12px 28px rgba(23, 50, 77, .11) !important;
+        transform: translateY(-1px);
+    }
+    .dci-custom-section-card .card-body { padding: 1.35rem; }
+    .dci-custom-section-card .border-top { border-top-color: #e4ebf2 !important; }
+    .dci-custom-section-card h5,
+    .dci-custom-section-card h6,
+    .dci-custom-section-card strong,
+    .dci-custom-section-card a:not(.btn) { color: currentColor; }
+    .dci-custom-section-card .text-muted,
+    .dci-custom-section-card small { color: #5c6f82 !important; }
+    .dci-custom-section-card .btn-link {
+        color: currentColor;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .dci-custom-section-card .btn-link:hover { text-decoration: underline; }
+    .dci-custom-section-card .icon { fill: currentColor; }
+    @media (max-width: 767.98px) {
+        .dci-custom-section-card .ps-4 { padding-left: 0 !important; }
+        .dci-custom-section-card .text-end { text-align: left !important; margin-top: .75rem; }
+    }
+</style>
+<?php endif; ?>
+
+<div class="card mb-2 rounded-3 bg-body-secondary shadow-sm dci-custom-section-card t-primary">
     <div class="card-body">
         <div class="row g-0">
             <div class="col-md-12 ps-4">
                 <div class="row mb-3">
                     <div class="col-12">
                         <h6 class="text-uppercase text-muted small">Titolo/Norma</h6>
-                        <p class="mb-0"><strong><?php the_title(); ?></strong></p>
+                        <p class="mb-0"><strong><?php echo esc_html(dci_custom_section_card_text(get_the_title(), 95)); ?></strong></p>
                     </div>
                 </div>
 
@@ -32,7 +75,7 @@ if ( ! isset( $prefix ) ) {
                         <?php
                         $soggetto_dichiarante = get_post_meta(get_the_ID(), $prefix . 'soggetto_dichiarante', true);
                         ?>
-                        <span class="d-block"><?php echo !empty($soggetto_dichiarante) ? esc_html($soggetto_dichiarante) : '-'; ?></span>
+                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($soggetto_dichiarante, 55)); ?></span>
                     </div>
 
                     <div class="col-md-3 col-sm-6">
@@ -40,7 +83,7 @@ if ( ! isset( $prefix ) ) {
                         <?php
                         $soggetto_percettore = get_post_meta(get_the_ID(), $prefix . 'soggetto_percettore', true);
                         ?>
-                        <span class="d-block"><?php echo !empty($soggetto_percettore) ? esc_html($soggetto_percettore) : '-'; ?></span>
+                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($soggetto_percettore, 55)); ?></span>
                     </div>
 
                     <div class="col-md-3 col-sm-6">
@@ -48,7 +91,7 @@ if ( ! isset( $prefix ) ) {
                         <?php
                         $dirigente = get_post_meta(get_the_ID(), $prefix . 'dirigente_non_dirigente', true);
                         ?>
-                        <span class="d-block"><?php echo !empty($dirigente) ? esc_html($dirigente) : '-'; ?></span>
+                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($dirigente, 45)); ?></span>
                     </div>
                 </div>
 
@@ -58,14 +101,14 @@ if ( ! isset( $prefix ) ) {
                         <?php
                         $soggetto_conferente = get_post_meta(get_the_ID(), $prefix . 'soggetto_conferente', true);
                         ?>
-                        <span class="d-block"><?php echo !empty($soggetto_conferente) ? esc_html($soggetto_conferente) : '-'; ?></span>
+                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($soggetto_conferente, 55)); ?></span>
                     </div>
 
                     <div class="col-md-3 col-sm-6">
                         <small class="text-uppercase text-muted d-block">Data conferimento autorizzazione</small>
                         <?php
                         $data_conferimento = get_post_meta(get_the_ID(), $prefix . 'data_conferimento_autorizzazione', true);
-                        echo $data_conferimento ? date_i18n('j F Y', intval($data_conferimento)) : '-';
+                        echo esc_html(dci_custom_section_card_date($data_conferimento));
                         ?>
                     </div>
 
@@ -74,7 +117,7 @@ if ( ! isset( $prefix ) ) {
                         <?php
                         $durata = get_post_meta(get_the_ID(), $prefix . 'durata', true);
                         ?>
-                        <span class="d-block"><?php echo !empty($durata) ? esc_html($durata) : '-'; ?></span>
+                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($durata, 45)); ?></span>
                     </div>
 
                     <div class="col-md-3 col-sm-6">
@@ -118,7 +161,7 @@ if ( ! isset( $prefix ) ) {
                                 </svg>
                                 <span class="text fw-semibold">
                                     <a class="text-decoration-none" href="<?php echo esc_url($file_url); ?>" target="_blank" rel="noopener noreferrer">
-                                        <?php echo esc_html($file_title); ?>
+                                        <?php echo esc_html(dci_custom_section_card_text($file_title, 65)); ?>
                                     </a>
                                 </span>
                             </span>

@@ -1,61 +1,87 @@
 <?php
-// Evita redirect automatici di WordPress che rovinano i parametri custom
-remove_filter('template_redirect', 'redirect_canonical');
+global $wpdb, $sezione;
 
-global $wpdb;
-
-$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 5, 5, 50);
+$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 10, 10, 50);
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
-$paged = max(1, (int) get_query_var('paged'));
+$paged = max(1, (int) get_query_var('paged'), (int) get_query_var('page'));
 if ($paged < 2) {
     $paged = max(
         isset($_GET['paged']) ? max(1, absint($_GET['paged'])) : 1,
         isset($_GET['page']) ? max(1, absint($_GET['page'])) : 1,
-        isset($_GET['incarichi_page']) ? max(1, absint($_GET['incarichi_page'])) : 1
+        isset($_GET['incarichi_dirig_page']) ? max(1, absint($_GET['incarichi_dirig_page'])) : 1,
+        isset($_GET['incarico_dirig']) ? max(1, absint($_GET['incarico_dirig'])) : 1
     );
 }
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
+$prefix = '_dci_incarico_dirigenziale_';
+$current_section_key = '';
 
-// Prendi gli anni disponibili dai post pubblicati (per la combo)
+if (!empty($sezione)) {
+    $section_value = trim((string) $sezione);
+    $section_labels = function_exists('dci_incarico_dirigenziale_sections')
+        ? dci_incarico_dirigenziale_sections()
+        : array();
+
+    if (array_key_exists($section_value, $section_labels)) {
+        $current_section_key = $section_value;
+    } else {
+        $matched_section_key = array_search($section_value, $section_labels, true);
+        if (false !== $matched_section_key) {
+            $current_section_key = (string) $matched_section_key;
+        }
+    }
+}
+
+// Anni disponibili
 $years = $wpdb->get_col("
     SELECT DISTINCT YEAR(post_date)
     FROM {$wpdb->posts}
-    WHERE post_type = 'incarichi_dip' 
+    WHERE post_type = 'incarico_dirig'
       AND post_status = 'publish'
     ORDER BY post_date DESC
 ");
 
-// Costruiamo argomenti per WP_Query
+
 $args = array(
-    'post_type'      => 'incarichi_dip',
-    'posts_per_page' => $max_posts,
-    'orderby'        => 'date',
+    'post_type'       => 'incarico_dirig',
+    'posts_per_page'  => $max_posts,
+    'orderby'        => 'meta_value_num',
     'order'          => 'DESC',
-    'paged'          => $paged,
+    'paged'              => $paged,
+    's'               => $main_search_query, // Per la ricerca generica su titolo/contenuto
 );
+
+if ($current_section_key !== '') {
+    $args['meta_query'] = array(
+        array(
+            'key'     => $prefix . 'sezione_pubblicazione',
+            'value'   => $current_section_key,
+            'compare' => '=',
+        ),
+    );
+}
 
 if (!empty($main_search_query)) {
     $args['s'] = $main_search_query;
 }
 
 if ($selected_year > 0) {
-    $args['date_query'] = array(
-        array(
+    $args['date_query'] = [
+        [
             'year' => $selected_year,
-        ),
-    );
+        ]
+    ];
 }
 
 // Query personalizzata
 $the_query = new WP_Query($args);
 
+// SEARCH BAR
 ?>
-
-<!-- FORM FILTRO -->
-<form method="get" class="incarichi-filtro-form t-primary">
+<form method="get" class="incarichi-filtro-form">
     <div class="incarichi-filtro-form__head">
-        <h3 class="incarichi-filtro-form__title text-decoration-none">Filtra gli incarichi</h3>
-        <p class="incarichi-filtro-form__intro text-decoration-none">Seleziona i criteri utili per trovare rapidamente gli incarichi pubblicati.</p>
+        <h3 class="incarichi-filtro-form__title text-decoration-none">Filtra i titolari</h3>
+        <p class="incarichi-filtro-form__intro text-decoration-none">Usa i campi qui sotto per trovare più velocemente i contenuti pubblicati.</p>
     </div>
     <div class="incarichi-filtro-form__grid">
     <div class="incarichi-filtro-form__field incarichi-filtro-form__field--search">
@@ -78,8 +104,8 @@ $the_query = new WP_Query($args);
     <div class="incarichi-filtro-form__field">
     <label for="max-posts" class="form-label">Elementi per pagina</label>
     <select id="max-posts" name="max_posts" class="form-select">
-        <?php foreach ([5, 10, 20, 50, 100] as $n) : ?>
-            <option value="<?php echo $n; ?>" <?php selected($max_posts, $n); ?>><?php echo $n; ?></option>
+        <?php foreach ([5, 10, 20, 50] as $num) : ?>
+            <option value="<?php echo $num; ?>" <?php selected($max_posts, $num); ?>><?php echo $num; ?></option>
         <?php endforeach; ?>
     </select>
     </div>
@@ -107,14 +133,13 @@ if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
     </strong>
 </p>
 
-<?php if ($the_query->have_posts()) : ?>
-
-    <?php while ($the_query->have_posts()) : $the_query->the_post(); ?>
-        <?php get_template_part('template-parts/amministrazione-trasparente/incarichi-autorizzazioni/card'); ?>
-    <?php endwhile; ?>
-    <?php wp_reset_postdata(); ?>
-
-    <div class="row my-4">
+<?php if ($the_query->have_posts()){
+    while ($the_query->have_posts()){
+        $the_query->the_post();
+        get_template_part('template-parts/amministrazione-trasparente/incarichi-dirigenziali/card');
+    }
+    wp_reset_postdata();?>
+        <div class="row my-4">
         <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione pagine">
             <?php
             get_template_part(
@@ -123,20 +148,18 @@ if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
                 [
                     'query'    => $the_query,
                     'current'  => $paged,
-                    'page_arg' => 'incarichi_page',
+                    'page_arg' => 'incarichi_dirig_page',
                 ]
             );
             ?>
         </nav>
     </div>
-
-<?php else : ?>
+<?php } else{?>
     <div class="alert alert-info text-center" role="alert">
-        Nessun incarico conferito trovato.
+        Nessun titolare di incarichi di collaborazione o consulenza trovato.
     </div>
-<?php endif; ?>
-
-<!-- STILE FORM E PAGINAZIONE -->
+<?php } ?>
+<!-- STILE -->
 <style>
 form.incarichi-filtro-form {
     padding: 1.1rem;
@@ -144,41 +167,32 @@ form.incarichi-filtro-form {
     border: 1px solid #dfe7f0;
     border-radius: 8px;
     box-shadow: 0 10px 24px rgba(23,50,77,.07);
-    margin: 0 0 2rem 0;
+    max-width: 100%;
+    margin-bottom: 2rem;
 }
 .incarichi-filtro-form__head { margin-bottom: 1rem; }
 .incarichi-filtro-form__title { margin-bottom: .35rem; font-size: 1.2rem; }
 .incarichi-filtro-form__intro { margin-bottom: 0; }
 .incarichi-filtro-form__grid { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(170px, 1fr)) auto; gap: 1rem; align-items: end; }
-
-form.incarichi-filtro-form label.form-label {
+form.incarichi-filtro-form label {
     font-weight: 600;
-    color: currentColor;
+    color: #17324d;
     margin-bottom: .45rem;
 }
-
 form.incarichi-filtro-form input[type="search"],
-form.incarichi-filtro-form select.form-select {
+form.incarichi-filtro-form select {
+    border: 1px solid #c7d4e2;
     min-height: 48px;
     max-width: none;
     width: 100%;
-    border: 1px solid #c7d4e2;
     border-radius: 6px;
-    transition: border-color 0.3s ease;
 }
-
 form.incarichi-filtro-form input[type="search"]:focus,
-form.incarichi-filtro-form select.form-select:focus {
-    border-color: currentColor;
+form.incarichi-filtro-form select:focus {
+    border-color: var(--bs-primary, rgb(6, 62, 138));
     box-shadow: 0 0 0 .2rem rgba(6, 62, 138, .12);
     outline: none;
 }
-
-.btn-wrapper {
-    margin-left: 0;
-    align-self: end;
-}
-
 form.incarichi-filtro-form button.btn-primary {
     padding: 0.65rem 1.5rem;
     font-weight: 600;
@@ -188,6 +202,7 @@ form.incarichi-filtro-form button.btn-primary {
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* PAGINAZIONE */
 .pagination-wrapper .pagination {
     display: flex;
     justify-content: center;
@@ -196,7 +211,6 @@ form.incarichi-filtro-form button.btn-primary {
     margin-top: 1.5rem;
     gap: 0.5rem;
 }
-
 .pagination-wrapper .page-link {
     display: block;
     padding: 0.5rem 0.9rem;
@@ -209,38 +223,24 @@ form.incarichi-filtro-form button.btn-primary {
     min-width: 40px;
     text-align: center;
 }
-
 .pagination-wrapper .page-link:hover {
     background-color: var(--bs-primary, rgb(6, 62, 138));
     color: white;
     box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
-    text-decoration: none;
 }
-
-.pagination-wrapper .page-item.active .page-link,
-.pagination-wrapper .page-link[aria-current="page"] {
+.pagination-wrapper .page-item.active .page-link {
     background-color: var(--bs-primary, rgb(6, 62, 138));
     border-color: var(--bs-primary, rgb(6, 62, 138));
     color: white;
     cursor: default;
     box-shadow: 0 0 12px rgba(13, 110, 253, 0.75);
 }
-
-.pagination-wrapper .page-item.disabled .page-link {
-    color: #6c757d;
-    pointer-events: none;
-    background-color: transparent;
-    border-color: transparent;
-    cursor: default;
-}
-
-@media (max-width: 576px) {
-    .incarichi-filtro-form__grid { grid-template-columns: 1fr; }
-}
-
 @media (max-width: 991.98px) {
     .incarichi-filtro-form__grid { grid-template-columns: 1fr 1fr; }
     .incarichi-filtro-form__field--search,
     .incarichi-filtro-form__actions { grid-column: 1 / -1; }
+}
+@media (max-width: 575.98px) {
+    .incarichi-filtro-form__grid { grid-template-columns: 1fr; }
 }
 </style>

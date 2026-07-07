@@ -160,6 +160,7 @@ $prefix = "_dci_bando_";
     .dci-filter-panel__title {
         margin-bottom: .35rem;
         font-size: 1.2rem;
+        color: currentColor;
     }
 
     .dci-filter-panel__intro {
@@ -176,7 +177,7 @@ $prefix = "_dci_bando_";
 
     .dci-filter-panel .form-control:focus,
     .dci-filter-panel .form-select:focus {
-        border-color: var(--bs-primary, rgb(6, 62, 138));
+        border-color: currentColor;
         box-shadow: 0 0 0 .2rem rgba(6, 62, 138, .12);
     }
 
@@ -193,7 +194,7 @@ $prefix = "_dci_bando_";
     }
 </style>
 
-<div class="search-bar-container dci-filter-panel">
+<div class="search-bar-container dci-filter-panel t-primary">
     <form role="search" method="get" class="search-form" action="<?php echo esc_url($form_action); ?>">
         <h3 class="dci-filter-panel__title text-decoration-none">Filtra i bandi</h3>
         <p class="dci-filter-panel__intro text-decoration-none">Restringi l'elenco per oggetto, CIG, procedura, stato o anno.</p>
@@ -251,6 +252,12 @@ $prefix = "_dci_bando_";
         </div>
     </form>
 </div>
+
+<?php
+if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
+    dci_render_trasparenza_not_applicable_notice();
+}
+?>
 
 <p class="dci-results-count mb-4 text-decoration-none" role="status">
     <strong>

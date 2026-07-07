@@ -84,7 +84,7 @@ $the_query = new WP_Query($args);
 ?>
 
 <!-- FORM FILTRI -->
-<form method="get" class="incarichi-filtro-form">
+<form method="get" class="incarichi-filtro-form t-primary">
     <div class="incarichi-filtro-form__head">
         <h3 class="incarichi-filtro-form__title text-decoration-none">Filtra gli atti</h3>
         <p class="incarichi-filtro-form__intro text-decoration-none">Cerca per parola chiave e limita i risultati per anno o numero di elementi.</p>
@@ -121,6 +121,12 @@ $the_query = new WP_Query($args);
     </div>
     </div>
 </form>
+
+<?php
+if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
+    dci_render_trasparenza_not_applicable_notice();
+}
+?>
 
 <p class="dci-results-count mb-4 text-decoration-none" role="status">
     <strong>
@@ -196,7 +202,7 @@ form.incarichi-filtro-form {
 
 form.incarichi-filtro-form label {
     font-weight: 600;
-    color: #17324d;
+    color: currentColor;
     margin-bottom: .45rem;
 }
 form.incarichi-filtro-form input[type="search"],
@@ -209,7 +215,7 @@ form.incarichi-filtro-form select {
 }
 form.incarichi-filtro-form input[type="search"]:focus,
 form.incarichi-filtro-form select:focus {
-    border-color: var(--bs-primary, rgb(6, 62, 138));
+    border-color: currentColor;
     box-shadow: 0 0 0 .2rem rgba(6, 62, 138, .12);
     outline: none;
 }

@@ -51,7 +51,7 @@ $the_query = new WP_Query($args);
 
 // SEARCH BAR
 ?>
-<form method="get" class="incarichi-filtro-form">
+<form method="get" class="incarichi-filtro-form t-primary">
     <div class="incarichi-filtro-form__head">
         <h3 class="incarichi-filtro-form__title text-decoration-none">Filtra i titolari</h3>
         <p class="incarichi-filtro-form__intro text-decoration-none">Usa i campi qui sotto per trovare più velocemente i contenuti pubblicati.</p>
@@ -88,6 +88,12 @@ $the_query = new WP_Query($args);
     </div>
     </div>
 </form>
+
+<?php
+if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
+    dci_render_trasparenza_not_applicable_notice();
+}
+?>
 
 <p class="dci-results-count mb-4 text-decoration-none" role="status">
     <strong>
@@ -143,7 +149,7 @@ form.incarichi-filtro-form {
 .incarichi-filtro-form__grid { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(170px, 1fr)) auto; gap: 1rem; align-items: end; }
 form.incarichi-filtro-form label {
     font-weight: 600;
-    color: #17324d;
+    color: currentColor;
     margin-bottom: .45rem;
 }
 form.incarichi-filtro-form input[type="search"],
@@ -156,7 +162,7 @@ form.incarichi-filtro-form select {
 }
 form.incarichi-filtro-form input[type="search"]:focus,
 form.incarichi-filtro-form select:focus {
-    border-color: var(--bs-primary, rgb(6, 62, 138));
+    border-color: currentColor;
     box-shadow: 0 0 0 .2rem rgba(6, 62, 138, .12);
     outline: none;
 }

@@ -9,8 +9,8 @@
 add_action( 'init', 'dci_register_taxonomy_tipi_cat_amm_trasp', -10 );
 function dci_register_taxonomy_tipi_cat_amm_trasp() {
 	$labels = array(
-		'name'              => _x( 'Tipi categoria Amministrazione Trasparente', 'taxonomy general name', 'design_comuni_italia' ),
-		'singular_name'     => _x( 'Tipo di categoria Amministrazione Trasparente', 'taxonomy singular name', 'design_comuni_italia' ),
+		'name'              => _x( 'Categorie Trasparenza', 'taxonomy general name', 'design_comuni_italia' ),
+		'singular_name'     => _x( 'Categoria Trasparenza', 'taxonomy singular name', 'design_comuni_italia' ),
 	);
 
 	$args = array(
@@ -40,6 +40,24 @@ function dci_register_taxonomy_tipi_cat_amm_trasp() {
  */
 add_action( 'tipi_cat_amm_trasp_add_form_fields', 'dci_tassonomia_add_fields' );
 add_action( 'tipi_cat_amm_trasp_edit_form_fields', 'dci_tassonomia_edit_fields' );
+
+if ( ! function_exists( 'dci_get_trasparenza_not_applicable_default_message' ) ) {
+	function dci_get_trasparenza_not_applicable_default_message() {
+		return __( 'L’obbligo di pubblicazione non è applicabile all’amministrazione.', 'design_comuni_italia' );
+	}
+}
+
+if ( ! function_exists( 'dci_get_trasparenza_not_applicable_message' ) ) {
+	function dci_get_trasparenza_not_applicable_message( $term_id ) {
+		$custom_message = trim(
+			(string) get_term_meta( (int) $term_id, 'messaggio_obbligo_non_applicabile', true )
+		);
+
+		return '' !== $custom_message
+			? $custom_message
+			: dci_get_trasparenza_not_applicable_default_message();
+	}
+}
 
 function dci_get_role_boxes_html( $selected_roles = [] ) {
 	global $wp_roles;
@@ -108,6 +126,7 @@ function dci_get_role_boxes_html( $selected_roles = [] ) {
 
 function dci_tassonomia_add_fields() {
 	?>
+	<input type="hidden" name="dci_tipi_cat_amm_trasp_meta_form" value="1" />
 	<div class="form-field">
 		<?php echo dci_get_role_boxes_html(); ?>
 	</div>
@@ -119,6 +138,29 @@ function dci_tassonomia_add_fields() {
 
 	<div class="form-field"><label><?php _e('Ordinamento', 'design_comuni_italia'); ?></label><input type="number" name="ordinamento" value="0" /></div>
 	<div class="form-field"><label><input type="checkbox" name="visualizza_elemento" value="1" checked /> <?php _e('Visualizza elemento', 'design_comuni_italia'); ?></label></div>
+	<div class="form-field">
+		<label>
+			<input type="checkbox" name="obbligo_non_applicabile" value="1" />
+			<?php esc_html_e( 'Obbligo di pubblicazione non applicabile', 'design_comuni_italia' ); ?>
+		</label>
+		<p class="description">
+			<?php esc_html_e( 'Mostra un avviso pubblico sopra il contenuto di questa sezione, senza nascondere eventuali informazioni già pubblicate.', 'design_comuni_italia' ); ?>
+		</p>
+	</div>
+	<div class="form-field">
+		<label for="messaggio-obbligo-non-applicabile">
+			<?php esc_html_e( 'Messaggio personalizzato', 'design_comuni_italia' ); ?>
+		</label>
+		<textarea
+			id="messaggio-obbligo-non-applicabile"
+			name="messaggio_obbligo_non_applicabile"
+			rows="4"
+			placeholder="<?php echo esc_attr( dci_get_trasparenza_not_applicable_default_message() ); ?>"
+		></textarea>
+		<p class="description">
+			<?php esc_html_e( 'Facoltativo. Se lasciato vuoto verrà utilizzato il messaggio predefinito previsto da ANAC.', 'design_comuni_italia' ); ?>
+		</p>
+	</div>
 
 	<script>
 	document.addEventListener('DOMContentLoaded', function() {
@@ -140,10 +182,14 @@ function dci_tassonomia_add_fields() {
 function dci_tassonomia_edit_fields( $term ) {
 	$excluded_roles = get_term_meta( $term->term_id, 'excluded_roles', true );
 	$excluded_roles = is_array( $excluded_roles ) ? $excluded_roles : [];
+	$not_applicable_message = (string) get_term_meta( $term->term_id, 'messaggio_obbligo_non_applicabile', true );
 	?>
 	<tr class="form-field">
 		<th scope="row"><?php _e('Ruoli da escludere', 'design_comuni_italia'); ?></th>
-		<td><?php echo dci_get_role_boxes_html($excluded_roles); ?></td>
+		<td>
+			<input type="hidden" name="dci_tipi_cat_amm_trasp_meta_form" value="1" />
+			<?php echo dci_get_role_boxes_html($excluded_roles); ?>
+		</td>
 	</tr>
 
 	<tbody id="url-wrapper-edit">
@@ -159,6 +205,44 @@ function dci_tassonomia_edit_fields( $term ) {
 
 	<tr class="form-field"><th><?php _e('Ordinamento', 'design_comuni_italia'); ?></th><td><input name="ordinamento" type="number" value="<?php echo esc_attr(get_term_meta($term->term_id, 'ordinamento', true)); ?>" /></td></tr>
 	<tr class="form-field"><th><?php _e('Visualizza', 'design_comuni_italia'); ?></th><td><label><input name="visualizza_elemento" type="checkbox" value="1" <?php checked(get_term_meta($term->term_id, 'visualizza_elemento', true), '1'); ?> /> <?php _e('Visualizza elemento', 'design_comuni_italia'); ?></label></td></tr>
+	<tr class="form-field">
+		<th scope="row">
+			<?php esc_html_e( 'Obbligo non applicabile', 'design_comuni_italia' ); ?>
+		</th>
+		<td>
+			<label>
+				<input
+					name="obbligo_non_applicabile"
+					type="checkbox"
+					value="1"
+					<?php checked( get_term_meta( $term->term_id, 'obbligo_non_applicabile', true ), '1' ); ?>
+				/>
+				<?php esc_html_e( 'Mostra l’avviso nella pagina pubblica di questa sezione', 'design_comuni_italia' ); ?>
+			</label>
+			<p class="description">
+				<?php esc_html_e( 'L’avviso non nasconde né elimina gli eventuali contenuti già pubblicati.', 'design_comuni_italia' ); ?>
+			</p>
+		</td>
+	</tr>
+	<tr class="form-field">
+		<th scope="row">
+			<label for="messaggio-obbligo-non-applicabile">
+				<?php esc_html_e( 'Messaggio personalizzato', 'design_comuni_italia' ); ?>
+			</label>
+		</th>
+		<td>
+			<textarea
+				id="messaggio-obbligo-non-applicabile"
+				name="messaggio_obbligo_non_applicabile"
+				rows="4"
+				class="large-text"
+				placeholder="<?php echo esc_attr( dci_get_trasparenza_not_applicable_default_message() ); ?>"
+			><?php echo esc_textarea( $not_applicable_message ); ?></textarea>
+			<p class="description">
+				<?php esc_html_e( 'Facoltativo. Se lasciato vuoto verrà utilizzato il messaggio predefinito previsto da ANAC.', 'design_comuni_italia' ); ?>
+			</p>
+		</td>
+	</tr>
 
 	<script>
 	document.addEventListener('DOMContentLoaded', function() {
@@ -186,14 +270,8 @@ add_action( 'edited_tipi_cat_amm_trasp',  'dci_save_term_meta', 10, 2 );
 function dci_save_term_meta( $term_id ) {
 	if (
 		empty( $_POST ) ||
-		(
-			! isset( $_POST['taxonomy'] ) &&
-			! isset( $_POST['tag_ID'] ) &&
-			! isset( $_POST['visualizza_elemento'] ) &&
-			! isset( $_POST['ordinamento'] ) &&
-			! isset( $_POST['term_url'] ) &&
-			! isset( $_POST['excluded_roles'] )
-		)
+		! isset( $_POST['dci_tipi_cat_amm_trasp_meta_form'] ) ||
+		'1' !== sanitize_text_field( wp_unslash( $_POST['dci_tipi_cat_amm_trasp_meta_form'] ) )
 	) {
 		return;
 	}
@@ -202,6 +280,18 @@ function dci_save_term_meta( $term_id ) {
 	update_term_meta( $term_id, 'visualizza_elemento', isset( $_POST['visualizza_elemento'] ) ? '1' : '0' );
 	update_term_meta( $term_id, 'term_url', isset( $_POST['term_url'] ) ? esc_url_raw( $_POST['term_url'] ) : '' );
 	update_term_meta( $term_id, 'open_new_window', isset( $_POST['open_new_window'] ) ? '1' : '0' );
+	update_term_meta( $term_id, 'obbligo_non_applicabile', isset( $_POST['obbligo_non_applicabile'] ) ? '1' : '0' );
+
+	$not_applicable_message = isset( $_POST['messaggio_obbligo_non_applicabile'] )
+		? sanitize_textarea_field( wp_unslash( $_POST['messaggio_obbligo_non_applicabile'] ) )
+		: '';
+	$not_applicable_message = mb_substr( $not_applicable_message, 0, 2000, 'UTF-8' );
+
+	if ( '' !== $not_applicable_message ) {
+		update_term_meta( $term_id, 'messaggio_obbligo_non_applicabile', $not_applicable_message );
+	} else {
+		delete_term_meta( $term_id, 'messaggio_obbligo_non_applicabile' );
+	}
 
 	if ( isset( $_POST['excluded_roles'] ) && is_array( $_POST['excluded_roles'] ) ) {
 		update_term_meta( $term_id, 'excluded_roles', array_map( 'sanitize_text_field', $_POST['excluded_roles'] ) );
@@ -222,6 +312,7 @@ function dci_custom_column_order($columns) {
         if ($key === 'name') {
             $new_columns['ordinamento'] = __('Ordinamento', 'design_comuni_italia');
             $new_columns['visualizza_item'] = __('Visualizza', 'design_comuni_italia');
+            $new_columns['obbligo_non_applicabile'] = __('Non applicabile', 'design_comuni_italia');
             $new_columns['term_url'] = __('URL', 'design_comuni_italia');
         }
     }
@@ -239,6 +330,9 @@ function dci_show_custom_columns( $out, $column, $term_id ) {
 			$show = get_term_meta( $term_id, 'visualizza_elemento', true );
 			$show = ( $show === '' ) ? '1' : $show;
 			return $show === '1' ? __( 'Sì', 'design_comuni_italia' ) : __( 'No', 'design_comuni_italia' );
+		case 'obbligo_non_applicabile':
+			$not_applicable = get_term_meta( $term_id, 'obbligo_non_applicabile', true );
+			return '1' === $not_applicable ? __( 'Sì', 'design_comuni_italia' ) : '&mdash;';
 		case 'term_url':
 			$term_url = get_term_meta( $term_id, 'term_url', true );
 			$open_new_window = get_term_meta( $term_id, 'open_new_window', true );
@@ -306,6 +400,12 @@ function dci_get_tipi_cat_amm_trasp_term_path( $term ) {
 }
 
 function dci_get_tipi_cat_amm_trasp_admin_stats() {
+	static $stats_cache = null;
+
+	if ( is_array( $stats_cache ) ) {
+		return $stats_cache;
+	}
+
 	remove_filter( 'terms_clauses', 'dci_filter_tipi_cat_amm_trasp_admin_terms', 15 );
 
 	$terms = get_terms(
@@ -322,12 +422,14 @@ function dci_get_tipi_cat_amm_trasp_admin_stats() {
 		'visible'       => 0,
 		'hidden'        => 0,
 		'with_url'      => 0,
+		'with_url_ids'  => [],
 		'duplicate_ids' => [],
 		'extra_ids'     => [],
 	];
 
 	if ( is_wp_error( $terms ) ) {
-		return $stats;
+		$stats_cache = $stats;
+		return $stats_cache;
 	}
 
 	$stats['total'] = count( $terms );
@@ -349,6 +451,7 @@ function dci_get_tipi_cat_amm_trasp_admin_stats() {
 		$term_url = trim( (string) get_term_meta( $term->term_id, 'term_url', true ) );
 		if ( '' !== $term_url ) {
 			$stats['with_url']++;
+			$stats['with_url_ids'][] = (int) $term->term_id;
 		}
 
 		$normalized_name = mb_strtolower( dci_normalize_tipi_cat_amm_trasp_admin_name( $term->name ) );
@@ -371,11 +474,20 @@ function dci_get_tipi_cat_amm_trasp_admin_stats() {
 
 	$stats['duplicate_ids'] = array_values( array_unique( array_map( 'intval', $stats['duplicate_ids'] ) ) );
 	$stats['extra_ids']     = array_values( array_unique( array_map( 'intval', $stats['extra_ids'] ) ) );
+	$stats['with_url_ids']  = array_values( array_unique( array_map( 'intval', $stats['with_url_ids'] ) ) );
 
-	return $stats;
+	$stats_cache = $stats;
+	return $stats_cache;
 }
 
 function dci_get_tipi_cat_amm_trasp_matching_ids_by_visibility( $visibility ) {
+	static $matching_ids_cache = [];
+
+	$visibility = (string) $visibility;
+	if ( isset( $matching_ids_cache[ $visibility ] ) ) {
+		return $matching_ids_cache[ $visibility ];
+	}
+
 	remove_filter( 'terms_clauses', 'dci_filter_tipi_cat_amm_trasp_admin_terms', 15 );
 
 	$terms = get_terms(
@@ -388,7 +500,8 @@ function dci_get_tipi_cat_amm_trasp_matching_ids_by_visibility( $visibility ) {
 	add_filter( 'terms_clauses', 'dci_filter_tipi_cat_amm_trasp_admin_terms', 15, 3 );
 
 	if ( is_wp_error( $terms ) || empty( $terms ) ) {
-		return [];
+		$matching_ids_cache[ $visibility ] = [];
+		return $matching_ids_cache[ $visibility ];
 	}
 
 	$matching_ids = [];
@@ -407,7 +520,8 @@ function dci_get_tipi_cat_amm_trasp_matching_ids_by_visibility( $visibility ) {
 		}
 	}
 
-	return array_values( array_unique( $matching_ids ) );
+	$matching_ids_cache[ $visibility ] = array_values( array_unique( $matching_ids ) );
+	return $matching_ids_cache[ $visibility ];
 }
 
 function dci_expand_tipi_cat_amm_trasp_ids_with_ancestors( $term_ids ) {
@@ -552,6 +666,7 @@ function dci_render_tipi_cat_amm_trasp_admin_filters() {
 
 	$post_type          = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : 'elemento_trasparenza';
 	$filter_visualizza  = isset( $_GET['filter_visualizza'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_visualizza'] ) ) : '';
+	$filter_url         = isset( $_GET['filter_url'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_url'] ) ) : '';
 	$filter_duplicates  = isset( $_GET['filter_duplicates'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_duplicates'] ) ) : '';
 	$filter_extra       = isset( $_GET['filter_extra'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_extra'] ) ) : '';
 	$reset_url          = add_query_arg(
@@ -574,6 +689,30 @@ function dci_render_tipi_cat_amm_trasp_admin_filters() {
 			'taxonomy'          => 'tipi_cat_amm_trasp',
 			'post_type'         => $post_type,
 			'filter_duplicates' => '1',
+		],
+		admin_url( 'edit-tags.php' )
+	);
+	$visible_url = add_query_arg(
+		[
+			'taxonomy'          => 'tipi_cat_amm_trasp',
+			'post_type'         => $post_type,
+			'filter_visualizza' => '1',
+		],
+		admin_url( 'edit-tags.php' )
+	);
+	$hidden_url = add_query_arg(
+		[
+			'taxonomy'          => 'tipi_cat_amm_trasp',
+			'post_type'         => $post_type,
+			'filter_visualizza' => '0',
+		],
+		admin_url( 'edit-tags.php' )
+	);
+	$with_url_url = add_query_arg(
+		[
+			'taxonomy'  => 'tipi_cat_amm_trasp',
+			'post_type' => $post_type,
+			'filter_url' => '1',
 		],
 		admin_url( 'edit-tags.php' )
 	);
@@ -603,42 +742,16 @@ function dci_render_tipi_cat_amm_trasp_admin_filters() {
 		</div>
 	<?php } ?>
 	<div class="notice notice-info" style="padding:12px 16px;">
-		<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-			<span class="button button-secondary" style="pointer-events:none;"><?php echo esc_html( sprintf( 'Totali: %d', $stats['total'] ) ); ?></span>
-			<span class="button button-secondary" style="pointer-events:none;"><?php echo esc_html( sprintf( 'Visibili: %d', $stats['visible'] ) ); ?></span>
-			<span class="button button-secondary" style="pointer-events:none;"><?php echo esc_html( sprintf( 'Nascoste: %d', $stats['hidden'] ) ); ?></span>
-			<span class="button button-secondary" style="pointer-events:none;"><?php echo esc_html( sprintf( 'Con URL: %d', $stats['with_url'] ) ); ?></span>
-			<a class="button <?php echo '1' === $filter_duplicates ? 'button-primary' : 'button-secondary'; ?>" href="<?php echo esc_url( $duplicate_url ); ?>"><?php echo esc_html( sprintf( 'Duplicati potenziali: %d', count( $stats['duplicate_ids'] ) ) ); ?></a>
+		<div style="display:flex; gap:10px; flex-wrap:wrap;">
+			<a class="button <?php echo '' === $filter_visualizza && '' === $filter_url && '' === $filter_duplicates && '' === $filter_extra ? 'button-primary' : 'button-secondary'; ?>" href="<?php echo esc_url( $reset_url ); ?>"><?php echo esc_html( sprintf( 'Totali: %d', $stats['total'] ) ); ?></a>
+			<a class="button <?php echo '1' === $filter_visualizza ? 'button-primary' : 'button-secondary'; ?>" href="<?php echo esc_url( $visible_url ); ?>" <?php echo '1' === $filter_visualizza ? 'aria-current="page"' : ''; ?>><?php echo esc_html( sprintf( 'Visibili: %d', $stats['visible'] ) ); ?></a>
+			<a class="button <?php echo '0' === $filter_visualizza ? 'button-primary' : 'button-secondary'; ?>" href="<?php echo esc_url( $hidden_url ); ?>" <?php echo '0' === $filter_visualizza ? 'aria-current="page"' : ''; ?>><?php echo esc_html( sprintf( 'Nascoste: %d', $stats['hidden'] ) ); ?></a>
+			<a class="button <?php echo '1' === $filter_url ? 'button-primary' : 'button-secondary'; ?>" href="<?php echo esc_url( $with_url_url ); ?>" <?php echo '1' === $filter_url ? 'aria-current="page"' : ''; ?>><?php echo esc_html( sprintf( 'Con URL: %d', $stats['with_url'] ) ); ?></a>
+			<a class="button <?php echo '1' === $filter_duplicates ? 'button-primary' : 'button-secondary'; ?>" href="<?php echo esc_url( $duplicate_url ); ?>" <?php echo '1' === $filter_duplicates ? 'aria-current="page"' : ''; ?>><?php echo esc_html( sprintf( 'Duplicati potenziali: %d', count( $stats['duplicate_ids'] ) ) ); ?></a>
 			<?php if ( 1 === (int) get_current_user_id() ) { ?>
 				<a class="button <?php echo '1' === $filter_extra ? 'button-primary' : 'button-secondary'; ?>" href="<?php echo esc_url( $extra_url ); ?>"><?php echo esc_html( sprintf( 'Voci extra: %d', count( $stats['extra_ids'] ) ) ); ?></a>
 			<?php } ?>
 		</div>
-		<form method="get" style="display:flex; gap:12px; align-items:end; flex-wrap:wrap; margin:0;">
-			<input type="hidden" name="taxonomy" value="tipi_cat_amm_trasp" />
-			<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>" />
-			<?php if ( '1' === $filter_duplicates ) { ?>
-				<input type="hidden" name="filter_duplicates" value="1" />
-			<?php } ?>
-			<?php if ( '1' === $filter_extra && 1 === (int) get_current_user_id() ) { ?>
-				<input type="hidden" name="filter_extra" value="1" />
-			<?php } ?>
-
-			<div>
-				<label for="filter_visualizza" style="display:block; font-weight:600; margin-bottom:4px;">
-					<?php esc_html_e( 'Visualizza', 'design_comuni_italia' ); ?>
-				</label>
-				<select id="filter_visualizza" name="filter_visualizza">
-					<option value=""><?php esc_html_e( 'Tutti', 'design_comuni_italia' ); ?></option>
-					<option value="1" <?php selected( $filter_visualizza, '1' ); ?>><?php esc_html_e( 'Sì', 'design_comuni_italia' ); ?></option>
-					<option value="0" <?php selected( $filter_visualizza, '0' ); ?>><?php esc_html_e( 'No', 'design_comuni_italia' ); ?></option>
-				</select>
-			</div>
-
-			<div style="display:flex; gap:8px;">
-				<button type="submit" class="button button-primary"><?php esc_html_e( 'Filtra', 'design_comuni_italia' ); ?></button>
-				<a class="button" href="<?php echo esc_url( $reset_url ); ?>"><?php esc_html_e( 'Reset', 'design_comuni_italia' ); ?></a>
-			</div>
-		</form>
 
 		<?php if ( dci_current_user_can_reset_empty_tipi_cat_amm_trasp_terms() ) { ?>
 			<hr style="margin:12px 0;" />
@@ -680,6 +793,7 @@ function dci_filter_tipi_cat_amm_trasp_admin_terms( $clauses, $taxonomies, $args
 	}
 
 	$filter_visualizza = isset( $_GET['filter_visualizza'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_visualizza'] ) ) : '';
+	$filter_url        = isset( $_GET['filter_url'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_url'] ) ) : '';
 	$filter_duplicates = isset( $_GET['filter_duplicates'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_duplicates'] ) ) : '';
 	$filter_extra      = isset( $_GET['filter_extra'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_extra'] ) ) : '';
 
@@ -691,13 +805,17 @@ function dci_filter_tipi_cat_amm_trasp_admin_terms( $clauses, $taxonomies, $args
 		$filter_duplicates = '';
 	}
 
+	if ( ! in_array( $filter_url, [ '', '1' ], true ) ) {
+		$filter_url = '';
+	}
+
 	if ( 1 !== (int) get_current_user_id() ) {
 		$filter_extra = '';
 	} elseif ( ! in_array( $filter_extra, [ '', '1' ], true ) ) {
 		$filter_extra = '';
 	}
 
-	if ( '' === $filter_visualizza && '' === $filter_duplicates && '' === $filter_extra ) {
+	if ( '' === $filter_visualizza && '' === $filter_url && '' === $filter_duplicates && '' === $filter_extra ) {
 		return $clauses;
 	}
 
@@ -732,6 +850,16 @@ function dci_filter_tipi_cat_amm_trasp_admin_terms( $clauses, $taxonomies, $args
 			$clauses['where'] .= " AND 1 = 0";
 		} else {
 			$clauses['where'] .= " AND t.term_id IN (" . implode( ',', array_map( 'intval', $duplicate_ids ) ) . ")";
+		}
+	}
+
+	if ( '1' === $filter_url ) {
+		$stats = dci_get_tipi_cat_amm_trasp_admin_stats();
+		$with_url_ids = dci_expand_tipi_cat_amm_trasp_ids_with_ancestors( $stats['with_url_ids'] );
+		if ( empty( $with_url_ids ) ) {
+			$clauses['where'] .= " AND 1 = 0";
+		} else {
+			$clauses['where'] .= " AND t.term_id IN (" . implode( ',', array_map( 'intval', $with_url_ids ) ) . ")";
 		}
 	}
 

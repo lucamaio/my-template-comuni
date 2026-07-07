@@ -504,6 +504,46 @@ class Breadcrumb_Trail {
 					   return;
 				   }     
 
+			    	   if (get_post_type() == 'incarico_dirig') {
+	                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
+
+					   $add_trasparenza_term = function ($term_name) {
+						   $term = get_term_by('name', $term_name, 'tipi_cat_amm_trasp');
+						   if ($term && !is_wp_error($term)) {
+							   $this->items[] = sprintf(
+								   '<a href="%s">%s</a>',
+								   esc_url(get_term_link($term, 'tipi_cat_amm_trasp')),
+								   esc_html(dci_get_breadcrumb_label($term->name))
+							   );
+						   }
+					   };
+
+					   $add_trasparenza_term('Personale');
+
+					   $sezione_pubblicazione = (string) get_post_meta(get_the_ID(), '_dci_incarico_dirigenziale_sezione_pubblicazione', true);
+					   if ($sezione_pubblicazione === 'dirigenti') {
+						   $add_trasparenza_term('Titolari di Incarichi dirigenziali (dirigenti non generali)');
+						   $add_trasparenza_term('Incarichi dirigenziali a qualsiasi titolo conferiti');
+					   } else {
+						   $add_trasparenza_term('Titolari di incarichi dirigenziali amministrativi di vertice');
+					   }
+
+					   // Recupera il titolo della pagina e troncalo a 35 caratteri
+					    $title = get_the_title();
+					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					    if (strlen($title) > 35) {
+					        $title = substr($title, 0, 35) . '...';
+					    }
+					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					    if (preg_match('/[A-Z]{5,}/', $title)) {
+					        // Se sÃ¬, lo trasforma in minuscolo con la prima lettera maiuscola
+					        $title = ucfirst(strtolower($title));
+					    }
+					    // Aggiunge il titolo alla lista degli elementi
+					    $this->items[] = $title;
+					   return;
+				   }
+
 				
 		    
 				if (get_post_type() == 'progetto') {					

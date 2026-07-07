@@ -217,7 +217,7 @@ function dci_add_incarico_dirigenziale_metaboxes()
             'revocato'  => __('Revocato', 'design_comuni_italia'),
             'concluso'  => __('Concluso', 'design_comuni_italia'),
         ),
-        'attributes'        => array('required' => 'required'),
+        'attributes'        => array('required' => 'required')
     ));
 
 
@@ -236,19 +236,19 @@ function dci_add_incarico_dirigenziale_metaboxes()
     // Cognome del titolare
     $cmb_main->add_field(array(
         'id'          => $prefix . 'cognome_titolare',
-        'name'        => __('Cognome del titolare *', 'design_comuni_italia'),
+        'name'        => __('Cognome del titolare', 'design_comuni_italia'),
         'desc'        => __('Inserisci il cognome della persona alla quale è stato conferito l’incarico.', 'design_comuni_italia'),
         'type'        => 'text',
-        'attributes'  => array('required' => 'required'),
+        // 'attributes'  => array('required' => 'required'),
     ));
 
      // Mansione del titolare
     $cmb_main->add_field(array(
         'id'          => $prefix . 'mansione_titolare',
-        'name'        => __('Denominazione dell’incarico *', 'design_comuni_italia'),
+        'name'        => __('Denominazione dell’incarico', 'design_comuni_italia'),
         'desc'        => __('Inserisci la denominazione completa dell’incarico o della funzione dirigenziale attribuita al titolare.', 'design_comuni_italia'),
         'type'        => 'text',
-        'attributes'  => array('required' => 'required'),
+        // 'attributes'  => array('required' => 'required'),
     ));
 
     $cmb_main->add_field(

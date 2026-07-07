@@ -476,21 +476,21 @@ get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
                 <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
             </div>
         </div>
-   <?php } else if($obj->name === "Articolazione uffici" && dci_get_option("ck_portalesoloperusoesterno") !== 'true' ){?>
+   <?php } else if($obj->name === "Articolazione uffici" && dci_get_option("ck_portalesoloperusoesterno") !== 'true'){?>
         <div class="container py-5">
             <h2 class="visually-hidden">Esplora l'articolazione degli uffici comunali</h2>
             <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
             <?php get_template_part("template-parts/amministrazione-trasparente/articolazione-uffici/tutti-uffici"); ?>
         </div>
             </div>
-   <?php } else if($obj->name === "Titolari di incarichi politici di amministrazione di direzione o di governo" ){?>
+   <?php } else if($obj->name === "Titolari di incarichi politici di amministrazione di direzione o di governo"){?>
         <div class="container py-5">
             <h2 class="visually-hidden">Esplora i Titolari di incarichi politici di amministrazione di direzione o di governo </h2>
             <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
             <?php get_template_part("template-parts/amministrazione-trasparente/titolari-incarichi-poilitici/tutti-titolari"); ?>
         </div>
             </div>
-   <?php } else if($obj->name === "Titolari di incarichi dirigenziali amministrativi di vertice" ){?>
+   <?php } else if($obj->name === "Titolari di incarichi dirigenziali amministrativi di vertice" && dci_get_option("ck_incarichidirigenzialitemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_incarichidirigenzialitemplatepersonalizzato", "Trasparenza") !== ''){?>
          <div class="container my-5">
             <div class="row g-4">
                 <h2 class="visually-hidden">Titolari di incarichi dirigenziali amministrativi di vertice </h2>
@@ -503,7 +503,7 @@ get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
             </div> 
         </div>
     </div>
-   <?php } else if($obj->name === "Incarichi dirigenziali a qualsiasi titolo conferiti" ){?>
+   <?php } else if($obj->name === "Incarichi dirigenziali a qualsiasi titolo conferiti" && dci_get_option("ck_incarichidirigenzialitemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_incarichidirigenzialitemplatepersonalizzato", "Trasparenza") !== ''){?>
          <div class="container my-5">
             <div class="row g-4">
                 <h2 class="visually-hidden">Incarichi dirigenziali a qualsiasi titolo conferiti</h2>

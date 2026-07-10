@@ -152,10 +152,10 @@ $extra_documents = $normalize_file_list($additional_attachments, __('Allegato', 
             <dt><?php esc_html_e('Data pubblicazione', 'design_comuni_italia'); ?></dt>
             <dd><?php echo esc_html(dci_custom_section_card_text($published_date, 35)); ?></dd>
         </div>
-        <div>
-            <dt><?php esc_html_e('Data aggiornamento', 'design_comuni_italia'); ?></dt>
-            <dd><?php echo esc_html(dci_custom_section_card_text($updated_date, 35)); ?></dd>
-        </div>
+        <!-- <div>
+            <dt><?php // esc_html_e('Data aggiornamento', 'design_comuni_italia'); ?></dt>
+            <dd><?php // echo esc_html(dci_custom_section_card_text($updated_date, 35)); ?></dd>
+        </div> -->
         <div>
             <dt><?php esc_html_e('Conferimento', 'design_comuni_italia'); ?></dt>
             <dd><?php echo esc_html($format_date($start_date)); ?></dd>

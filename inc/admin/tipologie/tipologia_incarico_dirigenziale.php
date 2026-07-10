@@ -303,7 +303,7 @@ function dci_add_incarico_dirigenziale_metaboxes()
             'desc'    => __('Carica il curriculum vitae in formato PDF, verificando che non contenga dati personali non pertinenti alla pubblicazione.', 'design_comuni_italia'),
             'type'    => 'file',
             'options' => array('url' => false),
-            'query_args' => array('type' => array('application/pdf')),
+            // 'query_args' => array('type' => array('application/pdf')),
         )
     );
 
@@ -362,7 +362,7 @@ function dci_add_incarico_dirigenziale_metaboxes()
             'id'      => $prefix . 'allegati_aggiuntivi',
             'name'    => __('Allegati aggiuntivi', 'design_comuni_italia'),
             'type'    => 'file_list',
-            'query_args' => array('type' => array('application/pdf')),
+            // 'query_args' => array('type' => array('application/pdf')),
         )
     );
 

@@ -17,6 +17,11 @@ $current_cig                   = isset($_GET['cig']) ? sanitize_text_field($_GET
 $current_procedura_contraente  = isset($_GET['procedura_contraente']) ? sanitize_text_field($_GET['procedura_contraente']) : '';
 $current_stato                 = isset($_GET['stato']) ? sanitize_text_field($_GET['stato']) : '';
 $current_anno                  = isset($_GET['anno']) ? intval($_GET['anno']) : '';
+$allowed_order_types           = array('data_desc', 'data_asc', 'alfabetico_asc', 'alfabetico_desc');
+$order_type                    = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';
+if (!in_array($order_type, $allowed_order_types, true)) {
+    $order_type = 'data_desc';
+}
 
 $form_action = '';
 $current_object = get_queried_object();
@@ -59,11 +64,27 @@ $args = array(
     'post_type'       => 'bando',
     'posts_per_page'  => $max_posts,
     'meta_key'        => '_dci_bando_data_inizio',
-    'orderby'         => 'meta_value_num',
-    'order'           => 'DESC',
+    'orderby'         => array(
+        'meta_value_num' => 'DESC',
+        'ID'             => 'DESC',
+    ),
     'paged'              => $paged,
     's'               => $main_search_query, // Per la ricerca generica su titolo/contenuto
 );
+
+if ($order_type === 'alfabetico_asc' || $order_type === 'alfabetico_desc') {
+    $order_direction = $order_type === 'alfabetico_desc' ? 'DESC' : 'ASC';
+    $args['orderby'] = array(
+        'title' => $order_direction,
+        'ID'    => $order_direction,
+    );
+} else {
+    $order_direction = $order_type === 'data_asc' ? 'ASC' : 'DESC';
+    $args['orderby'] = array(
+        'meta_value_num' => $order_direction,
+        'ID'             => $order_direction,
+    );
+}
 
 $meta_query_array = array(); // Inizializza l'array per le meta query
 $meta_query_array['relation'] = 'AND'; // Combina tutti i filtri con AND
@@ -230,6 +251,15 @@ $prefix = "_dci_bando_";
                         echo '<option value="' . esc_attr($key) . '"' . selected($current_stato, $key, false) . '>' . esc_html($label) . '</option>';
                     }
                     ?>
+                </select>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <label for="order_type" class="form-label visually-hidden"><?php _e('Ordina per', 'design_comuni_italia'); ?></label>
+                <select class="form-select" id="order_type" name="order_type">
+                    <option value="data_desc" <?php selected($order_type, 'data_desc'); ?>><?php _e('Data decrescente', 'design_comuni_italia'); ?></option>
+                    <option value="data_asc" <?php selected($order_type, 'data_asc'); ?>><?php _e('Data crescente', 'design_comuni_italia'); ?></option>
+                    <option value="alfabetico_asc" <?php selected($order_type, 'alfabetico_asc'); ?>><?php _e('Nome crescente', 'design_comuni_italia'); ?></option>
+                    <option value="alfabetico_desc" <?php selected($order_type, 'alfabetico_desc'); ?>><?php _e('Nome decrescente', 'design_comuni_italia'); ?></option>
                 </select>
             </div>
             <div class="col-md-6 col-lg-4">

@@ -12,7 +12,7 @@ $sezioni_valide = dci_get_sezioni_bando(); // ['pubblicazione', 'affidamento', '
 //     }
 // }
 
-$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 10;
+$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 10, 10, 50);
 $main_search_query = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
 $paged = max(
     1,
@@ -27,6 +27,11 @@ $current_cig                   = isset($_GET['cig']) ? sanitize_text_field($_GET
 $current_procedura_contraente  = isset($_GET['procedura_contraente']) ? sanitize_text_field($_GET['procedura_contraente']) : '';
 $current_stato                 = isset($_GET['stato']) ? sanitize_text_field($_GET['stato']) : '';
 $current_anno                  = isset($_GET['anno']) ? intval($_GET['anno']) : '';
+$allowed_order_types           = ['data_desc', 'data_asc', 'alfabetico_asc', 'alfabetico_desc'];
+$order_type                    = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';
+if (!in_array($order_type, $allowed_order_types, true)) {
+    $order_type = 'data_desc';
+}
 
 $form_action = '';
 $current_object = get_queried_object();
@@ -60,11 +65,27 @@ $args = [
     'post_type'      => 'bando',
     'posts_per_page' => $max_posts,
     'meta_key'       => '_dci_bando_data_inizio',
-    'orderby'        => 'meta_value_num',
-    'order'          => 'DESC',
+    'orderby'        => [
+        'meta_value_num' => 'DESC',
+        'ID'             => 'DESC',
+    ],
     'paged'          => $paged,
     's'              => $main_search_query
 ];
+
+if ($order_type === 'alfabetico_asc' || $order_type === 'alfabetico_desc') {
+    $order_direction = $order_type === 'alfabetico_desc' ? 'DESC' : 'ASC';
+    $args['orderby'] = [
+        'title' => $order_direction,
+        'ID'    => $order_direction,
+    ];
+} else {
+    $order_direction = $order_type === 'data_asc' ? 'ASC' : 'DESC';
+    $args['orderby'] = [
+        'meta_value_num' => $order_direction,
+        'ID'             => $order_direction,
+    ];
+}
 
 $meta_query_array = ['relation'=>'AND'];
 
@@ -185,6 +206,15 @@ $the_query = new WP_Query($args);
                     <?php foreach (dci_get_available_states() as $key=>$label) {
                         echo '<option value="'.esc_attr($key).'"'.selected($current_stato,$key,false).'>'.esc_html($label).'</option>';
                     } ?>
+                </select>
+            </div>
+            <!-- Anno -->
+            <div class="col-md-6 col-lg-4">
+                <select class="form-select" id="order_type" name="order_type">
+                    <option value="data_desc" <?php selected($order_type, 'data_desc'); ?>>Data decrescente</option>
+                    <option value="data_asc" <?php selected($order_type, 'data_asc'); ?>>Data crescente</option>
+                    <option value="alfabetico_asc" <?php selected($order_type, 'alfabetico_asc'); ?>>Nome crescente</option>
+                    <option value="alfabetico_desc" <?php selected($order_type, 'alfabetico_desc'); ?>>Nome decrescente</option>
                 </select>
             </div>
             <!-- Anno -->

@@ -1,15 +1,36 @@
 <?php
-$max_posts = isset($_GET['max_posts']) ? intval($_GET['max_posts']) : 9;
+$max_posts = dci_sanitize_posts_per_page(isset($_GET['max_posts']) ? $_GET['max_posts'] : 9, 9, 50);
 $query     = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
+$allowed_order_types = array('data_desc', 'data_asc', 'alfabetico_asc', 'alfabetico_desc');
+$order_type = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';
+if (!in_array($order_type, $allowed_order_types, true)) {
+    $order_type = 'data_desc';
+}
 
 $args = array(
     's'              => $query,
     'post_type'      => 'bando',
     'posts_per_page' => $max_posts,
     'meta_key'       => '_dci_bando_data_inizio',
-    'orderby'        => 'meta_value_num',
-    'order'          => 'DESC',
+    'orderby'        => array(
+        'meta_value_num' => 'DESC',
+        'ID'             => 'DESC',
+    ),
 );
+
+if ($order_type === 'alfabetico_asc' || $order_type === 'alfabetico_desc') {
+    $order_direction = $order_type === 'alfabetico_desc' ? 'DESC' : 'ASC';
+    $args['orderby'] = array(
+        'title' => $order_direction,
+        'ID'    => $order_direction,
+    );
+} else {
+    $order_direction = $order_type === 'data_asc' ? 'ASC' : 'DESC';
+    $args['orderby'] = array(
+        'meta_value_num' => $order_direction,
+        'ID'             => $order_direction,
+    );
+}
 
 $the_query = new WP_Query($args);
 $prefix = "_dci_bando_"; // Keep the prefix here for consistency

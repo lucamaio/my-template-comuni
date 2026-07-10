@@ -15,6 +15,11 @@ if ($paged < 2) {
     );
 }
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
+$allowed_order_types = array('data_desc', 'data_asc', 'alfabetico_asc', 'alfabetico_desc');
+$order_type = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';
+if (!in_array($order_type, $allowed_order_types, true)) {
+    $order_type = 'data_desc';
+}
 
 // Prendi gli anni disponibili dai post pubblicati (per la combo)
 $years = $wpdb->get_col("
@@ -29,10 +34,26 @@ $years = $wpdb->get_col("
 $args = array(
     'post_type'      => 'incarichi_dip',
     'posts_per_page' => $max_posts,
-    'orderby'        => 'date',
-    'order'          => 'DESC',
+    'orderby'        => array(
+        'date' => 'DESC',
+        'ID'   => 'DESC',
+    ),
     'paged'          => $paged,
 );
+
+if ($order_type === 'alfabetico_asc' || $order_type === 'alfabetico_desc') {
+    $order_direction = $order_type === 'alfabetico_desc' ? 'DESC' : 'ASC';
+    $args['orderby'] = array(
+        'title' => $order_direction,
+        'ID'    => $order_direction,
+    );
+} else {
+    $order_direction = $order_type === 'data_asc' ? 'ASC' : 'DESC';
+    $args['orderby'] = array(
+        'date' => $order_direction,
+        'ID'   => $order_direction,
+    );
+}
 
 if (!empty($main_search_query)) {
     $args['s'] = $main_search_query;
@@ -72,6 +93,16 @@ $the_query = new WP_Query($args);
                 <?php echo esc_html($y); ?>
             </option>
         <?php endforeach; ?>
+    </select>
+    </div>
+
+    <div class="incarichi-filtro-form__field">
+    <label for="order-type" class="form-label">Ordina per</label>
+    <select id="order-type" name="order_type" class="form-select">
+        <option value="data_desc" <?php selected($order_type, 'data_desc'); ?>>Data decrescente</option>
+        <option value="data_asc" <?php selected($order_type, 'data_asc'); ?>>Data crescente</option>
+        <option value="alfabetico_asc" <?php selected($order_type, 'alfabetico_asc'); ?>>Nome crescente</option>
+        <option value="alfabetico_desc" <?php selected($order_type, 'alfabetico_desc'); ?>>Nome decrescente</option>
     </select>
     </div>
 
@@ -149,7 +180,9 @@ form.incarichi-filtro-form {
 .incarichi-filtro-form__head { margin-bottom: 1rem; }
 .incarichi-filtro-form__title { margin-bottom: .35rem; font-size: 1.2rem; }
 .incarichi-filtro-form__intro { margin-bottom: 0; }
-.incarichi-filtro-form__grid { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(170px, 1fr)) auto; gap: 1rem; align-items: end; }
+.incarichi-filtro-form__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; align-items: end; }
+.incarichi-filtro-form__field,
+.incarichi-filtro-form__actions { min-width: 0; }
 
 form.incarichi-filtro-form label.form-label {
     font-weight: 600;
@@ -184,6 +217,7 @@ form.incarichi-filtro-form button.btn-primary {
     font-weight: 600;
     border-radius: 6px;
     min-height: 48px;
+    width: 100%;
     cursor: pointer;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -234,13 +268,13 @@ form.incarichi-filtro-form button.btn-primary {
     cursor: default;
 }
 
-@media (max-width: 576px) {
-    .incarichi-filtro-form__grid { grid-template-columns: 1fr; }
-}
-
 @media (max-width: 991.98px) {
     .incarichi-filtro-form__grid { grid-template-columns: 1fr 1fr; }
     .incarichi-filtro-form__field--search,
     .incarichi-filtro-form__actions { grid-column: 1 / -1; }
+}
+
+@media (max-width: 575.98px) {
+    .incarichi-filtro-form__grid { grid-template-columns: 1fr; }
 }
 </style>

@@ -13,6 +13,11 @@ $paged_from_get   = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : (is
 $paged_from_custom = isset($_GET['atti_page']) ? max(1, absint($_GET['atti_page'])) : 1;
 $paged = max($paged_from_query, $paged_from_page, $paged_from_get, $paged_from_custom);
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
+$allowed_order_types = array('data_desc', 'data_asc', 'alfabetico_asc', 'alfabetico_desc');
+$order_type = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';
+if (!in_array($order_type, $allowed_order_types, true)) {
+    $order_type = 'data_desc';
+}
 
 // Anni disponibili
 $years = $wpdb->get_col("
@@ -61,11 +66,27 @@ if (!empty($main_search_query)) {
 $args = [
     'post_type'      => 'atto_concessione',
     'posts_per_page' => $max_posts,
-    'orderby'        => 'meta_value_num',
-    'order'          => 'DESC',
+    'orderby'        => [
+        'date' => 'DESC',
+        'ID'   => 'DESC',
+    ],
     'paged'          => $paged,
     'no_found_rows'  => false,
 ];
+
+if ($order_type === 'alfabetico_asc' || $order_type === 'alfabetico_desc') {
+    $order_direction = $order_type === 'alfabetico_desc' ? 'DESC' : 'ASC';
+    $args['orderby'] = [
+        'title' => $order_direction,
+        'ID'    => $order_direction,
+    ];
+} else {
+    $order_direction = $order_type === 'data_asc' ? 'ASC' : 'DESC';
+    $args['orderby'] = [
+        'date' => $order_direction,
+        'ID'   => $order_direction,
+    ];
+}
 
 if (!empty($main_search_query)) {
     $args['post__in'] = $search_post_ids;
@@ -104,6 +125,16 @@ $the_query = new WP_Query($args);
                 <?php echo esc_html($y); ?>
             </option>
         <?php endforeach; ?>
+    </select>
+    </div>
+
+    <div class="incarichi-filtro-form__field">
+    <label for="order-type" class="form-label">Ordina per</label>
+    <select id="order-type" name="order_type" class="form-select">
+        <option value="data_desc" <?php selected($order_type, 'data_desc'); ?>>Data decrescente</option>
+        <option value="data_asc" <?php selected($order_type, 'data_asc'); ?>>Data crescente</option>
+        <option value="alfabetico_asc" <?php selected($order_type, 'alfabetico_asc'); ?>>Nome crescente</option>
+        <option value="alfabetico_desc" <?php selected($order_type, 'alfabetico_desc'); ?>>Nome decrescente</option>
     </select>
     </div>
 
@@ -195,9 +226,14 @@ form.incarichi-filtro-form {
 
 .incarichi-filtro-form__grid {
     display: grid;
-    grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(170px, 1fr)) auto;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
     align-items: end;
+}
+
+.incarichi-filtro-form__field,
+.incarichi-filtro-form__actions {
+    min-width: 0;
 }
 
 form.incarichi-filtro-form label {
@@ -228,6 +264,7 @@ form.incarichi-filtro-form button.btn-primary {
     font-weight: 600;
     border-radius: 6px;
     min-height: 48px;
+    width: 100%;
     cursor: pointer;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }

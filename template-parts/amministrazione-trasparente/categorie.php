@@ -80,31 +80,80 @@ document.documentElement.classList.add('dci-at-menu-js');
 
 .dci-at-main-search__button {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
     min-width: 110px;
     min-height: 48px;
     border-radius: 0 4px 4px 0;
     font-weight: 700;
 }
 
+.dci-at-main-search__button-spinner {
+    display: none;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, .55);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: dci-at-main-search-spin .75s linear infinite;
+}
+
+.dci-at-main-search__button.is-loading .dci-at-main-search__button-spinner {
+    display: inline-block;
+}
+
+.dci-at-main-search__button.is-loading {
+    cursor: progress;
+}
+
+.dci-at-main-search__loading {
+    margin: .55rem 0 0;
+    color: #455a64;
+    font-size: .95rem;
+    font-weight: 600;
+}
+
+@keyframes dci-at-main-search-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .dci-at-main-search__order {
+    margin-top: 0;
+}
+
+.dci-at-main-search__filters {
+    display: grid;
+    grid-template-columns: minmax(260px, 2fr) minmax(140px, 1fr) minmax(170px, 1fr);
+    gap: .85rem;
     margin-top: 1rem;
 }
 
-.dci-at-main-search__order-label {
+.dci-at-main-search__field {
+    min-width: 0;
+}
+
+.dci-at-main-search__order-label,
+.dci-at-main-search__field-label {
     display: block;
     margin-bottom: .45rem;
     color: #17324d;
     font-weight: 700;
 }
 
-.dci-at-main-search__order-select {
+.dci-at-main-search__order-select,
+.dci-at-main-search__filter-select {
     min-height: 48px;
     border: 2px solid #b8c9da;
     border-radius: 4px;
     background-color: #fff;
 }
 
-.dci-at-main-search__order-select:focus {
+.dci-at-main-search__order-select:focus,
+.dci-at-main-search__filter-select:focus {
     border-color: #17324d;
     box-shadow: 0 0 0 .2rem rgba(23, 50, 77, .16);
 }
@@ -144,37 +193,41 @@ document.documentElement.classList.add('dci-at-menu-js');
     color: #455a64;
 }
 
+.dci-at-category-results__intro {
+    margin: 0 0 .85rem;
+    color: #455a64;
+    line-height: 1.5;
+}
+
 .dci-at-category-results {
     list-style: none;
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    background: #fff;
-    border: 1px solid #d8e1ea;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(23, 50, 77, .05);
+    display: grid;
+    gap: .75rem;
 }
 
 .dci-at-category-results__link {
     display: flex;
-    align-items: center;
-    gap: .6rem;
-    padding: .85rem 1rem;
+    align-items: flex-start;
+    padding: 1rem;
     color: #17324d;
     background: #fff;
+    border: 1px solid #d8e1ea;
+    border-left: 4px solid #5c7f99;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(23, 50, 77, .05);
     font-weight: 700;
     line-height: 1.35;
     text-decoration: none;
-    transition: background-color .18s ease, color .18s ease;
-}
-
-.dci-at-category-results__item + .dci-at-category-results__item {
-    border-top: 1px solid #e6edf3;
+    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
 }
 
 .dci-at-category-results__link:hover {
     color: #17324d;
     background: #f5f7fa;
+    border-color: #b8c9da;
+    box-shadow: 0 4px 12px rgba(23, 50, 77, .08);
     text-decoration: none;
 }
 
@@ -187,20 +240,28 @@ document.documentElement.classList.add('dci-at-menu-js');
     outline-offset: 2px;
 }
 
-.dci-at-category-results__marker {
-    flex: 0 0 auto;
-    font-size: 1.25rem;
-    line-height: 1;
-}
-
-.dci-at-category-results__label {
+.dci-at-category-results__body {
     min-width: 0;
     flex: 1 1 auto;
 }
 
-.dci-at-category-results__external {
-    flex: 0 0 auto;
-    fill: currentColor;
+.dci-at-category-results__label {
+    min-width: 0;
+    display: block;
+    font-size: 1rem;
+}
+
+.dci-at-category-results__parent,
+.dci-at-category-results__description {
+    display: block;
+    margin-top: .25rem;
+    color: #455a64;
+    font-size: .9rem;
+    font-weight: 400;
+}
+
+.dci-at-category-results__parent {
+    font-weight: 600;
 }
 
 .dci-at-search-results__empty {
@@ -209,6 +270,26 @@ document.documentElement.classList.add('dci-at-menu-js');
     border: 1px solid #d8e1ea;
     border-radius: 4px;
     color: #455a64;
+}
+
+.dci-at-search-results__empty-title {
+    margin: 0 0 .35rem;
+    color: #17324d;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.dci-at-search-results__empty-text {
+    margin: 0;
+}
+
+.dci-at-search-results__empty-actions {
+    margin: .7rem 0 0;
+    padding-left: 1.1rem;
+}
+
+.dci-at-search-results__empty-actions li + li {
+    margin-top: .25rem;
 }
 
 .dci-at-document-result .cmp-card-latest-messages {
@@ -293,6 +374,16 @@ document.documentElement.classList.add('dci-at-menu-js');
 
     .dci-at-main-search__button {
         margin-top: .75rem;
+    }
+
+    .dci-at-main-search__filters {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .dci-at-main-search__filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -852,6 +943,73 @@ document.addEventListener('keydown', function(event) {
     event.preventDefault();
     toggleContent(categoryTitle.getAttribute('data-target'));
 });
+
+function resetAtSearchLoadingState(form) {
+    if (!form) {
+        return;
+    }
+
+    var button = form.querySelector('.dci-at-main-search__button');
+    var label = form.querySelector('.dci-at-main-search__button-label');
+    var loadingMessage = form.querySelector('.dci-at-main-search__loading');
+
+    form.removeAttribute('aria-busy');
+    form.dataset.dciAtLoading = '0';
+
+    if (button) {
+        button.disabled = false;
+        button.classList.remove('is-loading');
+    }
+
+    if (label) {
+        label.textContent = 'Cerca';
+    }
+
+    if (loadingMessage) {
+        loadingMessage.hidden = true;
+    }
+}
+
+document.addEventListener('submit', function(event) {
+    var form = event.target.closest('#search-form');
+    if (!form || !form.querySelector('.dci-at-main-search')) {
+        return;
+    }
+
+    if (form.dataset.dciAtLoading === '1') {
+        event.preventDefault();
+        return;
+    }
+
+    if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+        return;
+    }
+
+    var button = form.querySelector('.dci-at-main-search__button');
+    var label = form.querySelector('.dci-at-main-search__button-label');
+    var loadingMessage = form.querySelector('.dci-at-main-search__loading');
+    var loadingLabel = button ? button.getAttribute('data-loading-label') : 'Ricerca in corso...';
+
+    form.dataset.dciAtLoading = '1';
+    form.setAttribute('aria-busy', 'true');
+
+    if (label) {
+        label.textContent = loadingLabel || 'Ricerca in corso...';
+    }
+
+    if (button) {
+        button.classList.add('is-loading');
+        button.disabled = true;
+    }
+
+    if (loadingMessage) {
+        loadingMessage.hidden = false;
+    }
+});
+
+window.addEventListener('pageshow', function() {
+    resetAtSearchLoadingState(document.getElementById('search-form'));
+});
 </script>
 
 <main>
@@ -883,35 +1041,77 @@ document.addEventListener('keydown', function(event) {
                                     minlength="2"
                                     aria-describedby="dci-at-main-search-help"
                                 >
-                                <button class="btn btn-primary dci-at-main-search__button" type="submit">
-                                    Cerca
+                                <button class="btn btn-primary dci-at-main-search__button" type="submit" data-loading-label="Ricerca in corso...">
+                                    <span class="dci-at-main-search__button-label">Cerca</span>
+                                    <span class="dci-at-main-search__button-spinner" aria-hidden="true"></span>
                                 </button>
                             </div>
+                            <p class="dci-at-main-search__loading" role="status" aria-live="polite" hidden>
+                                Ricerca in corso...
+                            </p>
 
-                            <div class="dci-at-main-search__order">
-                                <label class="dci-at-main-search__order-label" for="dci-at-main-search-order">
-                                    Ordina per
-                                </label>
-                                <select
-                                    class="form-control dci-at-main-search__order-select"
-                                    id="dci-at-main-search-order"
-                                    name="at_order"
-                                >
-                                    <option value="data_desc" <?= selected($at_search_order, 'data_desc', false); ?>>Data (Descendente)</option>
-                                    <option value="data_asc" <?= selected($at_search_order, 'data_asc', false); ?>>Data (Ascendente)</option>
-                                    <option value="alfabetico_asc" <?= selected($at_search_order, 'alfabetico_asc', false); ?>>Alfabetico (Ascendente)</option>
-                                    <option value="alfabetico_desc" <?= selected($at_search_order, 'alfabetico_desc', false); ?>>Alfabetico (Discendente)</option>
-                                </select>
+                            <div class="dci-at-main-search__filters">
+                                <div class="dci-at-main-search__field">
+                                    <label class="dci-at-main-search__field-label" for="dci-at-main-search-section">
+                                        Sezione
+                                    </label>
+                                    <select
+                                        class="form-control dci-at-main-search__filter-select"
+                                        id="dci-at-main-search-section"
+                                        name="at_section"
+                                    >
+                                        <option value="0">Tutte le sezioni</option>
+                                        <?php foreach ($at_search_section_options as $at_section_option) { ?>
+                                            <option value="<?= esc_attr((int) $at_section_option->term_id); ?>" <?= selected($at_search_section, (int) $at_section_option->term_id, false); ?>>
+                                                <?= esc_html(dci_format_trasparenza_section_title($at_section_option->name)); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+
+                                <div class="dci-at-main-search__field">
+                                    <label class="dci-at-main-search__field-label" for="dci-at-main-search-year">
+                                        Anno
+                                    </label>
+                                    <select
+                                        class="form-control dci-at-main-search__filter-select"
+                                        id="dci-at-main-search-year"
+                                        name="at_year"
+                                    >
+                                        <option value="0">Tutti gli anni</option>
+                                        <?php for ($at_year = (int) gmdate('Y'); $at_year >= (int) gmdate('Y') - 9; $at_year--) { ?>
+                                            <option value="<?= esc_attr($at_year); ?>" <?= selected($at_search_year, $at_year, false); ?>>
+                                                <?= esc_html($at_year); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+
+                                <div class="dci-at-main-search__field dci-at-main-search__order">
+                                    <label class="dci-at-main-search__order-label" for="dci-at-main-search-order">
+                                        Ordina per
+                                    </label>
+                                    <select
+                                        class="form-control dci-at-main-search__order-select"
+                                        id="dci-at-main-search-order"
+                                        name="at_order"
+                                    >
+                                        <option value="data_desc" <?= selected($at_search_order, 'data_desc', false); ?>>Data (Discendente)</option>
+                                        <option value="data_asc" <?= selected($at_search_order, 'data_asc', false); ?>>Data (Ascendente)</option>
+                                        <option value="alfabetico_asc" <?= selected($at_search_order, 'alfabetico_asc', false); ?>>Alfabetico (Ascendente)</option>
+                                        <option value="alfabetico_desc" <?= selected($at_search_order, 'alfabetico_desc', false); ?>>Alfabetico (Discendente)</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <?php if ($at_search_term !== '') { ?>
-                                <a class="dci-at-main-search__reset" href="<?= esc_url(remove_query_arg(['at_search', 'at_page', 'at_order'])); ?>">
+                            <?php if ($at_search_term !== '' || $at_search_section > 0 || $at_search_year > 0) { ?>
+                                <a class="dci-at-main-search__reset" href="<?= esc_url(remove_query_arg(['at_search', 'at_page', 'at_order', 'at_type', 'at_section', 'at_year'])); ?>">
                                     Cancella la ricerca
                                 </a>
                             <?php } ?>
                         </section>
 
-                        <?php if ($at_search_too_short) { ?>
+                        <?php if ($at_search_too_short && !$at_search_has_filters) { ?>
                             <div class="dci-at-search-results" role="status">
                                 <p class="dci-at-search-results__empty">
                                     Inserisci almeno due caratteri per avviare la ricerca.
@@ -929,8 +1129,8 @@ document.addEventListener('keydown', function(event) {
                                             <?php
                                             printf(
                                                 esc_html(_n(
-                                                    '%s categoria trovata',
-                                                    '%s categorie trovate',
+                                                    '%s sezione trovata',
+                                                    '%s sezioni trovate',
                                                     count($at_category_results),
                                                     'design_comuni_italia'
                                                 )),
@@ -938,6 +1138,9 @@ document.addEventListener('keydown', function(event) {
                                             );
                                             ?>
                                         </h3>
+                                        <p class="dci-at-category-results__intro">
+                                            Le sezioni trovate sono percorsi dell'Amministrazione Trasparente coerenti con la ricerca, utili per raggiungere documenti, dati e schede pubblicate.
+                                        </p>
                                         <ul class="dci-at-category-results">
                                             <?php foreach ($at_category_results as $at_category) {
                                                 $at_category_link = get_term_link($at_category);
@@ -954,6 +1157,20 @@ document.addEventListener('keydown', function(event) {
                                                 }
 
                                                 $at_category_name = dci_format_trasparenza_section_title($at_category->name);
+                                                $at_category_parent_name = '';
+                                                $at_category_description = trim(wp_strip_all_tags((string) $at_category->description));
+
+                                                if ((int) $at_category->parent > 0) {
+                                                    $at_category_parent = get_term((int) $at_category->parent, 'tipi_cat_amm_trasp');
+
+                                                    if ($at_category_parent && !is_wp_error($at_category_parent)) {
+                                                        $at_category_parent_name = dci_format_trasparenza_section_title($at_category_parent->name);
+                                                    }
+                                                }
+
+                                                if ($at_category_description !== '') {
+                                                    $at_category_description = wp_html_excerpt($at_category_description, 150, '...');
+                                                }
                                                 ?>
                                                 <li class="dci-at-category-results__item">
                                                     <a
@@ -963,12 +1180,20 @@ document.addEventListener('keydown', function(event) {
                                                             target="_blank" rel="noopener noreferrer"
                                                         <?php } ?>
                                                     >
-                                                        <span class="dci-at-category-results__marker" aria-hidden="true">›</span>
-                                                        <span class="dci-at-category-results__label"><?= esc_html($at_category_name); ?></span>
+                                                        <span class="dci-at-category-results__body">
+                                                            <span class="dci-at-category-results__label"><?= esc_html($at_category_name); ?></span>
+                                                            <?php if ($at_category_parent_name !== '') { ?>
+                                                                <span class="dci-at-category-results__parent">
+                                                                    In: <?= esc_html($at_category_parent_name); ?>
+                                                                </span>
+                                                            <?php } ?>
+                                                            <?php if ($at_category_description !== '') { ?>
+                                                                <span class="dci-at-category-results__description">
+                                                                    <?= esc_html($at_category_description); ?>
+                                                                </span>
+                                                            <?php } ?>
+                                                        </span>
                                                         <?php if ($at_category_is_external) { ?>
-                                                            <svg class="icon icon-xs dci-at-category-results__external" aria-hidden="true">
-                                                                <use href="#it-external-link"></use>
-                                                            </svg>
                                                             <span class="visually-hidden">
                                                                 <?= $at_category_new_window
                                                                     ? esc_html__('Sezione esterna. Si apre in una nuova finestra', 'design_comuni_italia')
@@ -1008,7 +1233,7 @@ document.addEventListener('keydown', function(event) {
                                                 null,
                                                 [
                                                     'show_search_categories' => true,
-                                                    'section_term' => $at_search_section_terms[$elemento->post_type] ?? null,
+                                                    'section_term' => $at_search_section_terms[$elemento->ID] ?? $at_search_section_terms[$elemento->post_type] ?? null,
                                                 ]
                                             );
                                             echo '</div>';
@@ -1024,14 +1249,21 @@ document.addEventListener('keydown', function(event) {
                                                     $at_pagination_url = home_url('/amministrazione-trasparente/');
                                                 }
 
-                                                $at_pagination_base = add_query_arg(
-                                                    [
-                                                        'at_search' => $at_search_term,
-                                                        'at_order'  => $at_search_order,
-                                                        'at_page'   => 999999999,
-                                                    ],
-                                                    $at_pagination_url
-                                                );
+                                                $at_pagination_args = [
+                                                    'at_search' => $at_search_term,
+                                                    'at_order'  => $at_search_order,
+                                                    'at_page'   => 999999999,
+                                                ];
+
+                                                if ($at_search_section > 0) {
+                                                    $at_pagination_args['at_section'] = $at_search_section;
+                                                }
+
+                                                if ($at_search_year > 0) {
+                                                    $at_pagination_args['at_year'] = $at_search_year;
+                                                }
+
+                                                $at_pagination_base = add_query_arg($at_pagination_args, $at_pagination_url);
 
                                                 $at_pagination_links = paginate_links([
                                                     'base'      => str_replace('999999999', '%#%', esc_url_raw($at_pagination_base)),
@@ -1062,15 +1294,25 @@ document.addEventListener('keydown', function(event) {
                                             </nav>
                                         <?php } ?>
                                     <?php } else { ?>
-                                        <p class="dci-at-search-results__empty">
-                                            Nessun contenuto corrisponde ai termini inseriti.
-                                        </p>
+                                        <div class="dci-at-search-results__empty" role="status">
+                                            <p class="dci-at-search-results__empty-title">
+                                                Nessun risultato trovato
+                                            </p>
+                                            <p class="dci-at-search-results__empty-text">
+                                                Non ci sono contenuti pubblicati che corrispondono ai criteri selezionati. Puoi provare ad ampliare la ricerca rimuovendo un filtro, scegliendo un anno diverso o usando parole chiave piu generiche.
+                                            </p>
+                                            <ul class="dci-at-search-results__empty-actions">
+                                                <li>Controlla di aver scelto la sezione corretta.</li>
+                                                <li>Prova con "Tutte le sezioni" o scegli un anno diverso.</li>
+                                                <li>Se hai inserito un testo, usa almeno due caratteri e termini meno specifici.</li>
+                                            </ul>
+                                        </div>
                                     <?php } ?>
                                 </div>
                             </section>
                         <?php } ?>
 
-                        <?php if ($at_search_term === '') { ?>
+                        <?php if ($at_search_term === '' && !$at_search_has_filters) { ?>
                         <div class="mycontainer px-3 pb-3">
                             <div id="toggle-all-wrapper">
                                 <div>Sezioni dell’Amministrazione Trasparente</div>

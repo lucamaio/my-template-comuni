@@ -359,10 +359,7 @@ class Breadcrumb_Trail {
 			
             if ( is_singular() ) {
 		    
-                              //SINGLE PAGE
-
-
-		    
+                // Tipo di post personalizzato: Commissario
 				if (get_post_type() == 'commissario') {					
 			           $this->items[] =  "<a href='".home_url("amministrazione")."'>".__("Amministrazione", "design_comuni_italia")."</a>";				    
 				   $this->items[] =  "<a href='" . home_url("commissario") . "'>" . __("OSL", "design_comuni_italia") . "</a>";					
@@ -387,179 +384,256 @@ class Breadcrumb_Trail {
 					    $this->items[] = $title;
 					return;
 				}
-		    
+
 
 	
-			    	   if (get_post_type() == 'bando') {					
-	                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
+				// Mi ricavo i link del Amministrazione Trasparente. Se è configurato, lo uso, altrimenti uso il link di default.
+				$amministrazione_trasparente_url = home_url('/index.php/amministrazione-trasparente');
 
-                                           $parent_term = get_term_by( 'name', 'Bandi di Gara e contratti', 'tipi_cat_amm_trasp' );
-                                           $bdncp_term  = get_term_by( 'name', 'Atti, documenti e link a BDNCP', 'tipi_cat_amm_trasp' );
+				// Tipo di post personalizzato: Bando di gara e contratti
+				if (get_post_type() == 'bando') {		
+					// Aggiungo il link all'Amministrazione Trasparente			
+					$this->items[] = "<a href='" . esc_url($amministrazione_trasparente_url) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
 
-                                           if ( $parent_term && ! is_wp_error( $parent_term ) ) {
-                                               $this->items[] = sprintf(
-                                                   '<a href="%s">%s</a>',
-                                                   esc_url( get_term_link( $parent_term, 'tipi_cat_amm_trasp' ) ),
-                                                   $parent_term->name
-                                               );
-                                           }
+					// Recupera le sezioni reali della Trasparenza senza costruire URL manuali.
+					// get_term_link() rispetta dominio e permalink dell'ente corrente.
+					$trasparenza_terms = array(
+						'Bandi di Gara e contratti',
+						'Atti, documenti e link a BDNCP',
+					);
 
-                                           if ( $bdncp_term && ! is_wp_error( $bdncp_term ) ) {
-                                               $this->items[] = sprintf(
-                                                   '<a href="%s">%s</a>',
-                                                   esc_url( get_term_link( $bdncp_term, 'tipi_cat_amm_trasp' ) ),
-                                                   $bdncp_term->name
-                                               );
-                                           }
+					// itero le sezioni e aggiungo i link al breadcrumb
+					foreach ($trasparenza_terms as $term_name) {
+						$term = get_term_by('name', $term_name, 'tipi_cat_amm_trasp');
 
-					   // Recupera il titolo della pagina e troncalo a 35 caratteri
-					    $title = get_the_title();
-					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
-					    if (strlen($title) > 35) {
-					        $title = substr($title, 0, 35) . '...';
-					    }
-					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
-					    if (preg_match('/[A-Z]{5,}/', $title)) {
-					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
-					        $title = ucfirst(strtolower($title));
-					    }
-					    // Aggiunge il titolo alla lista degli elementi
-					    $this->items[] = $title;
-					   return;
-				   }
+						// Se il termine esiste, aggiungo il link al breadcrumb
+						if ($term && !is_wp_error($term)) {
+							$term_link = get_term_link($term, 'tipi_cat_amm_trasp');
+
+							// Se il link del termine non è un errore, aggiungo il link al breadcrumb
+							if (!is_wp_error($term_link)) {
+								$this->items[] = sprintf('<a href="%s">%s</a>', esc_url($term_link), esc_html(dci_get_breadcrumb_label($term->name)));
+							}
+						}
+					}
+
+					// Recupera il titolo della pagina e troncalo a 35 caratteri
+					$title = get_the_title();
+
+					// Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					if (strlen($title) > 35) {
+						$title = substr($title, 0, 35) . '...';
+					}
+
+					// Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					if (preg_match('/[A-Z]{5,}/', $title)) {
+						// Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+						$title = ucfirst(strtolower($title));
+					}
+
+					// Aggiunge il titolo alla lista degli elementi
+					$this->items[] = $title;
+					return;
+				}
 
 
-
+				// Tipo di post personalizzato: Atto di concessione
 		    
-			    	   if (get_post_type() == 'atto_concessione') {					
-	                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
-					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/sovvenzioni-contributi-sussidi-vantaggi-economici'>" . __("sovvenzioni contributi sussidi vantaggi economici", "design_comuni_italia") . "</a>";
-					   
-					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/atti-di-concessione/'>" . __("Atti di Concessione", "design_comuni_italia") . "</a>";	
+				if (get_post_type() == 'atto_concessione') {		
+					// Aggiungo il link all'Amministrazione Trasparente			
+					$this->items[] = "<a href='" . esc_url($amministrazione_trasparente_url) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
 					
-	          
+					// Recupera le sezioni reali della Trasparenza: get_term_link() genera
+					// l'URL corretto anche per enti esterni o installazioni in sottocartella.
+					$trasparenza_terms = array(
+						'sovvenzioni-contributi-sussidi-vantaggi-economici',
+						'atti-di-concessione',
+					);
+
+					// Itero le sezioni e aggiungo i link al breadcrumb
+					foreach ($trasparenza_terms as $term_slug) {
+						// Recupera il termine per slug nella tassonomia 'tipi_cat_amm_trasp'
+						$term = get_term_by('slug', $term_slug, 'tipi_cat_amm_trasp');
+
+						// Se il termine esiste, aggiungo il link al breadcrumb
+						if ($term && !is_wp_error($term)) {
+							$term_link = get_term_link($term, 'tipi_cat_amm_trasp');
+							
+							// Se il link del termine non è un errore, aggiungo il link al breadcrumb
+							if (!is_wp_error($term_link)) {
+								$this->items[] = sprintf('<a href="%s">%s</a>', esc_url($term_link), esc_html(dci_get_breadcrumb_label($term->name)));
+							}
+						}
+					}
 					   
-					    // Recupera il titolo della pagina e troncalo a 35 caratteri
-					    $title = get_the_title();
-					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
-					    if (strlen($title) > 35) {
-					        $title = substr($title, 0, 35) . '...';
-					    }
-					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
-					    if (preg_match('/[A-Z]{5,}/', $title)) {
-					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
-					        $title = ucfirst(strtolower($title));
-					    }
-					    // Aggiunge il titolo alla lista degli elementi
-					    $this->items[] = $title;
-					   return;
-				   }
+					// Recupera il titolo della pagina e troncalo a 35 caratteri
+					$title = get_the_title();
+
+					// Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					if (strlen($title) > 35) {
+						$title = substr($title, 0, 35) . '...';
+					}
+
+					// Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					if (preg_match('/[A-Z]{5,}/', $title)) {
+						// Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+						$title = ucfirst(strtolower($title));
+					}
+
+					// Aggiunge il titolo alla lista degli elementi
+					$this->items[] = $title;
+					return;
+				}
 	              
-		              
-			    	   if (get_post_type() == 'incarichi_dip') {					
-	                                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
-					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/personale/'>" . __("Personale", "design_comuni_italia") . "</a>";
-					   
-					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/incarichi-conferiti-e-autorizzati-ai-dipendenti/'>" . __("Incarichi conferiti e autorizzati ai dipendenti", "design_comuni_italia") . "</a>";	
+		        // Tipo di post personalizzato: Incarichi conferiti e autorizzati ai dipendenti
+				if (get_post_type() == 'incarichi_dip') {			
+					// Aggiungo il link all'Amministrazione Trasparente		
+					$this->items[] = "<a href='" . esc_url($amministrazione_trasparente_url) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
 					
-	            
-					   
-					   // Recupera il titolo della pagina e troncalo a 35 caratteri
-					    $title = get_the_title();
-					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
-					    if (strlen($title) > 35) {
-					        $title = substr($title, 0, 35) . '...';
-					    }
-					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
-					    if (preg_match('/[A-Z]{5,}/', $title)) {
-					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
-					        $title = ucfirst(strtolower($title));
-					    }
-					    // Aggiunge il titolo alla lista degli elementi
-					    $this->items[] = $title;
-					   return;
-				   }      
+					// I CPT personalizzati non hanno i termini della Trasparenza associati
+					// direttamente al post: le sezioni previste vengono cercate per slug.
+					$trasparenza_terms = array(
+						'personale',
+						'incarichi-conferiti-e-autorizzati-ai-dipendenti',
+					);
 
-
-			    	   if (get_post_type() == 'titolare_incarico') {					
-	                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";	
-					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/consulenti-e-collaboratori/'>" . __("Consulenti e collaboratori", "design_comuni_italia") . "</a>";					   
-					   $this->items[] =  "<a href='/tipi_cat_amm_trasp/titolari-di-incarichi-di-collaborazione-o-consulenza/'>" . __("Titolari di incarichi di collaborazione o consulenza", "design_comuni_italia") . "</a>";	
+					// Itero le sezioni e aggiungo i link al breadcrumb
+					foreach ($trasparenza_terms as $term_slug) {
+						$term = get_term_by('slug', $term_slug, 'tipi_cat_amm_trasp');
+						// Se il termine esiste, aggiungo il link al breadcrumb
+						if ($term && !is_wp_error($term)) {
+							$term_link = get_term_link($term, 'tipi_cat_amm_trasp');
+							// Se il link del termine non è un errore, aggiungo il link al breadcrumb
+							if (!is_wp_error($term_link)) {
+								$this->items[] = sprintf('<a href="%s">%s</a>', esc_url($term_link), esc_html(dci_get_breadcrumb_label($term->name)));
+							}
+						}
+					}
 					
-	        
-					   
-					   // Recupera il titolo della pagina e troncalo a 35 caratteri
-					    $title = get_the_title();
-					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
-					    if (strlen($title) > 35) {
-					        $title = substr($title, 0, 35) . '...';
-					    }
-					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
-					    if (preg_match('/[A-Z]{5,}/', $title)) {
-					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
-					        $title = ucfirst(strtolower($title));
-					    }
-					    // Aggiunge il titolo alla lista degli elementi
-					    $this->items[] = $title;
-					   return;
-				   }     
+					// Recupera il titolo della pagina e troncalo a 35 caratteri
+					$title = get_the_title();
 
-			    	   if (get_post_type() == 'incarico_dirig') {
-	                   $this->items[] = "<a href='" . home_url("amministrazione-trasparente") . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
+					// Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					if (strlen($title) > 35) {
+						$title = substr($title, 0, 35) . '...';
+					}
 
-					   $add_trasparenza_term = function ($term_name) {
-						   $term = get_term_by('name', $term_name, 'tipi_cat_amm_trasp');
-						   if ($term && !is_wp_error($term)) {
-							   $this->items[] = sprintf(
-								   '<a href="%s">%s</a>',
-								   esc_url(get_term_link($term, 'tipi_cat_amm_trasp')),
-								   esc_html(dci_get_breadcrumb_label($term->name))
-							   );
-						   }
-					   };
+					// Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					if (preg_match('/[A-Z]{5,}/', $title)) {
+						// Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+						$title = ucfirst(strtolower($title));
+					}
 
-					   $add_trasparenza_term('Personale');
+					// Aggiunge il titolo alla lista degli elementi
+					$this->items[] = $title;
+					return;
+				}      
 
-					   $sezione_pubblicazione = (string) get_post_meta(get_the_ID(), '_dci_incarico_dirigenziale_sezione_pubblicazione', true);
-					   if ($sezione_pubblicazione === 'dirigenti') {
-						   $add_trasparenza_term('Titolari di Incarichi dirigenziali (dirigenti non generali)');
-						   $add_trasparenza_term('Incarichi dirigenziali a qualsiasi titolo conferiti');
-					   } else {
-						   $add_trasparenza_term('Titolari di incarichi dirigenziali amministrativi di vertice');
-					   }
+				// tipo di post personalizzato: Titolari di incarichi di collaborazione o consulenza
+			    if (get_post_type() == 'titolare_incarico') {		
+					// Aggiungo il link all'Amministrazione Trasparente		
+					$this->items[] = "<a href='" . esc_url($amministrazione_trasparente_url) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
+					
+					// Usa i termini WordPress effettivi al posto di URL scritti manualmente,
+					// mantenendo nel breadcrumb la gerarchia prevista per gli incarichi.
+					$trasparenza_terms = array(
+						'consulenti-e-collaboratori',
+						'titolari-di-incarichi-di-collaborazione-o-consulenza',
+					);
+					// Itero le sezioni e aggiungo i link al breadcrumb
+					foreach ($trasparenza_terms as $term_slug) {
+						$term = get_term_by('slug', $term_slug, 'tipi_cat_amm_trasp');
+						// Se il termine esiste, aggiungo il link al breadcrumb
+						if ($term && !is_wp_error($term)) {
+							$term_link = get_term_link($term, 'tipi_cat_amm_trasp');
 
-					   // Recupera il titolo della pagina e troncalo a 35 caratteri
-					    $title = get_the_title();
-					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
-					    if (strlen($title) > 35) {
-					        $title = substr($title, 0, 35) . '...';
-					    }
-					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
-					    if (preg_match('/[A-Z]{5,}/', $title)) {
-					        // Se sÃ¬, lo trasforma in minuscolo con la prima lettera maiuscola
-					        $title = ucfirst(strtolower($title));
-					    }
-					    // Aggiunge il titolo alla lista degli elementi
-					    $this->items[] = $title;
-					   return;
-				   }
-
+							// Se il link del termine non è un errore, aggiungo il link al breadcrumb
+							if (!is_wp_error($term_link)) {
+								$this->items[] = sprintf('<a href="%s">%s</a>', esc_url($term_link), esc_html(dci_get_breadcrumb_label($term->name)));
+							}
+						}
+					}
 				
+					// Recupera il titolo della pagina e troncalo a 35 caratteri
+					$title = get_the_title();
+					// Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					if (strlen($title) > 35) {
+						$title = substr($title, 0, 35) . '...';
+					}
+					// Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					if (preg_match('/[A-Z]{5,}/', $title)) {
+						// Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+						$title = ucfirst(strtolower($title));
+					}
+					// Aggiunge il titolo alla lista degli elementi
+					$this->items[] = $title;
+					return;
+				}     
+
+				// tipo di post personalizzato: Titolari di incarichi dirigenziali
+
+			    if (get_post_type() == 'incarico_dirig') {
+					// Aggiungo il link all'Amministrazione Trasparente
+	                $this->items[] = "<a href='" . esc_url($amministrazione_trasparente_url) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
+
+					// La sezione finale dipende dal valore scelto nella scheda dell'incarico.
+					$trasparenza_terms = array('Personale');					   
+					
+					// Recupera il valore del campo personalizzato per determinare la sezione di pubblicazione
+					$sezione_pubblicazione = (string) get_post_meta(get_the_ID(), '_dci_incarico_dirigenziale_sezione_pubblicazione', true);
+
+					if ($sezione_pubblicazione === 'dirigenti') {
+						$trasparenza_terms[] = 'Titolari di Incarichi dirigenziali (dirigenti non generali)';
+						$trasparenza_terms[] = 'Incarichi dirigenziali a qualsiasi titolo conferiti';
+					} else {
+						$trasparenza_terms[] = 'Titolari di incarichi dirigenziali amministrativi di vertice';
+					}
+
+					// Collega ogni voce tramite il termine WordPress effettivo, come negli elementi classici.
+					foreach ($trasparenza_terms as $term_name) {
+						$term = get_term_by('name', $term_name, 'tipi_cat_amm_trasp');
+						if ($term && !is_wp_error($term)) {
+							$term_link = get_term_link($term, 'tipi_cat_amm_trasp');
+							if (!is_wp_error($term_link)) {
+								$this->items[] = sprintf('<a href="%s">%s</a>', esc_url($term_link), esc_html(dci_get_breadcrumb_label($term->name)));
+							}
+						}
+					}
+
+					// Recupera il titolo della pagina e troncalo a 35 caratteri
+					$title = get_the_title();
+					// Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					if (strlen($title) > 35) {
+						$title = substr($title, 0, 35) . '...';
+					}
+					// Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					if (preg_match('/[A-Z]{5,}/', $title)) {
+						// Se sÃ¬, lo trasforma in minuscolo con la prima lettera maiuscola
+						$title = ucfirst(strtolower($title));
+					}
+					// Aggiunge il titolo alla lista degli elementi
+					$this->items[] = $title;
+					return;
+				}
+
+				// Tipo di post personalizzato: Progetto PNRR
 		    
 				if (get_post_type() == 'progetto') {					
 			          
-                                    $this->items[] = "<a href='index.php/".home_url("progetti")."'>".__("Progetti PNRR", "design_comuni_italia")."</a>";						
-                                    $terms = get_the_terms(get_the_ID(), 'tipi_progetto');
+                    $this->items[] = "<a href='index.php/".home_url("progetti")."'>".__("Progetti PNRR", "design_comuni_italia")."</a>";						
+                    $terms = get_the_terms(get_the_ID(), 'tipi_progetto');
+
 				    if ($terms) {
 				        foreach ($terms as $term) {				
 				               $this->items[] = sprintf('<a href="%s">%s</a>', esc_url(get_term_link($term, 'tipi_progetto')), $term->name);
 				        }
 				    }
+
 					$this->items[] = get_the_title();
 					return;
-				   }
+				}
 		    
-              
+             	// Tipo di post personalizzato: Servizio
 		    
 				if (get_post_type() == 'servizio') {
 					$this->items[] =  "<a href='".home_url("servizi")."'>".__("Servizi", "design_comuni_italia")."</a>";
@@ -573,60 +647,62 @@ class Breadcrumb_Trail {
 					return;
 				}
 				
-	
-					if (get_post_type() == 'consiglio') {
-						$this->items[] =  "<a href='".home_url("index.php/elenco-consigli-comunali")."'>".__("Consigli Comunale", "design_comuni_italia")."</a>";
-			         //   $this->items[] =  "<a href='/consiglio/'>" . __("Consiglio", "design_comuni_italia") . "</a>";		
-						$this->items[] = get_the_title();
-						return;
+				// Tipo di post personalizzato: Consiglio Comunale
+				if (get_post_type() == 'consiglio') {
+					$this->items[] =  "<a href='".home_url("index.php/elenco-consigli-comunali")."'>".__("Consigli Comunale", "design_comuni_italia")."</a>";
+					//   $this->items[] =  "<a href='/consiglio/'>" . __("Consiglio", "design_comuni_italia") . "</a>";		
+					$this->items[] = get_the_title();
+					return;
+				}
+
+				// Tipo di post personalizzato: Elemento Trasparenza
+				if (get_post_type() == 'elemento_trasparenza') {
+					// Aggiungo il link all'Amministrazione Trasparente
+					$this->items[] = "<a href='" . esc_url(home_url('index.php/amministrazione-trasparente') ) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
+					
+					// Recupera i termini associati al post nella tassonomia 'tipi_cat_amm_trasp'
+					$terms = get_the_terms(get_the_ID(), 'tipi_cat_amm_trasp');
+					if ($terms) {
+						foreach ($terms as $term) {
+							// Verifica se il termine ha un termine padre
+							if ($term->parent) {
+								// Ottieni il termine padre
+								$parent_term = get_term($term->parent, 'tipi_cat_amm_trasp');
+								if ($parent_term) {
+									// Aggiungi il nome del termine padre prima
+									$this->items[] = sprintf('<a href="%s">%s</a>', esc_url(get_term_link($parent_term, 'tipi_cat_amm_trasp')), $parent_term->name);
+								}
+							}
+				
+							// Aggiungi il termine figlio dopo il termine padre, tronca il nome del termine a 35 caratteri
+							$term_name = $term->name;
+							if (strlen($term_name) > 35) {
+								$term_name = substr($term_name, 0, 35) . '...'; // Troncamento del nome
+							}
+							$this->items[] = sprintf('<a href="%s">%s</a>', esc_url(get_term_link($term, 'tipi_cat_amm_trasp')), $term_name);
+						}
+					}
+				
+					// Recupera il titolo della pagina e troncalo a 35 caratteri
+					$title = get_the_title();
+
+					// Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
+					if (strlen($title) > 35) {
+						$title = substr($title, 0, 35) . '...';
 					}
 
+					// Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+					if (preg_match('/[A-Z]{5,}/', $title)) {
+						// Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+						$title = ucfirst(strtolower($title));
+					}
 
-				   if (get_post_type() == 'elemento_trasparenza') {
-					   $this->items[] = "<a href='" . esc_url(home_url('index.php/amministrazione-trasparente') ) . "'>" . __("Amministrazione Trasparente", "design_comuni_italia") . "</a>";
-					   
-					    // Recupera i termini associati al post nella tassonomia 'tipi_cat_amm_trasp'
-					    $terms = get_the_terms(get_the_ID(), 'tipi_cat_amm_trasp');
-					    if ($terms) {
-					        foreach ($terms as $term) {
-					            // Verifica se il termine ha un termine padre
-					            if ($term->parent) {
-					                // Ottieni il termine padre
-					                $parent_term = get_term($term->parent, 'tipi_cat_amm_trasp');
-					                if ($parent_term) {
-					                    // Aggiungi il nome del termine padre prima
-					                    $this->items[] = sprintf('<a href="%s">%s</a>', esc_url(get_term_link($parent_term, 'tipi_cat_amm_trasp')), $parent_term->name);
-					                }
-					            }
-					
-					            // Aggiungi il termine figlio dopo il termine padre, tronca il nome del termine a 35 caratteri
-					            $term_name = $term->name;
-					            if (strlen($term_name) > 35) {
-					                $term_name = substr($term_name, 0, 35) . '...'; // Troncamento del nome
-					            }
-					            $this->items[] = sprintf('<a href="%s">%s</a>', esc_url(get_term_link($term, 'tipi_cat_amm_trasp')), $term_name);
-					        }
-					    }
-					
-					    // Recupera il titolo della pagina e troncalo a 35 caratteri
-					    $title = get_the_title();
-					    // Se il titolo supera i 35 caratteri, lo tronca e aggiunge "..."
-					    if (strlen($title) > 35) {
-					        $title = substr($title, 0, 35) . '...';
-					    }
-					    // Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
-					    if (preg_match('/[A-Z]{5,}/', $title)) {
-					        // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
-					        $title = ucfirst(strtolower($title));
-					    }
-					    // Aggiunge il titolo alla lista degli elementi
-					    $this->items[] = $title;
-					
-					    return;
-				 }
-
-
-
+					// Aggiunge il titolo alla lista degli elementi
+					$this->items[] = $title;
+				
+					return;
+				}
+				// Tipo di post personalizzato: Dataset
 		    
 				if (get_post_type() == 'dataset') {
                                     $this->items[] =  "<a href='".home_url("amministrazione")."'>".__("Amministrazione", "design_comuni_italia")."</a>";
@@ -636,8 +712,10 @@ class Breadcrumb_Trail {
 					$this->items[] = get_the_title();
 					return;
 				}
+
+				// Tipo di post personalizzato: Documento Pubblico o Documenti e Dati
 		    
-		               if (get_post_type() == 'documento_pubblico' || get_post_type() == 'documenti_e_dati') {	
+		        if (get_post_type() == 'documento_pubblico' || get_post_type() == 'documenti_e_dati') {	
 				    $this->items[] =  "<a href='".home_url("amministrazione")."'>".__("Amministrazione", "design_comuni_italia")."</a>";
 				    // Cambia il link per indirizzare alla nuova struttura
 				    $this->items[] =  "<a href='" . home_url("amministrazione/documenti-e-dati") . "'>" . __("Documenti e dati", "design_comuni_italia") . "</a>";
@@ -667,189 +745,183 @@ class Breadcrumb_Trail {
 				    return;
 				}
 
+				// Tipo di post personalizzato: Unità Organizzativa
 
-		    
-						if (get_post_type() == 'unita_organizzativa') {
-						    // Link alla pagina di amministrazione
-						    $this->items[] = "<a href='" . home_url("amministrazione") . "'>" . __("Amministrazione", "design_comuni_italia") . "</a>";
-						
-						    // Array per tracciare i link già aggiunti
-						    $added_links = [];
-						
-						    // Termini della tassonomia
-						    $terms = get_the_terms(get_the_ID(), 'tipi_unita_organizzativa');
-						
-						    if ($terms && !is_wp_error($terms)) {
-						
-						        foreach ($terms as $term) {
-						
-						            // Recupera tutti gli antenati una volta sola
-						            $ancestors = get_ancestors($term->term_id, 'tipi_unita_organizzativa');
-						
-						            // Flag
-						            $is_child_of_struttura_politica = false;
-						            $is_child_of_altra_struttura = false;
-						
-						            if (!empty($ancestors)) {
-						                foreach ($ancestors as $ancestor_id) {
-						                    $ancestor_term = get_term($ancestor_id, 'tipi_unita_organizzativa');
-						                    if ($ancestor_term && !is_wp_error($ancestor_term)) {
-						                        if ($ancestor_term->slug === 'struttura-politica') {
-						                            $is_child_of_struttura_politica = true;
-						                        }
-						                        if ($ancestor_term->slug === 'altra-struttura') {
-						                            $is_child_of_altra_struttura = true;
-						                        }
-						                    }
-						                }
-						            }
-						
-						            // Se è figlio di STRUTTURA POLITICA
-						            if ($is_child_of_struttura_politica) {
-						                $link = home_url("amministrazione/organi-di-governo");
-						                if (!in_array($link, $added_links)) {
-						                    $this->items[] = "<a href='" . esc_url($link) . "'>Organi di Governo</a>";
-						                    $added_links[] = $link;
-						                }
-						            }
-						
-						            // Se è figlio di ALTRA STRUTTURA
-						            if ($is_child_of_altra_struttura) {
-						                $link = home_url("amministrazione/enti-e-fondazioni");
-						                if (!in_array($link, $added_links)) {
-						                    $this->items[] = "<a href='" . esc_url($link) . "'>Enti e Fondazioni</a>";
-						                    $added_links[] = $link;
-						                }
-						            }
-						
-						        } // end foreach terms
-						    } // end if terms
+				if (get_post_type() == 'unita_organizzativa') {
+					// Link alla pagina di amministrazione
+					$this->items[] = "<a href='" . home_url("amministrazione") . "'>" . __("Amministrazione", "design_comuni_italia") . "</a>";
 				
+					// Array per tracciare i link già aggiunti
+					$added_links = [];
+				
+					// Termini della tassonomia
+					$terms = get_the_terms(get_the_ID(), 'tipi_unita_organizzativa');
+				
+					if ($terms && !is_wp_error($terms)) {
+				
+						foreach ($terms as $term) {
+				
+							// Recupera tutti gli antenati una volta sola
+							$ancestors = get_ancestors($term->term_id, 'tipi_unita_organizzativa');
+				
+							// Flag
+							$is_child_of_struttura_politica = false;
+							$is_child_of_altra_struttura = false;
+				
+							if (!empty($ancestors)) {
+								foreach ($ancestors as $ancestor_id) {
+									$ancestor_term = get_term($ancestor_id, 'tipi_unita_organizzativa');
+									if ($ancestor_term && !is_wp_error($ancestor_term)) {
+										if ($ancestor_term->slug === 'struttura-politica') {
+											$is_child_of_struttura_politica = true;
+										}
+										if ($ancestor_term->slug === 'altra-struttura') {
+											$is_child_of_altra_struttura = true;
+										}
+									}
+								}
+							}
+				
+							// Se è figlio di STRUTTURA POLITICA
+							if ($is_child_of_struttura_politica) {
+								$link = home_url("amministrazione/organi-di-governo");
+								if (!in_array($link, $added_links)) {
+									$this->items[] = "<a href='" . esc_url($link) . "'>Organi di Governo</a>";
+									$added_links[] = $link;
+								}
+							}
+				
+							// Se è figlio di ALTRA STRUTTURA
+							if ($is_child_of_altra_struttura) {
+								$link = home_url("amministrazione/enti-e-fondazioni");
+								if (!in_array($link, $added_links)) {
+									$this->items[] = "<a href='" . esc_url($link) . "'>Enti e Fondazioni</a>";
+									$added_links[] = $link;
+								}
+							}
+				
+						} // end foreach terms
+					} // end if terms
+			
 
+					// Ottieni l'URL del referrer (la pagina che ha fatto il collegamento)
+					$referer_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
 				
-				    // Ottieni l'URL del referrer (la pagina che ha fatto il collegamento)
-				    $referer_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+					// Verifica se il referrer è presente e contiene una delle parole chiave per distinguere la pagina
+					if (!empty($referer_url)) {
+						// Estrai il percorso del referrer
+						$referer_path = parse_url($referer_url, PHP_URL_PATH);
+						$referer_parts = explode('/', trim($referer_path, '/'));
 				
-				    // Verifica se il referrer è presente e contiene una delle parole chiave per distinguere la pagina
-				    if (!empty($referer_url)) {
-				        // Estrai il percorso del referrer
-				        $referer_path = parse_url($referer_url, PHP_URL_PATH);
-				        $referer_parts = explode('/', trim($referer_path, '/'));
-				
-				        // Verifica se il referrer corrisponde a "Aree Amministrative"
-				        if (in_array('aree-amministrative', $referer_parts)) {
-				            // Crea un link alla pagina "amministrazione/aree-amministrative"
-				            $aree_amministrative_link = home_url("amministrazione/aree-amministrative");
-				            $this->items[] = "<a href='" . esc_url($aree_amministrative_link) . "'>Aree Amministrative</a>";
+						// Verifica se il referrer corrisponde a "Aree Amministrative"
+						if (in_array('aree-amministrative', $referer_parts)) {
+							// Crea un link alla pagina "amministrazione/aree-amministrative"
+							$aree_amministrative_link = home_url("amministrazione/aree-amministrative");
+							$this->items[] = "<a href='" . esc_url($aree_amministrative_link) . "'>Aree Amministrative</a>";
 						
 					} elseif (in_array('uffici', $referer_parts) || strtoupper(esc_html($term->name)) == "UFFICIO") { 
-					    $link_link = home_url("amministrazione/uffici");
-					    $this->items[] = "<a href='" . esc_url($link_link) . "'>Uffici</a>";
+						$link_link = home_url("amministrazione/uffici");
+						$this->items[] = "<a href='" . esc_url($link_link) . "'>Uffici</a>";
 						
 					} elseif (in_array('organi-di-governo', $referer_parts)) {						
-					    // Crea un link alla pagina "amministrazione/organi-di-governo" solo se non è già presente
-					    $organidigoverno_link = home_url("amministrazione/organi-di-governo");
-					    if (!in_array($organidigoverno_link, $added_links)) {
-					        $this->items[] = "<a href='" . esc_url($organidigoverno_link) . "'>Organi di Governo</a>";
-					        $added_links[] = $organidigoverno_link; // Evita duplicazioni
-					    }
+						// Crea un link alla pagina "amministrazione/organi-di-governo" solo se non è già presente
+						$organidigoverno_link = home_url("amministrazione/organi-di-governo");
+						if (!in_array($organidigoverno_link, $added_links)) {
+							$this->items[] = "<a href='" . esc_url($organidigoverno_link) . "'>Organi di Governo</a>";
+							$added_links[] = $organidigoverno_link; // Evita duplicazioni
+						}
 					}
 
-				    }
+				}
 
-					
-					// Recupera il titolo della pagina
-					$title = get_the_title();					
-					// Se il titolo supera i 100 caratteri, lo tronca e aggiunge "..."
-					if (strlen($title) > 100) {
-					    $title = substr($title, 0, 97) . '...';
-					}					
-					// Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
-					if (preg_match('/[A-Z]{5,}/', $title)) {
-					    // Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
-					    $title = ucfirst(strtolower($title));
-					}					
-					// Aggiunge il titolo alla lista degli elementi
-					$this->items[] = $title;
-		                        
+				
+				// Recupera il titolo della pagina
+				$title = get_the_title();
 
+				// Se il titolo supera i 100 caratteri, lo tronca e aggiunge "..."
+				if (strlen($title) > 100) {
+					$title = substr($title, 0, 97) . '...';
+				}	
 
-					
-				    
-				    return;
+				// Controlla se il titolo contiene almeno 5 lettere maiuscole consecutive
+				if (preg_match('/[A-Z]{5,}/', $title)) {
+					// Se sì, lo trasforma in minuscolo con la prima lettera maiuscola
+					$title = ucfirst(strtolower($title));
+				}		
+
+				// Aggiunge il titolo alla lista degli elementi
+				$this->items[] = $title;
+				return;
+			}
+
+			// Tipo di post personalizzato: Persona Pubblica
+			if (get_post_type() == 'persona_pubblica') {
+				// Aggiungi il link per l'amministrazione
+				$this->items[] = "<a href='" . home_url("amministrazione") . "'>" . __("Amministrazione", "design_comuni_italia") . "</a>";
+			
+				// Ottieni l'URL del referrer (la pagina che ha fatto il collegamento)
+				$referer_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+			
+				// Verifica se il referrer è presente
+				if (!empty($referer_url)) {
+					// Estrai il percorso del referrer
+					$referer_path = parse_url($referer_url, PHP_URL_PATH);
+					$referer_parts = explode('/', trim($referer_path, '/'));
 				}
 
 
 				
-				
-				if (get_post_type() == 'persona_pubblica') {
-				    // Aggiungi il link per l'amministrazione
-				    $this->items[] = "<a href='" . home_url("amministrazione") . "'>" . __("Amministrazione", "design_comuni_italia") . "</a>";
-				
-				    // Ottieni l'URL del referrer (la pagina che ha fatto il collegamento)
-				    $referer_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
-				
-				    // Verifica se il referrer è presente
-				    if (!empty($referer_url)) {
-				        // Estrai il percorso del referrer
-				        $referer_path = parse_url($referer_url, PHP_URL_PATH);
-				        $referer_parts = explode('/', trim($referer_path, '/'));
-				    }
 
-
-					
-
-					// Recupera gli incarichi, se esistono
-					$incarichi = dci_get_meta("incarichi") ?? []; // Recupera tutti gli incarichi associati al post				
-					
-					// Verifica che ci siano incarichi prima di procedere
-					if (!empty($incarichi) && isset($incarichi[0])) {
-					    // Prende il primo incarico (se esiste) per mostrare il titolo e il tipo di incarico
-					    $incarico_id = $incarichi[0];
-					
-					    // Controllo se l'ID dell'incarico è valido (es. se il post esiste)
-					    if ($incarico = get_post($incarico_id)) {
-					        $incarico_title = get_the_title($incarico);
-					    } else {
-					        $incarico_title = ''; // Valore di fallback se l'incarico non esiste
-					    }
-					
-					    // Recupero dei termini di tipo incarico
-					    $tipo_incarico_terms = get_the_terms($incarico, 'tipi_incarico');
-					
-					    // Controllo se i termini di tipo incarico esistono e non ci sono errori
-					    if (!empty($tipo_incarico_terms) && !is_wp_error($tipo_incarico_terms) && isset($tipo_incarico_terms[0])) {
-					        $tipo_incarico = $tipo_incarico_terms[0]->name;
-					    } else {
-					        $tipo_incarico = ''; // Valore di fallback se non ci sono termini
-					    }
+				// Recupera gli incarichi, se esistono
+				$incarichi = dci_get_meta("incarichi") ?? []; // Recupera tutti gli incarichi associati al post				
+				
+				// Verifica che ci siano incarichi prima di procedere
+				if (!empty($incarichi) && isset($incarichi[0])) {
+					// Prende il primo incarico (se esiste) per mostrare il titolo e il tipo di incarico
+					$incarico_id = $incarichi[0];
+				
+					// Controllo se l'ID dell'incarico è valido (es. se il post esiste)
+					if ($incarico = get_post($incarico_id)) {
+						$incarico_title = get_the_title($incarico);
 					} else {
-					    // Fallback nel caso in cui non ci siano incarichi
-					    $incarico_title = '';
-					    $tipo_incarico = '';
+						$incarico_title = ''; // Valore di fallback se l'incarico non esiste
 					}
+				
+					// Recupero dei termini di tipo incarico
+					$tipo_incarico_terms = get_the_terms($incarico, 'tipi_incarico');
+				
+					// Controllo se i termini di tipo incarico esistono e non ci sono errori
+					if (!empty($tipo_incarico_terms) && !is_wp_error($tipo_incarico_terms) && isset($tipo_incarico_terms[0])) {
+						$tipo_incarico = $tipo_incarico_terms[0]->name;
+					} else {
+						$tipo_incarico = ''; // Valore di fallback se non ci sono termini
+					}
+				} else {
+					// Fallback nel caso in cui non ci siano incarichi
+					$incarico_title = '';
+					$tipo_incarico = '';
+				}
 
 
-				        // Determina la destinazione in base al tipo di incarico
-				    if (strtolower($tipo_incarico) === 'politico') {
-				            // Se l'incarico è "Politico", crea un link alla pagina "amministrazione/politici"
-				            $politici_link = home_url("amministrazione/politici");
-				            $this->items[] = "<a href='" . esc_url($politici_link) . "'>Politici</a>"; // Link Politici
+					// Determina la destinazione in base al tipo di incarico
+				if (strtolower($tipo_incarico) === 'politico') {
+						// Se l'incarico è "Politico", crea un link alla pagina "amministrazione/politici"
+						$politici_link = home_url("amministrazione/politici");
+						$this->items[] = "<a href='" . esc_url($politici_link) . "'>Politici</a>"; // Link Politici
 
-					} elseif (strtolower($tipo_incarico) === 'amministrativo') {
-				            // Se l'incarico è "Politico", crea un link alla pagina "amministrazione/politici"
-					    $personale_link = home_url("amministrazione/personale-amministrativo");
-				            $this->items[] = "<a href='" . esc_url($personale_link) . "'>Personale Amministrativo</a>"; // Link Personale Amministrativo						
-				        } elseif (empty($tipo_incarico)) {
-				            // Se il tipo di incarico è vuoto, crea un link alla pagina "amministrazione/personale-amministrativo"
-				            $personale_link = home_url("amministrazione/personale-amministrativo");
-				            $this->items[] = "<a href='" . esc_url($personale_link) . "'>Personale Amministrativo</a>"; // Link Personale Amministrativo
-				        } else {
-				            // Se il tipo di incarico è vuoto, crea un link alla pagina "amministrazione/personale-amministrativo"
-				            $personale_link = home_url("amministrazione/personale-amministrativo");
-				            $this->items[] = "<a href='" . esc_url($personale_link) . "'>Personale Amministrativo</a>"; // Link Personale Amministrativo
-				        }
-				    
+				} elseif (strtolower($tipo_incarico) === 'amministrativo') {
+						// Se l'incarico è "Politico", crea un link alla pagina "amministrazione/politici"
+					$personale_link = home_url("amministrazione/personale-amministrativo");
+						$this->items[] = "<a href='" . esc_url($personale_link) . "'>Personale Amministrativo</a>"; // Link Personale Amministrativo						
+					} elseif (empty($tipo_incarico)) {
+						// Se il tipo di incarico è vuoto, crea un link alla pagina "amministrazione/personale-amministrativo"
+						$personale_link = home_url("amministrazione/personale-amministrativo");
+						$this->items[] = "<a href='" . esc_url($personale_link) . "'>Personale Amministrativo</a>"; // Link Personale Amministrativo
+					} else {
+						// Se il tipo di incarico è vuoto, crea un link alla pagina "amministrazione/personale-amministrativo"
+						$personale_link = home_url("amministrazione/personale-amministrativo");
+						$this->items[] = "<a href='" . esc_url($personale_link) . "'>Personale Amministrativo</a>"; // Link Personale Amministrativo
+					}
 				  
 					// Recupera il titolo della pagina
 					$title = get_the_title();					
@@ -863,9 +935,7 @@ class Breadcrumb_Trail {
 					    $title = ucfirst(strtolower($title));
 					}					
 					// Aggiunge il titolo alla lista degli elementi
-					$this->items[] = $title;
-
-		                        
+					$this->items[] = $title;            
 				    return;
 				}
 

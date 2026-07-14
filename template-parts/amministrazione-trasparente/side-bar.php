@@ -148,7 +148,7 @@ if (!function_exists('dci_amm_sidebar_render_theme_item')) {
         }
         ?>
         <li class="dci-amm-sidebar__theme-item">
-            <a class="dci-amm-sidebar__theme-link text-decoration-none" href="<?php echo esc_url(dci_amm_sidebar_get_sito_tematico_link($sito_tematico_id)); ?>">
+            <a class="dci-amm-sidebar__theme-link text-decoration-none t-primary" href="<?php echo esc_url(dci_amm_sidebar_get_sito_tematico_link($sito_tematico_id)); ?>">
                 <div class="dci-amm-sidebar__theme-head">
                     <?php if (!empty($immagine_id)) { ?>
                         <span class="dci-amm-sidebar__theme-avatar" aria-hidden="true">
@@ -198,7 +198,7 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
                 ?>
                 <li class="dci-amm-sidebar__term-item<?php echo $is_active ? ' is-active' : ''; ?><?php echo $is_open ? ' is-open' : ''; ?>">
                     <div class="dci-amm-sidebar__term-row">
-                        <a class="dci-amm-sidebar__term-link text-decoration-none" href="<?php echo esc_url($link_data['url']); ?>" aria-label="<?php echo esc_attr($child_display_name); ?>"<?php echo $link_data['target']; ?>>
+                        <a class="dci-amm-sidebar__term-link text-decoration-none t-primary" href="<?php echo esc_url($link_data['url']); ?>" aria-label="<?php echo esc_attr($child_display_name); ?>"<?php echo $link_data['target']; ?>>
                             <span class="dci-amm-sidebar__term-marker dci-amm-sidebar__term-marker--level-<?php echo (int) $level; ?>" aria-hidden="true">
                                 <?php if ($has_children) { ?>
                                     <span class="dci-amm-sidebar__term-marker-arrow">›</span>
@@ -216,10 +216,10 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
                         <?php if ($has_children) { ?>
                             <button
                                 type="button"
-                                class="dci-amm-sidebar__toggle"
+                                class="dci-amm-sidebar__toggle t-primary"
                                 aria-expanded="<?php echo $is_open ? 'true' : 'false'; ?>"
                                 aria-label="<?php echo esc_attr(sprintf('Mostra le sottovoci di %s', $child_display_name)); ?>">
-                                <svg class="icon icon-sm" aria-hidden="true">
+                                <svg class="icon icon-sm icon-primary" aria-hidden="true">
                                     <use href="#it-expand"></use>
                                 </svg>
                             </button>
@@ -318,7 +318,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
         gap: .35rem;
         width: 100%;
         line-height: 1.4;
-        color: #17324d;
+        color: currentColor;
     }
 
     .dci-amm-sidebar__term-link {
@@ -332,7 +332,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
     .dci-amm-sidebar__term-item.is-active > .dci-amm-sidebar__term-row .dci-amm-sidebar__term-label,
     .dci-amm-sidebar__term-root.is-active span {
         font-weight: 700;
-        color: #17324d;
+        color: inherit;
     }
 
     .dci-amm-sidebar__term-list--level-2 .dci-amm-sidebar__term-link {
@@ -380,7 +380,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        color: #17324d;
+        color: currentColor;
         cursor: pointer;
     }
 
@@ -436,7 +436,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
         display: block;
         font-weight: 700;
         line-height: 1.35;
-        color: #17324d;
+        color: inherit;
     }
 
     .dci-amm-sidebar__theme-description {
@@ -450,7 +450,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
     .dci-amm-sidebar__theme-icon {
         flex: 0 0 auto;
         margin-top: .15rem;
-        fill: var(--bs-primary, #0066cc);
+        fill: currentColor;
     }
 
     .dci-amm-sidebar__back-link {
@@ -458,14 +458,27 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
         align-items: center;
         gap: .5rem;
         font-weight: 600;
-        width: calc(100% + 2.5rem);
-        margin: -1.25rem;
+        width: 100%;
         padding: 1.25rem;
-        min-height: 100%;
+        color: inherit;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
-    .dci-amm-sidebar__back-link:hover {
-        color: #17324d;
+    .dci-amm-sidebar__back-link:hover,
+    .dci-amm-sidebar__back-link:focus,
+    .dci-amm-sidebar__back-link:active,
+    .dci-amm-sidebar__back-link:visited {
+        text-decoration: none;
+    }
+
+    .dci-amm-sidebar__back-box {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .dci-amm-sidebar__back-box:hover {
+        background: #f5f7fa;
     }
 
     @media (min-width: 992px) {
@@ -494,7 +507,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
                             }
                             ?>
                             <li class="dci-amm-sidebar__section-item">
-                                <a class="dci-amm-sidebar__section-link" href="#<?php echo esc_attr($id); ?>">
+                                <a class="dci-amm-sidebar__section-link text-decoration-none t-primary" href="#<?php echo esc_attr($id); ?>">
                                     <span><?php echo esc_html($label); ?></span>
                                 </a>
                             </li>
@@ -509,7 +522,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
                     <h2 class="title-medium-semi-bold dci-amm-sidebar__title">Voci della sezione</h2>
                     <?php $root_link_data = dci_amm_sidebar_get_term_link_data($root_term); ?>
                     <p class="dci-amm-sidebar__term-root<?php echo dci_amm_sidebar_term_is_active($root_term, $current_term) ? ' is-active' : ''; ?>">
-                        <a class="text-decoration-none d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>" aria-label="<?php echo esc_attr($root_display_name); ?>"<?php echo $root_link_data['target']; ?>>
+                        <a class="text-decoration-none t-primary d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>" aria-label="<?php echo esc_attr($root_display_name); ?>"<?php echo $root_link_data['target']; ?>>
                             <span><?php echo esc_html($root_display_name); ?></span>
                             <?php if (!empty($root_link_data['is_external'])) { ?>
                                 <svg class="icon icon-xs dci-amm-sidebar__external-icon" aria-hidden="true">
@@ -534,12 +547,13 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
             <?php } ?>
 
 
-            <div class="dci-amm-sidebar__box">
-                <a class="dci-amm-sidebar__back-link text-decoration-none" href="<?php echo esc_url(home_url('/amministrazione-trasparente')); ?>">
-                    <svg class="icon icon-sm" aria-hidden="true">
+            <div class="dci-amm-sidebar__box dci-amm-sidebar__back-box">
+                <a class="title-medium-semi-bold dci-amm-sidebar__back-link text-decoration-none t-primary"
+                   href="<?php echo esc_url(home_url('/index.php/amministrazione-trasparente')); ?>">
+                    <svg class="icon icon-sm icon-primary me-2" aria-hidden="true">
                         <use href="#it-arrow-left"></use>
                     </svg>
-                    <span>Torna ad Amministrazione trasparente</span>
+                    <span>Torna all'Amministrazione trasparente</span>
                 </a>
             </div>
         </div>

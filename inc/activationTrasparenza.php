@@ -138,6 +138,9 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
             'Organizzazione' => [
                 
                 'Titolari di incarichi politici di amministrazione di direzione o di governo' =>[ // Pagina custom e sottovoci
+                    "Il Sindaco",
+                    "Giunta Comunale",
+                    "Consiglio Comunale",
                     'Relazioni di inizio mandato',
                     'Relazioni di fine mandato'
                 ],

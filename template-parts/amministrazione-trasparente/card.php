@@ -9,6 +9,23 @@ $ck_target         = dci_get_meta('open_in_new_tab', $prefix, $elemento->ID) ===
 $ck_link           = dci_get_meta('open_direct', $prefix, $elemento->ID) === 'on';
 $in_evidenza       = dci_get_meta('in_evidenza', $prefix, $elemento->ID) === 'on';
 $url               = dci_get_meta('url', $prefix, $elemento->ID);
+$immagine          = dci_get_meta('immagine', $prefix, $elemento->ID);
+
+$immagine_url = is_string($immagine) ? esc_url_raw($immagine) : '';
+$immagine_id = $immagine_url !== '' ? attachment_url_to_postid($immagine_url) : 0;
+$immagine_mime = $immagine_id ? (string) get_post_mime_type($immagine_id) : '';
+$immagine_path = (string) wp_parse_url($immagine_url, PHP_URL_PATH);
+$immagine_estensione = strtolower((string) pathinfo($immagine_path, PATHINFO_EXTENSION));
+$immagine_formati = ['jpg', 'jpeg', 'jpe', 'png', 'gif', 'webp', 'avif', 'svg', 'bmp', 'ico', 'tif', 'tiff', 'heic', 'heif'];
+$immagine_valida = $immagine_url !== '' && (
+    strpos($immagine_mime, 'image/') === 0
+    || in_array($immagine_estensione, $immagine_formati, true)
+);
+$immagine_alt = $immagine_id ? trim((string) get_post_meta($immagine_id, '_wp_attachment_image_alt', true)) : '';
+
+if ($immagine_alt === '') {
+    $immagine_alt = get_the_title($elemento->ID);
+}
 
 $documenti         = dci_get_meta('file', $prefix, $elemento->ID);
 $link_documenti    = dci_get_meta('url_documento_group', $prefix, $elemento->ID);
@@ -56,7 +73,7 @@ if (is_array($link_documenti)) {
         }
 
         $risorse_card[$link_url] = [
-            'type'   => 'file',
+            'type'   => 'link',
             'url'    => $link_url,
             'name'   => $link_name,
             'target' => !empty($link_item['target_blank']),
@@ -75,7 +92,7 @@ if (is_string($url) && $url !== '') {
 }
 
 $risorse_card = array_values($risorse_card);
-$risorse_card_visibili = array_slice($risorse_card, 0, 3);
+$risorse_card_visibili = array_slice($risorse_card, 0, 10);
 $risorse_card_rimanenti = max(0, count($risorse_card) - count($risorse_card_visibili));
 
 if($ck_link && !empty($url)){
@@ -96,6 +113,25 @@ if ($elemento->post_status === "publish") :
             style="background:#f7f9fb;border:1px solid #c7d4e2!important;border-left:4px solid #5c7f99!important;"
         <?php } ?>
     >
+        <div class="<?php echo $immagine_valida ? 'row g-4 align-items-start' : ''; ?>">
+        <?php if ($immagine_valida) { ?>
+            <a
+                href="<?php echo esc_url($link); ?>"
+                class="dci-at-card-image col-12 col-md-4 col-lg-3"
+                style="display:block;overflow:hidden;border-radius:.25rem;"
+                <?php echo $ck_target ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
+                aria-label="<?php echo esc_attr(sprintf(__('Apri %s', 'design_comuni_italia'), $title)); ?>"
+            >
+                <img
+                    src="<?php echo esc_url($immagine_url); ?>"
+                    alt="<?php echo esc_attr($immagine_alt); ?>"
+                    loading="lazy"
+                    decoding="async"
+                    style="display:block;width:100%;height:12rem;object-fit:cover;border-radius:.25rem;"
+                >
+            </a>
+        <?php } ?>
+        <div class="dci-at-card-content<?php echo $immagine_valida ? ' col-12 col-md-8 col-lg-9' : ''; ?>" style="min-width:0;">
         <?php if ($in_evidenza) { ?>
             <div class="dci-at-featured-label" style="display:flex;justify-content:flex-start;margin-bottom:.6rem;">
                 <span
@@ -265,13 +301,13 @@ if ($elemento->post_status === "publish") :
             </h3>
 
             <?php if (!empty($descrizione_breve)) : ?>
-            <p class="text-paragraph">
-                <?php echo esc_html($descrizione_breve); ?>
-            </p>
+            <div class="text-paragraph dci-at-card-description" style="overflow-wrap:anywhere;">
+                <?php echo wp_kses_post(wpautop((string) $descrizione_breve)); ?>
+            </div>
             <?php endif; ?>
 
             <?php if (!empty($risorse_card_visibili)) { ?>
-                <div
+            <div
                     class="dci-at-card-resources"
                     style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid #dfe7f0;"
                 >
@@ -281,6 +317,29 @@ if ($elemento->post_status === "publish") :
                     <ul style="display:grid;gap:.35rem;margin:0;padding:0;list-style:none;">
                         <?php foreach ($risorse_card_visibili as $risorsa_card) {
                             $risorsa_is_file = $risorsa_card['type'] === 'file';
+                            $risorsa_path = (string) wp_parse_url($risorsa_card['url'], PHP_URL_PATH);
+                            $risorsa_estensione = strtolower((string) pathinfo($risorsa_path, PATHINFO_EXTENSION));
+                            $risorsa_icona = $risorsa_is_file ? '#it-file' : '#it-link';
+                            $risorsa_colore = $risorsa_is_file ? '#455a64' : '#175cd3';
+                            $risorsa_formato = $risorsa_is_file && $risorsa_estensione !== ''
+                                ? strtoupper($risorsa_estensione)
+                                : __('LINK', 'design_comuni_italia');
+
+                            if ($risorsa_estensione === 'pdf') {
+                                $risorsa_colore = '#b42318';
+                            } elseif (in_array($risorsa_estensione, ['zip', 'rar', '7z', 'tar', 'gz'], true)) {
+                                $risorsa_icona = '#it-folder';
+                                $risorsa_colore = '#9a6700';
+                            } elseif (in_array($risorsa_estensione, ['doc', 'docx', 'odt', 'rtf'], true)) {
+                                $risorsa_colore = '#175cd3';
+                            } elseif (in_array($risorsa_estensione, ['xls', 'xlsx', 'ods', 'csv'], true)) {
+                                $risorsa_colore = '#18794e';
+                            } elseif (in_array($risorsa_estensione, ['ppt', 'pptx', 'odp'], true)) {
+                                $risorsa_colore = '#c2410c';
+                            } elseif (in_array($risorsa_estensione, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'], true)) {
+                                $risorsa_colore = '#7e22ce';
+                            }
+
                             $risorsa_nome_completo = preg_replace(
                                 '/\s+/u',
                                 ' ',
@@ -311,17 +370,19 @@ if ($elemento->post_status === "publish") :
                                     style="display:inline-flex;align-items:center;gap:.4rem;max-width:100%;color:#17324d;font-size:.86rem;font-weight:600;text-decoration:none;"
                                     aria-label="<?php echo esc_attr($risorsa_label); ?>"
                                     title="<?php echo esc_attr($risorsa_nome_completo); ?>"
-                                    <?php if ($risorsa_card['target']) { ?>
-                                        target="_blank" rel="noopener noreferrer"
-                                    <?php } ?>
+                                    target="_blank" rel="noopener noreferrer"
                                 >
                                     <svg
                                         class="icon icon-sm"
-                                        style="flex:0 0 auto;width:1rem;height:1rem;fill:currentColor;"
+                                        style="flex:0 0 auto;width:1.15rem;height:1.15rem;fill:<?php echo esc_attr($risorsa_colore); ?>;"
                                         aria-hidden="true"
                                     >
-                                        <use href="<?php echo $risorsa_is_file ? '#it-file' : '#it-link'; ?>"></use>
+                                        <use href="<?php echo esc_attr($risorsa_icona); ?>"></use>
                                     </svg>
+                                    <span
+                                        aria-hidden="true"
+                                        style="display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;min-width:2.5rem;height:1.35rem;padding:0 .3rem;color:#fff;background:<?php echo esc_attr($risorsa_colore); ?>;border-radius:.2rem;font-size:.66rem;line-height:1;font-weight:700;"
+                                    ><?php echo esc_html($risorsa_formato); ?></span>
                                     <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                         <?php echo esc_html($risorsa_nome_visualizzato); ?>
                                     </span>
@@ -350,6 +411,24 @@ if ($elemento->post_status === "publish") :
                     <?php } ?>
                 </div>
             <?php } ?>
+
+            <a
+                href="<?php echo esc_url(get_permalink($elemento->ID)); ?>"
+                class="dci-at-card-detail text-decoration-none"
+                style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.75rem;padding:.55rem .8rem;color:#17324d;background:#eef3f7;border:1px solid #d5e0e8;border-radius:.25rem;font-size:.9rem;font-weight:700;"
+                aria-label="<?php echo esc_attr(sprintf(__('Apri il dettaglio di %s', 'design_comuni_italia'), $title)); ?>"
+            >
+                <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
+                <svg
+                    class="icon icon-sm"
+                    style="width:1rem;height:1rem;fill:currentColor;"
+                    aria-hidden="true"
+                >
+                    <use href="#it-arrow-right"></use>
+                </svg>
+            </a>
+        </div>
+        </div>
         </div>
     </div>
 </div>

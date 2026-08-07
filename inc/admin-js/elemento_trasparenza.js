@@ -1,5 +1,139 @@
 jQuery( document ).ready(function() {
 
+    /**
+     * Limite della descrizione breve: conta il testo visibile, non i tag HTML.
+     */
+    const shortDescriptionId = '_dci_elemento_trasparenza_descrizione_breve';
+    const shortDescriptionLimit = 1024;
+    const shortDescriptionField = jQuery('#' + shortDescriptionId);
+
+    if (shortDescriptionField.length) {
+        const shortDescriptionRow = shortDescriptionField.closest('.cmb-row');
+        const shortDescriptionCounter = jQuery(
+            '<p class="dci-short-description-counter" role="status" aria-live="polite"></p>'
+        );
+        let textModeLastValue = shortDescriptionField.val();
+        let textModeLastCount = 0;
+        let editorBound = false;
+
+        shortDescriptionField.closest('.cmb-td').append(shortDescriptionCounter);
+
+        const getVisibleText = function(html) {
+            return jQuery('<div>').html(String(html || '')).text();
+        };
+
+        const getCharacterCount = function(html) {
+            return Array.from(getVisibleText(html)).length;
+        };
+
+        const updateCounter = function(count) {
+            const remaining = shortDescriptionLimit - count;
+            shortDescriptionCounter
+                .toggleClass('is-over-limit', remaining < 0)
+                .text(
+                    remaining >= 0
+                        ? count + ' / ' + shortDescriptionLimit + ' caratteri'
+                        : 'Limite superato di ' + Math.abs(remaining) + ' caratteri'
+                );
+        };
+
+        textModeLastCount = getCharacterCount(textModeLastValue);
+        updateCounter(textModeLastCount);
+
+        shortDescriptionField.on('input', function() {
+            const currentValue = shortDescriptionField.val();
+            const currentCount = getCharacterCount(currentValue);
+
+            if (currentCount <= shortDescriptionLimit || currentCount <= textModeLastCount) {
+                textModeLastValue = currentValue;
+                textModeLastCount = currentCount;
+                updateCounter(currentCount);
+                return;
+            }
+
+            shortDescriptionField.val(textModeLastValue);
+            updateCounter(textModeLastCount);
+        });
+
+        shortDescriptionField.on('focus', function() {
+            const currentValue = shortDescriptionField.val();
+            const currentCount = getCharacterCount(currentValue);
+
+            if (currentCount <= shortDescriptionLimit || currentCount <= textModeLastCount) {
+                textModeLastValue = currentValue;
+                textModeLastCount = currentCount;
+                updateCounter(currentCount);
+            }
+        });
+
+        const bindVisualEditor = function(editor) {
+            if (!editor || editor.id !== shortDescriptionId || editorBound) {
+                return;
+            }
+
+            editorBound = true;
+            let lastContent = editor.getContent();
+            let lastCount = getCharacterCount(lastContent);
+            let restoringContent = false;
+
+            updateCounter(lastCount);
+
+            editor.on('input change keyup SetContent', function() {
+                if (restoringContent) {
+                    return;
+                }
+
+                const currentContent = editor.getContent();
+                const currentCount = getCharacterCount(currentContent);
+
+                if (currentCount <= shortDescriptionLimit || currentCount <= lastCount) {
+                    lastContent = currentContent;
+                    lastCount = currentCount;
+                    textModeLastValue = currentContent;
+                    textModeLastCount = currentCount;
+                    updateCounter(currentCount);
+                    return;
+                }
+
+                restoringContent = true;
+                editor.setContent(lastContent);
+                editor.undoManager.add();
+                restoringContent = false;
+                updateCounter(lastCount);
+            });
+        };
+
+        if (typeof tinymce !== 'undefined') {
+            bindVisualEditor(tinymce.get(shortDescriptionId));
+            tinymce.on('AddEditor', function(event) {
+                bindVisualEditor(event.editor);
+            });
+        }
+
+        jQuery('form[name="post"]').on('submit.dciShortDescriptionLimit', function(event) {
+            const editor = typeof tinymce !== 'undefined' ? tinymce.get(shortDescriptionId) : null;
+            const currentContent = editor && !editor.isHidden()
+                ? editor.getContent()
+                : shortDescriptionField.val();
+            const currentCount = getCharacterCount(currentContent);
+
+            if (currentCount <= shortDescriptionLimit) {
+                return;
+            }
+
+            event.preventDefault();
+            updateCounter(currentCount);
+            shortDescriptionRow.addClass('highlighted_missing_field');
+            window.alert('La descrizione breve non può superare 1024 caratteri.');
+
+            if (editor && !editor.isHidden()) {
+                editor.focus();
+            } else {
+                shortDescriptionField.trigger('focus');
+            }
+        });
+    }
+
     if (
         typeof dciElementoTrasparenzaConfig !== 'undefined' &&
         dciElementoTrasparenzaConfig.is_new_post &&
@@ -8,6 +142,13 @@ jQuery( document ).ready(function() {
         let allowedIds = dciElementoTrasparenzaConfig.allowed_term_ids.map(function(id) {
             return String(id);
         });
+
+        if (typeof dciElementoTrasparenzaUi !== 'undefined' && dciElementoTrasparenzaUi.termStates) {
+            allowedIds = allowedIds.concat(Object.keys(dciElementoTrasparenzaUi.termStates));
+            allowedIds = allowedIds.filter(function(id, index, values) {
+                return values.indexOf(id) === index;
+            });
+        }
 
         let taxonomyField = jQuery('.cmb2-id--dci-elemento-trasparenza-tipo-cat-amm-trasp');
         let checklist = taxonomyField.find('ul.cmb2-checkbox-list, ul.cmb2-list');
@@ -77,6 +218,11 @@ jQuery( document ).ready(function() {
                         'placeholder="Scrivi il nome della categoria…" autocomplete="off">' +
                     '<button type="button" class="button dci-transparency-category-search__clear" ' +
                         'aria-label="Cancella la ricerca">Cancella</button>' +
+                    '<button type="button" class="button dci-transparency-category-expand" ' +
+                        'aria-expanded="false" title="Visualizza le categorie a schermo intero">' +
+                        '<span class="dashicons dashicons-fullscreen-alt" aria-hidden="true"></span>' +
+                        '<span class="dci-transparency-category-expand__label">Espandi elenco</span>' +
+                    '</button>' +
                 '</div>' +
                 '<p class="description">Cerca per una o più parole, ad esempio “uffici”, “bilanci” o “personale”.</p>' +
                 '<p class="dci-transparency-category-search__status" role="status" aria-live="polite"></p>' +
@@ -95,18 +241,54 @@ jQuery( document ).ready(function() {
             '</div>'
         ).hide();
         let categorySelector = jQuery(
-            '<div class="dci-transparency-category-selector" aria-label="Selezione categoria Trasparenza"></div>'
+            '<div class="dci-transparency-category-selector" role="region" ' +
+                'aria-label="Selezione categoria Trasparenza"></div>'
         );
 
         taxonomyCategoryList.before(categorySelector);
         categorySelector.append(categorySearch, selectedCategory, taxonomyCategoryList, noResults);
         taxonomyCategoryList.addClass('dci-transparency-category-list');
 
-        taxonomyCategoryList.children('li').not('.cmb2-indented-hierarchy')
-            .addClass('dci-transparency-category-item--primary');
-        taxonomyCategoryList.find('.cmb2-indented-hierarchy input[type="radio"]')
-            .closest('li')
-            .addClass('dci-transparency-category-item--child');
+        const categoryInitiallyLocked =
+            typeof dciElementoTrasparenzaUi !== 'undefined' &&
+            Boolean(dciElementoTrasparenzaUi.categoryLocked);
+        let categorySelectionLocked = categoryInitiallyLocked;
+        let unlockCategoryButton = null;
+        let categoryUnlockPanel = null;
+        let categoryUnlockTimer = null;
+
+        if (categoryInitiallyLocked) {
+            unlockCategoryButton = jQuery(
+                '<button type="button" class="button dci-transparency-category-unlock">' +
+                    '<span class="dashicons dashicons-unlock" aria-hidden="true"></span>' +
+                    '<span>Modifica sezione</span>' +
+                '</button>'
+            );
+            selectedCategory
+                .addClass('dci-transparency-category-selected--locked')
+                .append(
+                    '<span class="dci-transparency-category-lock-message">' +
+                        '<span class="dashicons dashicons-lock" aria-hidden="true"></span>' +
+                        '<span>Sezione bloccata dopo la pubblicazione</span>' +
+                    '</span>'
+                )
+                .append(unlockCategoryButton);
+        }
+
+        categoryItems.each(function() {
+            let item = jQuery(this);
+            let depth = item.parents('li.cmb2-indented-hierarchy').length;
+
+            item
+                .addClass(
+                    depth === 0
+                        ? 'dci-transparency-category-item--primary'
+                        : 'dci-transparency-category-item--child'
+                )
+                .addClass('dci-transparency-category-item--depth-' + depth)
+                .css('--dci-category-depth', depth)
+                .attr('data-category-depth', depth);
+        });
         taxonomyCategoryList.find('li.cmb2-indented-hierarchy').each(function() {
             jQuery(this)
                 .prevAll('li')
@@ -121,9 +303,57 @@ jQuery( document ).ready(function() {
             let categoryName = item.children('label').first().text().replace(/\s+/g, ' ').trim();
             let categoryDescription = '';
             let categoryCount = null;
+            let categoryState = null;
+            const normalizedCategoryName = normalizeCategoryText(categoryName);
+            const isInternalPoliticalSection =
+                input.length &&
+                typeof dciElementoTrasparenzaUi !== 'undefined' &&
+                Boolean(dciElementoTrasparenzaUi.internalPortal) &&
+                ['il sindaco', 'sindaco', 'giunta comunale', 'consiglio comunale'].indexOf(normalizedCategoryName) !== -1;
+
+            if (isInternalPoliticalSection) {
+                categoryState = {
+                    type: 'political-office',
+                    description: 'Questa sezione è alimentata automaticamente dalle persone inserite nel relativo ufficio politico.',
+                    destination: 'Pubblica e aggiorna i contenuti dalla scheda del relativo ufficio.'
+                };
+            }
 
             if (
                 input.length &&
+                !categoryState &&
+                typeof dciElementoTrasparenzaUi !== 'undefined' &&
+                dciElementoTrasparenzaUi.termStates &&
+                dciElementoTrasparenzaUi.termStates[input.val()]
+            ) {
+                categoryState = dciElementoTrasparenzaUi.termStates[input.val()];
+            }
+
+            if (input.length && categoryState) {
+                input.prop('disabled', true).attr('aria-disabled', 'true');
+                const categoryStateClass = categoryState.type === 'link'
+                    ? 'dci-transparency-category-item--link'
+                    : categoryState.type === 'political-office'
+                        ? 'dci-transparency-category-item--political-office'
+                        : 'dci-transparency-category-item--custom';
+                const categoryStateLabel = categoryState.type === 'link'
+                    ? 'Categoria con link'
+                    : categoryState.type === 'political-office'
+                        ? 'Pubblicazione automatica'
+                        : 'Pubblicazione dedicata';
+                item.addClass(categoryStateClass);
+                jQuery('<span class="dci-transparency-category-state"></span>')
+                    .text(categoryStateLabel)
+                    .insertAfter(item.children('label').first());
+            }
+
+            if (categoryState && categoryState.description) {
+                categoryDescription = categoryState.description;
+            }
+
+            if (
+                input.length &&
+                !categoryDescription &&
                 typeof dciElementoTrasparenzaUi !== 'undefined' &&
                 dciElementoTrasparenzaUi.termDescriptions &&
                 dciElementoTrasparenzaUi.termDescriptions[input.val()]
@@ -131,6 +361,12 @@ jQuery( document ).ready(function() {
                 categoryDescription = dciElementoTrasparenzaUi.termDescriptions[input.val()];
                 jQuery('<span class="dci-transparency-category-description"></span>')
                     .text(categoryDescription)
+                    .appendTo(item);
+            }
+
+            if (categoryState && categoryState.destination) {
+                jQuery('<span class="dci-transparency-category-destination"></span>')
+                    .text(categoryState.destination)
                     .appendTo(item);
             }
 
@@ -143,7 +379,7 @@ jQuery( document ).ready(function() {
                 categoryCount = dciElementoTrasparenzaUi.termCounts[input.val()];
             }
 
-            if (categoryCount !== null) {
+            if (categoryCount !== null && !categoryState) {
                 jQuery('<span class="dci-transparency-content-count"></span>')
                     .text(getPublishedCountLabel(categoryCount))
                     .attr('aria-label', getPublishedCountLabel(categoryCount) + ' in questa categoria')
@@ -152,13 +388,128 @@ jQuery( document ).ready(function() {
 
             item.data(
                 'searchable-text',
-                normalizeCategoryText(categoryName + ' ' + categoryDescription)
+                normalizeCategoryText(
+                    categoryName + ' ' + categoryDescription + ' ' +
+                    (categoryState && categoryState.destination ? categoryState.destination : '')
+                )
             );
         });
 
         let searchInput = categorySearch.find('input[type="search"]');
         let clearSearch = categorySearch.find('.dci-transparency-category-search__clear');
+        let expandCategories = categorySearch.find('.dci-transparency-category-expand');
         let searchStatus = categorySearch.find('.dci-transparency-category-search__status');
+
+        let setCategorySelectionLocked = function(locked) {
+            categorySelectionLocked = locked;
+            categorySelector.toggleClass('is-selection-locked', locked);
+            categorySearch.find('input, button').prop('disabled', locked);
+            taxonomyCategoryList
+                .find('input[type="radio"]:not(:disabled)')
+                .attr('aria-disabled', locked ? 'true' : 'false')
+                .attr('tabindex', locked ? '-1' : '0');
+        };
+
+        if (unlockCategoryButton) {
+            unlockCategoryButton.on('click', function() {
+                if (categoryUnlockPanel) {
+                    categoryUnlockPanel.find('.dci-transparency-category-unlock-cancel').trigger('focus');
+                    return;
+                }
+
+                let secondsRemaining = 5;
+                categoryUnlockPanel = jQuery(
+                    '<div class="dci-transparency-category-unlock-panel" role="status" aria-live="polite">' +
+                        '<span class="dashicons dashicons-warning" aria-hidden="true"></span>' +
+                        '<div class="dci-transparency-category-unlock-panel__content">' +
+                            '<strong>Modifica della sezione</strong>' +
+                            '<span>La sezione determina dove viene pubblicato questo contenuto. Verifica prima di procedere.</span>' +
+                            '<div class="dci-transparency-category-unlock-panel__actions">' +
+                                '<button type="button" class="button button-primary dci-transparency-category-unlock-confirm" disabled>' +
+                                    'Attendi <span class="dci-transparency-category-unlock-countdown">' + secondsRemaining + '</span> s' +
+                                '</button>' +
+                                '<button type="button" class="button dci-transparency-category-unlock-cancel">Annulla</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                );
+                selectedCategory.after(categoryUnlockPanel);
+                unlockCategoryButton.prop('disabled', true);
+
+                const confirmUnlockButton = categoryUnlockPanel.find('.dci-transparency-category-unlock-confirm');
+                const countdown = categoryUnlockPanel.find('.dci-transparency-category-unlock-countdown');
+
+                categoryUnlockTimer = window.setInterval(function() {
+                    secondsRemaining -= 1;
+
+                    if (secondsRemaining > 0) {
+                        countdown.text(secondsRemaining);
+                        return;
+                    }
+
+                    window.clearInterval(categoryUnlockTimer);
+                    categoryUnlockTimer = null;
+                    confirmUnlockButton
+                        .prop('disabled', false)
+                        .text('Sblocca modifica')
+                        .trigger('focus');
+                }, 1000);
+
+                categoryUnlockPanel.on('click', '.dci-transparency-category-unlock-cancel', function() {
+                    if (categoryUnlockTimer) {
+                        window.clearInterval(categoryUnlockTimer);
+                        categoryUnlockTimer = null;
+                    }
+                    categoryUnlockPanel.remove();
+                    categoryUnlockPanel = null;
+                    unlockCategoryButton.prop('disabled', false).trigger('focus');
+                });
+
+                categoryUnlockPanel.on('click', '.dci-transparency-category-unlock-confirm', function() {
+                    if (jQuery(this).prop('disabled')) {
+                        return;
+                    }
+                    setCategorySelectionLocked(false);
+                    categoryUnlockPanel.remove();
+                    categoryUnlockPanel = null;
+                    selectedCategory
+                        .removeClass('dci-transparency-category-selected--locked')
+                        .find('.dci-transparency-category-lock-message, .dci-transparency-category-unlock')
+                        .remove();
+                    searchInput.prop('disabled', false).trigger('focus');
+                });
+            });
+        }
+
+        setCategorySelectionLocked(categorySelectionLocked);
+
+        let setExpandedCategories = function(expanded) {
+            categorySelector.toggleClass('is-fullscreen', expanded);
+            jQuery('body').toggleClass('dci-transparency-categories-open', expanded);
+            expandCategories.attr('aria-expanded', expanded ? 'true' : 'false');
+            expandCategories
+                .find('.dashicons')
+                .toggleClass('dashicons-fullscreen-alt', !expanded)
+                .toggleClass('dashicons-no-alt', expanded);
+            expandCategories
+                .find('.dci-transparency-category-expand__label')
+                .text(expanded ? 'Riduci elenco' : 'Espandi elenco');
+            expandCategories.attr(
+                'title',
+                expanded ? 'Torna alla visualizzazione normale' : 'Visualizza le categorie a schermo intero'
+            );
+        };
+
+        expandCategories.on('click', function() {
+            setExpandedCategories(!categorySelector.hasClass('is-fullscreen'));
+        });
+
+        jQuery(document).on('keydown.dciTransparencyCategories', function(event) {
+            if (event.key === 'Escape' && categorySelector.hasClass('is-fullscreen')) {
+                setExpandedCategories(false);
+                expandCategories.trigger('focus');
+            }
+        });
 
         let getCategoryLabel = function(item) {
             return jQuery(item).children('label').first().text().replace(/\s+/g, ' ').trim();
@@ -180,7 +531,7 @@ jQuery( document ).ready(function() {
         };
 
         let updateSelectedCategory = function() {
-            let checked = taxonomyCategoryList.find('input[type="radio"]:checked').first();
+            let checked = taxonomyCategoryList.find('input[type="radio"]:checked:not(:disabled)').first();
 
             categoryItems.removeClass('dci-transparency-category-item--selected');
             if (!checked.length) {

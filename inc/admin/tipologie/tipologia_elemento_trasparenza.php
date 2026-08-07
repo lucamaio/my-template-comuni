@@ -896,10 +896,137 @@ function dci_hide_invisible_or_blocked_terms( $clauses, $taxonomies, $args ) {
  * @return void
  */
 add_action('cmb2_init', 'dci_add_elemento_trasparenza_metaboxes');
+
+/**
+ * Accetta nel campo immagine soltanto allegati con un formato grafico.
+ *
+ * @param mixed $value Valore proposto da CMB2.
+ * @return string URL dell'immagine oppure una stringa vuota.
+ */
+function dci_sanitize_elemento_trasparenza_immagine($value)
+{
+    $image_url = is_string($value) ? esc_url_raw($value) : '';
+
+    if ($image_url === '') {
+        return '';
+    }
+
+    $attachment_id = attachment_url_to_postid($image_url);
+    $mime_type = $attachment_id ? (string) get_post_mime_type($attachment_id) : '';
+    $image_path = (string) wp_parse_url($image_url, PHP_URL_PATH);
+    $image_extension = strtolower((string) pathinfo($image_path, PATHINFO_EXTENSION));
+    $image_extensions = array('jpg', 'jpeg', 'jpe', 'png', 'gif', 'webp', 'avif', 'svg', 'bmp', 'ico', 'tif', 'tiff', 'heic', 'heif');
+
+    if (strpos($mime_type, 'image/') !== 0 && !in_array($image_extension, $image_extensions, true)) {
+        return '';
+    }
+
+    return $image_url;
+}
+
+/**
+ * Restituisce le categorie mostrate nel selettore solo a scopo informativo.
+ *
+ * @return array<int,array<string,string>> Dati informativi indicizzati per term ID.
+ */
+if (!function_exists('dci_elemento_trasparenza_get_informational_terms')) {
+    function dci_elemento_trasparenza_get_informational_terms() {
+        $informational_terms = array();
+        $custom_terms = dci_elemento_trasparenza_get_custom_type_terms();
+        $is_internal_portal = dci_get_option('ck_portalesoloperusoesterno') !== 'true';
+        $internal_political_section_slugs = array(
+            'il-sindaco',
+            'sindaco',
+            'giunta-comunale',
+            'consiglio-comunale',
+        );
+        $terms = get_terms(array(
+            'taxonomy'   => 'tipi_cat_amm_trasp',
+            'hide_empty' => false,
+        ));
+
+        if (is_wp_error($terms)) {
+            return $informational_terms;
+        }
+
+        foreach ($terms as $term) {
+            $term_url = trim((string) get_term_meta($term->term_id, 'term_url', true));
+
+            $normalized_term_name = sanitize_title((string) $term->name);
+            if ($is_internal_portal && (
+                in_array((string) $term->slug, $internal_political_section_slugs, true)
+                || in_array($normalized_term_name, $internal_political_section_slugs, true)
+            )) {
+                $informational_terms[(int) $term->term_id] = array(
+                    'type'        => 'political-office',
+                    'description' => __('Questa sezione è alimentata automaticamente dalle persone inserite nel relativo ufficio politico.', 'design_comuni_italia'),
+                    'destination' => sprintf(
+                        __('Pubblica e aggiorna i contenuti dalla scheda dell’ufficio: %s', 'design_comuni_italia'),
+                        $term->name
+                    ),
+                );
+                continue;
+            }
+
+            if ($term_url !== '') {
+                $informational_terms[(int) $term->term_id] = array(
+                    'type'        => 'link',
+                    'description' => __('Questa categoria è gestita tramite il collegamento configurato e non accetta Elementi Trasparenza.', 'design_comuni_italia'),
+                    'destination' => sprintf(__('Link configurato: %s', 'design_comuni_italia'), $term_url),
+                );
+                continue;
+            }
+
+            if (isset($custom_terms[$term->name])) {
+                $custom_term = $custom_terms[$term->name];
+                $informational_terms[(int) $term->term_id] = array(
+                    'type'        => 'custom',
+                    'description' => (string) ($custom_term['description'] ?? __('Questa categoria è gestita da una tipologia di contenuto dedicata.', 'design_comuni_italia')),
+                    'destination' => sprintf(
+                        __('Area di pubblicazione: %s', 'design_comuni_italia'),
+                        (string) ($custom_term['action_label'] ?? $term->name)
+                    ),
+                );
+            }
+        }
+
+        return $informational_terms;
+    }
+}
+
+/**
+ * Mantiene solo l'HTML editoriale consentito da WordPress.
+ *
+ * @param mixed $value Valore proposto da CMB2.
+ * @return string Testo formattato sanificato.
+ */
+function dci_sanitize_elemento_trasparenza_testo_formattato($value, $field_args = array(), $field = null)
+{
+    $sanitized_value = wp_kses_post((string) $value);
+    $plain_value = html_entity_decode(
+        wp_strip_all_tags($sanitized_value),
+        ENT_QUOTES | ENT_HTML5,
+        'UTF-8'
+    );
+
+    if (mb_strlen($plain_value, 'UTF-8') <= 1024) {
+        return $sanitized_value;
+    }
+
+    $object_id = $field instanceof CMB2_Field ? absint($field->object_id()) : 0;
+    $field_id = isset($field_args['id']) ? (string) $field_args['id'] : '';
+
+    return $object_id > 0 && $field_id !== ''
+        ? (string) get_post_meta($object_id, $field_id, true)
+        : '';
+}
+
 function dci_add_elemento_trasparenza_metaboxes()
 {
     $prefix = '_dci_elemento_trasparenza_';
     $excluded_term_ids = dci_elemento_trasparenza_get_excluded_term_ids_for_new_items();
+    $informational_term_ids = array_keys(dci_elemento_trasparenza_get_informational_terms());
+    $category_field_excluded_ids = array_values(array_diff($excluded_term_ids, $informational_term_ids));
 
     /*
      * Salvaguardia per i contenuti storici: se la categoria già associata è
@@ -938,6 +1065,16 @@ function dci_add_elemento_trasparenza_metaboxes()
         'closed'        => false,
     ));
 
+    $cmb_apertura->add_field(array(
+        'name'            => __('Immagine', 'design_comuni_italia'),
+        'desc'            => __('Immagine principale della card. Sono ammessi esclusivamente formati immagine (ad esempio PNG, JPG, WebP o SVG).', 'design_comuni_italia'),
+        'id'              => $prefix . 'immagine',
+        'type'            => 'file',
+        'options'         => array('url' => false),
+        'query_args'      => array('type' => 'image'),
+        'sanitization_cb' => 'dci_sanitize_elemento_trasparenza_immagine',
+    ));
+
     // $cmb_apertura->add_field(array(
     //     'id'            => $prefix . 'data_pubblicazione',
     //     'name'          => __('Data di pubblicazione', 'design_comuni_italia'),
@@ -950,11 +1087,14 @@ function dci_add_elemento_trasparenza_metaboxes()
     $cmb_apertura->add_field(array(
         'id'            => $prefix . 'descrizione_breve',
         'name'          => __('Descrizione breve ', 'design_comuni_italia'),
-        'desc'          => __('Inserisci una sintesi chiara del contenuto pubblicato. Il testo sarà mostrato negli elenchi dell’Amministrazione Trasparente. Massimo 1024 caratteri, spazi inclusi.', 'design_comuni_italia'),
-        'type'          => 'textarea',
-        'attributes'    => array(
-            'maxlength' => '1024',
+        'desc'          => __('Inserisci una sintesi chiara del contenuto pubblicato. Puoi usare grassetto, corsivo, collegamenti ed elenchi. Massimo 1024 caratteri visibili, spazi inclusi.', 'design_comuni_italia'),
+        'type'          => 'wysiwyg',
+        'options'       => array(
+            'media_buttons' => false,
+            'textarea_rows' => 5,
+            'teeny'         => true,
         ),
+        'sanitization_cb' => 'dci_sanitize_elemento_trasparenza_testo_formattato',
     ));
 
     $cmb_sezione = new_cmb2_box(array(
@@ -968,7 +1108,7 @@ function dci_add_elemento_trasparenza_metaboxes()
         $cmb_sezione->add_field( array(
             'id'                => $prefix . 'tipo_cat_amm_trasp',
             'name'              => __( 'Categoria Trasparenza *', 'design_comuni_italia' ),
-            'desc'              => __( 'Cerca e seleziona la sezione nella quale pubblicare questo elemento. Le sezioni gestite con una tipologia personalizzata sono indicate separatamente e non possono essere selezionate qui.', 'design_comuni_italia' ),
+            'desc'              => __( 'Cerca e seleziona la sezione nella quale pubblicare questo elemento. Le voci viola si pubblicano da una tipologia dedicata; le voci ambra sono gestite tramite un collegamento. Queste voci sono informative e non selezionabili.', 'design_comuni_italia' ),
             'type'              => 'taxonomy_radio_hierarchical',
             'taxonomy'          => 'tipi_cat_amm_trasp',
             'show_option_none'  => false,
@@ -978,7 +1118,7 @@ function dci_add_elemento_trasparenza_metaboxes()
                 'hide_empty' => false,
                 'orderby'    => 'name',
                 'order'      => 'ASC',
-                'exclude'    => $excluded_term_ids,
+                'exclude'    => $category_field_excluded_ids,
             ),
         ) );
 
@@ -1003,7 +1143,7 @@ function dci_add_elemento_trasparenza_metaboxes()
 
     $cmb_documento = new_cmb2_box(array(
         'id'            => $prefix . 'box_documento',
-        'title'         => __('Documento/Link *', 'design_comuni_italia'),
+        'title'         => __('Documenti e collegamenti *', 'design_comuni_italia'),
         'object_types'  => array('elemento_trasparenza'),
         'context'       => 'normal',
         'priority'      => 'high',
@@ -1011,20 +1151,23 @@ function dci_add_elemento_trasparenza_metaboxes()
 
     $cmb_documento->add_field(array(
         'id'            => $prefix . 'url',
-        'name'          => __('URL', 'design_comuni_italia'),
-        'desc'          => __('Link ad una pagina interna o esterna al sito', 'design_comuni_italia'),
+        'name'          => __('Collegamento principale', 'design_comuni_italia'),
+        'desc'          => __('Inserisci l’indirizzo completo di una pagina interna o di un sito esterno.', 'design_comuni_italia'),
         'type'          => 'text_url',
+        'attributes'    => array(
+            'placeholder' => 'https://www.esempio.it/pagina',
+        ),
     ));
 
       // Gruppo per URL multipli
     $cmb_documento->add_field(array(
         'id'            => $prefix . 'url_documento_group',
         'type'          => 'group',
-        'description' => __('Aggiungi uno o più link al documento', 'design_comuni_italia'),
+        'description' => __('Aggiungi uno o più collegamenti, indicando per ciascuno un indirizzo e un testo descrittivo.', 'design_comuni_italia'),
         'options'     => array(
-            'group_title'   => __('Link Documento {#}', 'design_comuni_italia'),
-            'add_button'    => __('Aggiungi link', 'design_comuni_italia'),
-            'remove_button' => __('Rimuovi link', 'design_comuni_italia'),
+            'group_title'   => __('Collegamento {#}', 'design_comuni_italia'),
+            'add_button'    => __('Aggiungi collegamento', 'design_comuni_italia'),
+            'remove_button' => __('Rimuovi collegamento', 'design_comuni_italia'),
             'sortable'      => true,
             'closed'        => true,
         ),
@@ -1032,16 +1175,24 @@ function dci_add_elemento_trasparenza_metaboxes()
     
     // URL del documento
     $cmb_documento->add_group_field($prefix . 'url_documento_group', array(
-        'name' => __('URL del documento', 'design_comuni_italia'),
-        'id'   => 'url_documento',
-        'type' => 'text_url',
+        'name'       => __('Indirizzo del collegamento', 'design_comuni_italia'),
+        'desc'       => __('Inserisci l’URL completo, incluso https://.', 'design_comuni_italia'),
+        'id'         => 'url_documento',
+        'type'       => 'text_url',
+        'attributes' => array(
+            'placeholder' => 'https://www.esempio.it/documento',
+        ),
     ));
     
     // Titolo del documento
     $cmb_documento->add_group_field($prefix . 'url_documento_group', array(
-        'name' => __('Titolo del link', 'design_comuni_italia'),
-        'id'   => 'titolo',
-        'type' => 'text',
+        'name'       => __('Testo del collegamento', 'design_comuni_italia'),
+        'desc'       => __('Usa un testo breve che descriva chiaramente la destinazione del collegamento.', 'design_comuni_italia'),
+        'id'         => 'titolo',
+        'type'       => 'text',
+        'attributes' => array(
+            'placeholder' => __('Es. Consulta il documento online', 'design_comuni_italia'),
+        ),
     ));
     
     // Checkbox: apri in nuova scheda
@@ -1168,20 +1319,48 @@ function dci_elemento_trasparenza_admin_script()
 {
     global $post_type;
     if ($post_type === 'elemento_trasparenza') {
+        $editing_post_id = isset($_GET['post']) ? absint($_GET['post']) : 0;
+        $category_locked = $editing_post_id > 0 && get_post_status($editing_post_id) === 'publish';
         $script_path = get_template_directory() . '/inc/admin-js/elemento_trasparenza.js';
         $term_descriptions = array();
         $term_counts = array();
         $term_direct_counts = array();
         $term_children = array();
+        $term_states = array();
+        $informational_terms = dci_elemento_trasparenza_get_informational_terms();
+        $informational_term_ids = array_keys($informational_terms);
+        $excluded_term_ids = array_values(array_diff(
+            dci_elemento_trasparenza_get_excluded_term_ids_for_new_items(),
+            $informational_term_ids
+        ));
         $transparency_terms = get_terms(array(
             'taxonomy'   => 'tipi_cat_amm_trasp',
             'hide_empty' => false,
-            'exclude'    => dci_elemento_trasparenza_get_excluded_term_ids_for_new_items(),
+            'exclude'    => $excluded_term_ids,
         ));
 
         if (!is_wp_error($transparency_terms)) {
             foreach ($transparency_terms as $transparency_term) {
                 $description = trim(wp_strip_all_tags($transparency_term->description));
+                $term_id = (int) $transparency_term->term_id;
+
+                if (isset($informational_terms[$term_id])) {
+                    $term_state = $informational_terms[$term_id];
+                    $description = trim((string) $term_state['description']);
+                    $term_states[$transparency_term->slug] = array(
+                        'type'        => (string) $term_state['type'],
+                        'description' => $description,
+                        'destination' => (string) $term_state['destination'],
+                    );
+                }
+
+                if ($description === '') {
+                    $description = sprintf(
+                        __('Sezione dedicata alla pubblicazione di contenuti relativi a “%s”.', 'design_comuni_italia'),
+                        $transparency_term->name
+                    );
+                }
+
                 if ($description !== '') {
                     $term_descriptions[$transparency_term->slug] = $description;
                 }
@@ -1227,6 +1406,9 @@ function dci_elemento_trasparenza_admin_script()
             array(
                 'termDescriptions' => $term_descriptions,
                 'termCounts'       => $term_counts,
+                'termStates'       => $term_states,
+                'categoryLocked'   => $category_locked,
+                'internalPortal'   => dci_get_option('ck_portalesoloperusoesterno') !== 'true',
             )
         );
     }

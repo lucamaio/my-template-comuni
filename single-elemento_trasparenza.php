@@ -23,12 +23,31 @@ global $uo_id, $inline, $audio;
             $prefix = '_dci_elemento_trasparenza_';
             $descrizione_breve = dci_get_meta("descrizione_breve", $prefix, $post->ID);
             $descrizione = dci_get_meta("descrizione", $prefix, $post->ID);
+            $immagine = dci_get_meta("immagine", $prefix, $post->ID);
             $file = dci_get_meta("file", $prefix, $post->ID);
             $url1 = dci_get_meta("url", $prefix, $post->ID);
             $url_documento_group = get_post_meta(get_the_ID(), $prefix . 'url_documento_group', true);
             //var_dump($url_documento_group);
 
             $data= get_the_date('j F Y', $post->ID);
+
+            $immagine_url = is_string($immagine) ? esc_url_raw($immagine) : '';
+            $immagine_id = $immagine_url !== '' ? attachment_url_to_postid($immagine_url) : 0;
+            $immagine_mime = $immagine_id ? (string) get_post_mime_type($immagine_id) : '';
+            $immagine_path = (string) wp_parse_url($immagine_url, PHP_URL_PATH);
+            $immagine_estensione = strtolower((string) pathinfo($immagine_path, PATHINFO_EXTENSION));
+            $immagine_formati = array('jpg', 'jpeg', 'jpe', 'png', 'gif', 'webp', 'avif', 'svg', 'bmp', 'ico', 'tif', 'tiff', 'heic', 'heif');
+            $immagine_valida = $immagine_url !== '' && (
+                strpos($immagine_mime, 'image/') === 0
+                || in_array($immagine_estensione, $immagine_formati, true)
+            );
+            $immagine_alt = $immagine_id
+                ? trim((string) get_post_meta($immagine_id, '_wp_attachment_image_alt', true))
+                : '';
+
+            if ($immagine_alt === '') {
+                $immagine_alt = get_the_title($post->ID);
+            }
             
             //$data_pubblicazione_arr = dci_get_data_pubblicazione_arr("data_pubblicazione", $prefix, $post->ID);
             //$data_pubblicazione = date_i18n('d F Y', mktime(0, 0, 0, $data_pubblicazione_arr[1], $data_pubblicazione_arr[0], $data_pubblicazione_arr[2]));
@@ -96,11 +115,17 @@ global $uo_id, $inline, $audio;
                         echo '<h1 data-audio>' . get_the_title() . '</h1>';
                     } ?>
                     <h2 class="visually-hidden" data-audio>Dettagli della notizia</h2>
-                    <?php if (preg_match('/[A-Z]{5,}/', $descrizione_breve)) {
-                        echo '<p data-audio>' . ucfirst(strtolower($descrizione_breve)) . '</p>';
-                    } else {
-                        echo '<p data-audio>' . $descrizione_breve . '</p>';
-                    } ?>
+                    <?php
+                    $descrizione_breve_output = (string) $descrizione_breve;
+                    $descrizione_breve_plain = wp_strip_all_tags($descrizione_breve_output);
+
+                    if ($descrizione_breve_output === $descrizione_breve_plain && preg_match('/[A-Z]{5,}/', $descrizione_breve_plain)) {
+                        $descrizione_breve_output = ucfirst(strtolower($descrizione_breve_plain));
+                    }
+                    ?>
+                    <div class="dci-elemento-trasparenza-description" data-audio>
+                        <?php echo wp_kses_post(wpautop($descrizione_breve_output)); ?>
+                    </div>
                 </div>
                 <div class="col-lg-3 offset-lg-1">
                     <?php
@@ -122,6 +147,21 @@ global $uo_id, $inline, $audio;
         <div class="container">
             <div class="row border-top border-light row-column-border row-column-menu-left">
                 <aside class="col-lg-4">
+                    <?php if ($immagine_valida) { ?>
+                        <figure
+                            style="display:flex;align-items:center;justify-content:center;margin:0 0 1.5rem;padding:.5rem;overflow:hidden;background:#fff;border:1px solid #e2e8ef;border-radius:.25rem;box-shadow:0 .125rem .25rem rgba(23,50,77,.12);"
+                        >
+                            <img
+                                src="<?php echo esc_url($immagine_url); ?>"
+                                alt="<?php echo esc_attr($immagine_alt); ?>"
+                                width="480"
+                                height="480"
+                                decoding="async"
+                                fetchpriority="high"
+                                style="display:block;width:100%;height:auto;max-height:22rem;object-fit:contain;"
+                            >
+                        </figure>
+                    <?php } ?>
                     <div class="cmp-navscroll sticky-top" aria-labelledby="accordion-title-one">
                         <nav class="navbar it-navscroll-wrapper navbar-expand-lg" aria-label="Indice della pagina" data-bs-navscroll>
                             <div class="navbar-custom" id="navbarNavProgress">

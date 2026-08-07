@@ -17,9 +17,11 @@ $mostra_pagina = get_post_meta($sito_tematico->ID, $prefix . 'mostra_pagina', tr
 $link_pagina = ((!empty($mostra_pagina) && $mostra_pagina) || empty($st_link))
     ? get_permalink($sito_tematico->ID)
     : $st_link;
+$link_pagina_is_external = !dci_is_internal_portal_url($link_pagina);
 ?>
 
-<a  target="_blank" href="<?php echo esc_url($link_pagina); ?>"
+<a href="<?php echo esc_url($link_pagina); ?>"
+   <?php if ($link_pagina_is_external) : ?>target="_blank" rel="noopener noreferrer"<?php endif; ?>
    style="<?= ($colore_sfondo) ? 'background-color:' . $colore_sfondo : '' ?>"
    class="card card-teaser <?= $colore_sfondo ? '' : 'bg-primary' ?> rounded mt-0 p-3 shadow-sm border border-light sito-tematico-card">
 
@@ -34,10 +36,12 @@ $link_pagina = ((!empty($mostra_pagina) && $mostra_pagina) || empty($st_link))
         <h3 class="card-title sito-tematico titolo-sito-tematico <?= $sfondo_scuro ? 'text-white' : 'text-dark' ?>">
             <?php echo $sito_tematico->post_title ?>
 
-            <!-- ICONA -->
-            <svg class="icon icon-white" style="width:20px;height:20px;margin-left:8px;">
-                <use href="#it-external-link"></use>
-            </svg>
+            <?php if ($link_pagina_is_external) : ?>
+                <!-- ICONA -->
+                <svg class="icon icon-white" style="width:20px;height:20px;margin-left:8px;">
+                    <use href="#it-external-link"></use>
+                </svg>
+            <?php endif; ?>
 
         </h3>
 

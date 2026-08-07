@@ -154,6 +154,11 @@ $the_query = new WP_Query($args);
 </form>
 
 <?php
+// Collegamenti in evidenza sotto la ricerca e prima degli atti manuali.
+get_template_part('template-parts/amministrazione-trasparente/atto-concessione/link-evidenza');
+?>
+
+<?php
 if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
     dci_render_trasparenza_not_applicable_notice();
 }

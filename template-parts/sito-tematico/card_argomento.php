@@ -17,17 +17,20 @@ $mostra_pagina = get_post_meta($sito_tematico->ID, $prefix . 'mostra_pagina', tr
 $link_pagina = ((!empty($mostra_pagina) && $mostra_pagina) || empty($st_link))
     ? get_permalink($sito_tematico->ID)
     : $st_link;
+$link_pagina_is_external = !dci_is_internal_portal_url($link_pagina);
 ?>
 
-<a target="_blank" href="<?php echo esc_url($link_pagina); ?>"
+<a href="<?php echo esc_url($link_pagina); ?>"
+   <?php if ($link_pagina_is_external) : ?>target="_blank" rel="noopener noreferrer"<?php endif; ?>
    class="card card-teaser sito-tematico-page mt-0 p-2 shadow-sm"
-   style="<?= ($colore_sfondo) ? 'background-color:'.$colore_sfondo : 'background-color:#f7f7f7;' ?>; border-radius:1px;"
-   rel="noopener">
+   style="<?= ($colore_sfondo) ? 'background-color:'.$colore_sfondo : 'background-color:#f7f7f7;' ?>; border-radius:1px;">
 
-    <!-- Icona in alto a destra -->
-    <svg class="icon external-icon" style="pointer-events:none;">
-        <use href="#it-external-link"></use>
-    </svg>
+    <?php if ($link_pagina_is_external) : ?>
+        <!-- Icona in alto a destra -->
+        <svg class="icon external-icon" style="pointer-events:none;">
+            <use href="#it-external-link"></use>
+        </svg>
+    <?php endif; ?>
 
     <div class="card-body"
          style="background-color:#f7f7f7;

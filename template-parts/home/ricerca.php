@@ -54,10 +54,14 @@ $links = dci_get_option('link', 'link_utili');
 
           <div class="d-flex flex-wrap gap-3">
 
-            <?php foreach ($links as $link) { ?>
+            <?php foreach ($links as $link) {
+              $link_url = $link['url'] ?? '';
+              $link_is_external = !dci_is_internal_portal_url($link_url);
+            ?>
 
               <!-- LINK -->
-              <a  target="_blank" href="<?php echo esc_url($link['url']); ?>"
+              <a href="<?php echo esc_url($link_url); ?>"
+                 <?php if ($link_is_external) : ?>target="_blank" rel="noopener noreferrer"<?php endif; ?>
                  class="d-inline-flex align-items-center gap-2
                         px-3 py-2 border border-light rounded
                         shadow-sm bg-white text-primary
@@ -131,5 +135,4 @@ $links = dci_get_option('link', 'link_utili');
 }
 
 </style>
-
 

@@ -163,12 +163,18 @@ $current_group = dci_get_current_group();
 		    <?php endif; ?>
 
 				
-		    <?php if (dci_get_option('link_ammtrasparente')) : ?>
+		    <?php
+		    $link_ammtrasparente = dci_get_option('link_ammtrasparente');
+		    $ammtrasparente_is_external = !dci_is_internal_portal_url($link_ammtrasparente);
+		    ?>
+		    <?php if ($link_ammtrasparente) : ?>
 		      <li class="nav-item mb-2">
 		        <a class="nav-link text-white"
-		           href="<?php echo esc_url(dci_get_option('link_ammtrasparente')); ?>"
+		           href="<?php echo esc_url($link_ammtrasparente); ?>"
+		           <?php if ($ammtrasparente_is_external) : ?>
 		           target="_blank"
 		           rel="noopener"
+		           <?php endif; ?>
 		           aria-label="Amministrazione trasparente">
 		        Amministrazione trasparente
 		        </a>

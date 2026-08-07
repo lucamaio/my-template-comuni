@@ -1849,6 +1849,30 @@ add_action('rest_api_init', function () {
 
 });
 
+if (!function_exists('dci_is_internal_portal_url')) {
+    /**
+     * Verifica se un URL punta al portale corrente.
+     *
+     * Gli URL relativi sono considerati interni; per gli URL assoluti viene
+     * confrontato l'host con quello configurato in home_url().
+     */
+    function dci_is_internal_portal_url($url) {
+        if (empty($url)) {
+            return false;
+        }
+
+        $url_host = wp_parse_url($url, PHP_URL_HOST);
+
+        if (empty($url_host)) {
+            return true;
+        }
+
+        $home_host = wp_parse_url(home_url(), PHP_URL_HOST);
+
+        return !empty($home_host) && strtolower($url_host) === strtolower($home_host);
+    }
+}
+
 
 
 

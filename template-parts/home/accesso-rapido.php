@@ -16,12 +16,15 @@ $box_accesso_rapido = $boxes;
 
             $colore_sfondo = $box['colore'] ?? false;
             $sfondo_scuro = $colore_sfondo ? is_this_dark_hex($colore_sfondo) : true;
+            $link_accesso_rapido = $box['link_message'] ?? '';
+            $link_accesso_rapido_is_external = !dci_is_internal_portal_url($link_accesso_rapido);
         ?>
 
         <div class="col-md-6 col-xl-4">
 
             <!-- LINK -->
-            <a target="_blank" href="<?php echo esc_url($box['link_message']); ?>"
+            <a href="<?php echo esc_url($link_accesso_rapido); ?>"
+               <?php if ($link_accesso_rapido_is_external) : ?>target="_blank" rel="noopener noreferrer"<?php endif; ?>
                style="<?= ($colore_sfondo) ? 'background-color:' . $colore_sfondo : '' ?>"
                class="card card-teaser <?= $colore_sfondo ? '' : 'bg-neutral' ?> rounded mt-0 p-3">
 
@@ -59,11 +62,13 @@ $box_accesso_rapido = $boxes;
 
                                     <?php echo $box['titolo_message']; ?>
 
-                                    <!-- ICONA -->
-                                    <svg class="icon icon-white"
-                                         style="width:20px;height:20px;margin-left:8px;">
-                                        <use href="#it-external-link"></use>
-                                    </svg>
+                                    <?php if ($link_accesso_rapido_is_external) : ?>
+                                        <!-- ICONA -->
+                                        <svg class="icon icon-white"
+                                             style="width:20px;height:20px;margin-left:8px;">
+                                            <use href="#it-external-link"></use>
+                                        </svg>
+                                    <?php endif; ?>
 
                                 </h3>
 

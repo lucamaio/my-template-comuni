@@ -460,7 +460,10 @@ get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
                     <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
                         <?php get_template_part("template-parts/amministrazione-trasparente/titolare_incarico/tutti-titolari"); ?>
                     </div>
-                    <?php get_template_part("template-parts/amministrazione-trasparente/side-bar"); ?>
+                    <?php
+                    $dci_amm_sidebar_column_classes = 'pt-20 pt-lg-20 pb-lg-20';
+                    get_template_part("template-parts/amministrazione-trasparente/side-bar");
+                    ?>
                 </div>
             </div>
         </div>

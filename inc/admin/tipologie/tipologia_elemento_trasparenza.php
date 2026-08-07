@@ -950,10 +950,10 @@ function dci_add_elemento_trasparenza_metaboxes()
     $cmb_apertura->add_field(array(
         'id'            => $prefix . 'descrizione_breve',
         'name'          => __('Descrizione breve ', 'design_comuni_italia'),
-        'desc'          => __('Inserisci una sintesi chiara del contenuto pubblicato. Il testo sarà mostrato negli elenchi dell’Amministrazione Trasparente. Massimo 512 caratteri, spazi inclusi.', 'design_comuni_italia'),
+        'desc'          => __('Inserisci una sintesi chiara del contenuto pubblicato. Il testo sarà mostrato negli elenchi dell’Amministrazione Trasparente. Massimo 1024 caratteri, spazi inclusi.', 'design_comuni_italia'),
         'type'          => 'textarea',
         'attributes'    => array(
-            'maxlength' => '512',
+            'maxlength' => '1024',
         ),
     ));
 

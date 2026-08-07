@@ -16,12 +16,18 @@
 
           <!-- Link desktop -->
           <div class="it-header-slim-right-zone d-flex align-items-center" role="navigation">
-            <?php if (dci_get_option("link_ammtrasparente")) : ?>
+            <?php
+            $link_ammtrasparente = dci_get_option("link_ammtrasparente");
+            $ammtrasparente_is_external = !dci_is_internal_portal_url($link_ammtrasparente);
+            ?>
+            <?php if ($link_ammtrasparente) : ?>
               <div class="nav-item me-3">
                 <a class="navbar-brand text-decoration-none"
-                   href="<?php echo esc_url(dci_get_option("link_ammtrasparente")); ?>"
+                   href="<?php echo esc_url($link_ammtrasparente); ?>"
+                   <?php if ($ammtrasparente_is_external) : ?>
                    target="_blank"
                    rel="noopener"
+                   <?php endif; ?>
                    aria-label="Amministrazione trasparente">
                 <font color="white">Amministrazione trasparente</font>
                 </a>
@@ -62,4 +68,3 @@
     </div>
   </div>
 </div>
-

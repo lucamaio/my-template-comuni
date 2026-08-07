@@ -284,6 +284,11 @@ $prefix = "_dci_bando_";
 </div>
 
 <?php
+// Collegamenti in evidenza sotto la ricerca e prima dei contenuti manuali.
+get_template_part('template-parts/bandi-di-gara/link-evidenza');
+?>
+
+<?php
 if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
     dci_render_trasparenza_not_applicable_notice();
 }

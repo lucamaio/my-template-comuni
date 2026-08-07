@@ -119,7 +119,6 @@ $title = wp_trim_words($link_obj->post_title, 15, '...');
 
 <a class="list-item icon-left d-flex align-items-center argomento-link"
    href="<?php echo get_permalink(intval($link_id)); ?>"
-   target="_blank"
    style="padding:10px 14px;border-radius:8px;
           background:#f8f9fa;text-decoration:none;
           color:#212529;display:flex;

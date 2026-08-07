@@ -10,12 +10,13 @@ if (!empty($strip['strip_items']) && count($strip['strip_items']) > 0) :
 
   <div class="strip-inner" id="stripScroll">
 
-    <?php foreach ($strip['strip_items'] as $item) : 
-        $target = (!empty($item['blank'])) ? ' target="_blank"' : '';
+    <?php foreach ($strip['strip_items'] as $item) :
+        $item_url = $item['url'] ?? '';
+        $item_is_external = !dci_is_internal_portal_url($item_url);
     ?>
 
       <div class="strip-item">
-        <a href="<?php echo esc_url($item['url']); ?>" <?php echo $target; ?>>
+        <a href="<?php echo esc_url($item_url); ?>" <?php if ($item_is_external) : ?>target="_blank" rel="noopener noreferrer"<?php endif; ?>>
 
           <div class="strip-icon">
             <?php if (!empty($item['icon'])): ?>

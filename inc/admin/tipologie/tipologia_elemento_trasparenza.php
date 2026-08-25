@@ -1,4 +1,5 @@
 <?php
+require_once get_template_directory() . '/inc/admin/guida-trasparenza.php';
 
 /**
  * Definisce post type Elemento Trasparenza

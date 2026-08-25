@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 function dci_guida_trasparenza_admin_menu() {
     if (
         'true' !== dci_get_option('ck_abilita_trasparenza')
-        || !current_user_can('publish_elementi_trasparenza')
+        || !current_user_can('edit_elementi_trasparenza')
     ) {
         return;
     }
@@ -24,7 +24,7 @@ function dci_guida_trasparenza_admin_menu() {
         'edit.php?post_type=elemento_trasparenza',
         __('Guida alla pubblicazione', 'design_comuni_italia'),
         __('Guida alla pubblicazione', 'design_comuni_italia'),
-        'publish_elementi_trasparenza',
+        'edit_elementi_trasparenza',
         'dci-guida-trasparenza',
         'dci_guida_trasparenza_render'
     );
@@ -87,7 +87,7 @@ add_action('admin_enqueue_scripts', 'dci_guida_trasparenza_admin_assets');
 function dci_guida_trasparenza_render() {
     if (
         'true' !== dci_get_option('ck_abilita_trasparenza')
-        || !current_user_can('publish_elementi_trasparenza')
+        || !current_user_can('edit_elementi_trasparenza')
     ) {
         wp_die(
             esc_html__('Non hai i permessi per accedere a questa guida.', 'design_comuni_italia'),
@@ -95,6 +95,17 @@ function dci_guida_trasparenza_render() {
             array('response' => 403)
         );
     }
+
+    $is_internal_portal = dci_get_option('ck_portalesoloperusoesterno') !== 'true';
+    $can_create_items   = current_user_can('create_elementi_trasparenza');
+    $can_publish_items  = current_user_can('publish_elementi_trasparenza');
+    $new_item_url       = admin_url('post-new.php?post_type=elemento_trasparenza');
+    $items_url          = admin_url('edit.php?post_type=elemento_trasparenza');
+    $offices_url        = admin_url('edit.php?post_type=unita_organizzativa');
+    $public_page_url    = home_url('/amministrazione-trasparente/');
+    $documents_number   = $is_internal_portal ? 6 : 5;
+    $verification_number = $is_internal_portal ? 7 : 6;
+    $assistance_number  = $is_internal_portal ? 8 : 7;
     ?>
     <div class="wrap dci-admin-guide">
         <header class="dci-admin-guide__header">
@@ -104,7 +115,7 @@ function dci_guida_trasparenza_render() {
             </p>
             <h1><?php esc_html_e('Guida alla pubblicazione', 'design_comuni_italia'); ?></h1>
             <p class="dci-admin-guide__intro">
-                <?php esc_html_e('Indicazioni pratiche per preparare, controllare e pubblicare correttamente i contenuti della Trasparenza.', 'design_comuni_italia'); ?>
+                <?php esc_html_e('Istruzioni operative per creare, classificare, controllare e mantenere aggiornati i contenuti con il nuovo sistema di pubblicazione.', 'design_comuni_italia'); ?>
             </p>
         </header>
 
@@ -157,211 +168,177 @@ function dci_guida_trasparenza_render() {
             <nav class="dci-admin-guide__index" aria-label="<?php esc_attr_e('Indice della guida', 'design_comuni_italia'); ?>">
                 <h2><?php esc_html_e('In questa guida', 'design_comuni_italia'); ?></h2>
                 <ol>
-                    <li><a href="#premessa"><span class="dashicons dashicons-info-outline" aria-hidden="true"></span><?php esc_html_e('Premessa e informazioni principali', 'design_comuni_italia'); ?></a></li>
-                    <li><a href="#portale"><span class="dashicons dashicons-admin-site-alt3" aria-hidden="true"></span><?php esc_html_e('Il nostro portale', 'design_comuni_italia'); ?></a></li>
-                    <li><a href="#procedura"><span class="dashicons dashicons-edit-page" aria-hidden="true"></span><?php esc_html_e('Pubblicazione sulla Trasparenza', 'design_comuni_italia'); ?></a></li>
-                    <li><a href="#tipologie-personalizzate"><span class="dashicons dashicons-screenoptions" aria-hidden="true"></span><?php esc_html_e('Tipologie personalizzate', 'design_comuni_italia'); ?></a></li>
-                    <li><a href="#competenze"><span class="dashicons dashicons-groups" aria-hidden="true"></span><?php esc_html_e('Le nostre competenze sul portale', 'design_comuni_italia'); ?></a></li>
-                    <li><a href="#assistenza"><span class="dashicons dashicons-sos" aria-hidden="true"></span><?php esc_html_e('Assistenza', 'design_comuni_italia'); ?></a></li>
+                    <li><a href="#nuovo-sistema"><span class="dashicons dashicons-info-outline" aria-hidden="true"></span><?php esc_html_e('Il nuovo sistema', 'design_comuni_italia'); ?></a></li>
+                    <li><a href="#prima-di-iniziare"><span class="dashicons dashicons-clipboard" aria-hidden="true"></span><?php esc_html_e('Prima di iniziare', 'design_comuni_italia'); ?></a></li>
+                    <li><a href="#compilazione"><span class="dashicons dashicons-edit-page" aria-hidden="true"></span><?php esc_html_e('Creare un elemento', 'design_comuni_italia'); ?></a></li>
+                    <li><a href="#sezione"><span class="dashicons dashicons-category" aria-hidden="true"></span><?php esc_html_e('Scegliere la sezione', 'design_comuni_italia'); ?></a></li>
+                    <?php if ($is_internal_portal) : ?>
+                        <li><a href="#organi-politici"><span class="dashicons dashicons-groups" aria-hidden="true"></span><?php esc_html_e('Sindaco, Giunta e Consiglio', 'design_comuni_italia'); ?></a></li>
+                    <?php endif; ?>
+                    <li><a href="#documenti"><span class="dashicons dashicons-media-document" aria-hidden="true"></span><?php esc_html_e('Documenti e collegamenti', 'design_comuni_italia'); ?></a></li>
+                    <li><a href="#verifica"><span class="dashicons dashicons-yes-alt" aria-hidden="true"></span><?php esc_html_e('Pubblicare e verificare', 'design_comuni_italia'); ?></a></li>
+                    <li><a href="#assistenza"><span class="dashicons dashicons-sos" aria-hidden="true"></span><?php esc_html_e('Dubbi e assistenza', 'design_comuni_italia'); ?></a></li>
                 </ol>
             </nav>
 
             <main class="dci-admin-guide__content">
-                <section id="premessa">
-    <span class="dci-admin-guide__number" aria-hidden="true">1</span>
-    <h2><?php esc_html_e('Premessa e informazioni principali', 'design_comuni_italia'); ?></h2>
+                <section id="nuovo-sistema">
+                    <span class="dci-admin-guide__number" aria-hidden="true">1</span>
+                    <h2><?php esc_html_e('Il nuovo sistema di pubblicazione', 'design_comuni_italia'); ?></h2>
+                    <p><?php esc_html_e('Nel nuovo sistema ogni contenuto ordinario viene creato come “Elemento Trasparenza” e associato a una sola sezione dell’alberatura. La sezione scelta stabilisce dove il contenuto comparirà sul sito pubblico.', 'design_comuni_italia'); ?></p>
+                    <div class="dci-admin-guide__rule">
+                        <span class="dashicons dashicons-lightbulb" aria-hidden="true"></span>
+                        <p><strong><?php esc_html_e('Regola principale:', 'design_comuni_italia'); ?></strong> <?php esc_html_e('per pubblicare un nuovo dato, documento o collegamento usa “Aggiungi un Elemento Trasparenza”, quindi seleziona la sottosezione più specifica disponibile.', 'design_comuni_italia'); ?></p>
+                    </div>
+                    <?php if (!$can_publish_items) : ?>
+                        <div class="notice notice-info inline">
+                            <p><strong><?php esc_html_e('Il tuo profilo può preparare e modificare i contenuti, ma non pubblicarli direttamente.', 'design_comuni_italia'); ?></strong> <?php esc_html_e('Salva il lavoro come bozza e comunicalo al responsabile abilitato alla pubblicazione.', 'design_comuni_italia'); ?></p>
+                        </div>
+                    <?php endif; ?>
+                    <p><?php esc_html_e('Le categorie principali servono a ordinare l’alberatura: non scegliere una macro-area quando esiste una sottosezione adatta. I redattori non devono creare, rinominare o spostare le categorie.', 'design_comuni_italia'); ?></p>
+                    <div class="dci-admin-guide__quick-actions">
+                        <?php if ($can_create_items) : ?>
+                            <a class="button button-primary" href="<?php echo esc_url($new_item_url); ?>"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e('Crea un elemento', 'design_comuni_italia'); ?></a>
+                        <?php endif; ?>
+                        <a class="button" href="<?php echo esc_url($items_url); ?>"><span class="dashicons dashicons-list-view" aria-hidden="true"></span><?php esc_html_e('Gestisci gli elementi', 'design_comuni_italia'); ?></a>
+                        <a class="button" href="<?php echo esc_url($public_page_url); ?>" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-visibility" aria-hidden="true"></span><?php esc_html_e('Apri la sezione pubblica', 'design_comuni_italia'); ?></a>
+                    </div>
+                    <p class="description"><?php esc_html_e('La pubblicazione deve rispettare gli obblighi applicabili, la protezione dei dati personali e le indicazioni organizzative dell’ente.', 'design_comuni_italia'); ?> <a href="https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2013-03-14;33!vig=" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Consulta il D.Lgs. 33/2013', 'design_comuni_italia'); ?></a>.</p>
+                </section>
 
-    <h3><?php esc_html_e('Cos’è l’Amministrazione Trasparente', 'design_comuni_italia'); ?></h3>
-
-    <p>
-        <?php esc_html_e(
-            'L’Amministrazione Trasparente è la sezione obbligatoria del sito istituzionale attraverso la quale le Pubbliche Amministrazioni rendono accessibili ai cittadini dati, documenti e informazioni relativi alla propria organizzazione, attività, utilizzo delle risorse pubbliche, procedimenti e risultati.',
-            'design_comuni_italia'
-        ); ?>
-    </p>
-
-    <p>
-        <?php esc_html_e(
-            'La trasparenza amministrativa ha lo scopo di garantire la conoscibilità dell’azione della Pubblica Amministrazione, favorire forme diffuse di controllo sul perseguimento delle funzioni istituzionali e sull’utilizzo delle risorse pubbliche, prevenire fenomeni di corruzione e promuovere legalità, integrità e responsabilità nell’attività amministrativa.',
-            'design_comuni_italia'
-        ); ?>
-    </p>
-
-    <p>
-        <?php esc_html_e(
-            'Il principale riferimento normativo è il Decreto Legislativo 14 marzo 2013, n. 33, che disciplina il diritto di accesso civico e gli obblighi di pubblicità, trasparenza e diffusione delle informazioni da parte delle Pubbliche Amministrazioni. Il decreto stabilisce quali dati devono essere pubblicati, le modalità di pubblicazione, i criteri di qualità delle informazioni e l’organizzazione della sezione “Amministrazione Trasparente”.',
-            'design_comuni_italia'
-        ); ?>
-    </p>
-
-    <p>
-        <strong><?php esc_html_e('Riferimento normativo principale:', 'design_comuni_italia'); ?></strong><br>
-        <a
-            href="https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2013-03-14;33"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            <?php esc_html_e('Decreto Legislativo 14 marzo 2013, n. 33 – Normattiva', 'design_comuni_italia'); ?>
-        </a>
-    </p>
-
-    <h3><?php esc_html_e('Come deve essere organizzata', 'design_comuni_italia'); ?></h3>
-
-    <p>
-        <?php esc_html_e(
-            'La sezione deve essere organizzata secondo la struttura e le sottosezioni previste dalla normativa e dalle indicazioni dell’Autorità Nazionale Anticorruzione (ANAC). Ogni documento, dato o informazione deve essere inserito nella corretta sottosezione e mantenuto aggiornato per il periodo previsto dalla normativa.',
-            'design_comuni_italia'
-        ); ?>
-    </p>
-
-    <p>
-        <?php esc_html_e(
-            'I contenuti pubblicati devono rispettare, tra gli altri, i principi di completezza, aggiornamento, tempestività, comprensibilità, integrità, semplicità di consultazione, accessibilità, conformità ai documenti originali e riutilizzabilità. La sezione deve inoltre essere liberamente consultabile e non deve richiedere registrazione o autenticazione da parte dell’utente.',
-            'design_comuni_italia'
-        ); ?>
-    </p>
-
-    <h3><?php esc_html_e('Aggiornamenti ANAC', 'design_comuni_italia'); ?></h3>
-
-    <p>
-        <?php esc_html_e(
-            'La struttura dell’Amministrazione Trasparente e le modalità con cui devono essere rappresentati e pubblicati i dati non devono essere considerate immutabili. ANAC aggiorna periodicamente indicazioni, schemi di pubblicazione, modalità tecniche e obblighi applicativi, anche in conseguenza di modifiche normative.',
-            'design_comuni_italia'
-        ); ?>
-    </p>
-
-    <p>
-        <?php esc_html_e(
-            'È pertanto consigliato consultare periodicamente il portale istituzionale e la documentazione pubblicata da ANAC, verificando eventuali aggiornamenti della struttura delle sottosezioni, degli schemi di pubblicazione e dei relativi obblighi. Questa verifica è importante per mantenere la sezione conforme alla normativa vigente ed evitare pubblicazioni incomplete, non aggiornate o collocate in sezioni non più corrette.',
-            'design_comuni_italia'
-        ); ?>
-    </p>
-
-    <p>
-        <strong><?php esc_html_e('Riferimenti ANAC:', 'design_comuni_italia'); ?></strong>
-    </p>
-
-    <ul>
-        <li>
-            <a
-                href="https://guida-servizi.anticorruzione.it/it/help/trasparenza/amministrazione-trasparente/"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                <?php esc_html_e('Guida ANAC – Amministrazione Trasparente', 'design_comuni_italia'); ?>
-            </a>
-        </li>
-
-        <li>
-            <a
-                href="https://www.anticorruzione.it/-/piano-nazionale-anticorruzione-2025"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                <?php esc_html_e('Piano Nazionale Anticorruzione 2025 – Delibera ANAC n. 19/2026', 'design_comuni_italia'); ?>
-            </a>
-        </li>
-
-        <li>
-            <a
-                href="https://www.anticorruzione.it/"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                <?php esc_html_e('Portale istituzionale ANAC', 'design_comuni_italia'); ?>
-            </a>
-        </li>
-    </ul>
-
-    <div class="notice notice-warning inline">
-        <p>
-            <strong><?php esc_html_e('Attenzione:', 'design_comuni_italia'); ?></strong>
-            <?php esc_html_e(
-                'pubblica soltanto dati pertinenti all’obbligo normativo, verifica sempre la presenza di informazioni personali e controlla periodicamente eventuali aggiornamenti normativi o indicazioni pubblicate da ANAC.',
-                'design_comuni_italia'
-            ); ?>
-        </p>
-    </div>
-</section>
-
-<section id="portale">
-    <span class="dci-admin-guide__number" aria-hidden="true">2</span>
-    <h2><?php esc_html_e('Il nostro portale', 'design_comuni_italia'); ?></h2>
-    <p><?php esc_html_e('Il portale istituzionale organizza informazioni, servizi e documenti in aree collegate tra loro. Ogni contenuto deve essere inserito nella sezione corretta, usando la tipologia prevista e compilando con attenzione tutti i campi richiesti.', 'design_comuni_italia'); ?></p>
-    <p><?php esc_html_e('Prima di creare un nuovo contenuto verifica che non sia già presente, individua la struttura responsabile e prepara testi, date, collegamenti e allegati. Una corretta classificazione rende le informazioni più facili da trovare e da mantenere aggiornate.', 'design_comuni_italia'); ?></p>
-    <div class="dci-admin-guide__example">
-        <h3><?php esc_html_e('Principi da seguire', 'design_comuni_italia'); ?></h3>
-        <p><?php esc_html_e('Usa titoli chiari, testi sintetici, fonti ufficiali, collegamenti stabili e documenti accessibili. Evita duplicazioni, abbreviazioni poco comprensibili e informazioni prive di data o referente.', 'design_comuni_italia'); ?></p>
-    </div>
-</section>
-
-<section id="procedura">
-    <span class="dci-admin-guide__number" aria-hidden="true">3</span>
-    <h2><?php esc_html_e('Come si pubblica sulla Trasparenza e regole di pubblicazione', 'design_comuni_italia'); ?></h2>
-
-    <ol class="dci-admin-guide__steps">
-        <li>
-            <strong><?php esc_html_e('Apri “Amministrazione Trasparente”.', 'design_comuni_italia'); ?></strong>
-            <span><?php esc_html_e('Seleziona “Aggiungi nuovo” dal menu laterale.', 'design_comuni_italia'); ?></span>
-        </li>
-
-        <li>
-            <strong><?php esc_html_e('Compila i campi.', 'design_comuni_italia'); ?></strong>
-            <span><?php esc_html_e('Inserisci titolo, descrizione e categoria prevista.', 'design_comuni_italia'); ?></span>
-        </li>
-
-        <li>
-            <strong><?php esc_html_e('Aggiungi documenti o collegamenti.', 'design_comuni_italia'); ?></strong>
-            <span><?php esc_html_e('Usa file accessibili oppure una fonte ufficiale stabile.', 'design_comuni_italia'); ?></span>
-        </li>
-
-        <li>
-            <strong><?php esc_html_e('Controlla e pubblica.', 'design_comuni_italia'); ?></strong>
-            <span><?php esc_html_e('Verifica i dati inseriti prima di rendere pubblico il contenuto.', 'design_comuni_italia'); ?></span>
-        </li>
-    </ol>
-
-    <h3><?php esc_html_e('Documenti e accessibilità', 'design_comuni_italia'); ?></h3>
-    <p><?php esc_html_e('Preferisci documenti nativi digitali con testo selezionabile, titoli strutturati e ordine di lettura corretto. Evita le scansioni quando è disponibile il file originale e assegna ai file nomi chiari e descrittivi.', 'design_comuni_italia'); ?></p>
-
-    <div class="dci-admin-guide__example">
-        <h3><?php esc_html_e('Nomi dei file', 'design_comuni_italia'); ?></h3>
-        <p><strong><?php esc_html_e('Nome chiaro:', 'design_comuni_italia'); ?></strong> piano-triennale-prevenzione-corruzione-2026.pdf</p>
-        <p><strong><?php esc_html_e('Nome da evitare:', 'design_comuni_italia'); ?></strong> scansione001_def.pdf</p>
-    </div>
-
-    <?php
-    /*
-     * Per aggiungere un'immagine statica:
-     * 1. copiarla in assets/images/guida-trasparenza/;
-     * 2. aggiungere qui un elemento <figure> con un tag <img>;
-     * 3. usare get_theme_file_uri() per costruire l'indirizzo e
-     *    inserire sempre un testo alternativo significativo.
-     */
-    ?>
-</section>
-                <section id="tipologie-personalizzate">
-                    <span class="dci-admin-guide__number" aria-hidden="true">4</span>
-                    <h2><?php esc_html_e('Come si pubblica nelle tipologie personalizzate', 'design_comuni_italia'); ?></h2>
-                    <p><?php esc_html_e('Le tipologie personalizzate raccolgono contenuti con campi e regole specifiche, come uffici, persone, luoghi, servizi, notizie o altri elementi previsti dal portale. Seleziona dal menu la tipologia corretta e usa “Aggiungi nuovo”.', 'design_comuni_italia'); ?></p>
-                    <p><?php esc_html_e('Compila i campi nell’ordine proposto, collega eventuali contenuti già presenti e controlla anteprima, date e visibilità prima della pubblicazione. Non usare una tipologia diversa solo perché contiene campi simili.', 'design_comuni_italia'); ?></p>
-                    <div class="dci-admin-guide__example">
-                        <h3><?php esc_html_e('Prima di pubblicare', 'design_comuni_italia'); ?></h3>
-                        <p><?php esc_html_e('Verifica titolo, stato di pubblicazione, immagine o allegati, collegamenti ad altre sezioni, responsabile del contenuto e data del prossimo aggiornamento.', 'design_comuni_italia'); ?></p>
+                <section id="prima-di-iniziare">
+                    <span class="dci-admin-guide__number" aria-hidden="true">2</span>
+                    <h2><?php esc_html_e('Prima di iniziare', 'design_comuni_italia'); ?></h2>
+                    <p><?php esc_html_e('Una verifica di pochi minuti evita duplicati, collegamenti errati e documenti da sostituire subito dopo la pubblicazione.', 'design_comuni_italia'); ?></p>
+                    <ul class="dci-admin-guide__checklist">
+                        <li><?php esc_html_e('Cerca nell’elenco degli Elementi Trasparenza e sul sito pubblico: aggiorna un contenuto esistente se tratta lo stesso obbligo.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Individua la sottosezione corretta e verifica eventuali istruzioni del referente della Trasparenza.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Prepara un titolo comprensibile anche fuori dal contesto dell’ufficio, senza sigle non spiegate.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Raccogli la versione definitiva dei file e gli indirizzi completi dei collegamenti.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Controlla date, periodo di riferimento, ufficio responsabile e scadenza del prossimo aggiornamento.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Verifica che non siano presenti dati personali eccedenti, firme autografe non necessarie o informazioni da oscurare.', 'design_comuni_italia'); ?></li>
+                    </ul>
+                    <div class="notice notice-warning inline">
+                        <p><strong><?php esc_html_e('In caso di dubbio sui dati personali:', 'design_comuni_italia'); ?></strong> <?php esc_html_e('non pubblicare il file finché il referente competente non ha confermato contenuto ed eventuali oscuramenti.', 'design_comuni_italia'); ?></p>
                     </div>
                 </section>
 
-                <section id="competenze">
-                    <span class="dci-admin-guide__number" aria-hidden="true">5</span>
-                    <h2><?php esc_html_e('Le nostre competenze sul portale', 'design_comuni_italia'); ?></h2>
-                    <p><?php esc_html_e('Ogni redattore opera esclusivamente nelle aree e sui contenuti assegnati. È responsabile della correttezza dei dati inseriti, della qualità dei documenti, della scelta della sezione e del rispetto delle scadenze di aggiornamento.', 'design_comuni_italia'); ?></p>
-                    <p><?php esc_html_e('Dopo la pubblicazione è necessario aprire il contenuto sul sito e controllare titolo, categoria, allegati e collegamenti. Le verifiche periodiche permettono di aggiornare, correggere o archiviare i contenuti secondo le regole dell’ente.', 'design_comuni_italia'); ?></p>
+                <section id="compilazione">
+                    <span class="dci-admin-guide__number" aria-hidden="true">3</span>
+                    <h2><?php esc_html_e('Creare e compilare un Elemento Trasparenza', 'design_comuni_italia'); ?></h2>
+                    <ol class="dci-admin-guide__steps">
+                        <li><strong><?php esc_html_e('Apri il modulo.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('Dal menu “Amministrazione Trasparente” scegli “Aggiungi un Elemento Trasparenza”.', 'design_comuni_italia'); ?></span></li>
+                        <li><strong><?php esc_html_e('Inserisci il titolo.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('Descrivi con precisione il contenuto e, quando utile, indica anno o periodo di riferimento.', 'design_comuni_italia'); ?></span></li>
+                        <li><strong><?php esc_html_e('Compila l’apertura.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('L’immagine è facoltativa. Usa la descrizione breve per una sintesi immediata, entro 1024 caratteri visibili.', 'design_comuni_italia'); ?></span></li>
+                        <li><strong><?php esc_html_e('Seleziona la sezione.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('Cerca per parole chiave, scegli una sola sottosezione e controlla il riepilogo verde “Sezione selezionata”.', 'design_comuni_italia'); ?></span></li>
+                        <li><strong><?php esc_html_e('Aggiungi il contenuto.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('Inserisci una descrizione di approfondimento, un collegamento, uno o più allegati oppure una combinazione di questi elementi.', 'design_comuni_italia'); ?></span></li>
+                        <li><strong><?php esc_html_e('Salva o pubblica.', 'design_comuni_italia'); ?></strong><span><?php echo $can_publish_items ? esc_html__('Se il controllo non è concluso salva una bozza; usa “Pubblica” soltanto quando il contenuto è pronto per i cittadini.', 'design_comuni_italia') : esc_html__('Salva il contenuto come bozza e segnalalo al responsabile abilitato, che completerà il controllo e la pubblicazione.', 'design_comuni_italia'); ?></span></li>
+                    </ol>
+
+                    <h3><?php esc_html_e('A cosa servono i campi', 'design_comuni_italia'); ?></h3>
+                    <dl class="dci-admin-guide__field-map">
+                        <div><dt><?php esc_html_e('Titolo *', 'design_comuni_italia'); ?></dt><dd><?php esc_html_e('Nome pubblico dell’elemento. È obbligatorio.', 'design_comuni_italia'); ?></dd></div>
+                        <div><dt><?php esc_html_e('Immagine', 'design_comuni_italia'); ?></dt><dd><?php esc_html_e('Immagine facoltativa mostrata nella card; carica soltanto un formato immagine.', 'design_comuni_italia'); ?></dd></div>
+                        <div><dt><?php esc_html_e('Descrizione breve', 'design_comuni_italia'); ?></dt><dd><?php esc_html_e('Sintesi visibile negli elenchi e nella pagina, massimo 1024 caratteri.', 'design_comuni_italia'); ?></dd></div>
+                        <div><dt><?php esc_html_e('Categoria Trasparenza *', 'design_comuni_italia'); ?></dt><dd><?php esc_html_e('Destinazione pubblica del contenuto. È obbligatoria e deve essere una sola.', 'design_comuni_italia'); ?></dd></div>
+                        <div><dt><?php esc_html_e('Descrizione', 'design_comuni_italia'); ?></dt><dd><?php esc_html_e('Testo di approfondimento mostrato nella pagina di dettaglio.', 'design_comuni_italia'); ?></dd></div>
+                        <div><dt><?php esc_html_e('Documenti e collegamenti *', 'design_comuni_italia'); ?></dt><dd><?php esc_html_e('Risorsa principale: inserisci almeno un file o un collegamento pertinente.', 'design_comuni_italia'); ?></dd></div>
+                        <div><dt><?php esc_html_e('Extra', 'design_comuni_italia'); ?></dt><dd><?php esc_html_e('Opzioni per nuova scheda, apertura diretta ed evidenza. Usale solo quando servono.', 'design_comuni_italia'); ?></dd></div>
+                        <div><dt><?php esc_html_e('Contenuti collegati', 'design_comuni_italia'); ?></dt><dd><?php esc_html_e('Rimandi facoltativi ad altri Elementi Trasparenza già pubblicati.', 'design_comuni_italia'); ?></dd></div>
+                    </dl>
+                </section>
+
+                <section id="sezione">
+                    <span class="dci-admin-guide__number" aria-hidden="true">4</span>
+                    <h2><?php esc_html_e('Scegliere correttamente la sezione', 'design_comuni_italia'); ?></h2>
+                    <p><?php esc_html_e('Scrivi una o più parole nel campo “Cerca la sezione in cui pubblicare”. Se l’elenco è lungo puoi usare “Espandi elenco”. Il numero accanto a una voce indica quanti contenuti risultano già pubblicati e può aiutare a riconoscere la sezione corretta.', 'design_comuni_italia'); ?></p>
+                    <div class="dci-admin-guide__legend" aria-label="<?php esc_attr_e('Legenda delle sezioni', 'design_comuni_italia'); ?>">
+                        <div class="dci-admin-guide__legend-item dci-admin-guide__legend-item--standard"><strong><?php esc_html_e('Sezione selezionabile', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('Ha il pulsante di scelta: selezionala se corrisponde all’obbligo.', 'design_comuni_italia'); ?></span></div>
+                        <div class="dci-admin-guide__legend-item dci-admin-guide__legend-item--custom"><strong><?php esc_html_e('Pubblicazione dedicata', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('La voce viola è informativa e non accetta Elementi Trasparenza. Segui la destinazione indicata nella voce.', 'design_comuni_italia'); ?></span></div>
+                        <div class="dci-admin-guide__legend-item dci-admin-guide__legend-item--link"><strong><?php esc_html_e('Categoria con link', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('La voce ambra è gestita da un collegamento configurato e non è selezionabile.', 'design_comuni_italia'); ?></span></div>
+                        <?php if ($is_internal_portal) : ?>
+                            <div class="dci-admin-guide__legend-item dci-admin-guide__legend-item--political"><strong><?php esc_html_e('Pubblicazione automatica', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('La voce azzurra riceve i dati dal relativo ufficio politico e non accetta Elementi Trasparenza.', 'design_comuni_italia'); ?></span></div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="notice notice-info inline">
+                        <p><strong><?php esc_html_e('Dopo la pubblicazione:', 'design_comuni_italia'); ?></strong> <?php esc_html_e('la sezione viene bloccata per evitare spostamenti accidentali. Per correggerla usa “Modifica sezione”, leggi l’avviso, attendi lo sblocco e scegli la nuova destinazione.', 'design_comuni_italia'); ?></p>
+                    </div>
+                    <p><strong><?php esc_html_e('Se non trovi la voce corretta, non scegliere una categoria simile per tentativi:', 'design_comuni_italia'); ?></strong> <?php esc_html_e('salva la bozza e chiedi al referente della Trasparenza.', 'design_comuni_italia'); ?></p>
+                </section>
+
+                <?php if ($is_internal_portal) : ?>
+                    <section id="organi-politici">
+                        <span class="dci-admin-guide__number" aria-hidden="true">5</span>
+                        <h2><?php esc_html_e('Eccezione: Sindaco, Giunta e Consiglio Comunale', 'design_comuni_italia'); ?></h2>
+                        <div class="dci-admin-guide__rule dci-admin-guide__rule--political">
+                            <span class="dashicons dashicons-groups" aria-hidden="true"></span>
+                            <p><strong><?php esc_html_e('Solo per i portali interni:', 'design_comuni_italia'); ?></strong> <?php esc_html_e('le sezioni “Il Sindaco”, “Giunta Comunale” e “Consiglio Comunale” sono alimentate automaticamente dalle rispettive unità organizzative. Non creare un Elemento Trasparenza in queste tre voci.', 'design_comuni_italia'); ?></p>
+                        </div>
+                        <ol class="dci-admin-guide__steps">
+                            <li><strong><?php esc_html_e('Controlla la Persona pubblica.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('La scheda della persona deve essere pubblicata e aggiornata, compresi incarico o ruolo politico e relativi documenti.', 'design_comuni_italia'); ?></span></li>
+                            <li><strong><?php esc_html_e('Apri la relativa Unità organizzativa.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('Usa l’unità “Sindaco” o “Ufficio del Sindaco”, “Giunta Comunale” oppure “Consiglio Comunale”.', 'design_comuni_italia'); ?></span></li>
+                            <li><strong><?php esc_html_e('Collega le persone.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('Nel riquadro “Struttura” indica il Responsabile e nel riquadro “Persone” compila “Persone che compongono la struttura”.', 'design_comuni_italia'); ?></span></li>
+                            <li><strong><?php esc_html_e('Aggiorna e verifica.', 'design_comuni_italia'); ?></strong><span><?php esc_html_e('Salva l’unità organizzativa, poi apri la corrispondente sezione pubblica della Trasparenza e controlla componenti, ruoli e collegamenti.', 'design_comuni_italia'); ?></span></li>
+                        </ol>
+                        <p><?php esc_html_e('Il sistema considera anche il collegamento inverso dalla Persona pubblica all’organizzazione e gli incarichi politici associati. Per un risultato affidabile mantieni coerenti sia la scheda della persona sia quella dell’unità organizzativa.', 'design_comuni_italia'); ?></p>
+                        <p><a class="button" href="<?php echo esc_url($offices_url); ?>"><span class="dashicons dashicons-building" aria-hidden="true"></span><?php esc_html_e('Vai alle Unità organizzative', 'design_comuni_italia'); ?></a></p>
+                    </section>
+                <?php endif; ?>
+
+                <section id="documenti">
+                    <span class="dci-admin-guide__number" aria-hidden="true"><?php echo esc_html((string) $documents_number); ?></span>
+                    <h2><?php esc_html_e('Documenti, collegamenti e accessibilità', 'design_comuni_italia'); ?></h2>
+                    <h3><?php esc_html_e('Scegli il campo adatto', 'design_comuni_italia'); ?></h3>
+                    <ul>
+                        <li><strong><?php esc_html_e('Collegamento principale:', 'design_comuni_italia'); ?></strong> <?php esc_html_e('usa un indirizzo completo, interno o esterno, quando la destinazione principale è una pagina web.', 'design_comuni_italia'); ?></li>
+                        <li><strong><?php esc_html_e('Collegamenti aggiuntivi:', 'design_comuni_italia'); ?></strong> <?php esc_html_e('per ogni voce inserisci l’indirizzo completo e un testo che descriva chiaramente la destinazione; evita testi generici come “clicca qui”.', 'design_comuni_italia'); ?></li>
+                        <li><strong><?php esc_html_e('Carica più file:', 'design_comuni_italia'); ?></strong> <?php esc_html_e('usa questo campo per allegare uno o più documenti scaricabili e stampabili.', 'design_comuni_italia'); ?></li>
+                    </ul>
+                    <h3><?php esc_html_e('Regole per file accessibili e riconoscibili', 'design_comuni_italia'); ?></h3>
+                    <ul class="dci-admin-guide__checklist">
+                        <li><?php esc_html_e('Pubblica il documento nativo digitale con testo selezionabile; non usare PDF composti, anche solo in parte, da scansioni di documenti cartacei.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Usa titoli, elenchi, tabelle e ordine di lettura corretti; per le immagini informative inserisci un’alternativa testuale nel documento.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Assegna un nome descrittivo, senza spazi superflui, e indica l’anno di riferimento e la data di pubblicazione o ultimo aggiornamento quando richiesti.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Apri il file prima del caricamento e controlla che sia completo, leggibile, non protetto da password e privo di pagine vuote.', 'design_comuni_italia'); ?></li>
+                    </ul>
+                    <div class="dci-admin-guide__example">
+                        <h3><?php esc_html_e('Esempio di nome file', 'design_comuni_italia'); ?></h3>
+                        <p><strong><?php esc_html_e('Chiaro:', 'design_comuni_italia'); ?></strong> piano-prevenzione-corruzione-2026.pdf</p>
+                        <p><strong><?php esc_html_e('Da evitare:', 'design_comuni_italia'); ?></strong> scansione001_def2.pdf</p>
+                    </div>
+                    <h3><?php esc_html_e('Opzioni di apertura', 'design_comuni_italia'); ?></h3>
+                    <p><strong><?php esc_html_e('“Apri in una nuova finestra”', 'design_comuni_italia'); ?></strong> <?php esc_html_e('va usato con moderazione, soprattutto per file o siti esterni. “Apri link in modo diretto” salta la pagina di dettaglio: attivalo soltanto quando l’elemento deve portare subito a una singola risorsa e non contiene spiegazioni o più allegati utili.', 'design_comuni_italia'); ?></p>
+                </section>
+
+                <section id="verifica">
+                    <span class="dci-admin-guide__number" aria-hidden="true"><?php echo esc_html((string) $verification_number); ?></span>
+                    <h2><?php esc_html_e('Pubblicare, verificare e mantenere aggiornato', 'design_comuni_italia'); ?></h2>
+                    <p><?php esc_html_e('Prima di premere “Pubblica” rileggi il contenuto come se fossi un cittadino che non conosce l’ufficio o la pratica. Se mancano conferme o documenti, salva una bozza.', 'design_comuni_italia'); ?></p>
+                    <h3><?php esc_html_e('Controllo finale', 'design_comuni_italia'); ?></h3>
+                    <ul class="dci-admin-guide__checklist">
+                        <li><?php esc_html_e('Titolo chiaro, data o periodo corretti e nessun duplicato.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Sottosezione più specifica selezionata e riepilogo verde coerente.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Descrizioni comprensibili, senza informazioni interne o istruzioni rivolte ai soli uffici.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Allegati definitivi, accessibili e privi di dati personali non necessari.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Collegamenti funzionanti, testi descrittivi e opzioni di apertura appropriate.', 'design_comuni_italia'); ?></li>
+                        <li><?php esc_html_e('Stato “Pubblicato” soltanto se il contenuto può essere immediatamente consultato dai cittadini.', 'design_comuni_italia'); ?></li>
+                    </ul>
+                    <div class="dci-admin-guide__workflow" aria-label="<?php esc_attr_e('Flusso di verifica dopo la pubblicazione', 'design_comuni_italia'); ?>">
+                        <span><?php esc_html_e('Pubblica', 'design_comuni_italia'); ?></span><span aria-hidden="true">→</span><span><?php esc_html_e('Apri “Visualizza”', 'design_comuni_italia'); ?></span><span aria-hidden="true">→</span><span><?php esc_html_e('Prova file e link', 'design_comuni_italia'); ?></span><span aria-hidden="true">→</span><span><?php esc_html_e('Controlla la sezione', 'design_comuni_italia'); ?></span>
+                    </div>
+                    <p><?php esc_html_e('Dopo la pubblicazione apri sempre la pagina pubblica e verifica titolo, descrizione, categoria, allegati e collegamenti. Programma inoltre i controlli periodici richiesti dall’ente: aggiorna il contenuto esistente, sostituisci i file superati e rimuovi o archivia soltanto secondo le regole di conservazione applicabili.', 'design_comuni_italia'); ?></p>
                 </section>
 
                 <section id="assistenza">
-                    <span class="dci-admin-guide__number" aria-hidden="true">6</span>
-                    <h2><?php esc_html_e('Assistenza', 'design_comuni_italia'); ?></h2>
-                    <p><?php esc_html_e('Se non trovi la categoria corretta o hai dubbi sui dati da pubblicare, interrompi la procedura e contatta il referente interno per la Trasparenza o l’assistenza del portale.', 'design_comuni_italia'); ?></p>
+                    <span class="dci-admin-guide__number" aria-hidden="true"><?php echo esc_html((string) $assistance_number); ?></span>
+                    <h2><?php esc_html_e('Dubbi, errori e assistenza', 'design_comuni_italia'); ?></h2>
+                    <p><?php esc_html_e('Interrompi la pubblicazione e salva una bozza quando non conosci la sezione corretta, il documento contiene dati personali dubbi, la voce risulta non selezionabile o non disponi dei permessi necessari.', 'design_comuni_italia'); ?></p>
+                    <p><?php esc_html_e('Comunica al referente interno per la Trasparenza o all’assistenza: titolo del contenuto, sezione prevista, collegamento della bozza e una descrizione precisa del problema. Non creare categorie o duplicati per aggirare un blocco.', 'design_comuni_italia'); ?></p>
+                    <div class="dci-admin-guide__quick-actions">
+                        <a class="button" href="<?php echo esc_url($items_url); ?>"><?php esc_html_e('Torna agli elementi', 'design_comuni_italia'); ?></a>
+                        <a class="button" href="<?php echo esc_url($public_page_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Controlla il sito pubblico', 'design_comuni_italia'); ?></a>
+                        <a class="button" href="https://guida-servizi.anticorruzione.it/it/help/trasparenza/amministrazione-trasparente/" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Consulta la guida ANAC', 'design_comuni_italia'); ?></a>
+                    </div>
                 </section>
                 <div class="dci-admin-guide__empty" hidden>
                     <span class="dashicons dashicons-search" aria-hidden="true"></span>

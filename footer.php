@@ -526,22 +526,21 @@ if ($is_external_only && $should_fetch_external_footer && function_exists('dci_g
 							<?php endif; ?>
 
 						
-						<?php if ($is_external_only && $should_fetch_external_footer) : ?>
-							<a id="area_personale_admin" href="<?php echo esc_url(wp_login_url(admin_url())); ?>">Accedi all’area riservata</a>
-						<?php endif; ?>
-								                      
+						<?php if ($is_external_only && $should_fetch_external_footer) {?>
+							<a id="area_personale_admin" href="<?php echo esc_url(wp_login_url(admin_url())); ?>">Area riservata</a>
+						<?php  } else { ?>
+                <a id="area_personale_admin" href="<?php echo get_admin_url(); ?>">Area Riservata</a>
+            <?php } ?>						                      
 				
-
-
 
 			         <ul class="it-footer-small-prints-list list-inline mb-0 d-flex flex-column flex-md-row" style="float: right;">
 	                            <li class="list-inline-item d-flex">
 	                                <small>  © <?php echo dci_get_option("nome_comune"); ?>                                        
-					 <?php
-						if (function_exists('dci_get_footer_signature_html')) {
-							echo dci_get_footer_signature_html();
-						}
-					?>
+              <?php
+                if (function_exists('dci_get_footer_signature_html')) {
+                  echo dci_get_footer_signature_html();
+                }
+              ?>
 				      </small>
 	                            </li>
                         </ul>

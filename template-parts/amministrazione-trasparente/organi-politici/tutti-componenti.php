@@ -5,6 +5,8 @@
  * @package Design_Comuni_Italia
  */
 
+require_once get_template_directory() . '/template-parts/amministrazione-trasparente/custom-section-card-helpers.php';
+
 $section_name = isset($args['section_name']) ? (string) $args['section_name'] : '';
 $section_config = array(
     'Il Sindaco' => array(
@@ -343,9 +345,14 @@ foreach ($eligible_person_ids as $person_id) {
         foreach ($normalize_documents(dci_get_meta($field_name, '_dci_persona_pubblica_', $person_id)) as $document_url) {
             $document_path = (string) wp_parse_url($document_url, PHP_URL_PATH);
             $document_name = urldecode((string) basename($document_path));
+            $document_title = dci_custom_section_attachment_title(
+                0,
+                $document_url,
+                $document_name !== '' ? $document_name : $field_label
+            );
             $person_data['documents'][] = array(
                 'label' => $field_label,
-                'name' => $document_name !== '' ? $document_name : $field_label,
+                'name' => $document_title,
                 'url' => $document_url,
             );
         }
@@ -617,7 +624,7 @@ foreach ($office_ids as $office_id) {
                                         </section>
                                     <?php } ?>
 
-                                    <a href="<?php echo esc_url($person['url']); ?>" class="text-decoration-none" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.5rem;padding:.55rem .8rem;color:#17324d;background:#eef3f7;border:1px solid #d5e0e8;border-radius:.25rem;font-size:.9rem;font-weight:700;">
+                                    <a href="<?php echo esc_url($person['url']); ?>" class="dci-at-card-detail-action btn btn-primary btn-sm text-decoration-none" style="margin-top:1.5rem;">
                                         <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
                                         <svg class="icon icon-sm" aria-hidden="true" style="width:1rem;height:1rem;fill:currentColor;"><use href="#it-arrow-right"></use></svg>
                                     </a>

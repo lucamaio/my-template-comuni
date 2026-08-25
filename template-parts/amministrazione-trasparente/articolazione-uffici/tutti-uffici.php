@@ -205,6 +205,11 @@ if (!function_exists('dci_articolazione_render_simple_card')) {
                                 <?php if (!empty($description)) { ?>
                                     <p class="card-text mb-0"><?php echo esc_html($description); ?></p>
                                 <?php } ?>
+                                <?php
+                                if (function_exists('dci_render_trasparenza_edit_link')) {
+                                    dci_render_trasparenza_edit_link($post->ID);
+                                }
+                                ?>
                             </div>
                         </div>
                     </div>
@@ -388,6 +393,11 @@ if (!function_exists('dci_articolazione_render_office_card')) {
                                 <?php
                             }
                         } ?>
+                        <?php
+                        if (function_exists('dci_render_trasparenza_edit_link')) {
+                            dci_render_trasparenza_edit_link($post->ID);
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
@@ -461,6 +471,7 @@ $articolazioni_paged = array_slice($articolazioni, $articolazioni_offset, $artic
 
 <style>
     .dci-at-wrap {
+        --dci-at-entity-color: var(--bs-primary, #06c);
         width: 100%;
         max-width: none;
         padding: 0;
@@ -503,6 +514,15 @@ $articolazioni_paged = array_slice($articolazioni, $articolazioni_offset, $artic
     .dci-at-wrap .dci-at-card-icon {
         display: inline-flex;
         align-items: center;
+    }
+
+    .dci-at-wrap .dci-at-card-icon .icon {
+        fill: var(--dci-at-entity-color);
+    }
+
+    .dci-at-wrap .cmp-list-card-img,
+    .dci-at-wrap .dci-at-office-card {
+        border-top: 4px solid var(--dci-at-entity-color) !important;
     }
 
     .dci-at-wrap .dci-at-office-card {
@@ -571,6 +591,7 @@ $articolazioni_paged = array_slice($articolazioni, $articolazioni_offset, $artic
     .dci-at-wrap .dci-at-office-card .card-title {
         font-size: 1.18rem;
         line-height: 1.25;
+        color: var(--dci-at-entity-color);
     }
 
     .dci-at-wrap .dci-at-contact-list a,
@@ -586,7 +607,12 @@ $articolazioni_paged = array_slice($articolazioni, $articolazioni_offset, $artic
     .dci-at-wrap .dci-at-contact-item .icon {
         flex: 0 0 auto;
         margin-top: .15rem;
-        fill: var(--bs-primary, #0066cc);
+        fill: var(--dci-at-entity-color);
+    }
+
+    .dci-at-wrap .dci-at-contact-item a,
+    .dci-at-wrap .dci-at-person-name a {
+        color: var(--dci-at-entity-color);
     }
 
     .dci-at-wrap .dci-at-sidebar .link-list li a,
@@ -693,7 +719,7 @@ $articolazioni_paged = array_slice($articolazioni, $articolazioni_offset, $artic
     .dci-at-wrap .dci-at-theme-icon {
         flex: 0 0 auto;
         margin-top: .1rem;
-        fill: var(--bs-primary, #0066cc);
+        fill: var(--dci-at-entity-color);
     }
 
     .dci-at-wrap .dci-at-theme-description {
@@ -729,8 +755,8 @@ $articolazioni_paged = array_slice($articolazioni, $articolazioni_offset, $artic
     }
 
     .dci-at-wrap .dci-at-pagination-current {
-        border-color: var(--bs-primary, #0066cc);
-        color: var(--bs-primary, #0066cc);
+        border-color: var(--dci-at-entity-color);
+        color: var(--dci-at-entity-color);
     }
 
     @media (min-width: 992px) {

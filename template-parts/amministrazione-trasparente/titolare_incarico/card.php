@@ -115,9 +115,19 @@ if (empty($dci_custom_section_card_style_printed)) :
                 if (!empty($allegati) && is_array($allegati)) {
                     $i = 1;
                     foreach ($allegati as $file_id => $file_data) {
-                        $attachment_id = intval($file_data['id'] ?? $file_id);
-                        $file_url  = wp_get_attachment_url($attachment_id);
-                        $file_title = 'Allegato ' . $i;
+                        $stored_url = is_array($file_data)
+                            ? (string) ($file_data['url'] ?? '')
+                            : (is_string($file_data) ? $file_data : '');
+                        $attachment_id = dci_custom_section_attachment_id(
+                            intval(is_array($file_data) ? ($file_data['id'] ?? $file_id) : $file_id),
+                            $stored_url
+                        );
+                        $file_url = $attachment_id > 0 ? wp_get_attachment_url($attachment_id) : $stored_url;
+                        $file_title = dci_custom_section_attachment_title(
+                            $attachment_id,
+                            $file_url,
+                            sprintf(__('Allegato %d', 'design_comuni_italia'), $i)
+                        );
 
                         if (!$file_url) continue;
                         echo '<p class="mb-1">
@@ -137,9 +147,19 @@ if (empty($dci_custom_section_card_style_printed)) :
                 if (!empty($curriculum) && is_array($curriculum)) {
                     $i = 1;
                     foreach ($curriculum as $file_id => $file_data) {
-                        $attachment_id = intval($file_data['id'] ?? $file_id);
-                        $file_url = wp_get_attachment_url($attachment_id);
-                        $file_title = 'Curriculum ' . $i;
+                        $stored_url = is_array($file_data)
+                            ? (string) ($file_data['url'] ?? '')
+                            : (is_string($file_data) ? $file_data : '');
+                        $attachment_id = dci_custom_section_attachment_id(
+                            intval(is_array($file_data) ? ($file_data['id'] ?? $file_id) : $file_id),
+                            $stored_url
+                        );
+                        $file_url = $attachment_id > 0 ? wp_get_attachment_url($attachment_id) : $stored_url;
+                        $file_title = dci_custom_section_attachment_title(
+                            $attachment_id,
+                            $file_url,
+                            sprintf(__('Curriculum %d', 'design_comuni_italia'), $i)
+                        );
 
                         if (!$file_url) continue;
                         echo '<p class="mb-1">
@@ -156,15 +176,21 @@ if (empty($dci_custom_section_card_style_printed)) :
         </div>
 
         <!-- Link dettaglio -->
-        <div class="row mt-3 pt-3 border-top">
-            <div class="col">
+        <div class="row g-3 mt-3 pt-3 border-top align-items-end">
+            <div class="col-md-5">
                 <h6 class="text-uppercase text-muted small">Verifica conflitto di interessi</h6>
                 <p class="mb-0"><?php echo esc_html(dci_custom_section_card_text($situazioni, 90)); ?></p>
             </div>
-            <div class="col text-end">
-                <a href="<?php the_permalink(); ?>" class="fw-semibold">
-                    Clicca qui per consultare il dettaglio
+            <div class="col-md-7 dci-at-card-actions">
+                <a href="<?php the_permalink(); ?>" class="dci-at-card-detail-action btn btn-primary btn-sm">
+                    <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
+                    <svg class="icon icon-sm ms-1" aria-hidden="true" focusable="false"><use href="#it-arrow-right"></use></svg>
                 </a>
+                <?php
+                if (function_exists('dci_render_trasparenza_edit_link')) {
+                    dci_render_trasparenza_edit_link(get_the_ID());
+                }
+                ?>
             </div>
         </div>
     </div>

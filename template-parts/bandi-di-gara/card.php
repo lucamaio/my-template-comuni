@@ -330,7 +330,7 @@ if (empty($dci_custom_section_card_style_printed)) :
             </div>
 
             <div class="col-md-6 text-end">
-                <div class="dci-bando-card__actions">
+                <div class="dci-bando-card__actions dci-at-card-actions">
                     <?php if ($link_bdncp !== '') : ?>
                         <a 
                             href="<?php echo esc_url($link_bdncp); ?>" 
@@ -347,9 +347,15 @@ if (empty($dci_custom_section_card_style_printed)) :
                         </a>
                     <?php endif; ?>
 
-                    <a href="<?php echo esc_url(get_permalink()); ?>" class="btn btn-link btn-sm">
-                        Clicca qui per consultare il dettaglio
+                    <a href="<?php echo esc_url(get_permalink()); ?>" class="dci-at-card-detail-action btn btn-primary btn-sm">
+                        <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
+                        <svg class="icon icon-sm ms-1" aria-hidden="true" focusable="false"><use href="#it-arrow-right"></use></svg>
                     </a>
+                    <?php
+                    if (function_exists('dci_render_trasparenza_edit_link')) {
+                        dci_render_trasparenza_edit_link(get_the_ID());
+                    }
+                    ?>
                 </div>
             </div>
         </div>

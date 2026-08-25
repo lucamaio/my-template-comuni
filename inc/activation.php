@@ -3,7 +3,16 @@
 /**
  * attivazione del Tema
  */
-function dci_theme_activation() {
+function dci_theme_activation($menu_reset_options = null) {
+
+    // L'attivazione iniziale crea entrambi i gruppi; la ricarica manuale puo'
+    // scegliere in modo esplicito quali menu ricreare.
+    $reset_header_menus = true;
+    $reset_footer_menus = true;
+    if (is_array($menu_reset_options)) {
+        $reset_header_menus = !empty($menu_reset_options['reset_header_menus']);
+        $reset_footer_menus = !empty($menu_reset_options['reset_footer_menus']);
+    }
 
     set_time_limit(400);  // Imposta il limite a 400 secondi per questa funzione
     
@@ -26,8 +35,8 @@ function dci_theme_activation() {
     //creo i permessi e le capabilites
     createCapabilities();
 
-    //creo i menu
-    createMenu();
+    // Creo soltanto i gruppi di menu richiesti. Quelli esclusi non vengono toccati.
+    createMenu($reset_header_menus, $reset_footer_menus);
 
     // controllo se è una prima installazione
     $dci_has_installed = get_option("dci_has_installed");
@@ -58,19 +67,58 @@ add_action( 'after_switch_theme', 'dci_theme_activation' );
 function dci_reload_theme_option_page() {
 
     // Blocco sicurezza accesso diretto
-    if (get_current_user_id() != 1) {
+    if (get_current_user_id() != 1 || !current_user_can('edit_theme_options')) {
         wp_die('Non hai i permessi per accedere a questa pagina.');
     }
 
-    if (isset($_GET["action"]) && $_GET["action"] == "reload") {
-        dci_theme_activation();
-        echo '<div class="notice notice-success is-dismissible"><p>Dati ricaricati con successo.</p></div>';
+    if (
+        isset($_SERVER['REQUEST_METHOD'])
+        && 'POST' === strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'])))
+        && isset($_POST['dci_reload_theme_data'])
+    ) {
+        check_admin_referer('dci_reload_theme_data', 'dci_reload_theme_nonce');
+
+        $reset_header_menus = isset($_POST['dci_reset_header_menus']);
+        $reset_footer_menus = isset($_POST['dci_reset_footer_menus']);
+
+        dci_theme_activation(array(
+            'reset_header_menus' => $reset_header_menus,
+            'reset_footer_menus' => $reset_footer_menus,
+        ));
+
+        $menu_results = array(
+            $reset_header_menus ? 'menu header reimpostati' : 'menu header mantenuti',
+            $reset_footer_menus ? 'menu footer reimpostati' : 'menu footer mantenuti',
+        );
+        echo '<div class="notice notice-success is-dismissible"><p>Dati ricaricati con successo; '
+            . esc_html(implode(', ', $menu_results))
+            . '.</p></div>';
     }
 
     echo "<div class='wrap'>";
     echo '<h1>Ricarica i dati di attivazione del tema</h1>';
-
-    echo '<a href="' . esc_url(admin_url('themes.php?page=reload-data-theme-options&action=reload')) . '" class="button button-primary">Ricarica i dati di attivazione (menu, tipologie, etc)</a>';
+    echo '<p>La ricarica aggiorna tipologie, tassonomie, pagine e impostazioni del tema. I collegamenti dei menu vengono conservati, salvo scelta esplicita.</p>';
+    echo '<div class="notice notice-warning inline"><p><strong>Attenzione:</strong> i gruppi selezionati saranno cancellati e ricreati con la struttura predefinita del tema.</p></div>';
+    echo '<form method="post" action="' . esc_url(admin_url('themes.php?page=reload-data-theme-options')) . '" onsubmit="return window.confirm(\''
+        . esc_js('Confermi la ricarica dei dati? I gruppi di menu selezionati saranno reimpostati e l’operazione non può essere annullata.')
+        . '\');">';
+    wp_nonce_field('dci_reload_theme_data', 'dci_reload_theme_nonce');
+    echo '<fieldset style="margin: 18px 0; max-width: 760px;">';
+    echo '<legend class="screen-reader-text">Scegli quali collegamenti dei menu reimpostare</legend>';
+    echo '<label style="display:block; margin-bottom:12px;">'
+        . '<input type="checkbox" name="dci_reset_header_menus" value="1"> '
+        . '<strong>Reimposta i menu dell’header</strong><br>'
+        . '<span class="description" style="margin-left:24px;">Cancella e ricrea il menu principale e il menu Argomenti, riassegnandoli alle posizioni dell’header.</span>'
+        . '</label>';
+    echo '<label style="display:block; margin-bottom:12px;">'
+        . '<input type="checkbox" name="dci_reset_footer_menus" value="1"> '
+        . '<strong>Reimposta i menu del footer</strong><br>'
+        . '<span class="description" style="margin-left:24px;">Cancella e ricrea i menu delle colonne e delle informazioni del footer, riassegnandoli alle relative posizioni.</span>'
+        . '</label>';
+    echo '</fieldset>';
+    echo '<p class="submit"><button type="submit" name="dci_reload_theme_data" value="1" class="button button-primary">Ricarica i dati di attivazione</button></p>';
+    echo '<p class="description">Se non selezioni alcuna casella, tutti i menu e i relativi collegamenti rimangono invariati.</p>';
+    echo '</form>';
     echo "</div>";
 }
 
@@ -366,37 +414,50 @@ function createCapabilities() {
 /**
  * creazione menu
  */
-function createMenu()
+function createMenu($reset_header_menus = true, $reset_footer_menus = true)
 {
-    //creo i menu
-    $menu_main = dci_create_menu(__('Main Menu', "design_comuni_italia"));
-    $menu_amministrazione = dci_create_menu(__('Amministrazione', "design_comuni_italia"));
-    $menu_novita = dci_create_menu(__('Novità', "design_comuni_italia"));
-    $menu_servizi = dci_create_menu(__('Categorie di Servizio', "design_comuni_italia"));
-    $menu_vivere_comune =  dci_create_menu(__('Vivere il Comune', "design_comuni_italia"));
-    //$menu_documenti_dati = dci_create_menu(__('Tutti i documenti', "design_comuni_italia"));
-    $menu_argomenti = dci_create_menu(__('Argomenti', 'design_comuni_italia'));
-    $menu_info_1 = dci_create_menu('Info 1', 'design_comuni_italia');
-    $menu_info_2 = dci_create_menu('Info 2', 'design_comuni_italia');
-    //$menu_footer =  dci_create_menu(__('Footer bottom', 'design_comuni_italia'));
+    $reset_header_menus = (bool) $reset_header_menus;
+    $reset_footer_menus = (bool) $reset_footer_menus;
+
+    if ($reset_header_menus) {
+        $menu_main = dci_create_menu(__('Main Menu', 'design_comuni_italia'));
+        $menu_argomenti = dci_create_menu(__('Argomenti', 'design_comuni_italia'));
+    }
+
+    if ($reset_footer_menus) {
+        $menu_amministrazione = dci_create_menu(__('Amministrazione', 'design_comuni_italia'));
+        $menu_novita = dci_create_menu(__('Novità', 'design_comuni_italia'));
+        $menu_servizi = dci_create_menu(__('Categorie di Servizio', 'design_comuni_italia'));
+        $menu_vivere_comune = dci_create_menu(__('Vivere il Comune', 'design_comuni_italia'));
+        $menu_info_1 = dci_create_menu('Info 1', 'design_comuni_italia');
+        $menu_info_2 = dci_create_menu('Info 2', 'design_comuni_italia');
+    }
 
     //aggiungo le voci
 
-    //Main menu
-    dci_create_page_menu_item(__( 'Amministrazione', 'design_comuni_italia'),$menu_main);
-    dci_create_page_menu_item(__( 'Novità', 'design_comuni_italia'),$menu_main);
-    dci_create_page_menu_item(__( 'Servizi', 'design_comuni_italia'),$menu_main);
-    dci_create_page_menu_item(__( 'Vivere il Comune', 'design_comuni_italia'),$menu_main);
-    //assegno menu a header main location
-    dci_add_menu_to_location($menu_main,'menu-header-main');
+    if ($reset_header_menus) {
+        // Main menu.
+        dci_create_page_menu_item(__('Amministrazione', 'design_comuni_italia'), $menu_main);
+        dci_create_page_menu_item(__('Novità', 'design_comuni_italia'), $menu_main);
+        dci_create_page_menu_item(__('Servizi', 'design_comuni_italia'), $menu_main);
+        dci_create_page_menu_item(__('Vivere il Comune', 'design_comuni_italia'), $menu_main);
+        dci_add_menu_to_location($menu_main, 'menu-header-main');
 
-        //voci menu Argomenti (in alto a destra)
-    dci_create_term_menu_item('Agricoltura','argomenti',$menu_argomenti); //voce tassonomia argomenti come placeholder
-    dci_create_term_menu_item('Tempo libero','argomenti',$menu_argomenti); //voce tassonomia argomenti come placeholder
-    dci_create_term_menu_item('Istruzione','argomenti',$menu_argomenti); //voce tassonomia argomenti come placeholder
-    dci_create_page_menu_item(__('Argomenti', 'design_comuni_italia'), $menu_argomenti, __('Tutti gli argomenti','design_comuni_italia'));
-    //assegna menu a posizione topright
-    dci_add_menu_to_location($menu_argomenti,'menu-header-right');
+        // Voci menu Argomenti (in alto a destra).
+        dci_create_term_menu_item('Agricoltura', 'argomenti', $menu_argomenti);
+        dci_create_term_menu_item('Tempo libero', 'argomenti', $menu_argomenti);
+        dci_create_term_menu_item('Istruzione', 'argomenti', $menu_argomenti);
+        dci_create_page_menu_item(
+            __('Argomenti', 'design_comuni_italia'),
+            $menu_argomenti,
+            __('Tutti gli argomenti', 'design_comuni_italia')
+        );
+        dci_add_menu_to_location($menu_argomenti, 'menu-header-right');
+    }
+
+    if (!$reset_footer_menus) {
+        return;
+    }
 
     //menu Amministrazione
     dci_create_page_menu_item(__( 'Organi di governo', 'design_comuni_italia'),$menu_amministrazione);
@@ -544,6 +605,9 @@ function dci_create_term_menu_item($term_name, $taxonomy, $menu_id, $item_label 
 
 function dci_add_menu_to_location($menu_id, $location_id) {
     $locations_primary_arr = get_theme_mod('nav_menu_locations');
+    if (!is_array($locations_primary_arr)) {
+        $locations_primary_arr = array();
+    }
     $locations_primary_arr[$location_id] = $menu_id;
     set_theme_mod('nav_menu_locations', $locations_primary_arr);
     update_option('menu_check', true);

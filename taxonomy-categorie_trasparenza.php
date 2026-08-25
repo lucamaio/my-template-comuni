@@ -409,6 +409,9 @@ $siti_tematici = !empty(dci_get_option("siti_tematici", "trasparenza")) ? dci_ge
     $data_element = 'data-element="page-name"';
     get_template_part("template-parts/hero/hero");
     $title = $obj->name;
+    if (function_exists('dci_render_trasparenza_contextual_actions')) {
+        dci_render_trasparenza_contextual_actions($obj);
+    }
 get_template_part("template-parts/amministrazione-trasparente/sottocategorie");
     ?>
 

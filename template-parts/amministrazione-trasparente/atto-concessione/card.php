@@ -122,16 +122,22 @@ if (empty($dci_custom_section_card_style_printed)) :
                         $i = 1;
                         foreach ($allegati as $file_id => $file_data) {
                             // Forza l’uso dell’ID se disponibile
-                            $attachment_id = intval($file_data['id'] ?? $file_id);
-                            $file_url = wp_get_attachment_url($attachment_id);
-                            $file_title = get_the_title($attachment_id);
+                            $stored_url = is_array($file_data)
+                                ? (string) ($file_data['url'] ?? '')
+                                : (is_string($file_data) ? $file_data : '');
+                            $attachment_id = dci_custom_section_attachment_id(
+                                intval(is_array($file_data) ? ($file_data['id'] ?? $file_id) : $file_id),
+                                $stored_url
+                            );
+                            $file_url = $attachment_id > 0 ? wp_get_attachment_url($attachment_id) : $stored_url;
+                            $file_title = dci_custom_section_attachment_title(
+                                $attachment_id,
+                                $file_url,
+                                sprintf(__('Allegato %d', 'design_comuni_italia'), $i)
+                            );
 
                             if (!$file_url) continue; // Salta se l'allegato non ha URL
 
-                            // Fallback in caso di titolo vuoto
-                            if (empty($file_title)) {
-                                $file_title = 'Allegato ' . $i;
-                            }
                     ?>
                             <span class="d-inline-flex align-items-center mb-2 me-3">
                                 <svg class="icon icon-sm me-1" aria-hidden="true">
@@ -152,8 +158,16 @@ if (empty($dci_custom_section_card_style_printed)) :
                     ?>
                 </p>
             </div>
-            <div class="col-md-6 text-end">
-                <a href="<?php echo esc_url(get_permalink()); ?>" class="btn btn-link btn-sm">Clicca qui per consultare il dettaglio</a>
+            <div class="col-md-6 text-end dci-at-card-actions">
+                <a href="<?php echo esc_url(get_permalink()); ?>" class="dci-at-card-detail-action btn btn-primary btn-sm">
+                    <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
+                    <svg class="icon icon-sm ms-1" aria-hidden="true" focusable="false"><use href="#it-arrow-right"></use></svg>
+                </a>
+                <?php
+                if (function_exists('dci_render_trasparenza_edit_link')) {
+                    dci_render_trasparenza_edit_link(get_the_ID());
+                }
+                ?>
             </div>
         </div>
     </div>

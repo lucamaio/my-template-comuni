@@ -11,7 +11,9 @@
 
 $external_only_raw = dci_get_option('ck_portalesoloperusoesterno');
 $is_external_only = in_array(strtolower((string) $external_only_raw), array('1', 'true', 'yes', 'on'), true);
-if ($is_external_only && function_exists('dci_get_external_footer_payload')) {
+$should_fetch_external_footer = function_exists('dci_should_fetch_external_footer')
+    && dci_should_fetch_external_footer();
+if ($is_external_only && $should_fetch_external_footer && function_exists('dci_get_external_footer_payload')) {
     $external_footer = dci_get_external_footer_payload();
     if (is_array($external_footer) && !empty($external_footer['html'])) {
         echo $external_footer['html'];
@@ -524,7 +526,9 @@ if ($is_external_only && function_exists('dci_get_external_footer_payload')) {
 							<?php endif; ?>
 
 						
-						<a id="area_personale_admin" href="<?php echo get_admin_url(); ?>">Area Riservata</a>
+						<?php if ($is_external_only && $should_fetch_external_footer) : ?>
+							<a id="area_personale_admin" href="<?php echo esc_url(wp_login_url(admin_url())); ?>">Accedi all’area riservata</a>
+						<?php endif; ?>
 								                      
 				
 

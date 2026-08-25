@@ -271,9 +271,11 @@ function dci_get_footer_signature_html($text_color = '#fff') {
  * Applica la firma locale al footer recuperato via API quando il check locale lo richiede.
  *
  * @param string $html
+ * @param string $text_color Colore della firma.
+ * @param bool   $allow_fallback Consente di creare una nuova riga se manca il copyright.
  * @return string
  */
-function dci_apply_local_footer_signature($html) {
+function dci_apply_local_footer_signature($html, $text_color = '#000000', $allow_fallback = true) {
     if (!is_string($html) || $html === '' || !dci_should_show_footer_signature()) {
         return $html;
     }
@@ -282,7 +284,7 @@ function dci_apply_local_footer_signature($html) {
         return $html;
     }
 
-    $signature_html = dci_get_footer_signature_html('#000000');
+    $signature_html = dci_get_footer_signature_html($text_color);
     if ($signature_html === '') {
         return $html;
     }
@@ -290,6 +292,10 @@ function dci_apply_local_footer_signature($html) {
     $pattern = '/(<small\b[^>]*>\s*©[\s\S]*?)(<\/small>)/i';
     if (preg_match($pattern, $html)) {
         return preg_replace($pattern, '$1' . $signature_html . '$2', $html, 1);
+    }
+
+    if (!$allow_fallback) {
+        return $html;
     }
 
     $fallback_html = '<div class="footer-bottom"><ul class="it-footer-small-prints-list list-inline mb-0 d-flex flex-column flex-md-row" style="float: right;">'
@@ -301,6 +307,115 @@ function dci_apply_local_footer_signature($html) {
     }
 
     return $html . $fallback_html;
+}
+
+/**
+ * Completa esclusivamente il footer remoto mostrato nei portali per uso esterno.
+ *
+ * Il collegamento punta all'area amministrativa del portale corrente, non a
+ * quella del sito dal quale viene recuperato il footer.
+ *
+ * @param string $html Frammento footer remoto.
+ * @return string
+ */
+function dci_prepare_external_portal_footer_html($html) {
+    if (!is_string($html) || $html === '') {
+        return $html;
+    }
+
+    // Non creare una seconda footer-bottom: i controlli vanno integrati nella riga remota esistente.
+    $html = dci_apply_local_footer_signature($html, '#fff', false);
+
+    if (stripos($html, 'dci-external-fetched-footer') === false) {
+        $html = preg_replace_callback('/<footer\b([^>]*)>/i', function ($matches) {
+            $attributes = $matches[1];
+            if (preg_match('/\bclass=("|\')([^"\']*)\1/i', $attributes)) {
+                $attributes = preg_replace(
+                    '/\bclass=("|\')([^"\']*)\1/i',
+                    'class=$1$2 dci-external-fetched-footer$1',
+                    $attributes,
+                    1
+                );
+            } else {
+                $attributes .= ' class="dci-external-fetched-footer"';
+            }
+
+            return '<footer' . $attributes . '>';
+        }, $html, 1);
+    }
+
+    $reserved_area_url = wp_login_url(admin_url());
+    $reserved_area_link = '<a id="dci-external-area-reserved" href="' . esc_url($reserved_area_url) . '">'
+        . '<svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path fill="currentColor" d="M17 8h-1V6a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2Zm-7-2a2 2 0 0 1 4 0v2h-4V6Zm7 13H7v-9h10v9Z"/></svg>'
+        . '<span>Accedi all’area riservata</span>'
+        . '</a>';
+
+    $attribution_html = '';
+    if (
+        dci_should_show_footer_signature()
+        && stripos($html, 'p-service.it') === false
+        && stripos($html, 'Point Service S.r.l') === false
+    ) {
+        $signature_html = dci_get_footer_signature_html('#fff');
+        if ($signature_html !== '') {
+            $attribution_html = '<small class="dci-external-footer-attribution">© '
+                . esc_html(dci_get_option('nome_comune'))
+                . $signature_html
+                . '</small>';
+        }
+    }
+
+    $footer_controls = $reserved_area_link . $attribution_html;
+
+    // Evita di conservare un eventuale collegamento all'admin del sito sorgente.
+    $html = preg_replace(
+        '/<a\b[^>]*\bid=(?:"area_personale_admin"|\'area_personale_admin\')[^>]*>[\s\S]*?<\/a>/i',
+        '',
+        $html,
+        1
+    );
+
+    if (stripos($html, 'dci-external-area-reserved') === false) {
+        $small_prints_pattern = '/(<ul\b[^>]*class=(?:"[^"]*it-footer-small-prints-list[^"]*"|\'[^\']*it-footer-small-prints-list[^\']*\')[^>]*>)/i';
+        if (preg_match($small_prints_pattern, $html)) {
+            $html = preg_replace($small_prints_pattern, $footer_controls . '$1', $html, 1);
+        } else {
+            $footer_bottom_pattern = '/(<div\b[^>]*class=(?:"[^"]*footer-bottom[^"]*"|\'[^\']*footer-bottom[^\']*\')[^>]*>)/i';
+            if (preg_match($footer_bottom_pattern, $html)) {
+                $html = preg_replace($footer_bottom_pattern, '$1' . $footer_controls, $html, 1);
+            }
+        }
+
+        if (stripos($html, 'dci-external-area-reserved') === false) {
+            $reserved_area_fallback = '<div class="footer-bottom dci-external-footer-fallback">'
+                . $footer_controls
+                . '</div>';
+            $html = stripos($html, '</footer>') !== false
+                ? preg_replace('/<\/footer>/i', $reserved_area_fallback . '</footer>', $html, 1)
+                : $html . $reserved_area_fallback;
+        }
+    }
+
+    $external_footer_style = '<style id="dci-external-footer-end-style">'
+        . 'footer.dci-external-fetched-footer{margin-bottom:0!important;}'
+        . 'footer.dci-external-fetched-footer .footer-bottom{display:flex!important;align-items:center!important;justify-content:center!important;flex-wrap:wrap!important;gap:12px 20px!important;width:100%!important;min-height:68px!important;margin:0!important;padding:14px clamp(16px,4vw,56px)!important;box-sizing:border-box!important;background-color:inherit!important;border-top:1px solid rgba(255,255,255,.22)!important;color:#fff!important;text-align:center!important;}'
+        . 'footer.dci-external-fetched-footer .footer-bottom>a{color:#fff!important;}'
+        . 'footer.dci-external-fetched-footer #dci-external-area-reserved{display:inline-flex!important;align-items:center!important;justify-content:center!important;order:90!important;gap:8px!important;margin:0!important;padding:9px 15px!important;border:1px solid rgba(255,255,255,.72)!important;border-radius:4px!important;color:#fff!important;background:rgba(255,255,255,.08)!important;font-weight:600!important;line-height:1.25!important;text-decoration:none!important;white-space:nowrap!important;}'
+        . 'footer.dci-external-fetched-footer #dci-external-area-reserved:hover,footer.dci-external-fetched-footer #dci-external-area-reserved:focus{color:#fff!important;background:rgba(255,255,255,.18)!important;text-decoration:none!important;}'
+        . 'footer.dci-external-fetched-footer #dci-external-area-reserved svg{width:18px!important;height:18px!important;flex:0 0 18px!important;}'
+        . 'footer.dci-external-fetched-footer .it-footer-small-prints-list{float:none!important;order:100!important;justify-content:center!important;margin:0!important;color:#fff!important;text-align:center!important;}'
+        . 'footer.dci-external-fetched-footer .it-footer-small-prints-list li,footer.dci-external-fetched-footer .it-footer-small-prints-list small,footer.dci-external-fetched-footer .it-footer-small-prints-list span,footer.dci-external-fetched-footer .it-footer-small-prints-list a{color:#fff!important;opacity:1!important;text-decoration:none!important;}'
+        . 'footer.dci-external-fetched-footer .dci-external-footer-attribution{order:100!important;color:#fff!important;opacity:1!important;}'
+        . '@media(max-width:767.98px){footer.dci-external-fetched-footer .footer-bottom{align-items:flex-start!important;padding:16px!important;}footer.dci-external-fetched-footer #dci-external-area-reserved{order:90!important;width:100%!important;justify-content:center!important;margin-left:0!important;}footer.dci-external-fetched-footer .it-footer-small-prints-list{order:100!important;width:100%!important;}}'
+        . '</style>';
+
+    if (stripos($html, 'dci-external-footer-end-style') === false) {
+        $html = stripos($html, '</footer>') !== false
+            ? preg_replace('/<\/footer>/i', $external_footer_style . '</footer>', $html, 1)
+            : $html . $external_footer_style;
+    }
+
+    return $html;
 }
 
 /**
@@ -330,22 +445,22 @@ function dci_get_external_footer_payload() {
         }
     }
 
-    $footer_cache_key = 'dci_ext_footer_v2_' . md5((string) $external_home);
+    $footer_cache_key = 'dci_ext_footer_v3_' . md5((string) $external_home);
     $footer_cached = get_transient($footer_cache_key);
     if (is_array($footer_cached)) {
         if (!empty($footer_cached['html'])) {
-            $footer_cached['html'] = dci_apply_local_footer_signature($footer_cached['html']);
+            $footer_cached['html'] = dci_prepare_external_portal_footer_html($footer_cached['html']);
             return $footer_cached;
         }
         return null;
     }
 
     if ($is_external_only && $should_fetch_external_footer && !empty($external_home) && filter_var($external_home, FILTER_VALIDATE_URL)) {
-        $cache_key = 'dci_ext_footer_v2_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
+        $cache_key = 'dci_ext_footer_v3_' . md5(strtolower((string) $external_home) . '|' . home_url('/'));
         $cached_payload = get_transient($cache_key);
         if (is_array($cached_payload)) {
             if (!empty($cached_payload['html'])) {
-                $cached_payload['html'] = dci_apply_local_footer_signature($cached_payload['html']);
+                $cached_payload['html'] = dci_prepare_external_portal_footer_html($cached_payload['html']);
                 return $cached_payload;
             }
             return null;
@@ -400,7 +515,7 @@ function dci_get_external_footer_payload() {
                     $payload['attempted_sources'] = $attempted_sources;
                     $payload['loading_html'] = dci_get_external_fragment_loader_html('Caricamento footer');
                     set_transient($footer_cache_key, $payload, 5 * MINUTE_IN_SECONDS);
-                    $payload['html'] = dci_apply_local_footer_signature($payload['html']);
+                    $payload['html'] = dci_prepare_external_portal_footer_html($payload['html']);
                     return $payload;
                 }
             }
@@ -432,7 +547,7 @@ function dci_get_external_footer_payload() {
                         'loading_html' => dci_get_external_fragment_loader_html('Caricamento footer'),
                     );
                     set_transient($footer_cache_key, $result, 5 * MINUTE_IN_SECONDS);
-                    $result['html'] = dci_apply_local_footer_signature($result['html']);
+                    $result['html'] = dci_prepare_external_portal_footer_html($result['html']);
                     return $result;
                 }
             }

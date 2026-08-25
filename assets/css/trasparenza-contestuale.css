@@ -1,0 +1,353 @@
+.dci-at-context-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    width: min(100% - 2rem, 1184px);
+    margin: 1rem auto;
+    padding: 1.1rem 1.25rem;
+    color: #17324d;
+    background: #fff;
+    border: 1px solid #c4d2df;
+    border-left: 4px solid var(--bs-primary, #06c);
+    border-radius: .625rem;
+    box-shadow: 0 .35rem 1rem rgba(23, 50, 77, .09);
+}
+
+.dci-at-context-actions__heading {
+    display: flex;
+    flex: 1 1 18rem;
+    flex-direction: column;
+    gap: .15rem;
+    min-width: 0;
+}
+
+.dci-at-context-actions__label {
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.dci-at-context-actions__description {
+    color: #455b71;
+    font-size: .875rem;
+    line-height: 1.4;
+}
+
+.dci-at-context-actions__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .625rem;
+}
+
+.dci-at-context-actions__link,
+.dci-at-context-edit__link {
+    /*
+     * Bootstrap Italia dichiara .btn come inline-block. Questo selettore viene
+     * mantenuto intenzionalmente piu specifico e con !important: il componente
+     * deve restare orizzontale anche quando il CSS del tema o quello aggiuntivo
+     * dell'ente viene caricato dopo questo foglio.
+     */
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    min-height: 2.625rem;
+    padding: .55rem .9rem;
+    border-radius: .375rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, color .15s ease;
+}
+
+.dci-at-context-actions__icon,
+.dci-at-context-edit__link > .dci-at-context-edit__icon {
+    display: block;
+    width: 1.125rem !important;
+    min-width: 1.125rem !important;
+    max-width: 1.125rem !important;
+    height: 1.125rem !important;
+    min-height: 1.125rem !important;
+    max-height: 1.125rem !important;
+    flex: 0 0 auto;
+    margin: 0;
+    fill: currentColor;
+    overflow: visible;
+}
+
+.dci-at-context-edit {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.dci-at-context-edit__link {
+    width: auto !important;
+    max-width: 100%;
+    min-height: 2.625rem;
+    padding: .5rem .85rem;
+    border-width: 1px;
+    font-size: .875rem;
+    white-space: normal;
+}
+
+.dci-at-context-edit__link > span {
+    min-width: 0;
+}
+
+.dci-at-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .625rem;
+}
+
+.dci-at-card-detail-action {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    flex: 0 1 auto;
+    width: auto !important;
+    max-width: 100%;
+    min-height: 2.625rem;
+    padding: .5rem .9rem;
+    border-radius: .375rem;
+    font-size: .875rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
+}
+
+/*
+ * Il CSS aggiuntivo degli enti spesso assegna un colore ai link con
+ * `a.text-decoration-none !important`. Il comando di dettaglio e' pero' un
+ * pulsante primario: testo e icona devono mantenere il contrasto bianco in
+ * ogni stato e non devono acquisire la sottolineatura riservata ai link.
+ */
+a.dci-at-card-detail-action.btn-primary,
+a.dci-at-card-detail-action.btn-primary:link,
+a.dci-at-card-detail-action.btn-primary:visited,
+a.dci-at-card-detail-action.btn-primary:hover,
+a.dci-at-card-detail-action.btn-primary:focus,
+a.dci-at-card-detail-action.btn-primary:active {
+    color: #fff !important;
+    text-decoration: none !important;
+    text-decoration-color: transparent !important;
+}
+
+a.dci-at-card-detail-action.btn-primary > span,
+a.dci-at-card-detail-action.btn-primary > .icon {
+    color: inherit !important;
+    text-decoration: none !important;
+    fill: currentColor !important;
+}
+
+.dci-at-card-detail-action > .icon {
+    width: 1.125rem !important;
+    min-width: 1.125rem !important;
+    max-width: 1.125rem !important;
+    height: 1.125rem !important;
+    min-height: 1.125rem !important;
+    max-height: 1.125rem !important;
+    flex: 0 0 auto;
+    margin: 0 !important;
+    fill: currentColor;
+}
+
+.dci-custom-section-card .dci-at-context-edit {
+    margin-top: .75rem;
+}
+
+.dci-custom-section-card .dci-at-card-actions .dci-at-context-edit,
+.dci-at-card-actions .dci-at-context-edit {
+    margin: 0;
+}
+
+.dci-dirig-card__footer.dci-at-card-actions {
+    display: flex;
+}
+
+.dci-at-admin-context {
+    margin: 1rem 0 !important;
+    padding: .25rem .75rem;
+}
+
+.dci-at-context-locked {
+    position: relative;
+    padding: .75rem;
+    background: #f3f7fb;
+    border-left: 4px solid #06c;
+}
+
+.dci-at-context-locked input[aria-disabled="true"] + label {
+    opacity: .55;
+}
+
+/* Protezioni comuni contro overflow nelle pagine della Trasparenza. */
+.dci-at-layout,
+.dci-at-layout .container,
+.dci-at-layout .row,
+.dci-at-layout [class*="col-"],
+.dci-at-document-result,
+.dci-at-document-result .card,
+.dci-custom-section-card,
+.dci-custom-section-card .card-body,
+.dci-at-wrap,
+.dci-at-wrap .row,
+.dci-at-wrap [class*="col-"] {
+    min-width: 0;
+}
+
+.dci-at-layout img,
+.dci-at-document-result img,
+.dci-custom-section-card img,
+.dci-at-wrap img {
+    max-width: 100%;
+    height: auto;
+}
+
+.dci-at-layout a:not(.btn),
+.dci-at-document-result a:not(.btn),
+.dci-custom-section-card a:not(.btn),
+.dci-at-wrap a:not(.btn) {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 767.98px) {
+    .dci-at-context-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .dci-at-context-actions__links,
+    .dci-at-context-actions__link {
+        width: 100%;
+    }
+
+    .dci-at-context-actions__links {
+        justify-content: stretch;
+    }
+
+    .dci-at-card-actions {
+        justify-content: flex-start;
+    }
+
+    .dci-at-layout > .container,
+    .dci-at-layout form > .container,
+    .bg-grey-card > form > .container {
+        width: 100%;
+        max-width: 100%;
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+    .dci-at-layout .card-body,
+    .dci-at-document-result .card-body,
+    .dci-custom-section-card .card-body {
+        padding: 1rem;
+    }
+
+    .dci-at-card-resources a {
+        align-items: flex-start !important;
+        width: 100%;
+    }
+
+    .dci-at-card-resources a > span:last-child {
+        min-width: 0;
+        overflow: visible !important;
+        overflow-wrap: anywhere;
+        text-overflow: clip !important;
+        white-space: normal !important;
+    }
+
+    #toggle-all-wrapper {
+        align-items: stretch;
+        flex-direction: column;
+        gap: .75rem;
+        font-size: 1.25rem;
+    }
+
+    #toggle-all-container,
+    #toggle-all-btn {
+        width: 100%;
+    }
+
+    .title-custom {
+        padding: .85rem 3rem .85rem 1rem;
+        font-size: 1.125rem;
+        overflow-wrap: anywhere;
+    }
+
+    .title-custom::after {
+        right: 1.15rem;
+    }
+
+    .content {
+        padding: .5rem .75rem;
+        font-size: 1rem;
+    }
+
+    .content a,
+    .sub-sub-list a,
+    .sub-sub-list .sub-sub-list a {
+        font-size: 1rem;
+        overflow-wrap: anywhere;
+    }
+
+    .content .subcat-item-head,
+    .content .sub-sub-item-head,
+    .sub-sub-list .sub-sub-item-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .content .subcat-toggle,
+    .content .sub-sub-toggle {
+        width: 100%;
+        white-space: normal;
+    }
+
+    .sub-sub-list,
+    .sub-sub-list.depth-1,
+    .sub-sub-list.depth-2,
+    .sub-sub-list.depth-3,
+    .sub-sub-list.depth-4,
+    .sub-sub-list.depth-5,
+    .sub-sub-list .sub-sub-list {
+        margin-left: .35rem;
+        padding-left: .65rem;
+    }
+
+    .dci-at-result-categories {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .dci-at-card-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .dci-at-card-actions > .dci-at-card-detail-action,
+    .dci-at-card-actions > .dci-at-context-edit,
+    .dci-at-card-actions .dci-at-context-edit__link {
+        width: 100% !important;
+    }
+
+    .dci-at-card-actions > .dci-at-card-detail-action,
+    .dci-at-card-actions > .dci-at-context-edit,
+    .dci-at-card-actions .dci-at-context-edit__link {
+        max-width: none;
+    }
+}

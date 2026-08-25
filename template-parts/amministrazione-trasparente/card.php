@@ -1,5 +1,6 @@
 <?php
 global $elemento;
+require_once get_template_directory() . '/template-parts/amministrazione-trasparente/custom-section-card-helpers.php';
 
 $prefix = '_dci_elemento_trasparenza_';
 
@@ -38,18 +39,24 @@ $show_search_categories = !empty($args['show_search_categories']);
 $risorse_card = [];
 
 if (is_array($documenti)) {
-    foreach ($documenti as $file_url) {
+    foreach ($documenti as $file_id => $file_url) {
         if (!is_string($file_url) || $file_url === '') {
             continue;
         }
 
         $file_path = (string) wp_parse_url($file_url, PHP_URL_PATH);
         $file_name = urldecode((string) basename($file_path));
+        $attachment_id = is_numeric($file_id) ? (int) $file_id : 0;
+        $file_title = dci_custom_section_attachment_title(
+            $attachment_id,
+            $file_url,
+            $file_name !== '' ? $file_name : __('Documento allegato', 'design_comuni_italia')
+        );
 
         $risorse_card[$file_url] = [
             'type'   => 'file',
             'url'    => $file_url,
-            'name'   => $file_name !== '' ? $file_name : __('Documento allegato', 'design_comuni_italia'),
+            'name'   => $file_title,
             'target' => $ck_target,
         ];
     }
@@ -412,21 +419,27 @@ if ($elemento->post_status === "publish") :
                 </div>
             <?php } ?>
 
-            <a
-                href="<?php echo esc_url(get_permalink($elemento->ID)); ?>"
-                class="dci-at-card-detail text-decoration-none"
-                style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.75rem;padding:.55rem .8rem;color:#17324d;background:#eef3f7;border:1px solid #d5e0e8;border-radius:.25rem;font-size:.9rem;font-weight:700;"
-                aria-label="<?php echo esc_attr(sprintf(__('Apri il dettaglio di %s', 'design_comuni_italia'), $title)); ?>"
-            >
-                <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
-                <svg
-                    class="icon icon-sm"
-                    style="width:1rem;height:1rem;fill:currentColor;"
-                    aria-hidden="true"
+            <div class="dci-at-card-actions" style="margin-top:1.75rem;">
+                <a
+                    href="<?php echo esc_url(get_permalink($elemento->ID)); ?>"
+                    class="dci-at-card-detail dci-at-card-detail-action btn btn-primary btn-sm text-decoration-none"
+                    aria-label="<?php echo esc_attr(sprintf(__('Apri il dettaglio di %s', 'design_comuni_italia'), $title)); ?>"
                 >
-                    <use href="#it-arrow-right"></use>
-                </svg>
-            </a>
+                    <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
+                    <svg
+                        class="icon icon-sm"
+                        style="width:1rem;height:1rem;fill:currentColor;"
+                        aria-hidden="true"
+                    >
+                        <use href="#it-arrow-right"></use>
+                    </svg>
+                </a>
+                <?php
+                if (function_exists('dci_render_trasparenza_edit_link')) {
+                    dci_render_trasparenza_edit_link($elemento->ID);
+                }
+                ?>
+            </div>
         </div>
         </div>
         </div>

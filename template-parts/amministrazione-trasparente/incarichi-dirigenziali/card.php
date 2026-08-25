@@ -102,14 +102,11 @@ $normalize_file_list = static function ($files, $default_label, $get_file_url) {
         }
 
         $file_number++;
-        $file_title = $attachment_id > 0 ? get_the_title($attachment_id) : '';
-        if ($file_title === '') {
-            $file_title = sprintf(
-                '%s %d',
-                $default_label,
-                $file_number
-            );
-        }
+        $file_title = dci_custom_section_attachment_title(
+            $attachment_id,
+            $file_url,
+            sprintf('%s %d', $default_label, $file_number)
+        );
 
         $items[] = array(
             'url'   => $file_url,
@@ -122,6 +119,11 @@ $normalize_file_list = static function ($files, $default_label, $get_file_url) {
 
 $curriculum_id = (int) get_post_meta($post_id, $prefix . 'curriculum_id', true);
 $curriculum_url = $get_file_url($curriculum, $curriculum_id);
+$curriculum_title = dci_custom_section_attachment_title(
+    $curriculum_id,
+    $curriculum_url,
+    __('Curriculum', 'design_comuni_italia')
+);
 $assignment_documents = $normalize_file_list($attachments, __('Documento', 'design_comuni_italia'), $get_file_url);
 $extra_documents = $normalize_file_list($additional_attachments, __('Allegato', 'design_comuni_italia'), $get_file_url);
 ?>
@@ -197,7 +199,7 @@ $extra_documents = $normalize_file_list($additional_attachments, __('Allegato', 
                 <?php if ($curriculum_url !== '') : ?>
                     <a href="<?php echo esc_url($curriculum_url); ?>" target="_blank" rel="noopener">
                         <svg class="icon icon-sm icon-primary" aria-hidden="true"><use href="#it-file"></use></svg>
-                        <?php esc_html_e('Curriculum', 'design_comuni_italia'); ?>
+                        <?php echo esc_html(dci_custom_section_card_text($curriculum_title, 65)); ?>
                     </a>
                 <?php else : ?>
                     <p><?php echo esc_html($empty_value); ?></p>
@@ -234,10 +236,16 @@ $extra_documents = $normalize_file_list($additional_attachments, __('Allegato', 
         </div>
     </section>
 
-    <footer class="dci-dirig-card__footer">
-        <a class="dci-dirig-card__detail btn btn-primary" href="<?php the_permalink(); ?>">
-            <?php esc_html_e('Consulta la scheda', 'design_comuni_italia'); ?>
+    <footer class="dci-dirig-card__footer dci-at-card-actions">
+        <a class="dci-dirig-card__detail dci-at-card-detail-action btn btn-primary btn-sm" href="<?php the_permalink(); ?>">
+            <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
+            <svg class="icon icon-sm ms-1" aria-hidden="true" focusable="false"><use href="#it-arrow-right"></use></svg>
         </a>
+        <?php
+        if (function_exists('dci_render_trasparenza_edit_link')) {
+            dci_render_trasparenza_edit_link($post_id);
+        }
+        ?>
     </footer>
 </article>
 

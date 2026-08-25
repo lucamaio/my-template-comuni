@@ -30,7 +30,10 @@ function dci_limita_capacita_trasparenza($allcaps, $caps, $args, $user) {
 
 
 
-// Collega tassonomia alla capability
+// Collega la gestione strutturale della tassonomia alla capability riservata.
+// L'assegnazione di sezioni gia' esistenti resta invece separata: i redattori
+// possono classificare i contenuti senza poter creare, modificare o cancellare
+// le categorie dell'Amministrazione Trasparente.
 add_action('init', 'dci_collega_capacita_tassonomia', 11);
 function dci_collega_capacita_tassonomia() {
     $taxonomy = 'tipi_cat_amm_trasp';
@@ -41,7 +44,7 @@ function dci_collega_capacita_tassonomia() {
             'manage_terms' => 'gestione_permessi_trasparenza',
             'edit_terms'   => 'gestione_permessi_trasparenza',
             'delete_terms' => 'gestione_permessi_trasparenza',
-            'assign_terms' => 'gestione_permessi_trasparenza',
+            'assign_terms' => 'assign_tipi_cat_amm_trasp',
         );
     }
 }

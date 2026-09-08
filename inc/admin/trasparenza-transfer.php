@@ -448,7 +448,8 @@ function dci_trasparenza_transfer_export_media() {
         $requested_term_ids
     );
     $attachment_ids = array_values((array) $data['attachment_ids']);
-    $media_parts = dci_trasparenza_transfer_media_parts($attachment_ids, 600 * MB_IN_BYTES);
+    $part_size_mb = min(600, max(10, absint($_POST['media_part_size_mb'] ?? 600)));
+    $media_parts = dci_trasparenza_transfer_media_parts($attachment_ids, $part_size_mb * MB_IN_BYTES);
     $total_parts = count($media_parts);
     $part = max(1, absint($_POST['media_part'] ?? 1));
     if ($part > $total_parts) {
@@ -1183,15 +1184,25 @@ function dci_trasparenza_transfer_admin_page() {
                         <?php esc_html_e('Inizia dalla parte:', 'design_comuni_italia'); ?>
                         <input type="number" name="media_part" value="1" min="1" step="1" style="width:75px">
                     </label>
+                    <label>
+                        <?php esc_html_e('Dimensione massima di ogni ZIP:', 'design_comuni_italia'); ?>
+                        <input type="number" name="media_part_size_mb" value="600" min="10" max="600" step="10" style="width:85px"> MB
+                    </label>
                     <button id="dci-trasparenza-export-media" class="button" formaction="<?php echo esc_url(admin_url('admin-post.php?action=dci_trasparenza_export_media')); ?>"><?php esc_html_e('Esporta e scarica tutti gli ZIP', 'design_comuni_italia'); ?></button>
                 </p>
-                <p id="dci-trasparenza-media-progress" class="description"><?php esc_html_e('Gli allegati vengono suddivisi in ZIP da circa 600 MB. Il pulsante crea e scarica automaticamente tutte le parti, una dopo l’altra. Un singolo allegato più grande rimane nel proprio ZIP.', 'design_comuni_italia'); ?></p>
+                <p id="dci-trasparenza-media-progress" class="description"><?php esc_html_e('Scegli una dimensione inferiore al limite di upload del portale di destinazione. Il pulsante crea e scarica automaticamente tutte le parti, una dopo l’altra. Un singolo allegato più grande rimane nel proprio ZIP.', 'design_comuni_italia'); ?></p>
             </form>
         </div>
 
         <div class="card" style="max-width:900px">
             <h2><?php esc_html_e('2. Importa file', 'design_comuni_italia'); ?></h2>
             <p><?php esc_html_e('Seleziona insieme tutte le parti ZIP: verranno importate automaticamente una dopo l’altra, prima del JSON dei contenuti.', 'design_comuni_italia'); ?></p>
+            <p class="description"><?php echo esc_html(sprintf(
+                __('Limite effettivo di caricamento di questo portale: %1$s (upload_max_filesize: %2$s; post_max_size: %3$s). Ogni ZIP deve essere più piccolo di questo limite.', 'design_comuni_italia'),
+                size_format(wp_max_upload_size()),
+                ini_get('upload_max_filesize'),
+                ini_get('post_max_size')
+            )); ?></p>
             <form id="dci-trasparenza-import-media-form" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="dci_trasparenza_import_media">
                 <?php wp_nonce_field('dci_trasparenza_import_media'); ?>
@@ -1224,6 +1235,7 @@ function dci_trasparenza_transfer_admin_page() {
         const mediaPackages = document.getElementById('dci-trasparenza-media-packages');
         const mediaImportButton = document.getElementById('dci-trasparenza-import-media');
         const mediaImportProgress = document.getElementById('dci-trasparenza-import-media-progress');
+        const maxMediaUploadSize = <?php echo (int) wp_max_upload_size(); ?>;
         const labels = <?php echo wp_json_encode($post_type_labels); ?>;
         if (mediaImportForm && mediaPackages && typeof fetch === 'function') {
             mediaImportForm.addEventListener('submit', async function (event) {
@@ -1233,6 +1245,9 @@ function dci_trasparenza_transfer_admin_page() {
                 mediaImportButton.disabled = true;
                 try {
                     for (let index = 0; index < files.length; index++) {
+                        if (maxMediaUploadSize && files[index].size + 1048576 > maxMediaUploadSize) {
+                            throw new Error('<?php echo esc_js(__('Il file supera il limite di upload del portale:', 'design_comuni_italia')); ?> ' + files[index].name + ' (' + Math.ceil(files[index].size / 1048576) + ' MB > ' + Math.floor(maxMediaUploadSize / 1048576) + ' MB). <?php echo esc_js(__('Esporta nuovamente gli ZIP scegliendo una dimensione inferiore.', 'design_comuni_italia')); ?>');
+                        }
                         mediaImportProgress.textContent = '<?php echo esc_js(__('Importazione ZIP', 'design_comuni_italia')); ?> ' + (index + 1) + ' <?php echo esc_js(__('di', 'design_comuni_italia')); ?> ' + files.length + ': ' + files[index].name + '…';
                         const formData = new FormData(mediaImportForm);
                         formData.delete('media_package');
@@ -1245,7 +1260,11 @@ function dci_trasparenza_transfer_admin_page() {
                         });
                         const responseType = response.headers.get('Content-Type') || '';
                         if (responseType.indexOf('application/json') === -1) {
-                            throw new Error('<?php echo esc_js(__('Il server ha restituito una pagina HTML invece del risultato JSON. Controlla upload_max_filesize, post_max_size, memoria PHP e log degli errori.', 'design_comuni_italia')); ?>');
+                            const responseText = await response.text();
+                            const documentHtml = new DOMParser().parseFromString(responseText, 'text/html');
+                            const serverMessageNode = documentHtml.querySelector('.wp-die-message, .notice-error, main, body');
+                            const serverMessage = serverMessageNode ? serverMessageNode.textContent.replace(/\s+/g, ' ').trim().slice(0, 300) : '';
+                            throw new Error('<?php echo esc_js(__('Il server ha interrotto il caricamento e ha restituito HTML invece di JSON.', 'design_comuni_italia')); ?>' + (serverMessage ? ' <?php echo esc_js(__('Risposta:', 'design_comuni_italia')); ?> ' + serverMessage : '') + ' <?php echo esc_js(__('Controlla anche i limiti PHP e del web server.', 'design_comuni_italia')); ?>');
                         }
                         const result = await response.json();
                         if (!response.ok || !result.success) {

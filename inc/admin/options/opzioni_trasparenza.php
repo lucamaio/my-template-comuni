@@ -646,6 +646,46 @@ function dci_register_pagina_trasparenza_options()
         ));
     }
 
+
+    if (1 === (int) get_current_user_id()) {
+        $trasparenza_options->add_field(array(
+            'id'   => $prefix . 'bdncp_link_evidenza_title',
+            'name' => __('Link in evidenza - Atti, documenti e link a BDNCP', 'design_comuni_italia'),
+            'desc' => __('Questi collegamenti vengono mostrati sotto la ricerca e prima dei contenuti inseriti manualmente. La configurazione è disponibile esclusivamente per l’amministratore con ID 1.', 'design_comuni_italia'),
+            'type' => 'title',
+        ));
+
+        $bdncp_link_group_id = $trasparenza_options->add_field(array(
+            'id'          => $prefix . 'bdncp_link_evidenza',
+            'type'        => 'group',
+            'description' => __('Aggiungi uno o più collegamenti da mettere in evidenza nella sezione personalizzata.', 'design_comuni_italia'),
+            'options'     => array(
+                'group_title'   => __('Collegamento {#}', 'design_comuni_italia'),
+                'add_button'    => __('Aggiungi collegamento', 'design_comuni_italia'),
+                'remove_button' => __('Rimuovi collegamento', 'design_comuni_italia'),
+                'sortable'      => true,
+            ),
+        ));
+
+        $trasparenza_options->add_group_field($bdncp_link_group_id, array(
+            'id'   => 'titolo',
+            'name' => __('Titolo', 'design_comuni_italia'),
+            'type' => 'text',
+        ));
+
+        $trasparenza_options->add_group_field($bdncp_link_group_id, array(
+            'id'   => 'descrizione',
+            'name' => __('Descrizione', 'design_comuni_italia'),
+            'type' => 'textarea_small',
+        ));
+
+        $trasparenza_options->add_group_field($bdncp_link_group_id, array(
+            'id'   => 'url',
+            'name' => __('URL di destinazione', 'design_comuni_italia'),
+            'type' => 'text_url',
+        ));
+    }
+
     $trasparenza_options->add_field(array(
         'id'      => $prefix . 'ck_attidiconcessione',
         'name'    => __('Atti di concessione con template personalizzato da noi.', 'design_comuni_italia'),
@@ -660,6 +700,46 @@ function dci_register_pagina_trasparenza_options()
             'data-conditional-value' => 'true',
         ),
     ));
+
+
+    if (1 === (int) get_current_user_id()) {
+        $trasparenza_options->add_field(array(
+            'id'   => $prefix . 'atti_concessione_link_evidenza_title',
+            'name' => __('Link in evidenza - Atti di concessione', 'design_comuni_italia'),
+            'desc' => __('Questi collegamenti vengono mostrati sotto la ricerca e prima degli atti inseriti manualmente. La configurazione è disponibile esclusivamente per l’amministratore con ID 1.', 'design_comuni_italia'),
+            'type' => 'title',
+        ));
+
+        $atti_link_group_id = $trasparenza_options->add_field(array(
+            'id'          => $prefix . 'atti_concessione_link_evidenza',
+            'type'        => 'group',
+            'description' => __('Aggiungi uno o più collegamenti da mettere in evidenza nella sezione personalizzata.', 'design_comuni_italia'),
+            'options'     => array(
+                'group_title'   => __('Collegamento {#}', 'design_comuni_italia'),
+                'add_button'    => __('Aggiungi collegamento', 'design_comuni_italia'),
+                'remove_button' => __('Rimuovi collegamento', 'design_comuni_italia'),
+                'sortable'      => true,
+            ),
+        ));
+
+        $trasparenza_options->add_group_field($atti_link_group_id, array(
+            'id'         => 'titolo',
+            'name'       => __('Titolo', 'design_comuni_italia'),
+            'type'       => 'text',
+        ));
+
+        $trasparenza_options->add_group_field($atti_link_group_id, array(
+            'id'         => 'descrizione',
+            'name'       => __('Descrizione', 'design_comuni_italia'),
+            'type'       => 'textarea_small',
+        ));
+
+        $trasparenza_options->add_group_field($atti_link_group_id, array(
+            'id'         => 'url',
+            'name'       => __('URL di destinazione', 'design_comuni_italia'),
+            'type'       => 'text_url',
+        ));
+    }
 
 
     if (1 === (int) get_current_user_id()) {
@@ -1421,6 +1501,7 @@ function dci_register_pagina_trasparenza_options()
 
 
 }?>
+
 
 
 

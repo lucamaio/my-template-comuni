@@ -424,6 +424,23 @@ function dci_render_trasparenza_contextual_actions($term = null)
         }
     }
 
+    if (
+        1 === (int) get_current_user_id()
+        && current_user_can('manage_options')
+        && $resolution['term'] instanceof WP_Term
+        && current_user_can('edit_term', $resolution['term']->term_id)
+    ) {
+        $edit_term_url = get_edit_term_link($resolution['term']->term_id, 'tipi_cat_amm_trasp');
+        if (is_string($edit_term_url) && $edit_term_url !== '') {
+            $actions[] = array(
+                'url'   => $edit_term_url,
+                'label' => __('Modifica categoria', 'design_comuni_italia'),
+                'class' => 'btn btn-outline-primary dci-at-context-actions__link--secondary',
+                'icon'  => '#it-pencil',
+            );
+        }
+    }
+
     if (empty($actions)) {
         return;
     }

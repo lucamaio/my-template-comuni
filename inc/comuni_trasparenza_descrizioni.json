@@ -1,0 +1,595 @@
+{
+    "descrizioni": {
+        "Disposizioni generali":
+            "Atti fondamentali, riferimenti normativi e documenti di programmazione relativi all’organizzazione, alla trasparenza e all’attività dell’amministrazione.",
+
+        "Piano triennale per la prevenzione della corruzione e della trasparenza (PTPCT)":
+            "Documenti di programmazione delle misure di prevenzione della corruzione e di promozione della trasparenza, con indicazione degli obiettivi, delle responsabilità e delle modalità di attuazione.",
+
+        "Atti generali":
+            "Atti di carattere generale che disciplinano l’organizzazione, le funzioni e l’attività dell’amministrazione.",
+
+        "Normativa":
+            "Accesso a Normattiva, la banca dati pubblica per la consultazione dei testi degli atti normativi statali.",
+
+        "Riferimenti normativi su organizzazione e attività":
+            "Riferimenti alle disposizioni che regolano l’istituzione, l’organizzazione e le attività dell’amministrazione.",
+
+        "Atti amministrativi generali":
+            "Direttive, circolari e altri atti generali relativi all’organizzazione, alle funzioni e allo svolgimento dell’attività amministrativa.",
+
+        "Documenti di programmazione strategico gestionale":
+            "Documenti che definiscono gli indirizzi strategici, gli obiettivi gestionali e le priorità di intervento dell’amministrazione.",
+
+        "Statuti e leggi regionali":
+            "Statuti e disposizioni regionali che disciplinano le funzioni, l’organizzazione e le attività di competenza dell’ente.",
+
+        "Codice disciplinare e codice di condotta":
+            "Codice disciplinare e codici di comportamento, con indicazione dei doveri, delle regole di condotta e delle conseguenze delle violazioni.",
+
+        "Oneri informativi per cittadini e imprese":
+            "Informazioni sugli adempimenti e sugli obblighi informativi a carico di cittadini e imprese, con indicazione delle relative scadenze.",
+
+        "Scadenziario nuovi obblighi amministrativi":
+            "Scadenze e date di efficacia dei nuovi obblighi amministrativi introdotti a carico di cittadini e imprese.",
+
+
+        "Organizzazione":
+            "Informazioni sugli organi di governo e sulla struttura amministrativa del Comune, con indicazione delle competenze e dei riferimenti istituzionali.",
+
+        "Titolari di incarichi politici di amministrazione di direzione o di governo":
+            "Informazioni sui titolari di incarichi politici, di amministrazione, di direzione o di governo, sulle competenze e sulla documentazione relativa agli incarichi.",
+
+        "Il Sindaco":
+            "Informazioni sul Sindaco, sulle funzioni istituzionali e sul mandato, con i recapiti e la documentazione relativa all’incarico.",
+
+        "Giunta Comunale":
+            "Informazioni sulla composizione della Giunta comunale, sulle deleghe attribuite agli assessori e sulle relative funzioni.",
+
+        "Consiglio Comunale":
+            "Informazioni sulla composizione del Consiglio comunale, sulle funzioni di indirizzo e controllo e sui relativi organi.",
+
+        "Relazioni di inizio mandato":
+            "Relazioni sulla situazione finanziaria e patrimoniale dell’ente e sull’indebitamento all’inizio del mandato amministrativo.",
+
+        "Relazioni di fine mandato":
+            "Relazioni sui risultati della gestione e sulla situazione finanziaria e patrimoniale dell’ente al termine del mandato amministrativo.",
+
+        "Amministratori Cessati":
+            "Informazioni sugli amministratori il cui incarico è cessato, con indicazione del periodo di mandato e della relativa documentazione pubblicabile.",
+
+        "Sanzioni per mancata comunicazione dei dati":
+            "Provvedimenti sanzionatori relativi alla mancata comunicazione dei dati soggetti agli obblighi di trasparenza.",
+
+        "Rendiconti gruppi consiliari regionali/provinciali":
+            "Rendiconti sull’impiego delle risorse assegnate ai gruppi consiliari regionali e provinciali e relativa documentazione, ove di competenza.",
+
+        "Atti degli organi di controllo":
+            "Atti e relazioni degli organi competenti al controllo dei rendiconti e della gestione delle risorse.",
+
+        "Articolazione degli uffici":
+            "Struttura organizzativa dell’amministrazione, con indicazione delle competenze e delle responsabilità attribuite agli uffici e ai servizi.",
+
+        "Articolazione uffici":
+            "Informazioni sui singoli uffici, sui servizi e sui settori dell’amministrazione, con indicazione delle competenze e dei responsabili.",
+
+        "Organigramma":
+            "Schema della struttura organizzativa dell’ente, con rappresentazione delle relazioni tra le unità e dei rispettivi livelli di responsabilità.",
+
+        "Telefono e posta elettronica":
+            "Recapiti telefonici, indirizzi di posta elettronica istituzionale e di posta elettronica certificata degli uffici dell’amministrazione.",
+
+
+        "Consulenti e collaboratori":
+            "Dati e documenti sugli incarichi di consulenza e collaborazione conferiti dall’amministrazione, con informazioni sui titolari e sui compensi.",
+
+        "Banca dati incarichidi consulenza PerlaPA":
+            "Accesso al portale Consulenti Pubblici per la consultazione degli incarichi di consulenza e collaborazione comunicati dalle pubbliche amministrazioni.",
+
+        "Titolari di incarichi di collaborazione o consulenza":
+            "Informazioni sui titolari di incarichi di collaborazione o consulenza, con indicazione dell’oggetto, della durata e dei compensi e con la relativa documentazione.",
+
+
+        "Personale":
+            "Informazioni sull’organizzazione del personale, sugli incarichi, sui costi, sulle assenze e sulla contrattazione collettiva.",
+
+        "Titolari di incarichi dirigenziali amministrativi di vertice":
+            "Informazioni sui titolari di incarichi dirigenziali amministrativi di vertice, con gli atti di conferimento e la documentazione relativa agli incarichi.",
+
+        "Titolari di Incarichi dirigenziali (dirigenti non generali)":
+            "Informazioni sui titolari di incarichi dirigenziali non generali, sulle funzioni assegnate e sulla relativa documentazione.",
+
+        "Incarichi dirigenziali a qualsiasi titolo conferiti":
+            "Incarichi dirigenziali conferiti dall’amministrazione, con indicazione dei titolari, delle funzioni e dei relativi atti.",
+
+        "Elenco posizioni dirigenziali discrezionali":
+            "Elenco delle posizioni dirigenziali attribuite attraverso procedure di scelta discrezionale, con la relativa documentazione.",
+
+        "Posti di funzioni disponibili":
+            "Informazioni sulle posizioni dirigenziali disponibili e sulle modalità di conferimento dei relativi incarichi.",
+
+        "Ruoli dirigenti":
+            "Dati sui ruoli dirigenziali dell’amministrazione e sul relativo inquadramento organizzativo.",
+
+        "Dirigenti cessati":
+            "Informazioni sui dirigenti il cui incarico è cessato, con indicazione del periodo di svolgimento e della documentazione pubblicabile.",
+
+        "Posizioni organizzative":
+            "Informazioni sui titolari di posizioni organizzative e di incarichi di elevata qualificazione, sulle funzioni assegnate e sui relativi profili professionali.",
+
+        "Dotazione organica":
+            "Dati sulla dotazione organica e sul personale in servizio, con indicazione della distribuzione per qualifiche e della relativa spesa.",
+
+        "Costo annuale del personale":
+            "Dati sulla spesa annuale per il personale dell’amministrazione, riferiti all’esercizio di competenza.",
+
+        "Costo personale tempo indeterminato":
+            "Dati sulla spesa sostenuta per il personale con rapporto di lavoro a tempo indeterminato.",
+
+        "Personale non a tempo indeterminato":
+            "Dati sul personale con rapporto di lavoro non a tempo indeterminato, distinti per tipologia di rapporto e ambito organizzativo.",
+
+        "Costo del personale non a tempo indeterminato":
+            "Dati sulla spesa sostenuta per il personale con rapporto di lavoro non a tempo indeterminato.",
+
+        "Tassi di assenza":
+            "Dati sui tassi di assenza del personale, riferiti ai periodi di rilevazione e alle articolazioni organizzative dell’ente.",
+
+        "Incarichi conferiti e autorizzati ai dipendenti":
+            "Elenco degli incarichi conferiti o autorizzati ai dipendenti, con indicazione dell’oggetto, della durata e dei compensi.",
+
+        "Contrattazione collettiva":
+            "Riferimenti e testi dei contratti collettivi nazionali applicabili al personale dell’amministrazione.",
+
+        "Contrattazione integrativa":
+            "Contratti collettivi integrativi dell’ente e documentazione relativa ai contenuti degli accordi e ai loro effetti economici.",
+
+        "Contratti integrativi":
+            "Testi dei contratti collettivi integrativi sottoscritti dall’amministrazione e relativa documentazione.",
+
+        "Costi contratti integrativi":
+            "Informazioni sui costi della contrattazione integrativa e documenti relativi alla compatibilità economica e finanziaria degli accordi.",
+
+        "OIV":
+            "Informazioni sull’Organismo indipendente di valutazione (OIV) o sull’organismo con funzioni analoghe, sulla composizione e sugli incarichi dei componenti.",
+
+
+        "Bandi di concorso":
+            "Bandi, avvisi e documenti relativi al reclutamento del personale, con indicazione delle procedure e dei relativi esiti.",
+
+        "Concorsi":
+            "Bandi e documenti delle procedure concorsuali, con indicazione dei requisiti di partecipazione, delle scadenze e degli esiti.",
+
+
+        "Performance":
+            "Documenti di programmazione, misurazione e valutazione della performance, con informazioni sui risultati e sul sistema premiante.",
+
+        "Sistema di misurazione e valutazione della performance":
+            "Criteri, strumenti e procedure adottati per misurare e valutare la performance organizzativa e individuale.",
+
+        "Piano della Performance":
+            "Documenti di programmazione degli obiettivi dell’amministrazione, con indicazione degli indicatori e dei risultati attesi.",
+
+        "Relazione sulla Performance":
+            "Documentazione sui risultati conseguiti dall’amministrazione rispetto agli obiettivi programmati e sulle eventuali differenze rilevate.",
+
+        "Ammontare complessivo dei premi":
+            "Dati sull’ammontare complessivo delle risorse destinate ai premi collegati alla performance e sugli importi effettivamente distribuiti.",
+
+        "Benessere organizzativo":
+            "Rilevazioni e iniziative relative al benessere del personale, alle condizioni di lavoro e al clima organizzativo.",
+
+        "Dati relativi ai premi":
+            "Dati sulla distribuzione dei premi al personale e sui criteri di attribuzione, con informazioni sulla differenziazione dei riconoscimenti.",
+
+
+        "Enti controllati":
+            "Dati sugli enti pubblici vigilati, sulle società partecipate e sugli enti di diritto privato controllati, con i relativi rapporti organizzativi ed economici.",
+
+        "Enti pubblici vigilati":
+            "Elenco degli enti pubblici vigilati, con informazioni sulle funzioni, sulle attività e sui rapporti con l’amministrazione.",
+
+        "Società partecipate":
+            "Informazioni sulle società partecipate dall’ente, sulle quote detenute, sulle attività svolte e sui relativi dati economici e organizzativi.",
+
+        "Dati società partecipate":
+            "Dati sulle partecipazioni societarie dell’ente, sugli organi amministrativi, sulle attività e sui risultati economici delle società.",
+
+        "Provvedimenti":
+            "Provvedimenti amministrativi dell’ente, compresi gli atti relativi alle partecipazioni societarie, consultabili nelle rispettive sottosezioni.",
+
+        "Enti di diritto privato controllati":
+            "Elenco degli enti di diritto privato controllati, con informazioni sulle attività, sugli organi e sui rapporti con l’amministrazione.",
+
+        "Rappresentazione grafica":
+            "Rappresentazione dei rapporti tra l’amministrazione, gli enti pubblici vigilati, le società partecipate e gli enti di diritto privato controllati.",
+
+
+        "Attività e procedimenti":
+            "Informazioni sui procedimenti amministrativi, sugli uffici competenti, sui termini di conclusione e sulle modalità di acquisizione di dati e documenti.",
+
+        "Tipologie di procedimento":
+            "Informazioni sui procedimenti amministrativi: finalità, uffici competenti, documentazione richiesta, modalità di presentazione delle istanze e termini di conclusione.",
+
+        "Monitoraggio tempi procedimentali":
+            "Risultati del monitoraggio dei tempi di conclusione dei procedimenti amministrativi e del rispetto dei termini previsti.",
+
+        "Dichiarazioni sostitutive e acquisizione d'ufficio dei dati":
+            "Indicazioni per la presentazione delle dichiarazioni sostitutive e per l’acquisizione d’ufficio di dati e documenti, con i riferimenti degli uffici competenti.",
+
+
+        "Provvedimenti organi indirizzo-politico":
+            "Provvedimenti adottati dagli organi di indirizzo politico-amministrativo, con i relativi elementi identificativi e documenti.",
+
+        "Provvedimenti dirigenti amministrativi":
+            "Provvedimenti adottati dai dirigenti nell’esercizio delle funzioni amministrative e gestionali.",
+
+
+        "Bandi di Gara e contratti":
+            "Atti, dati e documenti relativi alla programmazione, all’affidamento e all’esecuzione dei contratti di lavori, servizi e forniture.",
+
+        "Atti e documenti di carattere generale riferiti a tutte le procedure":
+            "Atti e documenti di carattere generale relativi all’organizzazione e allo svolgimento delle procedure di affidamento di lavori, servizi e forniture.",
+
+        "Automatizzazione delle procedure":
+            "Informazioni sui sistemi e sulle soluzioni adottati per automatizzare le attività relative alle procedure di affidamento.",
+
+        "Acquisizione interesse realizzazione opere incompiute":
+            "Avvisi e documenti relativi alla raccolta di manifestazioni di interesse per il completamento o la gestione di opere incompiute.",
+
+        "Mancata redazione programmazione":
+            "Comunicazioni relative alla mancata predisposizione dei programmi di lavori e di acquisto di beni e servizi, con le relative motivazioni.",
+
+        "Documenti sul sistema di qualificazione":
+            "Atti che disciplinano i sistemi di qualificazione degli operatori economici e i criteri per l’iscrizione e la partecipazione.",
+
+        "Gravi illeciti professionali":
+            "Atti e informazioni relativi ai gravi illeciti professionali rilevanti per le procedure di affidamento.",
+
+        "Progetti di investimento pubblico":
+            "Informazioni sui progetti di investimento pubblico, con indicazione delle finalità, delle risorse e dei tempi di realizzazione.",
+
+        "Pubblicazione":
+            "Documenti relativi alla pubblicazione delle procedure di affidamento e alle eventuali fasi di consultazione e dibattito pubblico.",
+
+        "Dibattito pubblico":
+            "Documenti relativi al dibattito pubblico sulle opere e sugli interventi, con informazioni sul percorso di partecipazione e sui suoi esiti.",
+
+        "Documenti di gara":
+            "Bandi, avvisi, disciplinari, capitolati e altri documenti che definiscono le condizioni e le modalità di partecipazione alle procedure di gara.",
+
+        "Affidamento":
+            "Atti e informazioni relativi alla selezione degli operatori economici e all’affidamento dei contratti pubblici.",
+
+        "Composizione della commissione giudicatrice":
+            "Atti di nomina e informazioni sulla composizione delle commissioni giudicatrici, con i profili professionali dei componenti.",
+
+        "Pari opportunità e inclusione lavorativa":
+            "Documenti relativi alle pari opportunità e all’inclusione lavorativa nelle procedure di affidamento e nell’esecuzione dei contratti pubblici.",
+
+        "Affidamenti Servizi pubblici locali (SPL)":
+            "Atti e relazioni relativi all’organizzazione e all’affidamento dei servizi pubblici locali, con la documentazione sulle scelte gestionali.",
+
+        "Esecutiva":
+            "Documenti relativi all’esecuzione dei contratti pubblici e alle verifiche sull’adempimento delle prestazioni.",
+
+        "Collegio consultivo tecnico":
+            "Informazioni sulla composizione e sugli incarichi del collegio consultivo tecnico, con la documentazione relativa alle sue attività.",
+
+        "Sponsorizzazioni":
+            "Avvisi, accordi e documenti relativi alle sponsorizzazioni dell’amministrazione.",
+
+        "Contratti di sponsorizzazione":
+            "Contratti di sponsorizzazione stipulati dall’amministrazione, con indicazione dell’oggetto, dei soggetti coinvolti e degli importi.",
+
+        "Procedure di somma urgenza e di protezione civile":
+            "Atti delle procedure attivate per esigenze di somma urgenza e di protezione civile, con informazioni sugli interventi e sui relativi affidamenti.",
+
+        "Finanza di progetto":
+            "Proposte, procedure e documenti relativi a interventi realizzati mediante finanza di progetto.",
+
+        "Atti, documenti e link a BDNCP":
+            "Atti e documenti relativi ai contratti pubblici e collegamenti alla Banca dati nazionale dei contratti pubblici (BDNCP) per la consultazione dei dati delle procedure.",
+
+        "Procedimenti fino al 31/12/2023":
+            "Documentazione relativa alle procedure di affidamento riferite al periodo fino al 31 dicembre 2023.",
+
+        "Provvedimenti di esclusione e di ammissione":
+            "Atti che dispongono l’ammissione o l’esclusione degli operatori economici dalle procedure di gara.",
+
+        "Informazioni sulle singole procedure in formato tabellare":
+            "Dati sulle singole procedure di affidamento, organizzati in tabelle per agevolare la consultazione e il confronto.",
+
+        "Atti delle amministrazioni aggiudicatrici e degli enti aggiudicatori distintamente per ogni procedura":
+            "Atti e documenti relativi alle procedure di affidamento, raccolti distintamente per ciascuna procedura.",
+
+
+        "Sovvenzioni , contributi sussidi, vantaggi economici":
+            "Criteri, atti e dati relativi alla concessione di sovvenzioni, contributi, sussidi e altri vantaggi economici.",
+
+        "Criteri e modalità":
+            "Criteri e procedure per l’attribuzione di sovvenzioni, contributi, sussidi e altri vantaggi economici.",
+
+        "Atti di concessione":
+            "Provvedimenti di concessione di sovvenzioni, contributi, sussidi e altri vantaggi economici, con i dati pubblicabili relativi ai destinatari e agli importi.",
+
+
+        "Bilanci":
+            "Documenti di programmazione e rendicontazione economica e finanziaria dell’ente, con i relativi allegati e indicatori.",
+
+        "Bilancio preventivo e consuntivo":
+            "Bilanci di previsione e rendiconti della gestione, con allegati e documenti illustrativi delle risorse programmate e dei risultati conseguiti.",
+
+        "Bilancio consuntivo":
+            "Rendiconto della gestione e allegati che illustrano i risultati finanziari, economici e patrimoniali dell’esercizio concluso.",
+
+        "Bilancio preventivo":
+            "Bilancio di previsione e allegati che definiscono le entrate e le spese programmate per gli esercizi di riferimento.",
+
+        "Piano degli indicatori e risultati attesi di bilancio":
+            "Indicatori di bilancio e risultati attesi, utili a valutare l’andamento della gestione e il raggiungimento degli obiettivi.",
+
+
+        "Beni immobili e gestione patrimonio":
+            "Dati sul patrimonio immobiliare, sulle modalità di gestione e sui canoni di locazione o di affitto.",
+
+        "Patrimonio immobiliare":
+            "Dati identificativi degli immobili posseduti o detenuti dall’amministrazione e informazioni sulla loro destinazione e gestione.",
+
+        "Canoni di locazione o affitto":
+            "Informazioni sui canoni di locazione e di affitto versati o percepiti dall’amministrazione.",
+
+        "Beni confiscati alla criminalità organizzata e trasferiti agli enti locali":
+            "Informazioni sui beni confiscati alla criminalità organizzata e trasferiti all’ente, con indicazione della destinazione e dell’utilizzo.",
+
+
+        "Controlli e rilievi sull'amministrazione":
+            "Relazioni, attestazioni e rilievi degli organismi competenti al controllo e alla valutazione dell’attività amministrativa.",
+
+        "Organismi indipendenti di valutazione, nuclei di valutazione o altri organismi con funzioni analoghe":
+            "Attestazioni, relazioni e altri documenti degli organismi di valutazione relativi alle funzioni di verifica e controllo sull’amministrazione.",
+
+        "Organi di revisione amministrativa e contabile":
+            "Relazioni e documenti degli organi di revisione riguardanti la regolarità amministrativa, contabile e finanziaria della gestione.",
+
+        "Corte dei conti":
+            "Rilievi, deliberazioni e altri documenti della Corte dei conti relativi all’organizzazione e alla gestione dell’amministrazione.",
+
+
+        "Servizi Erogati":
+            "Informazioni sui servizi erogati dall’amministrazione, sui livelli di qualità, sui costi e sulle modalità di fruizione.",
+
+        "Carta dei servizi e standard di qualità":
+            "Carte dei servizi e documenti che definiscono le prestazioni offerte, gli standard di qualità e gli impegni verso gli utenti.",
+
+        "Class action":
+            "Informazioni sui ricorsi per l’efficienza dell’amministrazione e dei concessionari di servizi pubblici, sui relativi esiti e sulle misure adottate.",
+
+        "Costi contabilizzati":
+            "Dati sui costi contabilizzati per i servizi erogati, con indicazione del periodo di riferimento e delle relative componenti.",
+
+        "Liste di attesa":
+            "Informazioni sui criteri di formazione delle liste di attesa e sui tempi previsti ed effettivi delle prestazioni, ove di competenza.",
+
+        "Gestione dei rifiuti":
+            "Informazioni sull’organizzazione e sull’erogazione del servizio di gestione dei rifiuti urbani, con i riferimenti ai gestori e alla documentazione di servizio.",
+
+        "Servizi in rete":
+            "Informazioni sui servizi disponibili online e sui risultati delle rilevazioni relative al loro utilizzo e alla soddisfazione degli utenti.",
+
+
+        "Pagamenti dell'amministrazione":
+            "Dati sui pagamenti dell’amministrazione, sui tempi di pagamento, sui debiti commerciali e sui canali per i versamenti a favore dell’ente.",
+
+        "Dati sui pagamenti":
+            "Dati sui pagamenti effettuati dall’amministrazione, organizzati per periodo e tipologia di spesa.",
+
+        "Dati sui pagamenti del servizio sanitario nazionale":
+            "Dati relativi ai pagamenti del Servizio sanitario nazionale, ove di competenza dell’amministrazione.",
+
+        "Indicatore di tempestività dei pagamenti":
+            "Indicatori relativi ai tempi di pagamento delle fatture, con riferimento ai periodi di rilevazione.",
+
+        "Ammontare complessivo dei debiti":
+            "Dati sull’ammontare complessivo dei debiti commerciali e sul numero delle imprese creditrici, riferiti al periodo di rilevazione.",
+
+        "IBAN e pagamenti informatici":
+            "Coordinate e istruzioni per effettuare pagamenti a favore dell’amministrazione, con indicazione dei canali elettronici disponibili.",
+
+
+        "Opere pubbliche":
+            "Programmi, atti e dati relativi alla pianificazione e alla realizzazione delle opere pubbliche, con informazioni su tempi e costi.",
+
+        "Nuclei di valutazione e verifica degli investimenti pubblici":
+            "Informazioni sui nuclei di valutazione e verifica degli investimenti pubblici, sulle funzioni e sulle attività svolte, ove istituiti.",
+
+        "Atti di programmazione delle opere pubbliche":
+            "Programmi e atti di pianificazione delle opere pubbliche, con i relativi aggiornamenti e documenti di accompagnamento.",
+
+        "Tempi costi e indicatori di realizzazione delle opere pubbliche":
+            "Dati sui tempi, sui costi e sullo stato di realizzazione delle opere pubbliche, con gli indicatori di monitoraggio.",
+
+
+        "Pianificazione e governo del territorio":
+            "Strumenti urbanistici, piani territoriali e atti relativi all’uso e alla trasformazione del territorio comunale.",
+
+
+        "Informazioni ambientali":
+            "Informazioni ambientali detenute dall’amministrazione, relative allo stato del territorio, ai fattori di pressione e alle misure di tutela.",
+
+        "Stato dell’ambiente":
+            "Dati sullo stato delle componenti ambientali del territorio, quali aria, acqua, suolo, paesaggio e biodiversità.",
+
+        "Fattori Inquinanti":
+            "Informazioni sui fattori che incidono sull’ambiente, tra cui emissioni, scarichi, rumore e sostanze inquinanti.",
+
+        "Misure incidenti sull’ambiente e relative analisi d’impatto":
+            "Atti, piani e interventi che incidono o possono incidere sull’ambiente, con le relative analisi e valutazioni degli effetti.",
+
+        "Misure protezione sull’ambiente e relative analisi d’impatto":
+            "Misure e interventi per la protezione dell’ambiente, con le relative analisi e valutazioni degli effetti.",
+
+        "Relazioni sull’attuazione della legislazione":
+            "Relazioni sull’attuazione della legislazione ambientale e sulle attività svolte negli ambiti di competenza dell’amministrazione.",
+
+        "Stato della salute e della sicurezza umana":
+            "Informazioni sullo stato della salute e della sicurezza umana in relazione alle condizioni ambientali e ai fattori che possono influenzarle.",
+
+        "Relazione sullo stato dell’ambiente del ministero dell’ambiente e della tutela del territorio":
+            "Relazioni ministeriali sullo stato dell’ambiente a livello nazionale e riferimenti per la loro consultazione.",
+
+
+        "Strutture sanitarie private accreditate":
+            "Informazioni sulle strutture sanitarie private accreditate e sui relativi accordi, ove di competenza dell’amministrazione.",
+
+
+        "Interventi straordinari e di emergenza":
+            "Atti e informazioni sugli interventi straordinari e di emergenza, con indicazione delle misure adottate, delle risorse impiegate e dei tempi di attuazione.",
+
+
+        "Altri contenuti":
+            "Informazioni su prevenzione della corruzione, accesso civico, accessibilità e ulteriori iniziative di trasparenza dell’amministrazione.",
+
+        "Prevenzione della corruzione":
+            "Documenti, misure e strumenti per la prevenzione della corruzione e la promozione dell’integrità e della trasparenza amministrativa.",
+
+        "Piano triennale per la prevenzione della corruzione e della trasparenza":
+            "Documenti di programmazione delle misure di prevenzione della corruzione e di promozione della trasparenza, con indicazione degli obiettivi, delle responsabilità e delle modalità di attuazione.",
+
+        "Responsabile della prevenzione della corruzione e della trasparenza":
+            "Informazioni sul Responsabile della prevenzione della corruzione e della trasparenza (RPCT), con l’atto di nomina e i recapiti istituzionali.",
+
+        "Regolamenti per la prevenzione e la repressione della corruzione e dell'illegalità":
+            "Regolamenti e disposizioni dell’ente per prevenire e contrastare la corruzione e l’illegalità nell’attività amministrativa.",
+
+        "Relazione del responsabile della prevenzione della corruzione e della trasparenza":
+            "Relazione annuale del Responsabile della prevenzione della corruzione e della trasparenza sull’attuazione delle misure e sui risultati dell’attività svolta.",
+
+        "Provvedimenti adottati dall'A.N.AC. ed atti di adeguamento a tali provvedimenti":
+            "Provvedimenti dell’Autorità nazionale anticorruzione (ANAC) riguardanti l’ente e atti adottati dall’amministrazione per darvi attuazione.",
+
+        "Atti di accertamento delle violazioni":
+            "Atti di accertamento delle violazioni in materia di inconferibilità e incompatibilità degli incarichi.",
+
+        "Segnalazioni di illecito - whistleblower":
+            "Indicazioni sui canali e sulle modalità di segnalazione delle violazioni, sulle condizioni di utilizzo e sulle tutele previste per le persone segnalanti.",
+
+        "Accesso Civico \"semplice\" concernente dati, documenti e informazioni soggetti a pubblicazione obbligatoria":
+            "Modalità per richiedere la pubblicazione di dati, documenti e informazioni soggetti a pubblicazione obbligatoria e non presenti sul sito, con i riferimenti per l’invio della richiesta.",
+
+        "Accesso civico":
+            "Informazioni sulle modalità di esercizio dell’accesso civico semplice e generalizzato, con i riferimenti degli uffici e gli strumenti per presentare le richieste.",
+
+        "Accesso civico “generalizzato” concernente dati e documenti ulteriori":
+            "Modalità per richiedere l’accesso a dati e documenti detenuti dall’amministrazione, ulteriori rispetto a quelli soggetti a pubblicazione obbligatoria, nel rispetto dei limiti previsti.",
+
+        "Registro degli accessi":
+            "Elenco delle richieste di accesso documentale, civico semplice e generalizzato, con indicazione dell’oggetto, delle date e degli esiti, nel rispetto della riservatezza.",
+
+        "Catalogo dei dati , metadati e delle banche dei dati":
+            "Catalogo del patrimonio informativo dell’ente, con descrizione dei dati e delle banche dati e indicazioni sui metadati, sui formati e sulle modalità di consultazione e riutilizzo.",
+
+        "Accessibilità e Catalogo di dati, metadati e banche dati":
+            "Informazioni sull’accessibilità digitale e sul patrimonio informativo dell’ente, con indicazioni per la consultazione e il riutilizzo dei dati.",
+
+        "Regolamenti":
+            "Regolamenti che disciplinano l’accesso telematico e il riutilizzo dei dati dell’amministrazione.",
+
+        "Obiettivi di accessibilità":
+            "Obiettivi e interventi programmati per migliorare l’accessibilità dei siti web, delle applicazioni e dei servizi digitali dell’ente.",
+
+        "Azioni di sensibilizzazione rapporti con la società civile":
+            "Iniziative di informazione e partecipazione dedicate alla trasparenza, all’integrità amministrativa e al dialogo con la società civile.",
+
+        "Azioni di sensibilizzazione e rapporti con la società civile":
+            "Iniziative di informazione e partecipazione dedicate alla trasparenza, all’integrità amministrativa e al dialogo con la società civile.",
+
+        "Autovetture di servizio":
+            "Dati sulle autovetture di servizio a disposizione dell’ente e sulle relative modalità di utilizzo.",
+
+        "Dati ulteriori":
+            "Dati e documenti pubblicati dall’amministrazione per ampliare la conoscenza delle proprie attività, ulteriori rispetto alle altre sezioni.",
+
+        "Project Financing":
+            "Proposte, procedure e documenti relativi a interventi realizzati mediante finanza di progetto.",
+
+        "Piano triennale delle azioni positive":
+            "Programmi di intervento per promuovere le pari opportunità, contrastare le discriminazioni e favorire il benessere organizzativo.",
+
+        "Provvedimenti CDS":
+            "Provvedimenti e relativa documentazione raccolti nella sezione CDS.",
+
+
+        "Accesso civico \"generalizzato\" concernente dati e documenti ulteriori":
+            "Modalità per richiedere l’accesso a dati e documenti detenuti dall’amministrazione, ulteriori rispetto a quelli soggetti a pubblicazione obbligatoria, nel rispetto dei limiti previsti.",
+
+        "Acqusizione interesse realizzazione opere incompiute":
+            "Avvisi e documenti relativi alla raccolta di manifestazioni di interesse per il completamento o la gestione di opere incompiute.",
+
+        "Altri organismi":
+            "Atti e documenti degli ulteriori organismi che svolgono funzioni di controllo o vigilanza sull’amministrazione.",
+
+        "Catalogo dei dati, metadati e delle banche dei dati":
+            "Catalogo del patrimonio informativo dell’ente, con descrizione dei dati e delle banche dati e indicazioni sui metadati, sui formati e sulle modalità di consultazione e riutilizzo.",
+
+        "Contratti Pubblici":
+            "Dati e documenti relativi ai contratti di lavori, servizi e forniture dell’amministrazione, con i riferimenti alle procedure di affidamento.",
+
+        "Costi dei servizi":
+            "Informazioni sui costi di erogazione dei servizi e sulle relative componenti economiche.",
+
+        "Dataset scaricabili":
+            "Raccolte di dati disponibili per il download, con indicazione dei formati e delle condizioni di riutilizzo.",
+
+        "Dati aggregati attività amministrativa":
+            "Dati aggregati sull’attività amministrativa, organizzati per ambito di intervento e periodo di riferimento.",
+
+        "Dichiarazioni sostitutive  e acquisizione d'ufficio dei dati":
+            "Indicazioni per la presentazione delle dichiarazioni sostitutive e per l’acquisizione d’ufficio di dati e documenti, con i riferimenti degli uffici competenti.",
+
+        "Dirigenti":
+            "Informazioni sui dirigenti dell’amministrazione, sui rispettivi incarichi e sulle competenze professionali.",
+
+        "Elenchi":
+            "Elenchi dei beneficiari di sovvenzioni, contributi, sussidi e altri vantaggi economici, con i relativi dati pubblicabili.",
+
+        "Incarichi amministrativi di vertice":
+            "Informazioni sui titolari di incarichi amministrativi di vertice, sulle funzioni attribuite e sulla documentazione relativa agli incarichi.",
+
+        "Indicatori di pagamento":
+            "Indicatori sull’andamento e sui tempi dei pagamenti dell’amministrazione, riferiti ai periodi di rilevazione.",
+
+        "Informazioni Ulteriori":
+            "Documentazione integrativa relativa alle procedure di finanza di progetto e ai rispettivi interventi.",
+
+        "Misure incidenti sull'ambiente e relative analisi d'impatto":
+            "Atti, piani e interventi che incidono o possono incidere sull’ambiente, con le relative analisi e valutazioni degli effetti.",
+
+        "Misure protezione sull'ambiente e relative analisi d'impatto":
+            "Misure e interventi per la protezione dell’ambiente, con le relative analisi e valutazioni degli effetti.",
+
+        "Organi di indirizzo politico-amministrativo":
+            "Informazioni sulla composizione, sulle competenze e sugli incarichi degli organi di indirizzo politico-amministrativo.",
+
+        "Provvedimenti dirigenti":
+            "Provvedimenti adottati dai dirigenti nell’esercizio delle funzioni amministrative e gestionali.",
+
+        "Relazione sullo stato dell'ambiente del ministero dell'ambiente e della tutela del territorio":
+            "Relazioni ministeriali sullo stato dell’ambiente a livello nazionale e riferimenti per la loro consultazione.",
+
+        "Relazioni sull'attuazione della legislazione":
+            "Relazioni sull’attuazione della legislazione ambientale e sulle attività svolte negli ambiti di competenza dell’amministrazione.",
+
+        "Spese dell’ente":
+            "Dati sulle spese dell’amministrazione, distinti per finalità, tipologia e periodo di riferimento.",
+
+        "Stato dei rilievi":
+            "Informazioni sui rilievi formulati dagli organi di controllo e sulle misure adottate dall’amministrazione per darvi seguito.",
+
+        "Stato dell'ambiente":
+            "Dati sullo stato delle componenti ambientali del territorio, quali aria, acqua, suolo, paesaggio e biodiversità.",
+
+        "Tempi medi di erogazione dei servizi":
+            "Dati sui tempi medi di erogazione dei servizi, distinti per tipologia di prestazione e periodo di riferimento."
+    }
+}

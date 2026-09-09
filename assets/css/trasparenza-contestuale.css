@@ -229,6 +229,11 @@ a.dci-at-card-detail-action.btn-primary > .icon {
         flex-direction: column;
     }
 
+    .dci-at-context-actions__heading {
+        /* In colonna la base desktop di 18rem diventerebbe un'altezza. */
+        flex: 0 1 auto;
+    }
+
     .dci-at-context-actions__links,
     .dci-at-context-actions__link {
         width: 100%;

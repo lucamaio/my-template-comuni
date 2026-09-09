@@ -75,27 +75,24 @@ function dci_elemento_trasparenza_render_admin_help($views)
     ?>
 
     <div class="dci-trasparenza-admin-tools">
-        <?php if (!$trasparenza_attiva) : ?>
-            <div class="dci-trasparenza-admin-tools__warning" role="status">
-                <strong><?php esc_html_e('Amministrazione Trasparente non attiva', 'design_comuni_italia'); ?></strong>
-                <p>
-                    <?php esc_html_e(
-                        'La sezione pubblica è attualmente disabilitata. Puoi continuare a gestire gli elementi, ma i contenuti non saranno visibili ai cittadini finché la funzionalità non verrà abilitata.',
-                        'design_comuni_italia'
-                    ); ?>
-                </p>
-            </div>
-        <?php endif; ?>
 
+        <div class="dci-at-overview__header">
+            <div class="dci-at-overview__heading">
+                <span class="dashicons dashicons-category" aria-hidden="true"></span>
+                <div>
+                    <h2><?php esc_html_e('Panoramica Trasparenza', 'design_comuni_italia'); ?></h2>
+                    <p><?php esc_html_e('Situazione delle sezioni e degli elementi pubblicati', 'design_comuni_italia'); ?></p>
+                </div>
+            </div>
         <div class="dci-trasparenza-admin-tools__actions">
             <a
-                class="button button-primary"
+                class="button dci-at-overview__public-link"
                 href="<?php echo esc_url($pagina_pubblica); ?>"
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
-                <?php esc_html_e('Visualizza Amministrazione Trasparente', 'design_comuni_italia'); ?>
+                <span class="dashicons dashicons-external" aria-hidden="true"></span>
+                <span><?php esc_html_e('Vai alla Trasparenza pubblica', 'design_comuni_italia'); ?></span>
             </a>
 
             <button
@@ -114,15 +111,72 @@ function dci_elemento_trasparenza_render_admin_help($views)
             </button>
         </div>
 
-        <div class="dci-trasparenza-admin-tools__warning dci-trasparenza-admin-tools__warning--always" role="note">
-            <strong><?php esc_html_e('Avviso sull’aggiornamento delle categorie', 'design_comuni_italia'); ?></strong>
-            <p>
-                <?php esc_html_e(
-                    'È in corso l’aggiornamento della mappa dell’Amministrazione Trasparente per adeguarla agli standard normativi vigenti. L’eventuale aggiunta o mantenimento di voci ulteriori rispetto alla mappa prevista dovrà essere supportato da un documento ufficiale firmato digitalmente dal Segretario comunale.',
-                    'design_comuni_italia'
-                ); ?>
-            </p>
         </div>
+
+        <?php dci_at_render_overview_cards(); ?>
+
+        <details class="dci-at-notices" open>
+            <summary class="dci-at-notices__summary">
+                <span class="dashicons dashicons-megaphone" aria-hidden="true"></span>
+                <span class="dci-at-notices__intro">
+                    <strong><?php esc_html_e('Avvisi e indicazioni operative', 'design_comuni_italia'); ?></strong>
+                    <span><?php esc_html_e('Aggiornamenti sull’albero della Trasparenza e istruzioni per verificare, ricollocare o richiedere il mantenimento delle categorie extra.', 'design_comuni_italia'); ?></span>
+                </span>
+                <span class="dci-at-notices__control" aria-hidden="true">
+                    <span class="dci-at-notices__show"><?php esc_html_e('Mostra avvisi', 'design_comuni_italia'); ?></span>
+                    <span class="dci-at-notices__hide"><?php esc_html_e('Nascondi avvisi', 'design_comuni_italia'); ?></span>
+                    <span class="dashicons dashicons-arrow-down-alt2"></span>
+                </span>
+            </summary>
+            <div class="dci-at-notices__body">
+
+        <section class="dci-at-structure-notice" aria-labelledby="dci-at-structure-notice-title">
+            <div class="dci-at-structure-notice__heading">
+                <span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+                <h3 id="dci-at-structure-notice-title"><?php esc_html_e('Aggiornamento della struttura di Amministrazione Trasparente', 'design_comuni_italia'); ?></h3>
+            </div>
+            <p><?php esc_html_e('È stato aggiornato l’albero di Amministrazione Trasparente, intervenendo sull’organizzazione delle categorie principali, delle sottocategorie e dei relativi livelli gerarchici.', 'design_comuni_italia'); ?></p>
+            <p><?php esc_html_e('Si invitano gli uffici a verificare le categorie extra segnalate nella panoramica e a contattare la ditta che gestisce il servizio per concordare la riorganizzazione dei contenuti, comprese le voci per le quali l’obbligo di pubblicazione risulti cessato. La presenza di una categoria tra le voci extra indica una difformità rispetto alla struttura del sito e non determina, da sola, la cessazione di un obbligo di pubblicazione.', 'design_comuni_italia'); ?></p>
+            <div class="dci-at-structure-notice__actions">
+                <div>
+                    <h4><?php esc_html_e('Categorie extra: individuare le voci da verificare', 'design_comuni_italia'); ?></h4>
+                    <p><?php esc_html_e('Nella panoramica in alto, selezionare «Mostra elenco» nella scheda «Categorie extra» per consultare le voci visibili che non corrispondono alla struttura predefinita dell’albero. L’elenco riporta il percorso di ciascuna categoria e il numero di elementi pubblicati direttamente al suo interno, per agevolare la verifica e concordare con la ditta l’eventuale ricollocazione.', 'design_comuni_italia'); ?></p>
+                </div>
+                <div>
+                    <h4><?php esc_html_e('Categorie con figli e contenuti: verificare la collocazione', 'design_comuni_italia'); ?></h4>
+                    <p><?php esc_html_e('Selezionare «Mostra elenco» nella scheda «Categorie con figli e contenuti» per individuare le categorie principali e intermedie che contengono elementi pubblicati direttamente, pur avendo sottocategorie. Per ogni voce è indicato il numero di elementi interessati: verificarne la collocazione e segnalare alla ditta quelli da trasferire nelle sottosezioni appropriate.', 'design_comuni_italia'); ?></p>
+                </div>
+            </div>
+            <div class="dci-at-structure-notice__deadline">
+                <strong><?php esc_html_e('Progressiva disattivazione delle voci extra', 'design_comuni_italia'); ?></strong>
+                <p><?php esc_html_e('È prevista la progressiva disattivazione dell’accesso pubblico alle categorie extra. Si chiede pertanto di comunicare alla ditta se si intende procedere allo spostamento dei relativi contenuti, indicando le sezioni di destinazione, così da concordare l’intervento prima della disattivazione.', 'design_comuni_italia'); ?></p>
+            </div>
+            <div class="dci-at-structure-notice__actions">
+                <div>
+                    <h4><?php esc_html_e('Spostamento dei contenuti', 'design_comuni_italia'); ?></h4>
+                    <p><?php esc_html_e('Contattare la ditta indicando le categorie interessate, i contenuti da trasferire e le sezioni in cui devono essere ricollocati.', 'design_comuni_italia'); ?></p>
+                </div>
+                <div>
+                    <h4><?php esc_html_e('Richiesta di mantenimento', 'design_comuni_italia'); ?></h4>
+                    <p><?php esc_html_e('Per richiedere il mantenimento delle categorie extra, inviare alla ditta un’email con una richiesta formale allegata, firmata digitalmente dal Segretario comunale, specificando le voci da mantenere e le relative motivazioni.', 'design_comuni_italia'); ?></p>
+                </div>
+            </div>
+        </section>
+            </div>
+        </details>
+
+        <?php if (!$trasparenza_attiva) : ?>
+            <h2>Avvertenze</h2>
+            <div class="dci-trasparenza-admin-tools__warning" role="status">
+                <strong><?php esc_html_e('Amministrazione Trasparente non attiva', 'design_comuni_italia'); ?></strong>
+                <p>
+                    <?php esc_html_e(
+                        'La sezione pubblica è attualmente disabilitata. Puoi continuare a gestire gli elementi, ma i contenuti non saranno visibili ai cittadini finché la funzionalità non verrà abilitata.',
+                        'design_comuni_italia'
+                    ); ?>
+                </p>
+            </div>
+        <?php endif; ?>
 
         
 

@@ -141,25 +141,28 @@ $url_img="https://saassipa.cultura.gov.it/wp-content/uploads/2020/04/amm_trasp-1
 $trasparenza_attiva = dci_get_option("ck_abilita_trasparenza");
 
 
-//Indirizza se c'è un link personalizzato, ma ignora il redirect se riporta all'amministrazione trasparente interna al sito.
-if (
-    isset($link_amministrazione) &&
-    !empty($link_amministrazione) &&
-    $link_amministrazione != null
-) {
-    // Rimuove lo slash finale, se presente
-    $normalized_link = rtrim($link_amministrazione, '/');
+require_once get_template_directory() . '/inc/trasparenza-redirect.php';
+$at_link = is_string($link_amministrazione) ? trim($link_amministrazione) : '';
+$at_internal_link = $at_link !== '' && dci_at_link_is_internal_page(
+    $at_link, get_permalink(), home_url('/'), get_queried_object_id()
+);
+$at_admin_preview = $trasparenza_attiva === 'true'
+    && is_user_logged_in()
+    && current_user_can('manage_options');
 
-    // Costruisce dinamicamente i link interni da ignorare (senza slash finale)
-    $link_da_ignorare = array(
-        rtrim(home_url('/amministrazione-trasparente'), '/'),
-        rtrim(home_url('/index.php/amministrazione-trasparente'), '/'),
-    );
-
-    // Confronto
-    if (!in_array($normalized_link, $link_da_ignorare, true)) {
-        header("Location: $link_amministrazione");
-       exit;
+// La risposta dipende dall'utente e dalle opzioni: mai un redirect permanente.
+if ($at_link !== '') {
+    if (!defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
+    nocache_headers();
+}
+if ($at_link !== '' && !$at_internal_link && !$at_admin_preview) {
+    $at_target = wp_parse_url($at_link);
+    // Consente il portale esterno configurato, ma solo URL HTTP(S) validi.
+    if ($at_target !== false
+        && (!isset($at_target['scheme']) || in_array(strtolower($at_target['scheme']), array('http', 'https'), true))
+        && !preg_match('/[\r\n\\\\]/', $at_link)
+        && wp_redirect(esc_url_raw($at_link), 302, 'Amministrazione Trasparente')) {
+        exit;
     }
 }
 
@@ -194,7 +197,7 @@ get_header();
 ?>
 	<main>
 
-<?php if ($trasparenza_attiva == 'true') { ?>
+<?php if ($trasparenza_attiva == 'true' || $at_internal_link) { ?>
 
     <?php
     while ( have_posts() ) :

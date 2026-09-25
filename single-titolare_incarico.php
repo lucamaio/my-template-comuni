@@ -33,6 +33,8 @@ while ( have_posts() ) :
     $curriculum = get_post_meta( $id, $prefix . 'cv_allegati', true );
 
     $data_pubbl = get_the_date( 'j F Y', $id );
+    $data_modifica = get_the_modified_date( 'j F Y', $id );
+    $mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubbl;
 
     $dci_titolare_display_value = static function ( $value ) {
         if ( is_array( $value ) || is_object( $value ) ) {
@@ -74,6 +76,14 @@ while ( have_posts() ) :
                                     <?php echo esc_html( $data_pubbl ); ?>
                                 </p>
                             </div>
+                            <?php if ( $mostra_aggiornamento ) : ?>
+                                <div class="col-6">
+                                    <small>Data aggiornamento:</small>
+                                    <p class="fw-semibold font-monospace">
+                                        <?php echo esc_html( $data_modifica ); ?>
+                                    </p>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <!-- <div class="col-lg-3 offset-lg-1">

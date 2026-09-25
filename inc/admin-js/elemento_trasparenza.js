@@ -308,7 +308,7 @@ jQuery( document ).ready(function() {
             const isInternalPoliticalSection =
                 input.length &&
                 typeof dciElementoTrasparenzaUi !== 'undefined' &&
-                Boolean(dciElementoTrasparenzaUi.internalPortal) &&
+                Boolean(dciElementoTrasparenzaUi.automaticInternalSections) &&
                 ['il sindaco', 'sindaco', 'giunta comunale', 'consiglio comunale'].indexOf(normalizedCategoryName) !== -1;
 
             if (isInternalPoliticalSection) {

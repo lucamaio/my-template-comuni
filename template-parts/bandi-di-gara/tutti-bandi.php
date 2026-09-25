@@ -17,6 +17,10 @@ $current_cig                   = isset($_GET['cig']) ? sanitize_text_field($_GET
 $current_procedura_contraente  = isset($_GET['procedura_contraente']) ? sanitize_text_field($_GET['procedura_contraente']) : '';
 $current_stato                 = isset($_GET['stato']) ? sanitize_text_field($_GET['stato']) : '';
 $current_anno                  = isset($_GET['anno']) ? intval($_GET['anno']) : '';
+$public_start_year             = (int) wp_date('Y') - 5;
+$can_view_archive              = function_exists('dci_user_can_view_trasparenza_archive')
+    && dci_user_can_view_trasparenza_archive();
+$archive_paged                 = isset($_GET['bandi_archive_page']) ? max(1, absint($_GET['bandi_archive_page'])) : 1;
 $allowed_order_types           = array('data_desc', 'data_asc', 'alfabetico_asc', 'alfabetico_desc');
 $order_type                    = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';
 if (!in_array($order_type, $allowed_order_types, true)) {
@@ -62,6 +66,7 @@ if ( ! function_exists( 'dci_get_available_states' ) ) {
 
 $args = array(
     'post_type'       => 'bando',
+    'post_status'     => 'publish',
     'posts_per_page'  => $max_posts,
     'meta_key'        => '_dci_bando_data_inizio',
     'orderby'         => array(
@@ -70,6 +75,12 @@ $args = array(
     ),
     'paged'              => $paged,
     's'               => $main_search_query, // Per la ricerca generica su titolo/contenuto
+    'date_query'      => array(
+        array(
+            'after' => array('year' => $public_start_year),
+            'inclusive' => true,
+        ),
+    ),
 );
 
 if ($order_type === 'alfabetico_asc' || $order_type === 'alfabetico_desc') {
@@ -165,6 +176,19 @@ if ( count( $meta_query_array ) > 1 ) {
 }
 
 $the_query = new WP_Query($args);
+$archive_query = null;
+
+if ($can_view_archive) {
+    $archive_args = $args;
+    $archive_args['paged'] = $archive_paged;
+    $archive_args['date_query'] = array(
+        array(
+            'before' => array('year' => $public_start_year - 1),
+            'inclusive' => true,
+        ),
+    );
+    $archive_query = new WP_Query($archive_args);
+}
 $prefix = "_dci_bando_";
 ?>
 
@@ -268,6 +292,11 @@ $prefix = "_dci_bando_";
                     <option value=""><?php _e('Anno', 'design_comuni_italia'); ?></option>
                     <?php
                     $years = dci_get_available_years();
+                    if (!$can_view_archive) {
+                        $years = array_values(array_filter($years, static function ($year) use ($public_start_year) {
+                            return (int) $year >= $public_start_year;
+                        }));
+                    }
                     foreach ($years as $year) {
                         echo '<option value="' . esc_attr($year) . '"' . selected($current_anno, $year, false) . '>' . esc_html($year) . '</option>';
                     }
@@ -328,5 +357,39 @@ if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
     <?php else : ?>
         <div class="alert alert-info text-center" role="alert">
             Nessun bando trovato.
+        </div>
+    <?php endif; ?>
+
+    <?php if ($archive_query instanceof WP_Query && $archive_query->have_posts()) : ?>
+        <?php
+        get_template_part(
+            'template-parts/amministrazione-trasparente/archivio-amministratori',
+            null,
+            [
+                'start_year' => $public_start_year,
+                'count' => $archive_query->found_posts,
+            ]
+        );
+        ?>
+
+        <?php while ($archive_query->have_posts()) : $archive_query->the_post();
+            get_template_part('template-parts/bandi-di-gara/card');
+        endwhile;
+        wp_reset_postdata(); ?>
+
+        <div class="row my-4">
+            <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione contenuti storici">
+                <?php
+                get_template_part(
+                    'template-parts/amministrazione-trasparente/paginazione-personalizzata',
+                    null,
+                    [
+                        'query' => $archive_query,
+                        'current' => $archive_paged,
+                        'page_arg' => 'bandi_archive_page',
+                    ]
+                );
+                ?>
+            </nav>
         </div>
     <?php endif; ?>

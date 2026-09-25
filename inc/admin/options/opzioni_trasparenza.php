@@ -1398,7 +1398,7 @@ function dci_register_pagina_trasparenza_options()
     ));
 
 
-     $trasparenza_options->add_field(array(
+    $trasparenza_options->add_field(array(
         'id'      => $prefix . 'ck_titolariIncarichiCollaborazioneConsulenzaTemplatePersonalizzato',
         'name'    => __('Titolari di incarichi di collaborazione o consulenzacon template personalizzato da noi.', 'design_comuni_italia'),
         'desc'    => __('Questa spunta consente di visualizzare gli elementi di itolari di incarichi di collaborazione o consulenza con una grafica personalizzata.', 'design_comuni_italia'),
@@ -1467,6 +1467,18 @@ function dci_register_pagina_trasparenza_options()
         ),
     ));
 
+    $trasparenza_options->add_field(array(
+        'id'      => $prefix . 'ck_incarichidirigenziali_cessati_automatico',
+        'name'    => __('Spostamento automatico in “Dirigenti cessati”', 'design_comuni_italia'),
+        'desc'    => __('Se attivo, gli incarichi dirigenziali con stato “Cessato” vengono pubblicati automaticamente nella sezione “Dirigenti cessati”. Disattiva questa opzione per gestire manualmente la sezione di pubblicazione.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+    ));
+
     // LINK  uffici Titolari di incarichi politici di amministrazione di direzione o di governo
 
     $trasparenza_options->add_field(array(
@@ -1498,7 +1510,20 @@ function dci_register_pagina_trasparenza_options()
     ));
 
 
-
+    $trasparenza_options->add_field(array(
+        'id'      => $prefix . 'ck_sezioni_presonalizate_interne',
+        'name'    => __('Sezioni personalizzate interne', 'design_comuni_italia'),
+        'desc'    => __('Questa spunta consente di visualizzare le sezioni personalizzate interne con una grafica personalizzata che richiama i dati pubblicati nel sito.', 'design_comuni_italia'),
+        'type'    => 'radio_inline',
+        'default' => 'true',
+        'options' => array(
+            'true'  => __('Sì', 'design_comuni_italia'),
+            'false' => __('No', 'design_comuni_italia'),
+        ),
+        'attributes' => array(
+            'data-conditional-value' => 'true',
+        ),
+    ));
 
 }?>
 

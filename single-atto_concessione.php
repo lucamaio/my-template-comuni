@@ -53,6 +53,8 @@ get_header();
         $descrizione_breve = get_post_meta($post->ID, $prefix . 'descrizione_breve', true);
 
         $data = get_the_date('j F Y', $post->ID);
+        $data_modifica = get_the_modified_date('j F Y', $post->ID);
+        $mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data;
         $anno_beneficio_raw = get_post_meta($post->ID, $prefix . 'anno_beneficio', true);
         $anno_beneficio_value = $dci_atto_display_value($anno_beneficio_raw);
         $anno_beneficio = $anno_beneficio_value === '-'
@@ -135,6 +137,14 @@ get_header();
                         <?php echo esc_html($data); ?>
                     </p>
                 </div>
+                <?php if ($mostra_aggiornamento) { ?>
+                    <div class="col-6">
+                        <small>Data aggiornamento:</small>
+                        <p class="fw-semibold font-monospace">
+                            <?php echo esc_html($data_modifica); ?>
+                        </p>
+                    </div>
+                <?php } ?>
             </div>
         </div>
 

@@ -13,6 +13,10 @@ $paged_from_get   = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : (is
 $paged_from_custom = isset($_GET['atti_page']) ? max(1, absint($_GET['atti_page'])) : 1;
 $paged = max($paged_from_query, $paged_from_page, $paged_from_get, $paged_from_custom);
 $selected_year = isset($_GET['filter_year']) ? intval($_GET['filter_year']) : 0;
+$public_start_year = (int) wp_date('Y') - 5;
+$can_view_archive = function_exists('dci_user_can_view_trasparenza_archive')
+    && dci_user_can_view_trasparenza_archive();
+$archive_paged = isset($_GET['atti_archive_page']) ? max(1, absint($_GET['atti_archive_page'])) : 1;
 $allowed_order_types = array('data_desc', 'data_asc', 'alfabetico_asc', 'alfabetico_desc');
 $order_type = isset($_GET['order_type']) ? sanitize_key($_GET['order_type']) : 'data_desc';
 if (!in_array($order_type, $allowed_order_types, true)) {
@@ -27,6 +31,12 @@ $years = $wpdb->get_col("
       AND post_status = 'publish'
     ORDER BY post_date DESC
 ");
+
+if (!$can_view_archive) {
+    $years = array_values(array_filter($years, static function ($year) use ($public_start_year) {
+        return (int) $year >= $public_start_year;
+    }));
+}
 
 
 $search_post_ids = array();
@@ -92,15 +102,38 @@ if (!empty($main_search_query)) {
     $args['post__in'] = $search_post_ids;
 }
 
+$args['date_query'] = [
+    'relation' => 'AND',
+    [
+        'after' => ['year' => $public_start_year],
+        'inclusive' => true,
+    ],
+];
+
 if ($selected_year > 0) {
-    $args['date_query'] = [
-        [
-            'year' => $selected_year,
-        ]
-    ];
+    $args['date_query'][] = ['year' => $selected_year];
 }
 
 $the_query = new WP_Query($args);
+$archive_query = null;
+
+if ($can_view_archive) {
+    $archive_args = $args;
+    $archive_args['paged'] = $archive_paged;
+    $archive_args['date_query'] = [
+        'relation' => 'AND',
+        [
+            'before' => ['year' => $public_start_year - 1],
+            'inclusive' => true,
+        ],
+    ];
+
+    if ($selected_year > 0) {
+        $archive_args['date_query'][] = ['year' => $selected_year];
+    }
+
+    $archive_query = new WP_Query($archive_args);
+}
 
 ?>
 
@@ -201,6 +234,40 @@ if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
 <?php else : ?>
     <div class="alert alert-info text-center" role="alert">
         Nessun incarico conferito trovato.
+    </div>
+<?php endif; ?>
+
+<?php if ($archive_query instanceof WP_Query && $archive_query->have_posts()) : ?>
+    <?php
+    get_template_part(
+        'template-parts/amministrazione-trasparente/archivio-amministratori',
+        null,
+        [
+            'start_year' => $public_start_year,
+            'count' => $archive_query->found_posts,
+        ]
+    );
+    ?>
+
+    <?php while ($archive_query->have_posts()) : $archive_query->the_post(); ?>
+        <?php get_template_part('template-parts/amministrazione-trasparente/atto-concessione/card'); ?>
+    <?php endwhile; ?>
+    <?php wp_reset_postdata(); ?>
+
+    <div class="row my-4">
+        <nav class="pagination-wrapper justify-content-center col-12" aria-label="Navigazione contenuti storici">
+            <?php
+            get_template_part(
+                'template-parts/amministrazione-trasparente/paginazione-personalizzata',
+                null,
+                [
+                    'query' => $archive_query,
+                    'current' => $archive_paged,
+                    'page_arg' => 'atti_archive_page',
+                ]
+            );
+            ?>
+        </nav>
     </div>
 <?php endif; ?>
 

@@ -12,6 +12,35 @@ if (!function_exists('dci_incarico_dirigenziale_custom_template_enabled')) {
     }
 }
 
+if (!function_exists('dci_incarico_dirigenziale_cessati_automation_enabled')) {
+    /**
+     * Indica se gli incarichi cessati devono essere instradati automaticamente.
+     *
+     * Il valore predefinito e' attivo per mantenere operativa l'automazione
+     * anche sulle installazioni che non hanno ancora salvato la nuova opzione.
+     *
+     * @return bool
+     */
+    function dci_incarico_dirigenziale_cessati_automation_enabled()
+    {
+        $option_value = function_exists('dci_get_option')
+            ? dci_get_option(
+                'ck_incarichidirigenziali_cessati_automatico',
+                'Trasparenza',
+                'true'
+            )
+            : 'true';
+
+        if (null === $option_value || (is_string($option_value) && '' === trim($option_value))) {
+            return true;
+        }
+
+        return function_exists('dci_is_truthy_option_value')
+            ? dci_is_truthy_option_value($option_value)
+            : in_array(strtolower((string) $option_value), array('1', 'true', 'yes', 'on'), true);
+    }
+}
+
 /**
  * Registra il custom post type "incarico_dirigenziale"
  */
@@ -421,6 +450,75 @@ if (!function_exists('dci_incarico_dirigenziale_sections')) {
         return array(
             'vertice'   => __('Titolari di incarichi dirigenziali amministrativi di vertice', 'design_comuni_italia'),
             'dirigenti' => __('Incarichi dirigenziali a qualsiasi titolo conferiti', 'design_comuni_italia'),
+            'cessati'   => __('Dirigenti cessati', 'design_comuni_italia'),
         );
     }
 }
+
+/**
+ * Sincronizza la sezione di pubblicazione con lo stato dell'incarico.
+ *
+ * L'hook generico con priorita' 120 viene eseguito dopo il salvataggio CMB2 e
+ * dopo l'eventuale sezione contestuale. Prima dello spostamento viene conservata
+ * la sezione originaria, utilizzata se l'incarico torna successivamente attivo.
+ *
+ * @param int     $post_id ID dell'incarico.
+ * @param WP_Post $post Oggetto del post.
+ * @param bool    $update Indica se si tratta di un aggiornamento.
+ * @return void
+ */
+function dci_incarico_dirigenziale_sync_cessati_section($post_id, $post, $update)
+{
+    unset($update);
+
+    if (
+        !dci_incarico_dirigenziale_cessati_automation_enabled()
+        || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
+        || wp_is_post_autosave($post_id)
+        || wp_is_post_revision($post_id)
+        || !$post instanceof WP_Post
+        || 'incarico_dirig' !== $post->post_type
+        || 'auto-draft' === $post->post_status
+    ) {
+        return;
+    }
+
+    $prefix = '_dci_incarico_dirigenziale_';
+    $section_key = $prefix . 'sezione_pubblicazione';
+    $previous_section_key = $prefix . 'sezione_pre_cessazione';
+    $status = sanitize_key((string) get_post_meta(
+        $post_id,
+        $prefix . 'tipo_stato_incarico_dirigenziale',
+        true
+    ));
+    $current_section = sanitize_key((string) get_post_meta($post_id, $section_key, true));
+    $regular_sections = array('vertice', 'dirigenti');
+
+    if ('cessato' === $status) {
+        if (in_array($current_section, $regular_sections, true)) {
+            update_post_meta($post_id, $previous_section_key, $current_section);
+        }
+
+        if ('cessati' !== $current_section) {
+            update_post_meta($post_id, $section_key, 'cessati');
+        }
+
+        return;
+    }
+
+    if ('cessati' === $current_section) {
+        $previous_section = sanitize_key((string) get_post_meta(
+            $post_id,
+            $previous_section_key,
+            true
+        ));
+        $restored_section = in_array($previous_section, $regular_sections, true)
+            ? $previous_section
+            : 'dirigenti';
+
+        update_post_meta($post_id, $section_key, $restored_section);
+    }
+
+    delete_post_meta($post_id, $previous_section_key);
+}
+add_action('save_post', 'dci_incarico_dirigenziale_sync_cessati_section', 120, 3);

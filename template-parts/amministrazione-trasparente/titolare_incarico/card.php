@@ -14,6 +14,9 @@ $data_fine   = get_post_meta(get_the_ID(), $prefix . 'data_fine', true);
 $durata      = get_post_meta(get_the_ID(), $prefix . 'durata', true);
 $atto        = get_post_meta(get_the_ID(), $prefix . 'atto_conferimento_incarico', true);
 $situazioni  = get_post_meta(get_the_ID(), $prefix . 'situazioni_conflitto', true);
+$data_pubblicazione = get_the_date('j F Y', get_the_ID());
+$data_modifica = get_the_modified_date('j F Y', get_the_ID());
+$mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubblicazione;
 
 // Allegati
 $allegati   = get_post_meta(get_the_ID(), $prefix . 'allegati', true);
@@ -62,6 +65,12 @@ if (empty($dci_custom_section_card_style_printed)) :
 
 <div class="card mb-4 rounded-4 shadow-sm border dci-custom-section-card t-primary">
     <div class="card-body">
+        <p class="mb-3 text-muted small">
+            Pubblicato il <?php echo esc_html($data_pubblicazione); ?>
+            <?php if ($mostra_aggiornamento) { ?>
+                - Aggiornato il <?php echo esc_html($data_modifica); ?>
+            <?php } ?>
+        </p>
         <!-- Titolo/Norma -->
         <h6 class="text-uppercase text-muted small">Titolo/Norma</h6>
         <h5 class="fw-bold mb-3">

@@ -311,7 +311,10 @@ function dci_elemento_trasparenza_add_content_after_title($post)
     }
 
     // Mantiene la card informativa preesistente senza modificare i filtri della tassonomia.
-    if (dci_get_option("ck_portalesoloperusoesterno") === 'false') {
+    if (
+        function_exists('dci_trasparenza_internal_custom_sections_enabled')
+        && dci_trasparenza_internal_custom_sections_enabled()
+    ) {
         $custom_type_cards['persona_pubblica'] = array(
             'categories'   => array('Titolari di incarichi politici e di amministrazione'),
             'description'  => __('Questa sezione viene generata dalle Persone pubbliche e dai relativi incarichi politici.', 'design_comuni_italia'),
@@ -487,9 +490,19 @@ function dci_render_transparency_multipost_page() {
         if ( isset( $_POST['submit'] ) && check_admin_referer('dci_multipost_transparency_action', 'dci_multipost_transparency_nonce') ) {
             $default_category = isset( $_POST['dci_default_category'] ) ? absint( $_POST['dci_default_category'] ) : 0;
             $open_new_tab     = isset( $_POST['dci_default_open_new_tab'] ) ? "on" : 0;
-            $open_direct_tab  = isset( $_POST['dci_default_open_direct'] ) ?"on" : 0; 
-            if ( $default_category === 0 ) {
-                echo '<div class="notice notice-error is-dismissible"><p>' . __('Seleziona una categoria predefinita per gli elementi.', 'design_comuni_italia') . '</p></div>';
+            $open_direct_tab  = isset( $_POST['dci_default_open_direct'] ) ?"on" : 0;
+            $default_category_term = $default_category > 0
+                ? get_term($default_category, 'tipi_cat_amm_trasp')
+                : null;
+            $excluded_term_ids = dci_elemento_trasparenza_get_excluded_term_ids_for_new_items();
+            $category_is_allowed = $default_category_term instanceof WP_Term
+                && !is_wp_error($default_category_term)
+                && !in_array($default_category, $excluded_term_ids, true);
+
+            if (!$category_is_allowed) {
+                echo '<div class="notice notice-error is-dismissible"><p>'
+                    . esc_html__('La categoria selezionata non consente l’inserimento di Elementi Trasparenza.', 'design_comuni_italia')
+                    . '</p></div>';
             } else {
                 if ( ! empty( $_FILES['dci_multi_files']['name'][0] ) ) {
                     // Carica i file
@@ -601,6 +614,46 @@ function dci_render_transparency_multipost_page() {
 
 
 /**
+ * Verifica se le sezioni automatiche interne della Trasparenza sono abilitate.
+ *
+ * La grafica e i flussi dedicati sono attivi soltanto quando il portale non e'
+ * esterno e il relativo check non e' esplicitamente disabilitato. Per
+ * compatibilita' con le configurazioni precedenti, un valore nullo, vuoto o
+ * non ancora salvato equivale quindi ad abilitato.
+ *
+ * @return bool
+ */
+if (!function_exists('dci_trasparenza_internal_custom_sections_enabled')) {
+    function dci_trasparenza_internal_custom_sections_enabled() {
+        $external_portal = function_exists('dci_is_external_portal_enabled')
+            ? dci_is_external_portal_enabled()
+            : in_array(
+                strtolower((string) dci_get_option('ck_portalesoloperusoesterno')),
+                array('1', 'true', 'yes', 'on'),
+                true
+            );
+        $custom_sections_value = dci_get_option(
+            'ck_sezioni_presonalizate_interne',
+            'Trasparenza',
+            null
+        );
+        $custom_sections_is_unset = null === $custom_sections_value
+            || (is_string($custom_sections_value) && '' === trim($custom_sections_value));
+        $custom_sections_enabled = $custom_sections_is_unset || (
+            function_exists('dci_is_truthy_option_value')
+                ? dci_is_truthy_option_value($custom_sections_value)
+                : in_array(
+                    strtolower((string) $custom_sections_value),
+                    array('1', 'true', 'yes', 'on'),
+                    true
+                )
+        );
+
+        return !$external_portal && $custom_sections_enabled;
+    }
+}
+
+/**
  * Restituisce le categorie gestite tramite una tipologia di contenuto dedicata.
  *
  * Queste categorie vengono mostrate come riferimento nella schermata di
@@ -668,9 +721,10 @@ if (!function_exists('dci_elemento_trasparenza_get_custom_type_terms')) {
 
             $custom_terms['Titolari di incarichi dirigenziali amministrativi di vertice'] = $incarico_dirigenziale_data;
             $custom_terms['Incarichi dirigenziali a qualsiasi titolo conferiti'] = $incarico_dirigenziale_data;
+            $custom_terms['Dirigenti cessati'] = $incarico_dirigenziale_data;
         }
 
-        if (dci_get_option("ck_portalesoloperusoesterno") !== 'true' && dci_get_option("ck_portalesoloperusoesterno") !== '') {
+        if (dci_trasparenza_internal_custom_sections_enabled()) {
             $custom_terms['Articolazione uffici'] = array(
                 'description'  => __('Il caricamento dei dati in questa sezione avviene creando un Ufficio.', 'design_comuni_italia'),
                 'url'          => admin_url('edit.php?post_type=unita_organizzativa'),
@@ -717,6 +771,7 @@ if (!function_exists('dci_elemento_trasparenza_get_terms_hidden_for_new_items'))
  * - termini con URL esterno;
  * - termini bloccati per il ruolo dell'utente corrente;
  * - termini gestiti da tipologie personalizzate attive.
+ * - sezioni politiche alimentate automaticamente, quando abilitate.
  *
  * Il risultato viene memorizzato in cache statica per evitare query ripetute
  * durante lo stesso caricamento pagina.
@@ -733,6 +788,13 @@ if (!function_exists('dci_elemento_trasparenza_get_excluded_term_ids_for_new_ite
 
         $excluded_ids = array();
         $hidden_names = dci_elemento_trasparenza_get_terms_hidden_for_new_items();
+        $automatic_political_sections_enabled = dci_trasparenza_internal_custom_sections_enabled();
+        $automatic_political_section_slugs = array(
+            'il-sindaco',
+            'sindaco',
+            'giunta-comunale',
+            'consiglio-comunale',
+        );
 
         $terms = get_terms(array(
             'taxonomy'   => 'tipi_cat_amm_trasp',
@@ -752,6 +814,11 @@ if (!function_exists('dci_elemento_trasparenza_get_excluded_term_ids_for_new_ite
             $excluded_roles = get_term_meta($term->term_id, 'excluded_roles', true);
             $excluded_roles = is_array($excluded_roles) ? $excluded_roles : maybe_unserialize($excluded_roles);
             $excluded_roles = is_array($excluded_roles) ? $excluded_roles : array();
+            $normalized_term_name = sanitize_title((string) $term->name);
+            $is_automatic_political_section = $automatic_political_sections_enabled && (
+                in_array((string) $term->slug, $automatic_political_section_slugs, true)
+                || in_array($normalized_term_name, $automatic_political_section_slugs, true)
+            );
 
             $user_cannot_see_term = false;
             foreach ((array) wp_get_current_user()->roles as $role) {
@@ -765,6 +832,7 @@ if (!function_exists('dci_elemento_trasparenza_get_excluded_term_ids_for_new_ite
                 $visible !== '1' ||
                 $term_url !== '' ||
                 $user_cannot_see_term ||
+                $is_automatic_political_section ||
                 in_array($term->name, $hidden_names, true)
             ) {
                 $excluded_ids[] = (int) $term->term_id;
@@ -987,7 +1055,7 @@ if (!function_exists('dci_elemento_trasparenza_get_informational_terms')) {
     function dci_elemento_trasparenza_get_informational_terms() {
         $informational_terms = array();
         $custom_terms = dci_elemento_trasparenza_get_custom_type_terms();
-        $is_internal_portal = dci_get_option('ck_portalesoloperusoesterno') !== 'true';
+        $automatic_internal_sections = dci_trasparenza_internal_custom_sections_enabled();
         $internal_political_section_slugs = array(
             'il-sindaco',
             'sindaco',
@@ -1007,7 +1075,7 @@ if (!function_exists('dci_elemento_trasparenza_get_informational_terms')) {
             $term_url = trim((string) get_term_meta($term->term_id, 'term_url', true));
 
             $normalized_term_name = sanitize_title((string) $term->name);
-            if ($is_internal_portal && (
+            if ($automatic_internal_sections && (
                 in_array((string) $term->slug, $internal_political_section_slugs, true)
                 || in_array($normalized_term_name, $internal_political_section_slugs, true)
             )) {
@@ -1462,7 +1530,7 @@ function dci_elemento_trasparenza_admin_script()
                 'termCounts'       => $term_counts,
                 'termStates'       => $term_states,
                 'categoryLocked'   => $category_locked,
-                'internalPortal'   => dci_get_option('ck_portalesoloperusoesterno') !== 'true',
+                'automaticInternalSections' => dci_trasparenza_internal_custom_sections_enabled(),
             )
         );
     }

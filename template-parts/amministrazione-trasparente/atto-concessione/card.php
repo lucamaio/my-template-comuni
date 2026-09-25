@@ -59,6 +59,39 @@ if (empty($dci_custom_section_card_style_printed)) :
                         <p class="mb-0"><strong><?php echo esc_html(dci_custom_section_card_text(get_the_title(), 95)); ?></strong></p>
                     </div>
                 </div>
+
+                <?php
+                $post_timestamp = get_post_time('U', true, get_the_ID());
+                $modified_timestamp = get_post_modified_time('U', true, get_the_ID());
+                $post_date = get_the_date('j F Y', get_the_ID());
+                $modified_date = get_the_modified_date('j F Y', get_the_ID());
+                $show_modified_date = $modified_timestamp > $post_timestamp;
+                ?>
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="text-muted small" style="display: flex; align-items: center; flex-wrap: wrap; gap: .25rem .4rem; line-height: 1.4;">
+                            <svg class="icon icon-sm" aria-hidden="true" style="flex: 0 0 auto;">
+                                <use href="#it-calendar"></use>
+                            </svg>
+                            <span style="white-space: nowrap;">
+                                Pubblicato il
+                                <time datetime="<?php echo esc_attr(get_the_date('c', get_the_ID())); ?>">
+                                    <?php echo esc_html($post_date); ?>
+                                </time>
+                            </span>
+                            <?php if ($show_modified_date) { ?>
+                                <span aria-hidden="true">-</span>
+                                <span style="white-space: nowrap;">
+                                    Aggiornato il
+                                    <time datetime="<?php echo esc_attr(get_the_modified_date('c', get_the_ID())); ?>">
+                                        <?php echo esc_html($modified_date); ?>
+                                    </time>
+                                </span>
+                            <?php } ?>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row align-items-center mb-3">
                     <div class="col-md-3 col-sm-6">
                         <small class="text-uppercase text-muted d-block">Beneficiario</small>
@@ -82,14 +115,12 @@ if (empty($dci_custom_section_card_style_printed)) :
                     </div>
 
                     <div class="col-md-2 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Tempi</small>
+                        <small class="text-uppercase text-muted d-block">Anno beneficio</small>
                         <?php
-                        $post_date = get_the_date('j F Y', get_the_ID());
                         $anno_beneficio = get_post_meta(get_the_ID(), $prefix . 'anno_beneficio', true);
                         $formatted_anno_beneficio = !empty($anno_beneficio) ? date_i18n('Y', $anno_beneficio) : '-';
                         ?>
-                        <span class="d-block">Pubblicato: <?php echo esc_html(dci_custom_section_card_text($post_date, 35)); ?></span>
-                        <span class="d-block">Beneficio: <?php echo $formatted_anno_beneficio; ?></span>
+                        <span class="d-block"><?php echo esc_html($formatted_anno_beneficio); ?></span>
                     </div>
 
                     <div class="col-md-2 col-sm-6">

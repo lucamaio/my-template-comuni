@@ -29,7 +29,14 @@ global $uo_id, $inline, $audio;
             $url_documento_group = get_post_meta(get_the_ID(), $prefix . 'url_documento_group', true);
             //var_dump($url_documento_group);
 
-            $data= get_the_date('j F Y', $post->ID);
+            // Info sulle date di pubblicazione e modifica, come nelle card.
+            $data_pubblicazione = get_the_date('j F Y', $post->ID);
+            $data_modifica = get_the_modified_date('j F Y', $post->ID);
+
+            $mostra_aggiornamento = (
+                $data_modifica !== ''
+                && $data_modifica > $data_pubblicazione
+            );
 
             $immagine_url = is_string($immagine) ? esc_url_raw($immagine) : '';
             $immagine_id = $immagine_url !== '' ? attachment_url_to_postid($immagine_url) : 0;
@@ -138,9 +145,17 @@ global $uo_id, $inline, $audio;
                 <div class="col-6">
                     <small>Data pubblicazione:</small>
                     <p class="fw-semibold font-monospace">
-                        <?php echo $data; ?>
+                        <?php echo esc_html($data_pubblicazione); ?>
                     </p>
-                </div>              
+                </div>
+                <?php if ($mostra_aggiornamento) { ?>
+                    <div class="col-6">
+                        <small>Data aggiornamento:</small>
+                        <p class="fw-semibold font-monospace">
+                            <?php echo esc_html($data_modifica); ?>
+                        </p>
+                    </div>
+                <?php } ?>
             </div>
         </div>
 

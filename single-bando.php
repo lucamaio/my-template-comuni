@@ -111,6 +111,9 @@ get_header();
         $user_can_view_post = dci_members_can_user_view_post(get_current_user_id(), $post->ID);
 
         $prefix = '_dci_bando_';
+        $data_pubblicazione = get_the_date('j F Y', $post->ID);
+        $data_modifica = get_the_modified_date('j F Y', $post->ID);
+        $mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubblicazione;
 
         $oggetto = dci_get_meta("oggetto", $prefix, $post->ID);
         $cig = dci_get_meta("cig", $prefix, $post->ID);
@@ -298,6 +301,19 @@ get_header();
                     get_template_part('template-parts/single/actions');
                     ?>
                 </div>
+            </div>
+
+            <div class="row mt-5 mb-4">
+                <div class="col-6">
+                    <small>Data pubblicazione:</small>
+                    <p class="fw-semibold font-monospace"><?php echo esc_html($data_pubblicazione); ?></p>
+                </div>
+                <?php if ($mostra_aggiornamento) { ?>
+                    <div class="col-6">
+                        <small>Data aggiornamento:</small>
+                        <p class="fw-semibold font-monospace"><?php echo esc_html($data_modifica); ?></p>
+                    </div>
+                <?php } ?>
             </div>
         </div>
 

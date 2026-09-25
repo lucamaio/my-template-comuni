@@ -59,6 +59,8 @@ function dci_at_contextual_has_complex_political_workflow($resolution)
         || 'external' === ($resolution['mode'] ?? '')
         || empty($resolution['term'])
         || !$resolution['term'] instanceof WP_Term
+        || !function_exists('dci_trasparenza_internal_custom_sections_enabled')
+        || !dci_trasparenza_internal_custom_sections_enabled()
     ) {
         return false;
     }
@@ -76,7 +78,7 @@ function dci_at_contextual_has_complex_political_workflow($resolution)
  * Determina il valore del campo sezione per un incarico dirigenziale.
  *
  * La funzione riusa le opzioni gia' dichiarate dal CPT. In questo modo i valori
- * `vertice` e `dirigenti` non vengono ridefiniti in una seconda configurazione.
+ * `vertice`, `dirigenti` e `cessati` non vengono ridefiniti in una seconda configurazione.
  *
  * @param WP_Term $term Termine di provenienza.
  * @return string Valore del campo esistente oppure stringa vuota.
@@ -250,7 +252,7 @@ function dci_at_contextual_user_can_edit_taxonomy_structure()
 }
 
 /**
- * Controlla che una sezione standard sia disponibile nel campo CMB2 corrente.
+ * Controlla che una categoria standard sia disponibile nel campo CMB2 corrente.
  *
  * Il riuso della funzione esistente mantiene coerenti visibilita', URL esterni,
  * esclusioni per ruolo e tipologie dedicate.
@@ -301,7 +303,7 @@ function dci_at_contextual_user_can_create($resolution)
     }
 
     if ('incarico_dirig' === $resolution['post_type']) {
-        return in_array($resolution['section_value'], array('vertice', 'dirigenti'), true);
+        return in_array($resolution['section_value'], array('vertice', 'dirigenti', 'cessati'), true);
     }
 
     return true;
@@ -329,7 +331,7 @@ function dci_at_contextual_get_create_url($resolution)
 }
 
 /**
- * Genera l'URL dell'elenco amministrativo relativo alla sezione.
+ * Genera l'URL dell'elenco amministrativo relativo alla categoria.
  *
  * Per gli Elementi Trasparenza usa il query var nativo della tassonomia. Per
  * gli incarichi dirigenziali conserva anche il termine contestuale, che viene
@@ -363,10 +365,10 @@ function dci_at_contextual_get_manage_url($resolution)
 }
 
 /**
- * Stampa i comandi contestuali nella pagina pubblica della sezione.
+ * Stampa i comandi contestuali nella pagina pubblica della categoria.
  *
  * Nessun markup o URL amministrativo viene prodotto per utenti anonimi o senza
- * capability. Le sezioni con collegamento esterno non consentono la creazione
+ * capability. Le categorie con collegamento esterno non consentono la creazione
  * di contenuti interni; l'eventuale modifica del termine resta disponibile solo
  * a chi possiede la capability della tassonomia.
  *
@@ -388,7 +390,7 @@ function dci_render_trasparenza_contextual_actions($term = null)
     $actions_description = __('Pubblica o gestisci i contenuti collegati.', 'design_comuni_italia');
 
     if ('external' === $resolution['mode']) {
-        $actions_description = __('Aggiorna il collegamento configurato per questa sezione.', 'design_comuni_italia');
+        $actions_description = __('Aggiorna il collegamento configurato per questa categoria.', 'design_comuni_italia');
 
         if (dci_at_contextual_user_can_edit_taxonomy_structure()) {
             $edit_term_url = get_edit_term_link($resolution['term']->term_id, 'tipi_cat_amm_trasp');
@@ -445,10 +447,10 @@ function dci_render_trasparenza_contextual_actions($term = null)
         return;
     }
     ?>
-    <nav class="dci-at-context-actions" aria-label="<?php esc_attr_e('Gestione della sezione', 'design_comuni_italia'); ?>">
+    <nav class="dci-at-context-actions" aria-label="<?php esc_attr_e('Gestione della categoria', 'design_comuni_italia'); ?>">
         <span class="dci-at-context-actions__heading">
             <strong class="dci-at-context-actions__label">
-                <?php esc_html_e('Gestione della sezione', 'design_comuni_italia'); ?>
+                <?php esc_html_e('Gestione della categoria', 'design_comuni_italia'); ?>
             </strong>
             <span class="dci-at-context-actions__description">
                 <?php echo esc_html($actions_description); ?>
@@ -710,7 +712,7 @@ function dci_at_contextual_render_admin_context($post)
         data-section-value="<?php echo esc_attr($context['section_value']); ?>"
     >
         <p>
-            <strong><?php esc_html_e('Sezione di destinazione:', 'design_comuni_italia'); ?></strong>
+            <strong><?php esc_html_e('Categoria di destinazione:', 'design_comuni_italia'); ?></strong>
             <?php echo esc_html($context['term']->name); ?>
         </p>
         <p><?php esc_html_e('La destinazione e\' bloccata per evitare una pubblicazione nella sottosezione sbagliata.', 'design_comuni_italia'); ?></p>
@@ -898,7 +900,7 @@ function dci_at_contextual_save_manager_section($post_id, $post, $update)
     if (
         is_wp_error($context)
         || 'dedicated' !== $context['mode']
-        || !in_array($context['section_value'], array('vertice', 'dirigenti'), true)
+        || !in_array($context['section_value'], array('vertice', 'dirigenti', 'cessati'), true)
     ) {
         return;
     }
@@ -1118,7 +1120,7 @@ function dci_at_contextual_filter_manager_admin_list($query)
     if (
         'dedicated' !== $resolution['mode']
         || 'incarico_dirig' !== $resolution['post_type']
-        || !in_array($resolution['section_value'], array('vertice', 'dirigenti'), true)
+        || !in_array($resolution['section_value'], array('vertice', 'dirigenti', 'cessati'), true)
         || !dci_at_contextual_user_can_post_type('incarico_dirig', 'edit_posts')
     ) {
         return;

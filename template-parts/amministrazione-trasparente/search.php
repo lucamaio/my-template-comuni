@@ -8,6 +8,10 @@
 
 global $wpdb;
 
+$at_public_start_year = (int) wp_date('Y') - 5;
+$at_can_view_archive = function_exists('dci_user_can_view_trasparenza_archive')
+    && dci_user_can_view_trasparenza_archive();
+
 $at_search_term = isset($_GET['at_search']) && is_string($_GET['at_search'])
     ? sanitize_text_field(wp_unslash($_GET['at_search']))
     : '';
@@ -20,9 +24,13 @@ $at_search_order = isset($_GET['at_order']) && is_scalar($_GET['at_order'])
 $at_search_section = isset($_GET['at_section']) && is_scalar($_GET['at_section'])
     ? absint($_GET['at_section'])
     : 0;
-$at_search_year = isset($_GET['at_year']) && is_scalar($_GET['at_year'])
+$at_requested_search_year = isset($_GET['at_year']) && is_scalar($_GET['at_year'])
     ? absint($_GET['at_year'])
     : 0;
+$at_search_year = $at_requested_search_year;
+$at_search_year_outside_public_range = false;
+$at_search_year_invalid = false;
+$at_first_searchable_year = $at_public_start_year;
 $at_search_orders = [
     'data_desc'       => ['orderby' => 'date', 'order' => 'DESC'],
     'data_asc'        => ['orderby' => 'date', 'order' => 'ASC'],
@@ -100,6 +108,7 @@ $at_custom_search_types = [
             : [
                 'vertice' => 'Titolari di incarichi dirigenziali amministrativi di vertice',
                 'dirigenti' => 'Incarichi dirigenziali a qualsiasi titolo conferiti',
+                'cessati' => 'Dirigenti cessati',
             ],
         'section_meta' => '_dci_incarico_dirigenziale_sezione_pubblicazione',
     ],
@@ -173,9 +182,36 @@ if ($at_search_section > 0 && empty($at_search_section_options[$at_search_sectio
     $at_search_section = 0;
 }
 
+$current_year = (int) wp_date('Y');
+
+if ($at_can_view_archive) {
+    $at_oldest_content_query = new WP_Query([
+        'post_type'              => $at_search_post_types,
+        'post_status'            => 'publish',
+        'posts_per_page'         => 1,
+        'fields'                 => 'ids',
+        'no_found_rows'          => true,
+        'ignore_sticky_posts'    => true,
+        'orderby'                => 'date',
+        'order'                  => 'ASC',
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
+    ]);
+
+    if (!empty($at_oldest_content_query->posts)) {
+        $at_oldest_content_year = (int) get_post_time('Y', false, (int) $at_oldest_content_query->posts[0]);
+        if ($at_oldest_content_year > 0) {
+            $at_first_searchable_year = min($current_year, $at_oldest_content_year);
+        }
+    }
+}
+
 if ($at_search_year > 0) {
-    $current_year = (int) gmdate('Y');
-    if ($at_search_year < $current_year - 9 || $at_search_year > $current_year) {
+    if (!$at_can_view_archive && $at_search_year < $at_public_start_year) {
+        $at_search_year_outside_public_range = true;
+        $at_search_year = 0;
+    } elseif ($at_search_year < $at_first_searchable_year || $at_search_year > $current_year) {
+        $at_search_year_invalid = true;
         $at_search_year = 0;
     }
 }
@@ -245,6 +281,13 @@ if ($at_search_year > 0) {
     $at_query_args['date_query'] = [
         [
             'year' => $at_search_year,
+        ],
+    ];
+} elseif (!$at_can_view_archive) {
+    $at_query_args['date_query'] = [
+        [
+            'after' => ['year' => $at_public_start_year],
+            'inclusive' => true,
         ],
     ];
 }

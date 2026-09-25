@@ -264,6 +264,30 @@ document.documentElement.classList.add('dci-at-menu-js');
     font-weight: 600;
 }
 
+.dci-at-category-results__normativa {
+    display: block;
+    margin-top: .55rem;
+    padding: .55rem .7rem;
+    color: #334e68;
+    background: #f3f7fb;
+    background: color-mix(in srgb, var(--main-color-trasparenza, #17324d) 7%, white);
+    border-left: 3px solid var(--main-color-trasparenza, #17324d);
+    border-radius: 2px;
+    font-size: .86rem;
+    font-weight: 400;
+    line-height: 1.45;
+}
+
+.dci-at-category-results__normativa-label {
+    display: block;
+    margin-bottom: .15rem;
+    color: var(--main-color-trasparenza, #17324d);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+}
+
 .dci-at-search-results__empty {
     padding: 1rem 1.15rem;
     background: #fff;
@@ -1079,7 +1103,10 @@ window.addEventListener('pageshow', function() {
                                         name="at_year"
                                     >
                                         <option value="0">Tutti gli anni</option>
-                                        <?php for ($at_year = (int) gmdate('Y'); $at_year >= (int) gmdate('Y') - 9; $at_year--) { ?>
+                                        <?php
+                                        $at_current_year = (int) wp_date('Y');
+                                        for ($at_year = $at_current_year; $at_year >= $at_first_searchable_year; $at_year--) {
+                                        ?>
                                             <option value="<?= esc_attr($at_year); ?>" <?= selected($at_search_year, $at_year, false); ?>>
                                                 <?= esc_html($at_year); ?>
                                             </option>
@@ -1104,14 +1131,35 @@ window.addEventListener('pageshow', function() {
                                 </div>
                             </div>
 
-                            <?php if ($at_search_term !== '' || $at_search_section > 0 || $at_search_year > 0) { ?>
+                            <?php if ($at_search_term !== '' || $at_search_section > 0 || $at_search_year > 0 || $at_search_year_outside_public_range || $at_search_year_invalid) { ?>
                                 <a class="dci-at-main-search__reset" href="<?= esc_url(remove_query_arg(['at_search', 'at_page', 'at_order', 'at_type', 'at_section', 'at_year'])); ?>">
                                     Cancella la ricerca
                                 </a>
                             <?php } ?>
                         </section>
 
-                        <?php if ($at_search_too_short && !$at_search_has_filters) { ?>
+                        <?php if ($at_search_year_outside_public_range) { ?>
+                            <div class="dci-at-search-results" role="status">
+                                <div class="dci-at-search-results__empty">
+                                    <p class="dci-at-search-results__empty-title">
+                                        L'anno <?= esc_html($at_requested_search_year); ?> non rientra nel periodo di pubblicazione consultabile
+                                    </p>
+                                    <p class="dci-at-search-results__empty-text">
+                                        Gli utenti finali possono consultare i contenuti pubblicati dal <?= esc_html($at_public_start_year); ?> a oggi.
+                                        Gli eventuali documenti degli anni precedenti non vengono mostrati nella ricerca pubblica; possono essere richiesti tramite la procedura di accesso civico generalizzato.
+                                    </p>
+                                </div>
+                            </div>
+                        <?php } elseif ($at_search_year_invalid) { ?>
+                            <div class="dci-at-search-results" role="status">
+                                <div class="dci-at-search-results__empty">
+                                    <p class="dci-at-search-results__empty-title">Anno non disponibile</p>
+                                    <p class="dci-at-search-results__empty-text">
+                                        Seleziona uno degli anni disponibili nel filtro di ricerca.
+                                    </p>
+                                </div>
+                            </div>
+                        <?php } elseif ($at_search_too_short && !$at_search_has_filters) { ?>
                             <div class="dci-at-search-results" role="status">
                                 <p class="dci-at-search-results__empty">
                                     Inserisci almeno due caratteri per avviare la ricerca.
@@ -1159,6 +1207,7 @@ window.addEventListener('pageshow', function() {
                                                 $at_category_name = dci_format_trasparenza_section_title($at_category->name);
                                                 $at_category_parent_name = '';
                                                 $at_category_description = trim(wp_strip_all_tags((string) $at_category->description));
+                                                $at_category_normativa = trim(wp_strip_all_tags((string) get_term_meta($at_category->term_id, 'normativa', true)));
 
                                                 if ((int) $at_category->parent > 0) {
                                                     $at_category_parent = get_term((int) $at_category->parent, 'tipi_cat_amm_trasp');
@@ -1170,6 +1219,10 @@ window.addEventListener('pageshow', function() {
 
                                                 if ($at_category_description !== '') {
                                                     $at_category_description = wp_html_excerpt($at_category_description, 150, '...');
+                                                }
+
+                                                if ($at_category_normativa !== '') {
+                                                    $at_category_normativa = wp_html_excerpt($at_category_normativa, 180, '...');
                                                 }
                                                 ?>
                                                 <li class="dci-at-category-results__item">
@@ -1190,6 +1243,14 @@ window.addEventListener('pageshow', function() {
                                                             <?php if ($at_category_description !== '') { ?>
                                                                 <span class="dci-at-category-results__description">
                                                                     <?= esc_html($at_category_description); ?>
+                                                                </span>
+                                                            <?php } ?>
+                                                            <?php if ($at_category_normativa !== '') { ?>
+                                                                <span class="dci-at-category-results__normativa">
+                                                                    <span class="dci-at-category-results__normativa-label">
+                                                                        <?php esc_html_e('Riferimento normativo', 'design_comuni_italia'); ?>
+                                                                    </span>
+                                                                    <?= esc_html($at_category_normativa); ?>
                                                                 </span>
                                                             <?php } ?>
                                                         </span>

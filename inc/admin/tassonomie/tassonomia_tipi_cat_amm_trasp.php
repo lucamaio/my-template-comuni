@@ -137,6 +137,13 @@ function dci_tassonomia_add_fields() {
 	</div>
 
 	<div class="form-field"><label><?php _e('Ordinamento', 'design_comuni_italia'); ?></label><input type="number" name="ordinamento" value="0" /></div>
+	<div class="form-field">
+		<label for="dci-normativa"><?php esc_html_e( 'Normativa', 'design_comuni_italia' ); ?></label>
+		<textarea id="dci-normativa" name="normativa" rows="5" class="large-text"></textarea>
+		<p class="description">
+			<?php esc_html_e( 'Riferimenti normativi che regolano la sezione. Il valore può essere aggiornato anche dalla pagina Aspetto > Ricarica Trasparenza.', 'design_comuni_italia' ); ?>
+		</p>
+	</div>
 	<div class="form-field"><label><input type="checkbox" name="visualizza_elemento" value="1" checked /> <?php _e('Visualizza elemento', 'design_comuni_italia'); ?></label></div>
 	<div class="form-field">
 		<label>
@@ -183,6 +190,7 @@ function dci_tassonomia_edit_fields( $term ) {
 	$excluded_roles = get_term_meta( $term->term_id, 'excluded_roles', true );
 	$excluded_roles = is_array( $excluded_roles ) ? $excluded_roles : [];
 	$not_applicable_message = (string) get_term_meta( $term->term_id, 'messaggio_obbligo_non_applicabile', true );
+	$normativa = (string) get_term_meta( $term->term_id, 'normativa', true );
 	?>
 	<tr class="form-field">
 		<th scope="row"><?php _e('Ruoli da escludere', 'design_comuni_italia'); ?></th>
@@ -204,6 +212,17 @@ function dci_tassonomia_edit_fields( $term ) {
 	</tbody>
 
 	<tr class="form-field"><th><?php _e('Ordinamento', 'design_comuni_italia'); ?></th><td><input name="ordinamento" type="number" value="<?php echo esc_attr(get_term_meta($term->term_id, 'ordinamento', true)); ?>" /></td></tr>
+	<tr class="form-field">
+		<th scope="row">
+			<label for="dci-normativa"><?php esc_html_e( 'Normativa', 'design_comuni_italia' ); ?></label>
+		</th>
+		<td>
+			<textarea id="dci-normativa" name="normativa" rows="6" class="large-text"><?php echo esc_textarea( $normativa ); ?></textarea>
+			<p class="description">
+				<?php esc_html_e( 'Riferimenti normativi che regolano la sezione. La ricarica dedicata aggiorna questo valore dal catalogo 2026.', 'design_comuni_italia' ); ?>
+			</p>
+		</td>
+	</tr>
 	<tr class="form-field"><th><?php _e('Visualizza', 'design_comuni_italia'); ?></th><td><label><input name="visualizza_elemento" type="checkbox" value="1" <?php checked(get_term_meta($term->term_id, 'visualizza_elemento', true), '1'); ?> /> <?php _e('Visualizza elemento', 'design_comuni_italia'); ?></label></td></tr>
 	<tr class="form-field">
 		<th scope="row">
@@ -281,6 +300,17 @@ function dci_save_term_meta( $term_id ) {
 	update_term_meta( $term_id, 'term_url', isset( $_POST['term_url'] ) ? esc_url_raw( $_POST['term_url'] ) : '' );
 	update_term_meta( $term_id, 'open_new_window', isset( $_POST['open_new_window'] ) ? '1' : '0' );
 	update_term_meta( $term_id, 'obbligo_non_applicabile', isset( $_POST['obbligo_non_applicabile'] ) ? '1' : '0' );
+
+	$normativa = isset( $_POST['normativa'] )
+		? sanitize_textarea_field( wp_unslash( $_POST['normativa'] ) )
+		: '';
+	$normativa = mb_substr( $normativa, 0, 20000, 'UTF-8' );
+
+	if ( '' !== $normativa ) {
+		update_term_meta( $term_id, 'normativa', $normativa );
+	} else {
+		delete_term_meta( $term_id, 'normativa' );
+	}
 
 	$not_applicable_message = isset( $_POST['messaggio_obbligo_non_applicabile'] )
 		? sanitize_textarea_field( wp_unslash( $_POST['messaggio_obbligo_non_applicabile'] ) )

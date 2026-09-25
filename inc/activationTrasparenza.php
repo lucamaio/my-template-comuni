@@ -7,7 +7,7 @@ function dci_trasparenza_activation() {
     $stats = insertTaxonomyTrasparenzaTerms();
 
     // Assegna i link standard solo durante il caricamento completo dei dati.
-    dci_trasparenza_populate_standard_links();
+    // dci_trasparenza_populate_standard_links();
 
     // Imposta un'opzione per indicare che il setup è avvenuto
     update_option("dci_has_installed", true);
@@ -32,6 +32,10 @@ add_action('after_switch_theme', 'dci_trasparenza_activation');
  * Questa funzione viene chiamata durante l'attivazione del tema e può essere richiamata manualmente tramite la pagina di amministrazione dedicata alla ricarica dei dati della Trasparenza.
  * I link vengo aperti in una nuova finestra del browser per evitare di perdere la sessione di amministrazione del sito.
  */
+
+// Funzione commentata in quanto non è più neccessaria in quanto non sono più voci della trasparenza ma semplicemente dei link esterni da inserire manualmente. 
+
+/*
 function dci_trasparenza_populate_standard_links() {
     $links = [
         [
@@ -77,7 +81,7 @@ function dci_trasparenza_populate_standard_links() {
         }
     }
 }
-
+*/
 
 /**
  * Funzione che consente di ricaricare tutti i dati della trasparenza, comprese le tassonomie e le descrizioni dei termini chiave.
@@ -93,7 +97,7 @@ function dci_reload_trasparenza_option_page() {
 
     $action = isset($_GET['action']) ? sanitize_key(wp_unslash($_GET['action'])) : '';
 
-    if (in_array($action, ['reload', 'reload_descriptions', 'reload_ordering'], true)) {
+    if (in_array($action, ['reload', 'reload_descriptions', 'reload_ordering', 'reload_normativa'], true)) {
         check_admin_referer('dci_trasparenza_' . $action);
 
         if ($action === 'reload') {
@@ -101,20 +105,30 @@ function dci_reload_trasparenza_option_page() {
             $inserted = isset($stats['inserted']) ? (int) $stats['inserted'] : 0;
             $updated = isset($stats['updated']) ? (int) $stats['updated'] : 0;
             $descriptions = isset($stats['descriptions_updated']) ? (int) $stats['descriptions_updated'] : 0;
-            $notice_class = empty($stats['descriptions_error']) ? 'notice-success' : 'notice-warning';
-            $notice_message = empty($stats['descriptions_error']) ? 'Dati ricaricati con successo.' : 'Ricarica completata senza aggiornare le descrizioni.';
-            echo '<div class="notice ' . esc_attr($notice_class) . ' is-dismissible"><p>' . esc_html($notice_message) . ' Voci inserite: <strong>' . esc_html($inserted) . '</strong>, voci aggiornate: <strong>' . esc_html($updated) . '</strong>, descrizioni aggiornate: <strong>' . esc_html($descriptions) . '</strong>.</p></div>';
+            $normativa = isset($stats['normativa_updated']) ? (int) $stats['normativa_updated'] : 0;
+            $has_reload_errors = !empty($stats['descriptions_error']) || !empty($stats['normativa_error']);
+            $notice_class = $has_reload_errors ? 'notice-warning' : 'notice-success';
+            $notice_message = $has_reload_errors ? 'Ricarica completata con alcune segnalazioni.' : 'Dati ricaricati con successo.';
+            echo '<div class="notice ' . esc_attr($notice_class) . ' is-dismissible"><p>' . esc_html($notice_message) . ' Voci inserite: <strong>' . esc_html($inserted) . '</strong>, voci aggiornate: <strong>' . esc_html($updated) . '</strong>, descrizioni aggiornate: <strong>' . esc_html($descriptions) . '</strong>, normative aggiornate: <strong>' . esc_html($normativa) . '</strong>.</p></div>';
         } elseif ($action === 'reload_descriptions') {
             $stats = insertTaxonomyTrasparenzaTerms(['descriptions']);
             $descriptions = isset($stats['descriptions_updated']) ? (int) $stats['descriptions_updated'] : 0;
             if (empty($stats['descriptions_error'])) {
                 echo '<div class="notice notice-success is-dismissible"><p>Descrizioni ricaricate. Termini aggiornati: <strong>' . esc_html($descriptions) . '</strong>. Struttura, slug, visibilità e ordinamento non sono stati modificati.</p></div>';
             }
-        } else {
+        } elseif ($action === 'reload_ordering') {
             $stats = dci_reload_trasparenza_ordering();
             $ordering_updated = isset($stats['ordering_updated']) ? (int) $stats['ordering_updated'] : 0;
             $missing = isset($stats['missing']) ? (int) $stats['missing'] : 0;
             echo '<div class="notice notice-success is-dismissible"><p>Ordinamento ricaricato. Termini aggiornati: <strong>' . esc_html($ordering_updated) . '</strong>, termini della struttura predefinita non presenti e ignorati: <strong>' . esc_html($missing) . '</strong>. Nessun termine è stato creato o spostato.</p></div>';
+        } else {
+            $stats = dci_reload_trasparenza_normativa();
+            $normativa_updated = isset($stats['normativa_updated']) ? (int) $stats['normativa_updated'] : 0;
+            $unchanged = isset($stats['unchanged']) ? (int) $stats['unchanged'] : 0;
+            $missing = isset($stats['missing']) ? (int) $stats['missing'] : 0;
+            $errors = isset($stats['errors']) ? (int) $stats['errors'] : 0;
+            $notice_class = (!empty($stats['normativa_error']) || $errors > 0) ? 'notice-warning' : 'notice-success';
+            echo '<div class="notice ' . esc_attr($notice_class) . ' is-dismissible"><p>Normativa ricaricata. Termini aggiornati: <strong>' . esc_html($normativa_updated) . '</strong>, già aggiornati: <strong>' . esc_html($unchanged) . '</strong>, senza corrispondenza nel catalogo: <strong>' . esc_html($missing) . '</strong>, errori: <strong>' . esc_html($errors) . '</strong>.</p></div>';
         }
     }
 
@@ -122,10 +136,15 @@ function dci_reload_trasparenza_option_page() {
         echo '<div class="notice notice-warning"><p>' . esc_html($stats['descriptions_error']) . ' Le descrizioni esistenti sono state conservate.</p></div>';
     }
 
+    if (!empty($stats['normativa_error'])) {
+        echo '<div class="notice notice-warning"><p>' . esc_html($stats['normativa_error']) . ' I riferimenti normativi esistenti sono stati conservati.</p></div>';
+    }
+
     $page_url = admin_url('themes.php?page=reload-trasparenza-theme-options');
     $reload_url = wp_nonce_url(add_query_arg('action', 'reload', $page_url), 'dci_trasparenza_reload');
     $descriptions_url = wp_nonce_url(add_query_arg('action', 'reload_descriptions', $page_url), 'dci_trasparenza_reload_descriptions');
     $ordering_url = wp_nonce_url(add_query_arg('action', 'reload_ordering', $page_url), 'dci_trasparenza_reload_ordering');
+    $normativa_url = wp_nonce_url(add_query_arg('action', 'reload_normativa', $page_url), 'dci_trasparenza_reload_normativa');
 
     echo "<div class='wrap'>";
     echo "<h1>Ricarica i dati della Trasparenza</h1>";
@@ -134,9 +153,10 @@ function dci_reload_trasparenza_option_page() {
     echo '<a href="' . esc_url($reload_url) . '" class="button button-primary dci-reload-trasparenza-btn" data-confirm="Questa operazione ricarica l’intera struttura della Trasparenza. Continuare?">Ricarica Trasparenza</a>';
     echo '<a href="' . esc_url($descriptions_url) . '" class="button dci-reload-trasparenza-btn" data-confirm="Aggiornare le descrizioni predefinite dei termini già esistenti?">Ricarica descrizioni</a>';
     echo '<a href="' . esc_url($ordering_url) . '" class="button dci-reload-trasparenza-btn" data-confirm="Riallineare l’ordinamento dei termini già esistenti?">Ricarica ordinamento</a>';
+    echo '<a href="' . esc_url($normativa_url) . '" class="button dci-reload-trasparenza-btn" data-confirm="Aggiornare i riferimenti normativi dei termini dal catalogo 2026?">Ricarica normativa</a>';
     echo '<span id="dci-reload-trasparenza-loader" style="display:none; margin-left:12px; align-items:center;"><span class="spinner is-active" style="float:none; margin:0 8px 0 0;"></span>Ricaricamento in corso...</span>';
     echo '</div>';
-    echo '<p class="description" style="margin-top:12px;">Le azioni “Ricarica descrizioni” e “Ricarica ordinamento” operano solo sui termini già presenti e non modificano struttura, slug o visibilità.</p>';
+    echo '<p class="description" style="margin-top:12px;">Le ricariche dedicate operano solo sui termini già presenti e non modificano struttura, slug o visibilità. La ricarica normativa aggiorna soltanto i percorsi riconosciuti nel catalogo 2026.</p>';
     echo "<script>
     document.addEventListener('DOMContentLoaded', function () {
         var reloadButtons = document.querySelectorAll('.dci-reload-trasparenza-btn');
@@ -195,7 +215,7 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
             'Disposizioni generali' => [
                 "Piano triennale per la prevenzione della corruzione e della trasparenza (PTPCT)",
                 'Atti generali' => [  
-                    'Normativa', // Inserire il link alla normativa di riferimento
+                    // 'Normativa', // Inserire il link alla normativa di riferimento // Voce rimossa perchè non è neccessaria in quanto un collegamento da inserire in riferimento alla normativa di riferimento è già presente nella pagina "Atti generali" della sezione "Disposizioni generali"
                     'Riferimenti normativi su organizzazione e attività',
                     'Atti amministrativi generali',
                     'Documenti di programmazione strategico gestionale',
@@ -211,10 +231,11 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                     "Il Sindaco",
                     "Giunta Comunale",
                     "Consiglio Comunale",
+                    // "Cessati dall’incarico",  // Esiste già la pagina castom "Amministratori Cessati" che contiene le informazioni sui cessati dall'incarico
                     'Relazioni di inizio mandato',
                     'Relazioni di fine mandato'
                 ],
-                'Amministratori Cessati', // Nuova sottovoce
+                'Amministratori Cessati', 
                 "Sanzioni per mancata comunicazione dei dati",
                 "Rendiconti gruppi consiliari regionali/provinciali" =>[
                     'Rendiconti gruppi consiliari regionali/provinciali',
@@ -228,7 +249,7 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                 "Telefono e posta elettronica" // Pagina Custom
             ],
             'Consulenti e collaboratori' => [
-                'Banca dati incarichidi consulenza PerlaPA', // Link a PerlaPA
+                // 'Banca dati incarichidi consulenza PerlaPA', // Link a PerlaPA // Il link va inserito come link standard nella sezione Titolari di incarichi di collaborazione o consulenza
                 'Titolari di incarichi di collaborazione o consulenza'
             ],
             'Personale' => [
@@ -247,7 +268,7 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
 
                 // Nuove sotto-sotto-voci
                 'Dotazione organica' =>  [
-                    'Costo annuale del personale',
+                    'Conto annuale del personale',
                     'Costo personale tempo indeterminato'
                 ],
                 'Personale non a tempo indeterminato' =>[
@@ -265,14 +286,14 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                 "OIV"
             ],
             'Bandi di concorso' => [
-                'Concorsi' 
+                'Bandi di concorso' 
             ],
             'Performance'=> [
                 'Sistema di misurazione e valutazione della performance',
                 "Piano della Performance",
                 "Relazione sulla Performance",
                 "Ammontare complessivo dei premi",
-                "Benessere organizzativo",
+                // "Benessere organizzativo", // Voce sopressa 
                 "Dati relativi ai premi"
             ],
             'Enti controllati' =>[
@@ -416,7 +437,7 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                 "Accesso civico"=>[
                     'Accesso civico “generalizzato” concernente dati e documenti ulteriori',
                     'Registro degli accessi', 
-                    'Catalogo dei dati , metadati e delle banche dei dati'
+                    'Catalogo dei dati, metadati e delle banche dei dati'
                 ],
                 "Accessibilità e Catalogo di dati, metadati e banche dati"=>[
                     'Regolamenti',
@@ -546,16 +567,20 @@ function dci_get_trasparenza_descriptions() {
 /**
  *  Funzione che popola l'amministrazione trasparente andando a caricare l'albero delle tassonomie e le descrizioni dei termini chiave.
  */
-function insertTaxonomyTrasparenzaTerms( $operations = ['structure', 'descriptions'], $dry_run = false ) {
+function insertTaxonomyTrasparenzaTerms( $operations = ['structure', 'descriptions', 'normativa'], $dry_run = false ) {
     $operations = array_values(array_intersect(
         (array) $operations,
-        ['structure', 'descriptions']
+        ['structure', 'descriptions', 'normativa']
     ));
 
     $stats = [
         'inserted' => 0,
         'updated' => 0,
         'descriptions_updated' => 0,
+        'normativa_updated' => 0,
+        'normativa_unchanged' => 0,
+        'normativa_missing' => 0,
+        'normativa_errors' => 0,
     ];
 
     /**
@@ -586,17 +611,28 @@ function insertTaxonomyTrasparenzaTerms( $operations = ['structure', 'descriptio
         $descrizioni = dci_get_trasparenza_descriptions();
         if (is_wp_error($descrizioni)) {
             $stats['descriptions_error'] = $descrizioni->get_error_message();
-            return $stats;
+        } else {
+            foreach ( $descrizioni as $term_name => $new_desc ) {
+                dci_update_term_description(
+                    $term_name,
+                    'tipi_cat_amm_trasp',
+                    $new_desc,
+                    $stats,
+                    $dry_run
+                );
+            }
         }
+    }
 
-        foreach ( $descrizioni as $term_name => $new_desc ) {
-            dci_update_term_description(
-                $term_name,
-                'tipi_cat_amm_trasp',
-                $new_desc,
-                $stats,
-                $dry_run
-            );
+    if (in_array('normativa', $operations, true)) {
+        $normativa_stats = dci_reload_trasparenza_normativa($dry_run);
+        $stats['normativa_updated'] = isset($normativa_stats['normativa_updated']) ? (int) $normativa_stats['normativa_updated'] : 0;
+        $stats['normativa_unchanged'] = isset($normativa_stats['unchanged']) ? (int) $normativa_stats['unchanged'] : 0;
+        $stats['normativa_missing'] = isset($normativa_stats['missing']) ? (int) $normativa_stats['missing'] : 0;
+        $stats['normativa_errors'] = isset($normativa_stats['errors']) ? (int) $normativa_stats['errors'] : 0;
+
+        if (!empty($normativa_stats['normativa_error'])) {
+            $stats['normativa_error'] = $normativa_stats['normativa_error'];
         }
     }
 
@@ -655,6 +691,211 @@ function dci_update_term_description( $term_name, $taxonomy, $new_desc, &$stats 
             }
         }
     }
+}
+
+/**
+ * Carica il catalogo dei riferimenti normativi ricavato dallo schema 2026.
+ *
+ * @return array|WP_Error
+ */
+function dci_get_trasparenza_normativa_catalog() {
+    static $catalog = null;
+
+    if (null !== $catalog) {
+        return $catalog;
+    }
+
+    $path = get_template_directory() . '/inc/comuni_trasparenza_normativa.json';
+    if (!is_readable($path)) {
+        $catalog = new WP_Error(
+            'trasparenza_normativa_missing',
+            'Caricamento normativa saltato: comuni_trasparenza_normativa.json non è disponibile.'
+        );
+        return $catalog;
+    }
+
+    $json = @file_get_contents($path);
+    if (false === $json) {
+        $catalog = new WP_Error(
+            'trasparenza_normativa_read_failed',
+            'Caricamento normativa saltato: impossibile leggere comuni_trasparenza_normativa.json.'
+        );
+        return $catalog;
+    }
+
+    $decoded = json_decode($json, true);
+    if (
+        JSON_ERROR_NONE !== json_last_error()
+        || !is_array($decoded)
+        || empty($decoded['entries'])
+        || !is_array($decoded['entries'])
+    ) {
+        $catalog = new WP_Error(
+            'trasparenza_normativa_invalid',
+            'Caricamento normativa saltato: il catalogo 2026 non contiene riferimenti validi.'
+        );
+        return $catalog;
+    }
+
+    foreach ($decoded['entries'] as $term_path => $normativa) {
+        if (!is_string($term_path) || '' === trim($term_path) || !is_string($normativa) || '' === trim($normativa)) {
+            $catalog = new WP_Error(
+                'trasparenza_normativa_invalid_entry',
+                'Caricamento normativa saltato: il catalogo 2026 contiene una voce non valida.'
+            );
+            return $catalog;
+        }
+    }
+
+    $decoded['aliases'] = isset($decoded['aliases']) && is_array($decoded['aliases'])
+        ? $decoded['aliases']
+        : [];
+
+    $catalog = $decoded;
+    return $catalog;
+}
+
+/**
+ * Normalizza nomi e percorsi per assorbire differenze di maiuscole,
+ * accenti, virgolette e punteggiatura tra Excel e tassonomia.
+ */
+function dci_normalize_trasparenza_normativa_path( $value ) {
+    $value = html_entity_decode(wp_strip_all_tags((string) $value), ENT_QUOTES, 'UTF-8');
+    $value = str_replace(["\u{00A0}", '’', '‘', '“', '”'], [' ', "'", "'", '"', '"'], $value);
+    $value = remove_accents(mb_strtolower($value, 'UTF-8'));
+    $value = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $value);
+
+    return trim(preg_replace('/\s+/u', ' ', $value));
+}
+
+/**
+ * Restituisce il percorso completo di un termine, dal nodo radice al termine.
+ */
+function dci_get_trasparenza_normativa_term_path( $term ) {
+    if (!$term instanceof WP_Term) {
+        return [];
+    }
+
+    $parts = [];
+    $ancestors = array_reverse(get_ancestors($term->term_id, $term->taxonomy, 'taxonomy'));
+
+    foreach ($ancestors as $ancestor_id) {
+        $ancestor = get_term($ancestor_id, $term->taxonomy);
+        if ($ancestor instanceof WP_Term) {
+            $parts[] = $ancestor->name;
+        }
+    }
+
+    $parts[] = $term->name;
+    return $parts;
+}
+
+/**
+ * Aggiorna esclusivamente il meta "normativa" dei termini riconosciuti.
+ * I valori dei termini non presenti nel catalogo restano invariati.
+ */
+function dci_reload_trasparenza_normativa( $dry_run = false ) {
+    $stats = [
+        'normativa_updated' => 0,
+        'unchanged' => 0,
+        'missing' => 0,
+        'errors' => 0,
+    ];
+
+    $catalog = dci_get_trasparenza_normativa_catalog();
+    if (is_wp_error($catalog)) {
+        $stats['normativa_error'] = $catalog->get_error_message();
+        return $stats;
+    }
+
+    $entries = [];
+    $leaf_candidates = [];
+
+    foreach ($catalog['entries'] as $source_path => $normativa) {
+        $normalized_path = dci_normalize_trasparenza_normativa_path($source_path);
+        $clean_normativa = sanitize_textarea_field($normativa);
+
+        if ('' === $normalized_path || '' === $clean_normativa) {
+            continue;
+        }
+
+        $entries[$normalized_path] = $clean_normativa;
+
+        $path_parts = preg_split('/\s*>\s*/u', $source_path);
+        $leaf = dci_normalize_trasparenza_normativa_path(end($path_parts));
+        if ('' !== $leaf) {
+            $leaf_candidates[$leaf][$clean_normativa] = true;
+        }
+    }
+
+    foreach ($catalog['aliases'] as $target_path => $source_path) {
+        $normalized_target = dci_normalize_trasparenza_normativa_path($target_path);
+        $normalized_source = dci_normalize_trasparenza_normativa_path($source_path);
+
+        if (isset($entries[$normalized_source])) {
+            $entries[$normalized_target] = $entries[$normalized_source];
+        }
+    }
+
+    $terms = get_terms([
+        'taxonomy' => 'tipi_cat_amm_trasp',
+        'hide_empty' => false,
+    ]);
+
+    if (is_wp_error($terms)) {
+        $stats['normativa_error'] = 'Caricamento normativa saltato: impossibile leggere i termini della Trasparenza.';
+        $stats['errors']++;
+        return $stats;
+    }
+
+    foreach ($terms as $term) {
+        $path_parts = dci_get_trasparenza_normativa_term_path($term);
+        $normalized_path = dci_normalize_trasparenza_normativa_path(implode(' > ', $path_parts));
+        $normativa = isset($entries[$normalized_path]) ? $entries[$normalized_path] : '';
+
+        if ('' === $normativa && count($path_parts) > 1) {
+            $last = dci_normalize_trasparenza_normativa_path($path_parts[count($path_parts) - 1]);
+            $previous = dci_normalize_trasparenza_normativa_path($path_parts[count($path_parts) - 2]);
+
+            if ($last === $previous) {
+                array_pop($path_parts);
+                $parent_path = dci_normalize_trasparenza_normativa_path(implode(' > ', $path_parts));
+                $normativa = isset($entries[$parent_path]) ? $entries[$parent_path] : '';
+            }
+        }
+
+        if ('' === $normativa) {
+            $leaf = dci_normalize_trasparenza_normativa_path($term->name);
+            if (isset($leaf_candidates[$leaf]) && 1 === count($leaf_candidates[$leaf])) {
+                $candidate_values = array_keys($leaf_candidates[$leaf]);
+                $normativa = reset($candidate_values);
+            }
+        }
+
+        if ('' === $normativa) {
+            $stats['missing']++;
+            continue;
+        }
+
+        $current = (string) get_term_meta($term->term_id, 'normativa', true);
+        if ($current === $normativa) {
+            $stats['unchanged']++;
+            continue;
+        }
+
+        $updated = $dry_run
+            ? true
+            : update_term_meta($term->term_id, 'normativa', $normativa);
+
+        if (false === $updated) {
+            $stats['errors']++;
+            continue;
+        }
+
+        $stats['normativa_updated']++;
+    }
+
+    return $stats;
 }
 
 /**

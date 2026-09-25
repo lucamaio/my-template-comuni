@@ -31,8 +31,20 @@ if ($immagine_alt === '') {
 $documenti         = dci_get_meta('file', $prefix, $elemento->ID);
 $link_documenti    = dci_get_meta('url_documento_group', $prefix, $elemento->ID);
 $documento = is_array($documenti) && !empty($documenti) ? get_permalink($elemento->ID) : $documenti;
-$data= get_the_date('j F Y', $elemento->ID);
-$data_iso = get_the_date('c', $elemento->ID);
+
+// Info sulle date di pubblicazione e modifica
+$data_pubblicazione = get_the_date('j F Y', $elemento->ID);
+// $data= get_the_date('j F Y', $data_pubblicazione);
+$data_modifica      = get_the_modified_date('j F Y', $elemento->ID);
+
+$mostra_aggiornamento = (
+    $data_modifica !== ''
+    && $data_modifica > $data_pubblicazione
+);
+
+// var_dump($mostra_aggiornamento);
+// var_dump($data_pubblicazione);
+// var_dump($data_modifica);
 
 $ck_sowh_section = dci_get_option("ck_show_section", "Trasparenza");
 $show_search_categories = !empty($args['show_search_categories']);
@@ -112,7 +124,9 @@ if($ck_link && !empty($url)){
 
 if ($elemento->post_status === "publish") :
     $title=$elemento->post_title;
+
 ?>
+
 <div class="cmp-card-latest-messages card-wrapper<?php echo $in_evidenza ? ' dci-at-card--featured' : ''; ?>" data-bs-toggle="modal" data-bs-target="#">
     <div
         class="card shadow-sm px-4 pt-4 pb-4 rounded border border-light"
@@ -284,9 +298,22 @@ if ($elemento->post_status === "publish") :
                     <use href="#it-calendar"></use>
                 </svg>
                 Pubblicato il
-                <time datetime="<?php echo esc_attr($data_iso); ?>">
-                    <?php echo esc_html($data); ?>
+                <time datetime="<?php echo esc_attr($data_pubblicazione); ?>">
+                    <?php echo esc_html($data_pubblicazione); ?>
                 </time>
+
+                <?php if( $mostra_aggiornamento ) { ?>
+                    - Aggiornato il
+                    <time datetime="<?php echo esc_attr($data_modifica); ?>">
+                        <?php echo esc_html($data_modifica); ?>
+                    </time>
+                        
+                <?php } ?>
+
+            
+                
+                
+                
             </span>
 
             <h3 class="green-title-big t-primary mb-8">

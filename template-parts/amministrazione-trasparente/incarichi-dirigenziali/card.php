@@ -32,6 +32,7 @@ $additional_attachments = get_post_meta($post_id, $prefix . 'allegati_aggiuntivi
 $more_info = trim(wp_strip_all_tags((string) get_post_meta($post_id, $prefix . 'more_info', true)));
 $published_date = get_the_date('j F Y', $post_id);
 $updated_date = get_the_modified_date('j F Y', $post_id);
+$show_updated_date = $updated_date !== '' && $updated_date > $published_date;
 
 $status_labels = array(
     'in_corso' => __('In corso', 'design_comuni_italia'),
@@ -154,10 +155,12 @@ $extra_documents = $normalize_file_list($additional_attachments, __('Allegato', 
             <dt><?php esc_html_e('Data pubblicazione', 'design_comuni_italia'); ?></dt>
             <dd><?php echo esc_html(dci_custom_section_card_text($published_date, 35)); ?></dd>
         </div>
-        <!-- <div>
-            <dt><?php // esc_html_e('Data aggiornamento', 'design_comuni_italia'); ?></dt>
-            <dd><?php // echo esc_html(dci_custom_section_card_text($updated_date, 35)); ?></dd>
-        </div> -->
+        <?php if ($show_updated_date) : ?>
+            <div>
+                <dt><?php esc_html_e('Data aggiornamento', 'design_comuni_italia'); ?></dt>
+                <dd><?php echo esc_html(dci_custom_section_card_text($updated_date, 35)); ?></dd>
+            </div>
+        <?php endif; ?>
         <div>
             <dt><?php esc_html_e('Conferimento', 'design_comuni_italia'); ?></dt>
             <dd><?php echo esc_html($format_date($start_date)); ?></dd>

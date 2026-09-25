@@ -5,6 +5,11 @@ require_once get_template_directory() . '/template-parts/amministrazione-traspar
 if ( ! isset( $prefix ) ) {
     $prefix = '_dci_icad_';
 }
+
+$post_id = get_the_ID();
+$data_pubblicazione = get_the_date('j F Y', $post_id);
+$data_modifica = get_the_modified_date('j F Y', $post_id);
+$mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubblicazione;
 ?>
 
 <?php
@@ -51,6 +56,12 @@ if (empty($dci_custom_section_card_style_printed)) :
 
 <div class="card mb-2 rounded-3 bg-body-secondary shadow-sm dci-custom-section-card t-primary">
     <div class="card-body">
+        <p class="mb-3 text-muted small">
+            Pubblicato il <?php echo esc_html($data_pubblicazione); ?>
+            <?php if ($mostra_aggiornamento) { ?>
+                - Aggiornato il <?php echo esc_html($data_modifica); ?>
+            <?php } ?>
+        </p>
         <div class="row g-0">
             <div class="col-md-12 ps-4">
                 <div class="row mb-3">

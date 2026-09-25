@@ -68,7 +68,7 @@ if (!is_wp_error($termini_trasparenza)) {
 
     .dci-at-subcategories__heading {
         margin-bottom: 1.25rem;
-        color: #17324d;
+        color: var(--dci-at-theme-color, #17324d);
         font-size: 1.5rem;
         line-height: 1.25;
         font-weight: 700;
@@ -86,7 +86,7 @@ if (!is_wp_error($termini_trasparenza)) {
         color: #17324d;
         background: #fff;
         border: 1px solid #d8e1ea;
-        border-left: 4px solid #17324d;
+        border-left: 4px solid var(--dci-at-theme-color, #17324d);
         border-radius: 4px;
         box-shadow: 0 3px 12px rgba(23, 50, 77, 0.07);
         text-decoration: none;
@@ -94,15 +94,15 @@ if (!is_wp_error($termini_trasparenza)) {
     }
 
     .dci-at-subcategory:hover {
-        color: #17324d;
-        border-color: #17324d;
-        box-shadow: 0 8px 20px rgba(23, 50, 77, 0.13);
+        color: var(--dci-at-theme-color, #17324d);
+        border-color: var(--dci-at-theme-color, #17324d);
+        box-shadow: 0 8px 20px rgba(var(--dci-at-theme-color-rgb, 23, 50, 77), 0.13);
         transform: translateY(-2px);
         text-decoration: none;
     }
 
     .dci-at-subcategory:focus-visible {
-        outline: 3px solid #17324d;
+        outline: 3px solid var(--dci-at-theme-color, #17324d);
         outline-offset: 3px;
     }
 
@@ -122,7 +122,7 @@ if (!is_wp_error($termini_trasparenza)) {
 
     .dci-at-subcategory__title {
         margin: 0;
-        color: #17324d;
+        color: var(--dci-at-theme-color, #17324d);
         font-size: 1.35rem;
         line-height: 1.22;
         font-weight: 700;
@@ -146,14 +146,31 @@ if (!is_wp_error($termini_trasparenza)) {
     .dci-at-subcategory__count {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.25rem 0.55rem;
-        margin: 0.75rem 0 0;
-        padding-top: 0.65rem;
+        gap: 0.45rem;
+        margin: auto 0 0;
+        padding-top: 0.85rem;
         color: #455a64;
         border-top: 1px solid #e6edf3;
-        font-size: 0.9rem;
+        font-size: 0.82rem;
         line-height: 1.4;
+    }
+
+    .dci-at-subcategory__stat {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.3rem;
+        padding: 0.3rem 0.55rem;
+        color: #334e68;
+        background: rgba(var(--dci-at-theme-color-rgb, 23, 50, 77), 0.07);
+        border: 1px solid rgba(var(--dci-at-theme-color-rgb, 23, 50, 77), 0.2);
+        border-radius: 2px;
         font-weight: 600;
+    }
+
+    .dci-at-subcategory__stat-value {
+        color: var(--dci-at-theme-color, #17324d);
+        font-size: 0.95rem;
+        font-weight: 700;
     }
 
     @media (max-width: 767.98px) {
@@ -243,33 +260,37 @@ if (!is_wp_error($termini_trasparenza)) {
 
                         <?php if (empty($term_url)) { ?>
                             <p class="dci-at-subcategory__count">
-                                <span>
-                                    <?php
-                                    printf(
-                                        esc_html(_n(
-                                            '%s elemento pubblicato',
-                                            '%s elementi pubblicati',
-                                            (int) $sottocategoria->count,
+                                <?php $numero_elementi = (int) $sottocategoria->count; ?>
+                                <span class="dci-at-subcategory__stat">
+                                    <strong class="dci-at-subcategory__stat-value">
+                                        <?php echo esc_html(number_format_i18n($numero_elementi)); ?>
+                                    </strong>
+                                    <span>
+                                        <?php
+                                        echo esc_html(_n(
+                                            'elemento pubblicato',
+                                            'elementi pubblicati',
+                                            $numero_elementi,
                                             'design_comuni_italia'
-                                        )),
-                                        esc_html(number_format_i18n((int) $sottocategoria->count))
-                                    );
-                                    ?>
+                                        ));
+                                        ?>
+                                    </span>
                                 </span>
-                                <span aria-hidden="true">·</span>
-                                <span>
-                                    <?php
-                                    $numero_sottovoci = $conteggi_sottovoci[$sottocategoria->term_id] ?? 0;
-                                    printf(
-                                        esc_html(_n(
-                                            '%s sottovoce',
-                                            '%s sottovoci',
-                                            $numero_sottovoci,
+                                <?php $numero_sottocategorie = $conteggi_sottovoci[$sottocategoria->term_id] ?? 0; ?>
+                                <span class="dci-at-subcategory__stat">
+                                    <strong class="dci-at-subcategory__stat-value">
+                                        <?php echo esc_html(number_format_i18n($numero_sottocategorie)); ?>
+                                    </strong>
+                                    <span>
+                                        <?php
+                                        echo esc_html(_n(
+                                            'sottocategoria',
+                                            'sottocategorie',
+                                            $numero_sottocategorie,
                                             'design_comuni_italia'
-                                        )),
-                                        esc_html(number_format_i18n($numero_sottovoci))
-                                    );
-                                    ?>
+                                        ));
+                                        ?>
+                                    </span>
                                 </span>
                             </p>
                         <?php } ?>

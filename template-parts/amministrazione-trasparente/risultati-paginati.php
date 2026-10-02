@@ -712,9 +712,10 @@ if (
                         In questa sezione non risultano elementi pubblicati dal
                         <?php echo esc_html($public_start_year); ?>
                         a oggi.
-                        Gli eventuali documenti pubblicati prima di questo periodo
-                        non sono inclusi nell'elenco pubblico.
-
+                          
+                        <p class="mb-2">
+                            Non risultano, inoltre, pubblicazioni antecedenti a tale periodo.
+                        </p>
                     </p>
 
 
@@ -1054,10 +1055,11 @@ if (is_array($pages)) {
 
 
     <aside
-        class="alert alert-warning mt-5 mb-4"
+        class="dci-at-notice mt-5 mb-4"
         role="note"
         aria-labelledby="dci-at-archive-title"
     >
+    <span class="dci-at-notice__label"><svg class="icon icon-sm" aria-hidden="true"><use href="#it-info-circle"></use></svg> Informazioni sulla pubblicazione</span>
 
         <h2
             id="dci-at-archive-title"

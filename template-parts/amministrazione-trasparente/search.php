@@ -264,6 +264,7 @@ if ($at_search_has_text) {
 }
 
 $at_query_args = [
+    'dci_at_global_search' => true,
     'post_type'           => $at_search_post_types,
     'post_status'         => 'publish',
     'posts_per_page'      => 10,

@@ -5,7 +5,7 @@
      * Verifica che il colore calcolato sia utilizzabile e non trasparente.
      *
      * @param {string} color Colore restituito da getComputedStyle().
-     * @returns {boolean} True quando il colore puo essere ereditato dalle card.
+     * @returns {boolean} True quando il colore puo essere usato dai componenti.
      */
     function isUsableColor(color) {
         return Boolean(
@@ -45,21 +45,37 @@
     }
 
     /**
-     * Espone il colore soltanto al componente Articolazione uffici, evitando
-     * effetti collaterali sulle altre pagine o sui CSS personalizzati esistenti.
+     * Espone il colore ai componenti della trasparenza che lo richiedono.
      *
      * @returns {void}
      */
     function init() {
         var wrapper = document.querySelector('.dci-at-wrap');
-        if (!wrapper) {
+        var sidebars = document.querySelectorAll('.dci-amm-sidebar');
+        if (!wrapper && !sidebars.length) {
             return;
         }
 
         var institutionColor = getInstitutionColor();
-        if (institutionColor) {
+        if (wrapper && institutionColor) {
             wrapper.style.setProperty('--dci-at-entity-color', institutionColor);
         }
+        sidebars.forEach(function (sidebar) {
+            if (institutionColor) {
+                sidebar.style.setProperty('--dci-amm-sidebar-accent', institutionColor);
+            }
+            var usefulLink = sidebar.querySelector('.dci-amm-sidebar__theme-link');
+            var linkColor = usefulLink ? window.getComputedStyle(usefulLink).color : '';
+            var accent = isUsableColor(linkColor) ? linkColor : institutionColor;
+            if (accent) {
+                sidebar.style.setProperty('--dci-amm-sidebar-accent', accent);
+            }
+            if (institutionColor) {
+                sidebar.querySelectorAll('.dci-amm-sidebar__nav').forEach(function (nav) {
+                    nav.style.setProperty('--dci-amm-sidebar-accent', institutionColor);
+                });
+            }
+        });
     }
 
     if (document.readyState === 'loading') {

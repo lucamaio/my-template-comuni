@@ -1,4 +1,61 @@
 <?php
+/** Condizione condivisa tra elenco, storico e anni disponibili della sezione. */
+function dci_titolare_incarico_archive_sql()
+{
+    global $wpdb;
+
+    $now = current_datetime();
+    $publication_start = ((int) $now->format('Y') - 3) . '-01-01 00:00:00';
+    // Il giorno del terzo anniversario resta incluso nella pubblicazione.
+    $cessation_cutoff = $now->setTime(0, 0)->modify('-3 years')->getTimestamp();
+
+    return $wpdb->prepare(
+        "({$wpdb->posts}.post_date < %s
+        AND EXISTS (
+            SELECT 1 FROM {$wpdb->postmeta} AS dci_end
+            WHERE dci_end.post_id = {$wpdb->posts}.ID
+              AND dci_end.meta_key = '_dci_titolare_incarico_data_fine'
+              AND dci_end.meta_value REGEXP '^[0-9]+$'
+              AND CAST(dci_end.meta_value AS SIGNED) > 0
+              AND CAST(dci_end.meta_value AS SIGNED) < %d
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM {$wpdb->postmeta} AS dci_invalid_end
+            WHERE dci_invalid_end.post_id = {$wpdb->posts}.ID
+              AND dci_invalid_end.meta_key = '_dci_titolare_incarico_data_fine'
+              AND (dci_invalid_end.meta_value NOT REGEXP '^[0-9]+$'
+                   OR CAST(dci_invalid_end.meta_value AS SIGNED) <= 0
+                   OR CAST(dci_invalid_end.meta_value AS SIGNED) >= %d)
+        ))",
+        $publication_start,
+        $cessation_cutoff,
+        $cessation_cutoff
+    );
+}
+
+add_filter('posts_where', 'dci_titolare_incarico_visibility_where', 10, 2);
+function dci_titolare_incarico_visibility_where($where, $query)
+{
+    // La ricerca globale comprende più tipi di contenuto: limita solo i titolari.
+    if ($query->get('dci_at_global_search') && !dci_user_can_view_trasparenza_archive()) {
+        global $wpdb;
+        $where .= " AND ({$wpdb->posts}.post_type <> 'titolare_incarico' OR NOT "
+            . dci_titolare_incarico_archive_sql() . ')';
+    }
+
+    if ($query->get('post_type') !== 'titolare_incarico') {
+        return $where;
+    }
+    $visibility = $query->get('dci_titolari_visibility');
+    if (!in_array($visibility, ['public', 'archive'], true)) {
+        return $where;
+    }
+    if ($visibility === 'archive' && !dci_user_can_view_trasparenza_archive()) {
+        return $where . ' AND 1=0';
+    }
+    return $where . ' AND ' . ($visibility === 'public' ? 'NOT ' : '') . dci_titolare_incarico_archive_sql();
+}
+
 /**
  * Registra il custom post type "titolare_incarico"
  */
@@ -301,6 +358,26 @@ function dci_add_titolare_incarico_metaboxes()
         'name' => __('Curriculum', 'design_comuni_italia'),
         'desc' => __('Carica il curriculum del titolare dell’incarico.', 'design_comuni_italia'),
         'type' => 'file_list',
+    ));
+
+    // Sezione ulteriori informazioni
+    $cmb_moreInfo = new_cmb2_box(array(
+        'id'               => $prefix . 'moreInfo_box',
+        'title'            => __('Ulteriori Informazioni', 'design_comuni_italia'),
+        'object_types'     => array('titolare_incarico'),
+        'context'      => 'normal',
+        'priority'     => 'high',
+    ));
+
+    $cmb_moreInfo->add_field(array(
+        'id' => $prefix . 'more_info',
+        'name'        => __('Ulteriori Informazioni', 'design_comuni_italia'),
+        'desc' => __('Inserisci eventuale informazione aggiuntiva riguardo il titolare dell’incarico.', 'design_comuni_italia'),
+        'type' => 'wysiwyg',
+        'options' => array(
+            'textarea_rows' => 10,
+            'teeny' => false,
+        ),
     ));
 }
 

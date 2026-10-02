@@ -32,9 +32,13 @@ while ( have_posts() ) :
     $documenti  = get_post_meta( $id, $prefix . 'allegati', true );
     $curriculum = get_post_meta( $id, $prefix . 'cv_allegati', true );
 
+    // Ulteriore informazioni
+    $more_info = get_post_meta( $id, $prefix . 'more_info', true );
+
     $data_pubbl = get_the_date( 'j F Y', $id );
     $data_modifica = get_the_modified_date( 'j F Y', $id );
-    $mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubbl;
+    $mostra_aggiornamento = (int) get_post_modified_time('U', true, $id) > (int) get_post_time('U', true, $id)
+        && get_the_modified_date('Y-m-d', $id) !== get_the_date('Y-m-d', $id);
 
     $dci_titolare_display_value = static function ( $value ) {
         if ( is_array( $value ) || is_object( $value ) ) {
@@ -141,6 +145,14 @@ while ( have_posts() ) :
                                                                 <li class="nav-item">
                                                                     <a class="nav-link" href="#curriculum">
                                                                     <span class="title-medium">Curriculum</span>
+                                                                    </a>
+                                                                </li>
+                                                                <?php } ?>
+
+                                                                <?php if(isset($more_info) AND !empty($more_info)){?>
+                                                                <li class="nav-item">
+                                                                    <a class="nav-link" href="#more_info">
+                                                                    <span class="title-medium">Ulteriori informazioni</span>
                                                                     </a>
                                                                 </li>
                                                                 <?php } ?>
@@ -411,6 +423,25 @@ while ( have_posts() ) :
                         }
                     </style>
                 <?php endif; ?>
+
+                <?php if(!empty($more_info) AND is_string($more_info)){?>
+                    <article class="it-page-section anchor-offset mt-5 dci-document-resources"
+                        aria-labelledby="more_info">
+                        <h4 class="h3 mb-3 dci-document-resources__heading" id="more_info">Ulteriori informazioni</h4>
+                        <div class="row dci-document-resources__grid">
+                            <div class="col-12 dci-document-resources__item">
+                                <div class="dci-document-resources__card"> 
+                                    <span class="dci-document-resources__content">
+                                        <span class="dci-document-resources__type">Ulteriori informazioni</span>
+                                        <span class="dci-document-resources__title">
+                                            <?php echo nl2br(esc_html($more_info)); ?>
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                <?php } ?> 
 
                 <?php if (!empty($documenti) && is_array($documenti)) : ?>
                     <article class="it-page-section anchor-offset mt-5 dci-document-resources"

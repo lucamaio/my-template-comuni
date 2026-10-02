@@ -54,7 +54,8 @@ get_header();
 
         $data = get_the_date('j F Y', $post->ID);
         $data_modifica = get_the_modified_date('j F Y', $post->ID);
-        $mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data;
+        $mostra_aggiornamento = (int) get_post_modified_time('U', true, $post->ID) > (int) get_post_time('U', true, $post->ID)
+            && get_the_modified_date('Y-m-d', $post->ID) !== get_the_date('Y-m-d', $post->ID);
         $anno_beneficio_raw = get_post_meta($post->ID, $prefix . 'anno_beneficio', true);
         $anno_beneficio_value = $dci_atto_display_value($anno_beneficio_raw);
         $anno_beneficio = $anno_beneficio_value === '-'

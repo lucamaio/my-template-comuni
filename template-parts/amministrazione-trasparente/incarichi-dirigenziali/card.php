@@ -32,7 +32,7 @@ $additional_attachments = get_post_meta($post_id, $prefix . 'allegati_aggiuntivi
 $more_info = trim(wp_strip_all_tags((string) get_post_meta($post_id, $prefix . 'more_info', true)));
 $published_date = get_the_date('j F Y', $post_id);
 $updated_date = get_the_modified_date('j F Y', $post_id);
-$show_updated_date = $updated_date !== '' && $updated_date > $published_date;
+$show_updated_date = get_post_modified_time('U', true, $post_id) > get_post_time('U', true, $post_id) && get_the_modified_date('Y-m-d', $post_id) !== get_the_date('Y-m-d', $post_id);
 
 $status_labels = array(
     'in_corso' => __('In corso', 'design_comuni_italia'),
@@ -129,38 +129,40 @@ $assignment_documents = $normalize_file_list($attachments, __('Documento', 'desi
 $extra_documents = $normalize_file_list($additional_attachments, __('Allegato', 'design_comuni_italia'), $get_file_url);
 ?>
 
-<article class="dci-dirig-card t-primary">
+<article class="dci-dirig-card t-primary"><p class="dci-dirig-card__meta"><svg class="icon" aria-hidden="true"><use href="#it-calendar"></use></svg>
+Pubblicato il <time datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post_id)); ?>"><?php echo esc_html($published_date); ?></time>
+<?php if ($show_updated_date) { ?><span aria-hidden="true">&ndash;</span> Aggiornato il <time datetime="<?php echo esc_attr(get_the_modified_date('Y-m-d', $post_id)); ?>"><?php echo esc_html($updated_date); ?></time><?php } ?>
+</p>
     <header class="dci-dirig-card__header">
         <div class="dci-dirig-card__identity">
-            <h3 class="dci-dirig-card__name card-title">
+            <span class="dci-dirig-card__label">Titolare dell'incarico dirigenziale</span><h3 class="dci-dirig-card__name card-title">
                 <a href="<?php the_permalink(); ?>">
                     <?php echo esc_html(dci_custom_section_card_text($name !== '' ? $name : get_the_title(), 95)); ?>
                 </a>
             </h3>
-            <p class="dci-dirig-card__position" aria-label="Mansione">
-                <?php echo esc_html(dci_custom_section_card_text($position, 85)); ?>
-            </p>
-            <p class="dci-dirig-card__structure" aria-label="Struttura">
-                <?php echo esc_html(dci_custom_section_card_text($structure, 85)); ?>
+        </div>
+        <div class="dci-dirig-card__identity-detail">
+            <span class="dci-dirig-card__label">Mansione</span>
+            <p class="dci-dirig-card__position">
+                <?php echo esc_html($position !== '' ? dci_custom_section_card_text($position, 85) : 'Non specificata'); ?>
             </p>
         </div>
-
-        <span class="dci-dirig-card__status dci-dirig-card__status--<?php echo esc_attr($status); ?>">
-            <?php echo esc_html($status_labels[$status] ?? $empty_value); ?>
-        </span>
+        <div class="dci-dirig-card__identity-detail">
+            <span class="dci-dirig-card__label">Struttura di appartenenza</span>
+            <p class="dci-dirig-card__structure">
+                <?php echo esc_html($structure !== '' ? dci_custom_section_card_text($structure, 85) : 'Non specificata'); ?>
+            </p>
+        </div>
     </header>
+    <div class="dci-dirig-card__status-row">
+        <span class="dci-dirig-card__label">Stato dell'incarico</span>
+        <span class="dci-dirig-card__status dci-dirig-card__status--<?php echo esc_attr($status); ?>">
+            <span class="dci-dirig-card__status-dot" aria-hidden="true"></span>
+            <?php echo esc_html($status_labels[$status] ?? 'Non specificato'); ?>
+        </span>
+    </div>
 
     <dl class="dci-dirig-card__data">
-        <div>
-            <dt><?php esc_html_e('Data pubblicazione', 'design_comuni_italia'); ?></dt>
-            <dd><?php echo esc_html(dci_custom_section_card_text($published_date, 35)); ?></dd>
-        </div>
-        <?php if ($show_updated_date) : ?>
-            <div>
-                <dt><?php esc_html_e('Data aggiornamento', 'design_comuni_italia'); ?></dt>
-                <dd><?php echo esc_html(dci_custom_section_card_text($updated_date, 35)); ?></dd>
-            </div>
-        <?php endif; ?>
         <div>
             <dt><?php esc_html_e('Conferimento', 'design_comuni_italia'); ?></dt>
             <dd><?php echo esc_html($format_date($start_date)); ?></dd>
@@ -191,8 +193,8 @@ $extra_documents = $normalize_file_list($additional_attachments, __('Allegato', 
         </p>
     <?php endif; ?>
 
-    <section class="dci-dirig-card__document-section" aria-label="<?php esc_attr_e('Documenti dell incarico', 'design_comuni_italia'); ?>">
-        <h4 class="dci-dirig-card__document-title t-primary">
+    <section class="dci-dirig-card__document-section" aria-label="<?php esc_attr_e("Documenti dell'incarico", 'design_comuni_italia'); ?>">
+        <h4 class="visually-hidden">
             <?php esc_html_e('Documenti', 'design_comuni_italia'); ?>
         </h4>
 
@@ -201,39 +203,39 @@ $extra_documents = $normalize_file_list($additional_attachments, __('Allegato', 
                 <h5><?php esc_html_e('Curriculum', 'design_comuni_italia'); ?></h5>
                 <?php if ($curriculum_url !== '') : ?>
                     <a href="<?php echo esc_url($curriculum_url); ?>" target="_blank" rel="noopener">
-                        <svg class="icon icon-sm icon-primary" aria-hidden="true"><use href="#it-file"></use></svg>
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#it-file"></use></svg>
                         <?php echo esc_html(dci_custom_section_card_text($curriculum_title, 65)); ?>
                     </a>
                 <?php else : ?>
-                    <p><?php echo esc_html($empty_value); ?></p>
+                    <p><?php esc_html_e('Nessun curriculum', 'design_comuni_italia'); ?></p>
                 <?php endif; ?>
             </div>
 
             <div class="dci-dirig-card__document-group">
-                <h5><?php esc_html_e('Atti e documenti relativi all incarico', 'design_comuni_italia'); ?></h5>
+                <h5><?php esc_html_e("Atti e documenti dell'incarico", 'design_comuni_italia'); ?></h5>
                 <?php if (!empty($assignment_documents)) : ?>
                     <?php foreach ($assignment_documents as $document) : ?>
                         <a href="<?php echo esc_url($document['url']); ?>" target="_blank" rel="noopener">
-                            <svg class="icon icon-sm icon-primary" aria-hidden="true"><use href="#it-file"></use></svg>
+                            <svg class="icon icon-sm" aria-hidden="true"><use href="#it-file"></use></svg>
                             <?php echo esc_html(dci_custom_section_card_text($document['title'], 65)); ?>
                         </a>
                     <?php endforeach; ?>
                 <?php else : ?>
-                    <p><?php echo esc_html($empty_value); ?></p>
+                    <p><?php esc_html_e('Nessun documento', 'design_comuni_italia'); ?></p>
                 <?php endif; ?>
             </div>
 
-            <div class="dci-dirig-card__document-group">
+            <div class="dci-dirig-card__document-group dci-dirig-card__document-group--wide">
                 <h5><?php esc_html_e('Allegati aggiuntivi', 'design_comuni_italia'); ?></h5>
                 <?php if (!empty($extra_documents)) : ?>
                     <?php foreach ($extra_documents as $document) : ?>
                         <a href="<?php echo esc_url($document['url']); ?>" target="_blank" rel="noopener">
-                            <svg class="icon icon-sm icon-primary" aria-hidden="true"><use href="#it-file"></use></svg>
+                            <svg class="icon icon-sm" aria-hidden="true"><use href="#it-file"></use></svg>
                             <?php echo esc_html(dci_custom_section_card_text($document['title'], 65)); ?>
                         </a>
                     <?php endforeach; ?>
                 <?php else : ?>
-                    <p><?php echo esc_html($empty_value); ?></p>
+                    <p><?php esc_html_e('Nessun allegato aggiuntivo', 'design_comuni_italia'); ?></p>
                 <?php endif; ?>
             </div>
         </div>
@@ -264,12 +266,12 @@ if (empty($dci_incarico_dirigenziale_card_style_printed)) :
             --dci-dirig-border: #d7e2ec;
             --dci-dirig-muted: #5c6f82;
             --dci-dirig-soft: #f7f9fb;
-            margin-bottom: 1.25rem;
-            padding: 1.35rem;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
             border: 1px solid var(--dci-dirig-border);
-            border-radius: 4px;
+            border-radius: 8px;
             background: #fff;
-            box-shadow: 0 8px 22px rgba(23, 50, 77, .07);
+            box-shadow: 0 8px 24px rgba(23, 50, 77, .08);
             color: #17324d;
         }
         .dci-dirig-card__header {
@@ -281,7 +283,7 @@ if (empty($dci_incarico_dirigenziale_card_style_printed)) :
         .dci-dirig-card__identity { min-width: 0; }
         .dci-dirig-card__name {
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             line-height: 1.35;
         }
         .dci-dirig-card__name a {
@@ -358,7 +360,7 @@ if (empty($dci_incarico_dirigenziale_card_style_printed)) :
             min-width: 0;
             padding: .85rem;
             border: 1px solid #e4ebf2;
-            border-radius: 4px;
+            border-radius: 8px;
             background: var(--dci-dirig-soft);
         }
         .dci-dirig-card__document-group h5 {
@@ -403,7 +405,7 @@ if (empty($dci_incarico_dirigenziale_card_style_printed)) :
         }
         .dci-dirig-card__detail {
             flex: 0 0 auto;
-            border-radius: 4px;
+            border-radius: 8px;
             font-weight: 700;
             text-decoration: none;
         }
@@ -434,5 +436,46 @@ if (empty($dci_incarico_dirigenziale_card_style_printed)) :
                 text-align: center;
             }
         }
-    </style>
+    .dci-dirig-card { border-radius:12px; border-color:#d9e2ec; }
+.dci-dirig-card__meta { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; margin:0 0 1.25rem; padding-bottom:1rem; border-bottom:1px solid #455a64; color:#455a64; font-weight:600; }
+.dci-dirig-card__meta .icon { width:1rem; height:1rem; fill:currentColor; }
+.dci-dirig-card__label, .dci-dirig-card__data dt, .dci-dirig-card__document-group h5 { display:block; margin-bottom:.3rem; color:#4f6173; font-size:.75rem; font-weight:700; letter-spacing:.035em; text-transform:uppercase; }
+.dci-dirig-card__identity { padding:1.15rem; border:1px solid #e1e7ed; border-radius:8px; background:#f3f5f7; flex:1; overflow-wrap:anywhere; }
+.dci-dirig-card__data { grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; padding:0; border:1px solid #e1e8ef; border-radius:8px; overflow:hidden; }
+.dci-dirig-card__data > div { padding:1rem; min-width:0; overflow-wrap:anywhere; }
+.dci-dirig-card__data > div + div { border-left:1px solid #e1e8ef; }
+.dci-dirig-card__data dd { font-weight:400; color:#263b4d; line-height:1.55; }
+.dci-dirig-card__document-group { background:#fff; padding:1rem; }
+.dci-dirig-card__summary { padding:1.15rem; background:#f3f5f7; border:1px solid #e1e7ed; border-radius:8px; overflow-wrap:anywhere; }
+.dci-dirig-card__footer { flex-wrap:wrap; gap:.65rem; }
+@media (min-width:768px) and (max-width:991.98px) {
+.dci-dirig-card__data { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.dci-dirig-card__data > div:nth-child(n+3) { border-top:1px solid #e1e8ef; }
+.dci-dirig-card__data > div:nth-child(3) { border-left:0; }
+}
+@media (max-width:767.98px) {
+.dci-dirig-card__data, .dci-dirig-card__document-grid { grid-template-columns:1fr; }
+.dci-dirig-card__data > div + div { border-left:0; border-top:1px solid #e1e8ef; }
+}
+.dci-dirig-card__header { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+.dci-dirig-card__identity { grid-column:1 / -1; }
+.dci-dirig-card__identity-detail { min-width:0; padding:1.15rem; border:1px solid #e1e7ed; border-radius:8px; background:#f3f5f7; overflow-wrap:anywhere; }
+.dci-dirig-card__position, .dci-dirig-card__structure { margin:0; color:#263b4d; font-weight:400; line-height:1.55; }
+.dci-dirig-card__status-row { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin-top:1.25rem; }
+.dci-dirig-card__status-row .dci-dirig-card__label { margin:0; }
+.dci-dirig-card__status { display:inline-flex; align-items:center; gap:.45rem; margin:0; padding:.4rem .8rem; border-radius:999px; line-height:1.4; }
+.dci-dirig-card__status-dot { width:.5rem; height:.5rem; border-radius:50%; background:currentColor; }
+.dci-dirig-card__status--cessato, .dci-dirig-card__status--concluso { color:#455a64; border-color:#c7d2da; background:#eef2f5; }
+@media (max-width:575.98px) { .dci-dirig-card__header { grid-template-columns:1fr; } }
+.dci-dirig-card__document-section { margin-top:1.25rem; padding-top:1.25rem; }
+.dci-dirig-card__document-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.dci-dirig-card__document-group { padding:1rem; border:1px solid #e4ebf2; border-radius:6px; background:#fff; }
+.dci-dirig-card__document-group--wide { grid-column:1 / -1; }
+.dci-dirig-card__document-group a { gap:.4rem; margin:.4rem 0 0; color:currentColor; font-weight:400; line-height:1.55; }
+.dci-dirig-card__document-group a:first-of-type { margin-top:.4rem; }
+.dci-dirig-card__document-group a:hover, .dci-dirig-card__document-group a:focus-visible { text-decoration:underline; }
+.dci-dirig-card__document-group p { color:#263b4d; font-weight:400; line-height:1.55; }
+.dci-dirig-card__document-group .icon { fill:currentColor; }
+@media (max-width:767.98px) { .dci-dirig-card__document-grid { grid-template-columns:1fr; } }
+</style>
 <?php endif; ?>

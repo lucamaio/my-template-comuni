@@ -212,7 +212,7 @@ if ($elemento->post_status === "publish") :
                 if (!empty($categorie)) { ?>
                     <div
                         class="dci-at-result-categories"
-                        style="display:flex;align-items:center;gap:.35rem;margin-bottom:.55rem;color:#455a64;font-size:.82rem;line-height:1.35;"
+                        style="display:flex;align-items:baseline;flex-wrap:wrap;gap:.35rem .5rem;margin-bottom:.75rem;color:#455a64;font-size:.9rem;line-height:1.5;"
                     >
                         <svg
                             class="icon"
@@ -224,7 +224,7 @@ if ($elemento->post_status === "publish") :
                         <span
                             class="dci-at-result-categories__label"
                             style="flex:0 0 auto;font-size:.82rem;line-height:1.35;font-weight:600;white-space:nowrap;"
-                        >Pubblicato in:</span>
+                        >Sezione:</span>
                         <ul
                             class="dci-at-result-categories__list"
                             style="display:flex;align-items:center;flex-wrap:wrap;gap:.2rem .55rem;min-width:0;margin:0;padding:0;list-style:none;"
@@ -286,6 +286,11 @@ if ($elemento->post_status === "publish") :
         </div>
 
         <div class="card-body p-0 my-2">
+            <?php if ($show_search_categories) {
+                get_template_part('template-parts/amministrazione-trasparente/search-date-metadata', null, [
+                    'post_id' => $elemento->ID,
+                ]);
+            } else { ?>
             <span
                 class="data"
                 style="display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.6rem;color:#455a64;font-size:1rem;line-height:1.4;font-weight:600;"
@@ -315,6 +320,7 @@ if ($elemento->post_status === "publish") :
                 
                 
             </span>
+            <?php } ?>
 
             <h3 class="green-title-big t-primary mb-8">
                 <a class="text-decoration-none" href="<?php echo esc_url($link); ?>"

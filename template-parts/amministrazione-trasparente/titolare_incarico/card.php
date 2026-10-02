@@ -16,7 +16,8 @@ $atto        = get_post_meta(get_the_ID(), $prefix . 'atto_conferimento_incarico
 $situazioni  = get_post_meta(get_the_ID(), $prefix . 'situazioni_conflitto', true);
 $data_pubblicazione = get_the_date('j F Y', get_the_ID());
 $data_modifica = get_the_modified_date('j F Y', get_the_ID());
-$mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubblicazione;
+$mostra_aggiornamento = (int) get_the_modified_time('U', get_the_ID()) > (int) get_the_time('U', get_the_ID())
+    && get_the_modified_date('Y-m-d', get_the_ID()) !== get_the_date('Y-m-d', get_the_ID());
 
 // Allegati
 $allegati   = get_post_meta(get_the_ID(), $prefix . 'allegati', true);
@@ -24,102 +25,271 @@ $curriculum = get_post_meta(get_the_ID(), $prefix . 'cv_allegati', true);
 ?>
 
 <?php
-global $dci_custom_section_card_style_printed;
-if (empty($dci_custom_section_card_style_printed)) :
-    $dci_custom_section_card_style_printed = true;
+global $dci_titolare_incarico_card_style_printed;
+if (empty($dci_titolare_incarico_card_style_printed)) :
+    $dci_titolare_incarico_card_style_printed = true;
 ?>
 <style>
-    .dci-custom-section-card {
-        margin-bottom: 1.25rem !important;
-        border: 1px solid #d7e2ec !important;
-        border-radius: 4px !important;
-        background: #fff !important;
-        box-shadow: 0 8px 22px rgba(23, 50, 77, .07) !important;
+    .dci-titolare-card {
+        margin-bottom: 1.5rem;
+        border: 1px solid #d9e2ec;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(23, 50, 77, .08);
         overflow: hidden;
-        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
-    .dci-custom-section-card:hover {
-        border-color: #c9d7e5 !important;
-        box-shadow: 0 12px 28px rgba(23, 50, 77, .11) !important;
-        transform: translateY(-1px);
+
+    .dci-titolare-card__meta-divider {
+        margin: 0 0 1.25rem;
+        border: 0;
+        border-top: 1px solid #455a64 !important;
     }
-    .dci-custom-section-card .card-body { padding: 1.35rem; }
-    .dci-custom-section-card .border-top { border-top-color: #e4ebf2 !important; }
-    .dci-custom-section-card h5,
-    .dci-custom-section-card h6,
-    .dci-custom-section-card strong,
-    .dci-custom-section-card a:not(.btn) { color: currentColor; }
-    .dci-custom-section-card .text-muted,
-    .dci-custom-section-card small { color: #5c6f82 !important; }
-    .dci-custom-section-card .fw-semibold {
+    .dci-titolare-card__label {
+        display: block;
+        margin-bottom: .3rem;
+        color: #4f6173;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .035em;
+        line-height: 1.25;
+        text-transform: uppercase;
+    }
+    .dci-titolare-card__meta {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .35rem;
+        margin-bottom: .85rem;
+        color: #455a64;
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+    .dci-titolare-card__meta .icon {
+        flex: 0 0 auto;
+        width: 1rem;
+        height: 1rem;
+        fill: currentColor;
+    }
+    .dci-titolare-card__body {
+        padding: 1.5rem;
+    }
+    .dci-titolare-card__title {
+        margin: 0;
+        color: currentColor;
+        font-size: 1.25rem;
+        line-height: 1.35;
+    }
+    .dci-titolare-card__section {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e4ebf2;
+    }
+    .dci-titolare-card__long-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: .75rem;
+    }
+    .dci-titolare-card__long-field {
+        min-width: 0;
+        padding: 1.15rem;
+        border: 1px solid #e1e7ed;
+        border-radius: 8px;
+        background: #f3f5f7;
+    }
+    .dci-titolare-card__facts {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        overflow: hidden;
+        border: 1px solid #e1e8ef;
+        border-radius: 8px;
+    }
+    .dci-titolare-card__fact {
+        display: flex;
+        align-items: flex-start;
+        gap: .7rem;
+        min-width: 0;
+        padding: 1rem;
+    }
+    .dci-titolare-card__fact + .dci-titolare-card__fact {
+        border-left: 1px solid #e1e8ef;
+    }
+    .dci-titolare-card__fact-icon {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        color: #455a64;
+        background: #eef2f5;
+    }
+    .dci-titolare-card__fact-icon .icon {
+        width: 1rem;
+        height: 1rem;
+        fill: currentColor;
+    }
+    .dci-titolare-card__fact-content {
+        min-width: 0;
+    }
+    .dci-titolare-card__documents {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    .dci-titolare-card__field {
+        min-width: 0;
+        padding: 1rem;
+        border: 1px solid #e4ebf2;
+        border-radius: 6px;
+        background: #fff;
+    }
+    .dci-titolare-card__long-field .dci-titolare-card__value {
+        white-space: normal;
+    }
+    .dci-titolare-card__value {
+        margin: 0;
+        color: #263b4d;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+    .dci-titolare-card__document {
+        display: flex;
+        align-items: flex-start;
+        gap: .4rem;
+        margin: .4rem 0 0;
+    }
+    .dci-titolare-card__document .icon {
+        flex: 0 0 auto;
+        margin-top: .1rem;
+        fill: currentColor;
+    }
+    .dci-titolare-card__document a {
         color: currentColor;
         text-decoration: none;
+        overflow-wrap: anywhere;
     }
-    .dci-custom-section-card .fw-semibold:hover { text-decoration: underline; }
-    .dci-custom-section-card .icon { fill: currentColor; }
+    .dci-titolare-card__document a:hover { text-decoration: underline; }
+    .dci-titolare-card__footer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 1rem;
+        align-items: end;
+    }
+    .dci-titolare-card__actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: .65rem;
+    }
     @media (max-width: 767.98px) {
-        .dci-custom-section-card .text-end { text-align: left !important; margin-top: .75rem; }
+        .dci-titolare-card__long-grid,
+        .dci-titolare-card__facts,
+        .dci-titolare-card__documents { grid-template-columns: 1fr; }
+        .dci-titolare-card__fact + .dci-titolare-card__fact {
+            border-top: 1px solid #dce5ed;
+            border-left: 0;
+        }
+        .dci-titolare-card__footer { grid-template-columns: 1fr; }
+        .dci-titolare-card__actions { justify-content: flex-start; }
+    }
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .dci-titolare-card__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .dci-titolare-card__fact:nth-child(3) {
+            border-top: 1px solid #e1e8ef;
+            border-left: 0;
+        }
+        .dci-titolare-card__fact:nth-child(4) { border-top: 1px solid #e1e8ef; }
     }
 </style>
 <?php endif; ?>
 
-<div class="card mb-4 rounded-4 shadow-sm border dci-custom-section-card t-primary">
-    <div class="card-body">
-        <p class="mb-3 text-muted small">
-            Pubblicato il <?php echo esc_html($data_pubblicazione); ?>
+<article class="dci-titolare-card t-primary">
+    <div class="dci-titolare-card__body">
+        <span class="dci-titolare-card__meta">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#it-calendar"></use></svg>
+            <?php esc_html_e('Pubblicato il', 'design_comuni_italia'); ?>
+            <time datetime="<?php echo esc_attr(get_the_date('Y-m-d', get_the_ID())); ?>">
+                <?php echo esc_html($data_pubblicazione); ?>
+            </time>
             <?php if ($mostra_aggiornamento) { ?>
-                - Aggiornato il <?php echo esc_html($data_modifica); ?>
+                <span aria-hidden="true">–</span>
+                <?php esc_html_e('Aggiornato il', 'design_comuni_italia'); ?>
+                <time datetime="<?php echo esc_attr(get_the_modified_date('Y-m-d', get_the_ID())); ?>">
+                    <?php echo esc_html($data_modifica); ?>
+                </time>
             <?php } ?>
-        </p>
-        <!-- Titolo/Norma -->
-        <h6 class="text-uppercase text-muted small">Titolo/Norma</h6>
-        <h5 class="fw-bold mb-3">
+        </span>
+
+        <hr class="dci-titolare-card__meta-divider" aria-hidden="true">
+
+        <header>
+            <span class="dci-titolare-card__label">Titolare dell’incarico di collaborazione o consulenza</span>
+            <h3 class="dci-titolare-card__title">
             <?php echo esc_html(dci_custom_section_card_text(get_the_title(), 95)); ?>
-        </h5>
+            </h3>
+        </header>
 
-        <!-- Dati principali -->
-        <div class="row g-3 mb-3">
-            <div class="col-md-4">
-                <h6 class="text-uppercase text-muted small">Oggetto incarico</h6>
-                <p class="mb-0"><?php echo esc_html(dci_custom_section_card_text($oggetto, 110)); ?></p>
+        <section class="dci-titolare-card__section" aria-label="Dati principali dell'incarico">
+            <div class="dci-titolare-card__long-grid">
+                <div class="dci-titolare-card__long-field">
+                    <span class="dci-titolare-card__label">Oggetto incarico</span>
+                    <p class="dci-titolare-card__value"><?php echo esc_html(dci_custom_section_card_text($oggetto, 220)); ?></p>
+                </div>
+                <div class="dci-titolare-card__long-field">
+                    <span class="dci-titolare-card__label">Atto di conferimento</span>
+                    <p class="dci-titolare-card__value"><?php echo esc_html(dci_custom_section_card_text($atto, 220)); ?></p>
+                </div>
             </div>
-            <div class="col-md-4">
-                <h6 class="text-uppercase text-muted small">Atto di conferimento</h6>
-                <p class="mb-0"><?php echo esc_html(dci_custom_section_card_text($atto, 70)); ?></p>
-            </div>
-            <div class="col-md-4">
-                <h6 class="text-uppercase text-muted small">Compenso lordo</h6>
-                <p class="mb-0"><?php echo esc_html(dci_custom_section_card_text($compenso, 45)); ?></p>
-            </div>
-        </div>
+        </section>
 
-        <div class="row g-3 mb-3">
-            <div class="col-md-4">
-                <h6 class="text-uppercase text-muted small">Data inizio</h6>
-                <p class="mb-0">
-                    <?php echo esc_html(dci_custom_section_card_date($data_inizio)); ?>
-                </p>
+        <section class="dci-titolare-card__section" aria-label="Dati economici e durata dell'incarico">
+            <div class="dci-titolare-card__facts">
+                <div class="dci-titolare-card__fact">
+                    <span class="dci-titolare-card__fact-icon" aria-hidden="true">
+                        <svg class="icon"><use href="#it-card"></use></svg>
+                    </span>
+                    <div class="dci-titolare-card__fact-content">
+                        <span class="dci-titolare-card__label">Compenso lordo</span>
+                        <p class="dci-titolare-card__value"><?php echo esc_html(dci_custom_section_card_text($compenso, 45)); ?></p>
+                    </div>
+                </div>
+                <div class="dci-titolare-card__fact">
+                    <span class="dci-titolare-card__fact-icon" aria-hidden="true">
+                        <svg class="icon"><use href="#it-calendar"></use></svg>
+                    </span>
+                    <div class="dci-titolare-card__fact-content">
+                        <span class="dci-titolare-card__label">Data inizio</span>
+                        <p class="dci-titolare-card__value"><?php echo esc_html(dci_custom_section_card_date($data_inizio)); ?></p>
+                    </div>
+                </div>
+                <div class="dci-titolare-card__fact">
+                    <span class="dci-titolare-card__fact-icon" aria-hidden="true">
+                        <svg class="icon"><use href="#it-calendar"></use></svg>
+                    </span>
+                    <div class="dci-titolare-card__fact-content">
+                        <span class="dci-titolare-card__label">Data fine</span>
+                        <p class="dci-titolare-card__value"><?php echo esc_html(dci_custom_section_card_date($data_fine)); ?></p>
+                    </div>
+                </div>
+                <div class="dci-titolare-card__fact">
+                    <span class="dci-titolare-card__fact-icon" aria-hidden="true">
+                        <svg class="icon"><use href="#it-clock"></use></svg>
+                    </span>
+                    <div class="dci-titolare-card__fact-content">
+                        <span class="dci-titolare-card__label">Durata</span>
+                        <p class="dci-titolare-card__value"><?php echo esc_html(dci_custom_section_card_text($durata, 45)); ?></p>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-4">
-                <h6 class="text-uppercase text-muted small">Data fine</h6>
-                <p class="mb-0">
-                    <?php echo esc_html(dci_custom_section_card_date($data_fine)); ?>
-                </p>
-            </div>
-            <div class="col-md-4">
-                <h6 class="text-uppercase text-muted small">Durata</h6>
-                <p class="mb-0"><?php echo esc_html(dci_custom_section_card_text($durata, 45)); ?></p>
-            </div>
-        </div>
+        </section>
 
-        <!-- <div class="row g-3 mb-4">
-            
-        </div> -->
-
-        <!-- Allegati -->
-        <div class="row pt-3 border-top">
-            <div class="col-md-6">
-                <h6 class="text-uppercase text-muted small">Allegati</h6>
+        <section class="dci-titolare-card__section" aria-label="Documenti dell'incarico">
+            <div class="dci-titolare-card__documents">
+            <div class="dci-titolare-card__field">
+                <span class="dci-titolare-card__label">Allegati</span>
                 <?php 
                 if (!empty($allegati) && is_array($allegati)) {
                     $i = 1;
@@ -139,19 +309,19 @@ if (empty($dci_custom_section_card_style_printed)) :
                         );
 
                         if (!$file_url) continue;
-                        echo '<p class="mb-1">
-                                <svg class="icon icon-sm me-1"><use href="#it-file"></use></svg>
+                        echo '<p class="dci-titolare-card__document">
+                                <svg class="icon icon-sm" aria-hidden="true"><use href="#it-file"></use></svg>
                                 <a href="'.esc_url($file_url).'" target="_blank" rel="noopener">'.esc_html(dci_custom_section_card_text($file_title, 65)).'</a>
                               </p>';
                         $i++;
                     }
                 } else {
-                    echo '<p class="mb-0">Nessun allegato</p>';
+                    echo '<p class="dci-titolare-card__value">Nessun allegato</p>';
                 }
                 ?>
             </div>
-            <div class="col-md-6">
-                <h6 class="text-uppercase text-muted small">Curriculum</h6>
+            <div class="dci-titolare-card__field">
+                <span class="dci-titolare-card__label">Curriculum</span>
                 <?php 
                 if (!empty($curriculum) && is_array($curriculum)) {
                     $i = 1;
@@ -171,26 +341,26 @@ if (empty($dci_custom_section_card_style_printed)) :
                         );
 
                         if (!$file_url) continue;
-                        echo '<p class="mb-1">
-                                <svg class="icon icon-sm me-1"><use href="#it-file"></use></svg>
+                        echo '<p class="dci-titolare-card__document">
+                                <svg class="icon icon-sm" aria-hidden="true"><use href="#it-file"></use></svg>
                                 <a href="'.esc_url($file_url).'" target="_blank" rel="noopener">'.esc_html(dci_custom_section_card_text($file_title, 65)).'</a>
                               </p>';
                         $i++;
                     }
                 } else {
-                    echo '<p class="mb-0">Nessun curriculum</p>';
+                    echo '<p class="dci-titolare-card__value">Nessun curriculum</p>';
                 }
                 ?>
             </div>
-        </div>
-
-        <!-- Link dettaglio -->
-        <div class="row g-3 mt-3 pt-3 border-top align-items-end">
-            <div class="col-md-5">
-                <h6 class="text-uppercase text-muted small">Verifica conflitto di interessi</h6>
-                <p class="mb-0"><?php echo esc_html(dci_custom_section_card_text($situazioni, 90)); ?></p>
             </div>
-            <div class="col-md-7 dci-at-card-actions">
+        </section>
+
+        <footer class="dci-titolare-card__section dci-titolare-card__footer">
+            <div>
+                <span class="dci-titolare-card__label">Verifica conflitto di interessi</span>
+                <p class="dci-titolare-card__value"><?php echo esc_html(dci_custom_section_card_text($situazioni, 90)); ?></p>
+            </div>
+            <div class="dci-titolare-card__actions dci-at-card-actions">
                 <a href="<?php the_permalink(); ?>" class="dci-at-card-detail-action btn btn-primary btn-sm">
                     <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
                     <svg class="icon icon-sm ms-1" aria-hidden="true" focusable="false"><use href="#it-arrow-right"></use></svg>
@@ -201,6 +371,6 @@ if (empty($dci_custom_section_card_style_printed)) :
                 }
                 ?>
             </div>
-        </div>
+        </footer>
     </div>
-</div>
+</article>

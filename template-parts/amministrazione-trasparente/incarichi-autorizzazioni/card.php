@@ -1,153 +1,129 @@
 <?php
-global $prefix;
 require_once get_template_directory() . '/template-parts/amministrazione-trasparente/custom-section-card-helpers.php';
-
-if ( ! isset( $prefix ) ) {
-    $prefix = '_dci_icad_';
-}
-
+$prefix = '_dci_icad_';
 $post_id = get_the_ID();
 $data_pubblicazione = get_the_date('j F Y', $post_id);
 $data_modifica = get_the_modified_date('j F Y', $post_id);
-$mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubblicazione;
-?>
+$mostra_aggiornamento = get_post_modified_time('U', true, $post_id) > get_post_time('U', true, $post_id)
+    && get_the_modified_date('Y-m-d', $post_id) !== get_the_date('Y-m-d', $post_id);
+$anno_conferimento = get_post_meta($post_id, $prefix . 'anno_conferimento', true);
+$anno_conferimento_formatted = !empty($anno_conferimento) ? date_i18n('Y', intval($anno_conferimento)) : '-';
+$soggetto_percettore = get_post_meta($post_id, $prefix . 'soggetto_percettore', true);
+$dirigente = get_post_meta($post_id, $prefix . 'dirigente_non_dirigente', true);
+$soggetto_conferente = get_post_meta($post_id, $prefix . 'soggetto_conferente', true);
+$soggetto_dichiarante = get_post_meta($post_id, $prefix . 'soggetto_dichiarante', true);
+$data_conferimento = get_post_meta($post_id, $prefix . 'data_conferimento_autorizzazione', true);
+$durata = get_post_meta($post_id, $prefix . 'durata', true);
+$compenso = get_post_meta($post_id, $prefix . 'compenso_lordo', true);
+$compenso_numeric = floatval(str_replace(',', '.', preg_replace('/[^\d,]+/', '', $compenso)));
 
-<?php
-global $dci_custom_section_card_style_printed;
-if (empty($dci_custom_section_card_style_printed)) :
-    $dci_custom_section_card_style_printed = true;
+global $dci_dipendenti_card_style_printed;
+if (empty($dci_dipendenti_card_style_printed)) :
+    $dci_dipendenti_card_style_printed = true;
 ?>
 <style>
-    .dci-custom-section-card {
-        margin-bottom: 1.25rem !important;
-        border: 1px solid #d7e2ec !important;
-        border-radius: 4px !important;
-        background: #fff !important;
-        box-shadow: 0 8px 22px rgba(23, 50, 77, .07) !important;
-        overflow: hidden;
-        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-    .dci-custom-section-card:hover {
-        border-color: #c9d7e5 !important;
-        box-shadow: 0 12px 28px rgba(23, 50, 77, .11) !important;
-        transform: translateY(-1px);
-    }
-    .dci-custom-section-card .card-body { padding: 1.35rem; }
-    .dci-custom-section-card .border-top { border-top-color: #e4ebf2 !important; }
-    .dci-custom-section-card h5,
-    .dci-custom-section-card h6,
-    .dci-custom-section-card strong,
-    .dci-custom-section-card a:not(.btn) { color: currentColor; }
-    .dci-custom-section-card .text-muted,
-    .dci-custom-section-card small { color: #5c6f82 !important; }
-    .dci-custom-section-card .btn-link {
-        color: currentColor;
-        font-weight: 700;
-        text-decoration: none;
-    }
-    .dci-custom-section-card .btn-link:hover { text-decoration: underline; }
-    .dci-custom-section-card .icon { fill: currentColor; }
-    @media (max-width: 767.98px) {
-        .dci-custom-section-card .ps-4 { padding-left: 0 !important; }
-        .dci-custom-section-card .text-end { text-align: left !important; margin-top: .75rem; }
-    }
+.dci-dipendenti-card { margin-bottom:1.5rem; border:1px solid #d9e2ec; border-radius:12px; background:#fff; box-shadow:0 8px 24px rgba(23,50,77,.08); overflow:hidden; }
+.dci-dipendenti-card__body { padding:1.5rem; }
+.dci-dipendenti-card__meta { display:flex; align-items:center; flex-wrap:wrap; gap:.35rem; color:#455a64; font-weight:600; margin:0 0 1.25rem; padding-bottom:1rem; border-bottom:1px solid #455a64; }
+.dci-dipendenti-card__meta .icon { width:1rem; height:1rem; }
+.dci-dipendenti-card .icon { fill:currentColor; flex:0 0 auto; }
+.dci-dipendenti-card__title { margin:0; font-size:1.25rem; line-height:1.35; overflow-wrap:anywhere; }
+.dci-dipendenti-card__label { display:block; margin:0 0 .3rem; color:#4f6173; font-size:.75rem; font-weight:700; letter-spacing:.035em; line-height:1.25; text-transform:uppercase; }
+.dci-dipendenti-card__section { margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid #e4ebf2; }
+.dci-dipendenti-card__section-title { margin:0 0 .75rem; font-size:1rem; font-weight:700; color:currentColor; }
+.dci-dipendenti-card__people { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin:0; }
+.dci-dipendenti-card__field { min-width:0; padding:1.15rem; border:1px solid #e1e7ed; border-radius:8px; background:#f3f5f7; }
+.dci-dipendenti-card__value { margin:0; color:#263b4d; line-height:1.55; overflow-wrap:anywhere; }
+.dci-dipendenti-card__facts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:0; border:1px solid #e1e8ef; border-radius:8px; overflow:hidden; }
+.dci-dipendenti-card__fact { display:flex; align-items:flex-start; gap:.7rem; min-width:0; padding:1rem; }
+.dci-dipendenti-card__fact + .dci-dipendenti-card__fact { border-left:1px solid #e1e8ef; }
+.dci-dipendenti-card__fact > div { min-width:0; }
+.dci-dipendenti-card__fact-icon { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; width:2rem; height:2rem; border-radius:50%; color:#455a64; background:#eef2f5; }
+.dci-dipendenti-card__fact-icon .icon { width:1rem; height:1rem; }
+.dci-dipendenti-card__documents { padding:1rem; border:1px solid #e4ebf2; border-radius:6px; background:#fff; }
+.dci-dipendenti-card__document { display:flex; align-items:flex-start; gap:.4rem; margin:.4rem 0 0; }
+.dci-dipendenti-card__document .icon { margin-top:.1rem; }
+.dci-dipendenti-card__document-text { min-width:0; }
+.dci-dipendenti-card__document a { color:currentColor; font-weight:400; line-height:1.55; overflow-wrap:anywhere; }
+.dci-dipendenti-card__document a:hover, .dci-dipendenti-card__document a:focus-visible { text-decoration:underline !important; }
+.dci-dipendenti-card__actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.65rem; }
+@media (min-width:768px) and (max-width:991.98px) {
+    .dci-dipendenti-card__facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .dci-dipendenti-card__fact:nth-child(n+3) { border-top:1px solid #e1e8ef; }
+    .dci-dipendenti-card__fact:nth-child(3) { border-left:0; }
+}
+@media (max-width:767.98px) {
+    .dci-dipendenti-card__people, .dci-dipendenti-card__facts { grid-template-columns:1fr; }
+    .dci-dipendenti-card__fact + .dci-dipendenti-card__fact { border-left:0; border-top:1px solid #e1e8ef; }
+    .dci-dipendenti-card__actions { justify-content:flex-start; }
+}
 </style>
 <?php endif; ?>
-
-<div class="card mb-2 rounded-3 bg-body-secondary shadow-sm dci-custom-section-card t-primary">
-    <div class="card-body">
-        <p class="mb-3 text-muted small">
-            Pubblicato il <?php echo esc_html($data_pubblicazione); ?>
+<article class="dci-dipendenti-card t-primary">
+    <div class="dci-dipendenti-card__body">
+        <p class="dci-dipendenti-card__meta">
+            <svg class="icon" aria-hidden="true"><use href="#it-calendar"></use></svg>
+            Pubblicato il <time datetime="<?php echo esc_attr(get_the_date('Y-m-d', $post_id)); ?>"><?php echo esc_html($data_pubblicazione); ?></time>
             <?php if ($mostra_aggiornamento) { ?>
-                - Aggiornato il <?php echo esc_html($data_modifica); ?>
+                <span aria-hidden="true">&ndash;</span>
+                Aggiornato il <time datetime="<?php echo esc_attr(get_the_modified_date('Y-m-d', $post_id)); ?>"><?php echo esc_html($data_modifica); ?></time>
             <?php } ?>
         </p>
-        <div class="row g-0">
-            <div class="col-md-12 ps-4">
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <h6 class="text-uppercase text-muted small">Titolo/Norma</h6>
-                        <p class="mb-0"><strong><?php echo esc_html(dci_custom_section_card_text(get_the_title(), 95)); ?></strong></p>
-                    </div>
+        <header>
+            <span class="dci-dipendenti-card__label">Incarico conferito o autorizzato</span>
+            <h3 class="dci-dipendenti-card__title"><?php echo esc_html(dci_custom_section_card_text(get_the_title(), 95)); ?></h3>
+        </header>
+        <section class="dci-dipendenti-card__section" aria-label="Titolare dell'incarico">
+            <h4 class="dci-dipendenti-card__section-title">Titolare dell'incarico</h4>
+            <dl class="dci-dipendenti-card__people">
+                <div class="dci-dipendenti-card__field">
+                    <dt class="dci-dipendenti-card__label">Soggetto percettore</dt>
+                    <dd class="dci-dipendenti-card__value"><?php echo esc_html(dci_custom_section_card_text($soggetto_percettore, 150)); ?></dd>
                 </div>
-
-                <div class="row align-items-center mb-3">
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Anno di Conferimento</small>
-                        <?php
-                        $anno_conferimento = get_post_meta(get_the_ID(), $prefix . 'anno_conferimento', true);
-                        $anno_conferimento_formatted = !empty($anno_conferimento) ? date_i18n('Y', intval($anno_conferimento)) : '-';
-                        ?>
-                        <span class="d-block"><?php echo esc_html($anno_conferimento_formatted); ?></span>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Soggetto dichiarante</small>
-                        <?php
-                        $soggetto_dichiarante = get_post_meta(get_the_ID(), $prefix . 'soggetto_dichiarante', true);
-                        ?>
-                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($soggetto_dichiarante, 55)); ?></span>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Soggetto percettore</small>
-                        <?php
-                        $soggetto_percettore = get_post_meta(get_the_ID(), $prefix . 'soggetto_percettore', true);
-                        ?>
-                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($soggetto_percettore, 55)); ?></span>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Dirigente/Non Dirigente</small>
-                        <?php
-                        $dirigente = get_post_meta(get_the_ID(), $prefix . 'dirigente_non_dirigente', true);
-                        ?>
-                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($dirigente, 45)); ?></span>
-                    </div>
+                <div class="dci-dipendenti-card__field">
+                    <dt class="dci-dipendenti-card__label">Qualifica: dirigente / non dirigente</dt>
+                    <dd class="dci-dipendenti-card__value"><?php echo esc_html(dci_custom_section_card_text($dirigente, 95)); ?></dd>
                 </div>
-
-                <div class="row align-items-center mb-3">
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Soggetto Conferente</small>
-                        <?php
-                        $soggetto_conferente = get_post_meta(get_the_ID(), $prefix . 'soggetto_conferente', true);
-                        ?>
-                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($soggetto_conferente, 55)); ?></span>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Data conferimento autorizzazione</small>
-                        <?php
-                        $data_conferimento = get_post_meta(get_the_ID(), $prefix . 'data_conferimento_autorizzazione', true);
-                        echo esc_html(dci_custom_section_card_date($data_conferimento));
-                        ?>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Durata</small>
-                        <?php
-                        $durata = get_post_meta(get_the_ID(), $prefix . 'durata', true);
-                        ?>
-                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($durata, 45)); ?></span>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Compenso Lordo</small>
-                        <?php
-                        $compenso = get_post_meta(get_the_ID(), $prefix . 'compenso_lordo', true);
-                        $compenso_numeric = floatval(str_replace(',', '.', preg_replace('/[^\d,]+/', '', $compenso)));
-                        ?>
-                        <span class="d-block"><?php echo $compenso_numeric !== 0.0 ? esc_html(number_format($compenso_numeric, 2, ',', '.')) . '€' : '-'; ?></span>
-                    </div>
+            </dl>
+        </section>
+        <section class="dci-dipendenti-card__section" aria-label="Conferimento e dichiarazione">
+            <h4 class="dci-dipendenti-card__section-title">Conferimento e dichiarazione</h4>
+            <dl class="dci-dipendenti-card__people">
+                <div class="dci-dipendenti-card__field">
+                    <dt class="dci-dipendenti-card__label">Soggetto conferente</dt>
+                    <dd class="dci-dipendenti-card__value"><?php echo esc_html(dci_custom_section_card_text($soggetto_conferente, 150)); ?></dd>
                 </div>
-
+                <div class="dci-dipendenti-card__field">
+                    <dt class="dci-dipendenti-card__label">Soggetto dichiarante</dt>
+                    <dd class="dci-dipendenti-card__value"><?php echo esc_html(dci_custom_section_card_text($soggetto_dichiarante, 150)); ?></dd>
+                </div>
+            </dl>
+        </section>
+        <section class="dci-dipendenti-card__section" aria-label="Periodo e compenso">
+            <h4 class="dci-dipendenti-card__section-title">Periodo e compenso</h4>
+            <div class="dci-dipendenti-card__facts">
+                <?php
+                $incarico_facts = [
+                    ['Anno di conferimento', $anno_conferimento_formatted, 'it-calendar'],
+                    ['Data di conferimento / autorizzazione', dci_custom_section_card_date($data_conferimento), 'it-calendar'],
+                    ['Durata', dci_custom_section_card_text($durata, 95), 'it-clock'],
+                    ['Compenso lordo', $compenso_numeric !== 0.0 ? number_format($compenso_numeric, 2, ',', '.') . ' €' : '-', 'it-card'],
+                ];
+                foreach ($incarico_facts as [$label, $value, $icon]) { ?>
+                    <div class="dci-dipendenti-card__fact">
+                        <span class="dci-dipendenti-card__fact-icon" aria-hidden="true"><svg class="icon"><use href="#<?php echo esc_attr($icon); ?>"></use></svg></span>
+                        <div>
+                            <span class="dci-dipendenti-card__label"><?php echo esc_html($label); ?></span>
+                            <p class="dci-dipendenti-card__value"><?php echo esc_html($value); ?></p>
+                        </div>
+                    </div>
+                <?php } ?>
             </div>
-        </div>
-
-        <div class="row mt-3 pt-3 border-top border-light-subtle">
-            <div class="col-md-6">
-                <h6 class="text-uppercase text-muted small">Allegati</h6>
-                <p class="mb-0">
+        </section>
+        <section class="dci-dipendenti-card__section" aria-label="Documenti dell'incarico">
+            <div class="dci-dipendenti-card__documents">
+                <h4 class="dci-dipendenti-card__label">Allegati</h4>
+                <div class="dci-dipendenti-card__value">
                     <?php
                     $allegati = get_post_meta(get_the_ID(), $prefix . 'allegati', true);
 
@@ -172,11 +148,11 @@ if (empty($dci_custom_section_card_style_printed)) :
                             if (!$file_url) continue; // Salta se l'allegato non ha URL
 
                     ?>
-                            <span class="d-inline-flex align-items-center mb-2 me-3">
+                            <span class="dci-dipendenti-card__document">
                                 <svg class="icon icon-sm me-1" aria-hidden="true">
                                     <use href="#it-file"></use>
                                 </svg>
-                                <span class="text fw-semibold">
+                                <span class="dci-dipendenti-card__document-text">
                                     <a class="text-decoration-none" href="<?php echo esc_url($file_url); ?>" target="_blank" rel="noopener noreferrer">
                                         <?php echo esc_html(dci_custom_section_card_text($file_title, 65)); ?>
                                     </a>
@@ -186,23 +162,19 @@ if (empty($dci_custom_section_card_style_printed)) :
                             $i++;
                         }
                     } else {
-                        echo 'Nessun Allegato';
+                        echo 'Nessun allegato disponibile';
                     }
                     ?>
-                </p>
-            </div>
 
-            <div class="col-md-6 text-end dci-at-card-actions">
-                <a href="<?php echo esc_url(get_permalink()); ?>" class="dci-at-card-detail-action btn btn-primary btn-sm">
-                    <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
-                    <svg class="icon icon-sm ms-1" aria-hidden="true" focusable="false"><use href="#it-arrow-right"></use></svg>
-                </a>
-                <?php
-                if (function_exists('dci_render_trasparenza_edit_link')) {
-                    dci_render_trasparenza_edit_link(get_the_ID());
-                }
-                ?>
+                </div>
             </div>
-        </div>
+        </section>
+        <footer class="dci-dipendenti-card__section dci-dipendenti-card__actions dci-at-card-actions">
+            <a href="<?php echo esc_url(get_permalink()); ?>" class="dci-at-card-detail-action btn btn-primary btn-sm">
+                <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
+                <svg class="icon icon-sm ms-1" aria-hidden="true" focusable="false"><use href="#it-arrow-right"></use></svg>
+            </a>
+            <?php if (function_exists('dci_render_trasparenza_edit_link')) { dci_render_trasparenza_edit_link($post_id); } ?>
+        </footer>
     </div>
-</div>
+</article>

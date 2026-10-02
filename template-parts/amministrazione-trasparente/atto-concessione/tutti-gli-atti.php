@@ -232,15 +232,18 @@ if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
     </div>
 
 <?php else : ?>
-    <div class="alert alert-info text-center" role="alert">
-        Nessun incarico conferito trovato.
-    </div>
+    <?php get_template_part('template-parts/amministrazione-trasparente/atto-concessione/nessun-risultato', null, [
+        'start_year' => $public_start_year,
+        'has_filters' => trim($main_search_query) !== '' || $selected_year > 0,
+        'paged' => $paged,
+        'can_view_archive' => $can_view_archive,
+    ]); ?>
 <?php endif; ?>
 
 <?php if ($archive_query instanceof WP_Query && $archive_query->have_posts()) : ?>
     <?php
     get_template_part(
-        'template-parts/amministrazione-trasparente/archivio-amministratori',
+        'template-parts/amministrazione-trasparente/atto-concessione/avviso-storico',
         null,
         [
             'start_year' => $public_start_year,

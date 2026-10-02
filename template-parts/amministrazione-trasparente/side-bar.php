@@ -84,7 +84,7 @@ if (!function_exists('dci_amm_sidebar_get_root_term')) {
             return $term;
         }
 
-        $ancestors = get_ancestors($term->term_id, $term->taxonomy);
+        $ancestors = get_ancestors($term->term_id, $term->taxonomy, 'taxonomy');
         if (empty($ancestors)) {
             return $term;
         }
@@ -138,7 +138,6 @@ if (!function_exists('dci_amm_sidebar_render_theme_item')) {
         $prefix = '_dci_sito_tematico_';
         $descrizione = dci_get_meta('descrizione_breve', $prefix, $sito_tematico_id);
         $immagine = dci_get_meta('immagine', $prefix, $sito_tematico_id);
-        $colore = dci_get_meta('colore', $prefix, $sito_tematico_id);
         $immagine_id = 0;
 
         if (is_numeric($immagine)) {
@@ -165,7 +164,7 @@ if (!function_exists('dci_amm_sidebar_render_theme_item')) {
                             <span class="dci-amm-sidebar__theme-description"><?php echo esc_html($descrizione); ?></span>
                         <?php } ?>
                     </span>
-                    <svg class="icon icon-md dci-amm-sidebar__theme-icon" aria-hidden="true" <?php echo !empty($colore) ? 'style="fill:' . esc_attr($colore) . ';"' : ''; ?>>
+                    <svg class="icon icon-md dci-amm-sidebar__theme-icon" aria-hidden="true">
                         <use href="#it-external-link"></use>
                     </svg>
                 </div>
@@ -176,7 +175,7 @@ if (!function_exists('dci_amm_sidebar_render_theme_item')) {
 }
 
 if (!function_exists('dci_amm_sidebar_render_term_branch')) {
-    function dci_amm_sidebar_render_term_branch($parent_term, $current_term, $level = 0, $max_level = 2)
+    function dci_amm_sidebar_render_term_branch($parent_term, $current_term, $level = 0, $max_level = 20)
     {
         if (!$parent_term instanceof WP_Term || $level > $max_level) {
             return;
@@ -189,24 +188,23 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
         ?>
         <ul class="dci-amm-sidebar__term-list dci-amm-sidebar__term-list--level-<?php echo (int) $level; ?>">
             <?php foreach ($children as $child) {
+                // Ogni voce appartiene esclusivamente al ramo della sezione corrente.
+                if ((int) $child->parent !== (int) $parent_term->term_id || $child->taxonomy !== $parent_term->taxonomy) {
+                    continue;
+                }
                 $child_display_name = dci_format_trasparenza_section_title($child->name);
                 $is_active = dci_amm_sidebar_term_is_active($child, $current_term);
+                $is_current = $current_term instanceof WP_Term && (int) $child->term_id === (int) $current_term->term_id;
+                $panel_id = wp_unique_id('trasparenza-sottovoci-');
                 $grandchildren = ($level < $max_level) ? dci_amm_sidebar_get_term_children($child->term_id, $child->taxonomy) : [];
                 $has_children = !empty($grandchildren);
                 $is_open = $is_active;
                 $link_data = dci_amm_sidebar_get_term_link_data($child);
                 ?>
-                <li class="dci-amm-sidebar__term-item<?php echo $is_active ? ' is-active' : ''; ?><?php echo $is_open ? ' is-open' : ''; ?>">
+                <li class="dci-amm-sidebar__term-item<?php echo $is_active ? ' is-active' : ''; ?><?php echo $is_current ? ' is-current' : ''; ?><?php echo $is_open ? ' is-open' : ''; ?>">
                     <div class="dci-amm-sidebar__term-row">
-                        <a class="dci-amm-sidebar__term-link text-decoration-none t-primary" href="<?php echo esc_url($link_data['url']); ?>" aria-label="<?php echo esc_attr($child_display_name); ?>"<?php echo $link_data['target']; ?>>
-                            <span class="dci-amm-sidebar__term-marker dci-amm-sidebar__term-marker--level-<?php echo (int) $level; ?>" aria-hidden="true">
-                                <?php if ($has_children) { ?>
-                                    <span class="dci-amm-sidebar__term-marker-arrow">›</span>
-                                <?php } else { ?>
-                                    <span class="dci-amm-sidebar__term-marker-dash">-</span>
-                                <?php } ?>
-                            </span>
-                            <span class="dci-amm-sidebar__term-label"><?php echo esc_html($child_display_name); ?></span>
+                        <a class="dci-amm-sidebar__term-link text-decoration-none t-primary" href="<?php echo esc_url($link_data['url']); ?>"<?php echo $is_current ? ' aria-current="page"' : ''; ?><?php echo $link_data['target']; ?>>
+                            <span class="dci-amm-sidebar__term-copy"><span class="dci-amm-sidebar__term-label"><?php echo esc_html($child_display_name); ?></span></span>
                             <?php if (!empty($link_data['is_external'])) { ?>
                                 <svg class="icon icon-xs dci-amm-sidebar__external-icon" aria-hidden="true">
                                     <use href="#it-external-link"></use>
@@ -218,7 +216,8 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
                                 type="button"
                                 class="dci-amm-sidebar__toggle t-primary"
                                 aria-expanded="<?php echo $is_open ? 'true' : 'false'; ?>"
-                                aria-label="<?php echo esc_attr(sprintf('Mostra le sottovoci di %s', $child_display_name)); ?>">
+                                aria-controls="<?php echo esc_attr($panel_id); ?>"
+                                aria-label="<?php echo esc_attr(sprintf('Espandi o comprimi le sottovoci di %s', $child_display_name)); ?>">
                                 <svg class="icon icon-sm icon-primary" aria-hidden="true">
                                     <use href="#it-expand"></use>
                                 </svg>
@@ -226,7 +225,7 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
                         <?php } ?>
                     </div>
                     <?php if ($has_children && $level < $max_level) { ?>
-                        <div class="dci-amm-sidebar__children"<?php echo $is_open ? '' : ' hidden'; ?>>
+                        <div id="<?php echo esc_attr($panel_id); ?>" class="dci-amm-sidebar__children"<?php echo $is_open ? '' : ' hidden'; ?>>
                             <?php dci_amm_sidebar_render_term_branch($child, $current_term, $level + 1, $max_level); ?>
                         </div>
                     <?php } ?>
@@ -257,13 +256,13 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
     .dci-amm-sidebar__sticky {
         display: grid;
         gap: 1rem;
-        margin-top: 1rem;
+        margin-top: 0;
     }
 
     .dci-amm-sidebar__box {
-        background: #fff;
-        border: 1px solid #e9eef4;
-        border-radius: .5rem;
+        background: #ffffff;
+        border: 1px solid #dfe3e7;
+        border-radius: .375rem;
         padding: 1.25rem;
         box-shadow: 0 .125rem .25rem rgba(23, 50, 77, .08);
     }
@@ -292,106 +291,149 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
         padding-left: 0;
     }
 
-    .dci-amm-sidebar__term-list--level-1,
-    .dci-amm-sidebar__term-list--level-2 {
-        margin-top: .5rem;
-        margin-left: .875rem;
-        padding-left: .875rem;
-        border-left: 1px solid #dbe5ee;
-    }
-
-    .dci-amm-sidebar__term-item + .dci-amm-sidebar__term-item,
-    .dci-amm-sidebar__section-item + .dci-amm-sidebar__section-item {
-        margin-top: .625rem;
-    }
-
-    .dci-amm-sidebar__term-row {
+    .dci-amm-sidebar__nav-head {
         display: flex;
         align-items: flex-start;
-        gap: .5rem;
+        gap: .25rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #dbd5d5;
     }
-
+    .dci-amm-sidebar__nav-head > .icon {
+        flex: 0 0 auto;
+        padding: .5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        background: #ffff;
+        border-radius: .25rem;
+    }
+    .dci-amm-sidebar__nav {
+        --dci-amm-sidebar-accent: var(--tema-primary, var(--bs-primary, #193e66));
+    }
+    .dci-amm-sidebar__nav .dci-amm-sidebar__title {
+        color: var(--dci-amm-sidebar-accent) !important;
+    }
+    .dci-amm-sidebar__nav .dci-amm-sidebar__nav-head > .icon,
+    .dci-amm-sidebar__nav .dci-amm-sidebar__group-icon .icon,
+    .dci-amm-sidebar__nav .dci-amm-sidebar__external-icon,
+    .dci-amm-sidebar__nav .dci-amm-sidebar__toggle .icon {
+        fill: var(--dci-amm-sidebar-accent) !important;
+    }
+    .dci-amm-sidebar__back-link .icon,
+    .dci-amm-sidebar__links .dci-amm-sidebar__theme-icon {
+        fill: currentColor !important;
+    }
+    .dci-amm-sidebar__nav .dci-amm-sidebar__term-root > a,
+    .dci-amm-sidebar__nav .dci-amm-sidebar__term-link,
+    .dci-amm-sidebar__nav .dci-amm-sidebar__toggle {
+        color: var(--dci-amm-sidebar-accent) !important;
+    }
+    .dci-amm-sidebar__back-link {
+        color: var(--dci-amm-sidebar-accent);
+    }
+    .dci-amm-sidebar__nav .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row::after {
+        background: var(--dci-amm-sidebar-accent);
+    }
+    .dci-amm-sidebar__nav .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row > a,
+    .dci-amm-sidebar__nav .dci-amm-sidebar__term-root > a[aria-current="page"] {
+        border-left-color: var(--dci-amm-sidebar-accent);
+    }
+    @supports (background: color-mix(in srgb, red, white)) {
+        .dci-amm-sidebar__nav .dci-amm-sidebar__nav-head > .icon,
+        .dci-amm-sidebar__nav .dci-amm-sidebar__group-icon {
+            background: color-mix(in srgb, var(--dci-amm-sidebar-accent) 11%, white);
+        }
+        .dci-amm-sidebar__nav .dci-amm-sidebar__term-row:hover,
+        .dci-amm-sidebar__nav .dci-amm-sidebar__term-root > a:hover,
+        .dci-amm-sidebar__nav .dci-amm-sidebar__toggle:hover {
+            background: color-mix(in srgb, var(--dci-amm-sidebar-accent) 9%, white);
+        }
+        .dci-amm-sidebar__nav .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row,
+        .dci-amm-sidebar__nav .dci-amm-sidebar__term-root > a[aria-current="page"] {
+            background: color-mix(in srgb, var(--dci-amm-sidebar-accent) 13%, white);
+        }
+    }
+    .dci-amm-sidebar__nav-head .dci-amm-sidebar__title { margin: 0 0 .25rem; }
+    .dci-amm-sidebar__intro { margin: 0; color: #536270; font-size: .875rem; line-height: 1.5; }
+    .dci-amm-sidebar__term-root { margin: 0 0 .75rem; }
+    .dci-amm-sidebar__term-root > a { width: 100%; padding: .65rem .75rem; border-left: 3px solid transparent; border-radius: .375rem; }
+    .dci-amm-sidebar__section-entries {
+        margin-top: 1.5rem;
+        padding: .75rem .5rem;
+        border: 1px solid #cbd3db;
+        border-radius: .375rem;
+        background: #fff;
+    }
+    .dci-amm-sidebar__section-entries > .dci-amm-sidebar__term-root {
+        position: relative;
+        width: fit-content;
+        max-width: calc(100% - 1rem);
+        margin: -2rem .5rem .75rem;
+        background: #fff;
+    }
+    .dci-amm-sidebar__section-entries > .dci-amm-sidebar__term-root > a {
+        padding: .35rem .5rem;
+        overflow-wrap: anywhere;
+    }
+    .dci-amm-sidebar__term-list {
+        margin-left: 1rem;
+        padding-left: .85rem;
+        border-left: 1px solid #cbd3db;
+    }
+    .dci-amm-sidebar__children > .dci-amm-sidebar__term-list { margin-top: .35rem; }
+    .dci-amm-sidebar__term-item + .dci-amm-sidebar__term-item,
+    .dci-amm-sidebar__section-item + .dci-amm-sidebar__section-item { margin-top: .35rem; }
+    .dci-amm-sidebar__term-row { position: relative; display: flex; align-items: stretch; border-radius: .375rem; }
+    .dci-amm-sidebar__term-row::before {
+        content: ''; position: absolute; left: -.85rem; top: 1.3rem;
+        width: .85rem; border-top: 1px solid #cbd3db;
+    }
+    .dci-amm-sidebar__term-row::after {
+        content: ''; position: absolute; left: calc(-.85rem - 4px); top: calc(1.3rem - 3px);
+        width: 7px; height: 7px; border-radius: 50%; background: #9cabb9;
+        box-shadow: 0 0 0 2px #f6f7f8; pointer-events: none;
+    }
+    .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row::after { background: #193e66; }
+    .dci-amm-sidebar__term-list--level-0 { margin-left: 1rem; padding-left: .85rem; border-left: 0; }
+    .dci-amm-sidebar__term-list--level-0 > .dci-amm-sidebar__term-item + .dci-amm-sidebar__term-item { margin-top: .875rem; }
+    .dci-amm-sidebar__term-list--level-0 > .dci-amm-sidebar__term-item > .dci-amm-sidebar__children > .dci-amm-sidebar__term-list { margin-left: 1rem; }
+    .dci-amm-sidebar__term-list--level-0 > .dci-amm-sidebar__term-item { position: relative; padding-bottom: .35rem; }
+    .dci-amm-sidebar__term-list--level-0 > .dci-amm-sidebar__term-item::before {
+        content: ''; position: absolute; left: -.85rem; top: .25rem; bottom: .35rem;
+        border-left: 1px solid #cbd3db; pointer-events: none;
+    }
+    .dci-amm-sidebar__group-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        flex: 0 0 2rem; width: 2rem; height: 2rem; margin-right: .35rem;
+        border-radius: 50%; background: #e7edf3;
+    }
+    .dci-amm-sidebar__group-icon .icon { width: 1.15rem; height: 1.15rem; fill: currentColor; }
     .dci-amm-sidebar__term-link,
-    .dci-amm-sidebar__section-link {
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-        width: 100%;
-        line-height: 1.4;
-        color: currentColor;
-    }
-
-    .dci-amm-sidebar__term-link {
-        font-weight: 500;
-    }
-
-    .dci-amm-sidebar__term-label {
-        font-weight: 500;
-    }
-
-    .dci-amm-sidebar__term-item.is-active > .dci-amm-sidebar__term-row .dci-amm-sidebar__term-label,
-    .dci-amm-sidebar__term-root.is-active span {
-        font-weight: 700;
-        color: inherit;
-    }
-
-    .dci-amm-sidebar__term-list--level-2 .dci-amm-sidebar__term-link {
-        color: #455a64;
-    }
-
-    .dci-amm-sidebar__term-marker {
-        flex: 0 0 auto;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1rem;
-        height: 1rem;
-        color: currentColor;
-    }
-
-    .dci-amm-sidebar__term-marker-arrow {
-        font-size: 1rem;
-        font-weight: 700;
-        line-height: 1;
-        opacity: .9;
-    }
-
-    .dci-amm-sidebar__term-marker-dash {
-        font-size: 1rem;
-        font-weight: 700;
-        line-height: 1;
-        opacity: .9;
-    }
-
-    .dci-amm-sidebar__term-root a {
-        font-weight: 700;
-    }
-
-    .dci-amm-sidebar__external-icon {
-        flex: 0 0 auto;
-        fill: currentColor;
-    }
-
+    .dci-amm-sidebar__section-link { display: flex; align-items: center; gap: .4rem; width: 100%; line-height: 1.45; }
+    .dci-amm-sidebar__term-link { min-width: 0; padding: .6rem .5rem; border-left: 3px solid transparent; border-radius: .375rem; }
+    .dci-amm-sidebar__term-copy { display: block; min-width: 0; overflow-wrap: anywhere; }
+    .dci-amm-sidebar__term-label { display: block; font-size: .95rem; font-weight: 400; }
+    .dci-amm-sidebar__term-list--level-0 > .dci-amm-sidebar__term-item > .dci-amm-sidebar__term-row .dci-amm-sidebar__term-label,
+    .dci-amm-sidebar__term-item.is-active > .dci-amm-sidebar__term-row .dci-amm-sidebar__term-label { font-weight: 600; }
+    .dci-amm-sidebar__term-root a { font-weight: 700; }
+    .dci-amm-sidebar__term-row:hover, .dci-amm-sidebar__term-root > a:hover { background: #ffffff; }
+    .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row,
+    .dci-amm-sidebar__term-root > a[aria-current="page"] { background: #e7eef5; }
+    .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row > a,
+    .dci-amm-sidebar__term-root > a[aria-current="page"] { border-left-color: currentColor; font-weight: 700; }
+    .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row .dci-amm-sidebar__term-label { font-weight: 700; }
+    .dci-amm-sidebar__external-icon { flex: 0 0 auto; fill: currentColor; }
     .dci-amm-sidebar__toggle {
-        flex: 0 0 auto;
-        border: 0;
-        background: transparent;
-        padding: 0;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: currentColor;
-        cursor: pointer;
+        flex: 0 0 2.5rem; min-height: 2.75rem; border: 0; border-radius: .2rem;
+        background: transparent; padding: .35rem; display: inline-flex;
+        align-items: center; justify-content: center; cursor: pointer;
     }
-
-    .dci-amm-sidebar__toggle .icon {
-        transition: transform .2s ease;
-    }
-
-    .dci-amm-sidebar__term-item.is-open > .dci-amm-sidebar__term-row .dci-amm-sidebar__toggle .icon {
-        transform: rotate(180deg);
-    }
-
+    .dci-amm-sidebar__toggle:hover { background: #ffffff; }
+    .dci-amm-sidebar a:focus-visible, .dci-amm-sidebar button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+    .dci-amm-sidebar__toggle .icon { transition: transform .2s ease; }
+    .dci-amm-sidebar__term-item.is-open > .dci-amm-sidebar__term-row .dci-amm-sidebar__toggle .icon { transform: rotate(180deg); }
+    .dci-amm-sidebar__children[hidden] { display: none; }
+    @media (prefers-reduced-motion: reduce) { .dci-amm-sidebar__toggle .icon { transition: none; } }
     .dci-amm-sidebar__theme-item + .dci-amm-sidebar__theme-item {
         margin-top: .875rem;
         padding-top: .875rem;
@@ -400,6 +442,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
 
     .dci-amm-sidebar__theme-link {
         display: block;
+        color: var(--dci-amm-sidebar-accent, var(--tema-primary, var(--bs-primary, #193e66)));
     }
 
     .dci-amm-sidebar__theme-head {
@@ -452,6 +495,15 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
         margin-top: .15rem;
         fill: currentColor;
     }
+    .dci-amm-sidebar__links {
+        background: #fff;
+        border: 1px solid #e9eef4;
+        border-radius: .5rem;
+    }
+    .dci-amm-sidebar__links .dci-amm-sidebar__theme-link,
+    .dci-amm-sidebar__back-link {
+        transition: color .2s ease, background-color .2s ease, border-color .2s ease;
+    }
 
     .dci-amm-sidebar__back-link {
         display: flex;
@@ -478,7 +530,16 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
     }
 
     .dci-amm-sidebar__back-box:hover {
-        background: #f5f7fa;
+        background: #ffffff;
+    }
+    @supports (background: color-mix(in srgb, red, white)) {
+        .dci-amm-sidebar__back-box:hover {
+            background: color-mix(in srgb, var(--dci-amm-sidebar-accent) 9%, white);
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .dci-amm-sidebar__links .dci-amm-sidebar__theme-link,
+        .dci-amm-sidebar__back-link { transition: none; }
     }
 
     @media (min-width: 992px) {
@@ -518,11 +579,19 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
 
             <?php if ($root_term instanceof WP_Term) { ?>
                 <?php $root_display_name = dci_format_trasparenza_section_title($root_term->name); ?>
-                <div class="dci-amm-sidebar__box">
-                    <h2 class="title-medium-semi-bold dci-amm-sidebar__title">Voci della sezione</h2>
+                <nav class="dci-amm-sidebar__box dci-amm-sidebar__nav" aria-label="Sezioni dell'Amministrazione trasparente">
+                    <div class="dci-amm-sidebar__nav-head">
+                        <svg class="icon icon-primary" aria-hidden="true"><use href="#it-list"></use></svg>
+                        <div>
+                            <h2 class="title-medium-semi-bold dci-amm-sidebar__title">Voci della sezione</h2>
+                            <p class="dci-amm-sidebar__intro">Esplora le voci e le sottovoci di <?php echo esc_html($root_display_name); ?>.</p>
+                        </div>
+                    </div>
                     <?php $root_link_data = dci_amm_sidebar_get_term_link_data($root_term); ?>
+                    <div class="dci-amm-sidebar__section-entries">
                     <p class="dci-amm-sidebar__term-root<?php echo dci_amm_sidebar_term_is_active($root_term, $current_term) ? ' is-active' : ''; ?>">
-                        <a class="text-decoration-none t-primary d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>" aria-label="<?php echo esc_attr($root_display_name); ?>"<?php echo $root_link_data['target']; ?>>
+                        <a class="text-decoration-none t-primary d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>"<?php echo $current_term instanceof WP_Term && (int) $root_term->term_id === (int) $current_term->term_id ? ' aria-current="page"' : ''; ?><?php echo $root_link_data['target']; ?>>
+                            <span class="dci-amm-sidebar__group-icon" aria-hidden="true"><svg class="icon"><use href="#it-list"></use></svg></span>
                             <span><?php echo esc_html($root_display_name); ?></span>
                             <?php if (!empty($root_link_data['is_external'])) { ?>
                                 <svg class="icon icon-xs dci-amm-sidebar__external-icon" aria-hidden="true">
@@ -531,12 +600,13 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
                             <?php } ?>
                         </a>
                     </p>
-                    <?php dci_amm_sidebar_render_term_branch($root_term, $current_term, 0, 2); ?>
-                </div>
+                        <?php dci_amm_sidebar_render_term_branch($root_term, $current_term); ?>
+                    </div>
+                </nav>
             <?php } ?>
 
             <?php if (is_array($siti_tematici) && count($siti_tematici)) { ?>
-                <div class="dci-amm-sidebar__box">
+                <div class="dci-amm-sidebar__box dci-amm-sidebar__links">
                     <h2 class="title-medium-semi-bold dci-amm-sidebar__title">Link utili</h2>
                     <ul class="dci-amm-sidebar__theme-list">
                         <?php foreach ($siti_tematici as $sito_tematico_id) {
@@ -565,6 +635,8 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
 
 <script>
     document.querySelectorAll('.dci-amm-sidebar__toggle').forEach(function (button) {
+        if (button.dataset.sidebarBound) { return; }
+        button.dataset.sidebarBound = 'true';
         button.addEventListener('click', function () {
             var item = button.closest('.dci-amm-sidebar__term-item');
             var panel = item ? item.querySelector(':scope > .dci-amm-sidebar__children') : null;

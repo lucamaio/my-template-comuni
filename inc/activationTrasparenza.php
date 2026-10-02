@@ -1,10 +1,12 @@
 <?php 
 
+require_once __DIR__ . '/trasparenza-history.php';
+
 function dci_trasparenza_activation() {
     set_time_limit(400);  // Aumenta il timeout
 
     // Inserisce i termini di tassonomia
-    $stats = insertTaxonomyTrasparenzaTerms();
+    $stats = dci_at_history_run('setup', static function () { return insertTaxonomyTrasparenzaTerms(); });
 
     // Assegna i link standard solo durante il caricamento completo dei dati.
     // dci_trasparenza_populate_standard_links();
@@ -101,7 +103,8 @@ function dci_reload_trasparenza_option_page() {
         check_admin_referer('dci_trasparenza_' . $action);
 
         if ($action === 'reload') {
-            $stats = dci_trasparenza_activation();
+            // Lo storico esterno registra la ricarica completa; quello di setup non crea un secondo record.
+            $stats = dci_at_history_run('structure', 'dci_trasparenza_activation');
             $inserted = isset($stats['inserted']) ? (int) $stats['inserted'] : 0;
             $updated = isset($stats['updated']) ? (int) $stats['updated'] : 0;
             $descriptions = isset($stats['descriptions_updated']) ? (int) $stats['descriptions_updated'] : 0;
@@ -111,18 +114,20 @@ function dci_reload_trasparenza_option_page() {
             $notice_message = $has_reload_errors ? 'Ricarica completata con alcune segnalazioni.' : 'Dati ricaricati con successo.';
             echo '<div class="notice ' . esc_attr($notice_class) . ' is-dismissible"><p>' . esc_html($notice_message) . ' Voci inserite: <strong>' . esc_html($inserted) . '</strong>, voci aggiornate: <strong>' . esc_html($updated) . '</strong>, descrizioni aggiornate: <strong>' . esc_html($descriptions) . '</strong>, normative aggiornate: <strong>' . esc_html($normativa) . '</strong>.</p></div>';
         } elseif ($action === 'reload_descriptions') {
-            $stats = insertTaxonomyTrasparenzaTerms(['descriptions']);
+            $stats = dci_at_history_run('descriptions', static function () { return insertTaxonomyTrasparenzaTerms(['descriptions']); });
             $descriptions = isset($stats['descriptions_updated']) ? (int) $stats['descriptions_updated'] : 0;
-            if (empty($stats['descriptions_error'])) {
+            if (empty($stats['descriptions_error']) && empty($stats['descriptions_errors'])) {
                 echo '<div class="notice notice-success is-dismissible"><p>Descrizioni ricaricate. Termini aggiornati: <strong>' . esc_html($descriptions) . '</strong>. Struttura, slug, visibilità e ordinamento non sono stati modificati.</p></div>';
+            } elseif (!empty($stats['descriptions_errors'])) {
+                echo '<div class="notice notice-warning"><p>Ricarica descrizioni completata con errori: ' . (int) $stats['descriptions_errors'] . '. Consulta lo storico.</p></div>';
             }
         } elseif ($action === 'reload_ordering') {
-            $stats = dci_reload_trasparenza_ordering();
+            $stats = dci_at_history_run('ordering', static function () { return dci_reload_trasparenza_ordering(); });
             $ordering_updated = isset($stats['ordering_updated']) ? (int) $stats['ordering_updated'] : 0;
             $missing = isset($stats['missing']) ? (int) $stats['missing'] : 0;
             echo '<div class="notice notice-success is-dismissible"><p>Ordinamento ricaricato. Termini aggiornati: <strong>' . esc_html($ordering_updated) . '</strong>, termini della struttura predefinita non presenti e ignorati: <strong>' . esc_html($missing) . '</strong>. Nessun termine è stato creato o spostato.</p></div>';
         } else {
-            $stats = dci_reload_trasparenza_normativa();
+            $stats = dci_at_history_run('normativa', static function () { return dci_reload_trasparenza_normativa(); });
             $normativa_updated = isset($stats['normativa_updated']) ? (int) $stats['normativa_updated'] : 0;
             $unchanged = isset($stats['unchanged']) ? (int) $stats['unchanged'] : 0;
             $missing = isset($stats['missing']) ? (int) $stats['missing'] : 0;
@@ -181,6 +186,7 @@ function dci_reload_trasparenza_option_page() {
         });
     });
     </script>";
+    dci_at_history_render();
     echo "</div>";
 }
 
@@ -392,6 +398,7 @@ if (!function_exists("dci_tipi_cat_amm_trasp_array")) {
                     "Dati sui pagamenti",
                     "Dati sui pagamenti del servizio sanitario nazionale",
                     "Indicatore di tempestività dei pagamenti"=>[
+                        'Indicatore di tempestività dei pagamenti',
                         'Ammontare complessivo dei debiti' // Nuova sotto-sotto-voce
                     ],
                     "IBAN e pagamenti informatici"
@@ -682,12 +689,15 @@ function dci_update_term_description( $term_name, $taxonomy, $new_desc, &$stats 
 
             if (!is_wp_error($updated)) {
                 if (!$dry_run) {
+                    dci_at_history_change('Descrizione', $term->term_id, $term->name, $term->description, $new_desc);
                     // Mantiene coerente la cache anche con più chiamate nella richiesta.
                     $term->description = $new_desc;
                 }
                 if (is_array($stats)) {
                     $stats['descriptions_updated']++;
                 }
+            } elseif (is_array($stats)) {
+                $stats['descriptions_errors'] = ($stats['descriptions_errors'] ?? 0) + 1;
             }
         }
     }
@@ -887,12 +897,15 @@ function dci_reload_trasparenza_normativa( $dry_run = false ) {
             ? true
             : update_term_meta($term->term_id, 'normativa', $normativa);
 
-        if (false === $updated) {
+        if (false === $updated || is_wp_error($updated)) {
             $stats['errors']++;
             continue;
         }
 
         $stats['normativa_updated']++;
+        if (!$dry_run) {
+            dci_at_history_change('Normativa', $term->term_id, $term->name, $current, $normativa);
+        }
     }
 
     return $stats;
@@ -987,8 +1000,11 @@ function dci_apply_trasparenza_ordering(
                     ? true
                     : update_term_meta($term->term_id, 'ordinamento', $order);
 
-                if ($updated !== false) {
+                if ($updated !== false && !is_wp_error($updated)) {
                     $stats['ordering_updated']++;
+                    if (!$dry_run) {
+                        dci_at_history_change('Ordinamento', $term->term_id, $term->name, $current_order, $order);
+                    }
                 } else {
                     $stats['errors']++;
                 }
@@ -1168,6 +1184,7 @@ function dci_upsert_trasparenza_term( $term_name, $taxonomy, $parent = 0 ) {
 
             if ( ! is_wp_error( $updated ) && isset( $updated['term_id'] ) ) {
                 $term_id = (int) $updated['term_id'];
+                dci_at_history_change('Categoria', $term_id, $term_name, $term->name, $term_name);
             }
             $action = 'updated';
         }
@@ -1201,6 +1218,9 @@ function dci_upsert_trasparenza_term( $term_name, $taxonomy, $parent = 0 ) {
         ];
     }
 
+    if (isset($result['term_id'])) {
+        dci_at_history_change('Creazione', $result['term_id'], $term_name, '', $term_name);
+    }
     return [
         'term_id' => isset( $result['term_id'] ) ? (int) $result['term_id'] : 0,
         'action'  => 'inserted',

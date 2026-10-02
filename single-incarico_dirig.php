@@ -40,7 +40,8 @@ while (have_posts()) :
 
     $published_date = get_the_date('j F Y', $id);
     $updated_date = get_the_modified_date('j F Y', $id);
-    $show_updated_date = $updated_date !== '' && $updated_date > $published_date;
+    $show_updated_date = (int) get_post_modified_time('U', true, $id) > (int) get_post_time('U', true, $id)
+        && get_the_modified_date('Y-m-d', $id) !== get_the_date('Y-m-d', $id);
 
     $status_labels = array(
         'in_corso' => __('In corso', 'design_comuni_italia'),

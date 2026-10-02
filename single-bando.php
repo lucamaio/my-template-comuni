@@ -113,7 +113,8 @@ get_header();
         $prefix = '_dci_bando_';
         $data_pubblicazione = get_the_date('j F Y', $post->ID);
         $data_modifica = get_the_modified_date('j F Y', $post->ID);
-        $mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubblicazione;
+        $mostra_aggiornamento = (int) get_post_modified_time('U', true, $post->ID) > (int) get_post_time('U', true, $post->ID)
+            && get_the_modified_date('Y-m-d', $post->ID) !== get_the_date('Y-m-d', $post->ID);
 
         $oggetto = dci_get_meta("oggetto", $prefix, $post->ID);
         $cig = dci_get_meta("cig", $prefix, $post->ID);

@@ -1394,3 +1394,65 @@ body.dci-sticky-header-nav-active .dci-sticky-nav-search .search-link {
     gap: 0.75rem;
   }
 }
+/* Informative sullo storico di Amministrazione Trasparente. */
+.dci-at-notice {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  color: #243e54;
+  background: #f4f8fc;
+  border: 1px solid #d5e3ef;
+  border-left: 4px solid #3276ad;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(23, 50, 77, .04);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.dci-at-notice__label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .875rem;
+  color: #245c88;
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.dci-at-notice__label .icon {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: currentColor;
+}
+
+.dci-at-notice > h2 {
+  color: #17324d;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.dci-at-notice > p {
+  margin-bottom: 1rem;
+}
+
+.dci-at-notice > p:last-child {
+  margin-bottom: 0;
+  padding-top: 1rem;
+  border-top: 1px solid #d5e3ef;
+}
+
+.dci-at-notice a {
+  color: #185c91;
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.dci-at-notice a:hover {
+  color: #123e60;
+}
+
+.dci-at-notice a:focus-visible {
+  outline: 2px solid #185c91;
+  outline-offset: 3px;
+  border-radius: .125rem;
+}

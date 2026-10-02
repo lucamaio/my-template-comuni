@@ -568,20 +568,15 @@ function dci_at_enqueue_transparency_menu_state()
 add_action('wp_enqueue_scripts', 'dci_at_enqueue_transparency_menu_state');
 
 /**
- * Carica il raccordo cromatico solo nella sezione Articolazione uffici.
+ * Carica il raccordo cromatico nelle pagine di Amministrazione Trasparente.
  * Il colore viene letto dallo stile effettivo dell'intestazione, includendo
  * quindi le regole inserite tramite il CSS aggiuntivo di WordPress.
  *
  * @return void
  */
-function dci_at_enqueue_office_theme_colors()
+function dci_at_enqueue_theme_colors()
 {
     if (!is_tax('tipi_cat_amm_trasp')) {
-        return;
-    }
-
-    $resolution = dci_at_contextual_resolve_section(get_queried_object());
-    if ('unita_organizzativa' !== $resolution['post_type']) {
         return;
     }
 
@@ -595,7 +590,7 @@ function dci_at_enqueue_office_theme_colors()
         true
     );
 }
-add_action('wp_enqueue_scripts', 'dci_at_enqueue_office_theme_colors');
+add_action('wp_enqueue_scripts', 'dci_at_enqueue_theme_colors');
 
 /**
  * Legge e valida il contesto della schermata `post-new.php`.

@@ -202,214 +202,155 @@ function dci_incarico_dirigenziale_add_content_after_title($post)
 add_action('cmb2_init', 'dci_add_incarico_dirigenziale_metaboxes');
 function dci_add_incarico_dirigenziale_metaboxes()
 {
-    $prefix = '_dci_incarico_dirigenziale_';
+    // Preserve metabox IDs and field keys to retain saved data and existing integrations.
 
-   // Metabox: Apertura
-    $cmb_main = new_cmb2_box(array(
-        'id'           => $prefix . 'box_main',
-        'title'        => __('Informazioni sull’incarico dirigenziale', 'design_comuni_italia'),
+    $cmb = new_cmb2_box(array(
+        'id' => '_dci_incarico_dirigenziale_box_main',
+        'title' => __('1. Titolare e collocazione organizzativa', 'design_comuni_italia'),
         'object_types' => array('incarico_dirig'),
-        'context'      => 'normal',
-        'priority'     => 'high',
+        'context' => 'normal',
+        'priority' => 'high',
     ));
 
-    // Descrizione introduttiva del metabox
-    $cmb_main->add_field(array(
-        'id'   => $prefix . 'box_apertura_description',
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_box_apertura_description',
         'type' => 'title',
         'name' => __('Indicazioni per la compilazione', 'design_comuni_italia'),
-        'desc' => __('Compila i campi con le informazioni relative al titolare e all’incarico dirigenziale. I dati inseriti saranno pubblicati nella sezione selezionata dell’Amministrazione Trasparente.', 'design_comuni_italia'),
+        'desc' => __('Compilare nell\'ordine i dati del titolare, le informazioni sull\'incarico e i documenti. I campi contrassegnati con * sono obbligatori. Le informazioni inserite, comprese le note, sono destinate alla pubblicazione nella sezione selezionata di Amministrazione Trasparente.', 'design_comuni_italia'),
     ));
 
-    $cmb_main->add_field(
-            array(
-                'id'      => $prefix . 'sezione_pubblicazione',
-                'name'    => __('Sezione di pubblicazione *', 'design_comuni_italia'),
-                'desc'    => __('Seleziona la sezione dell’Amministrazione Trasparente nella quale pubblicare l’incarico dirigenziale.', 'design_comuni_italia'),
-                'type'    => 'select',
-                'options' => array('' => __('Seleziona la sezione di pubblicazione', 'design_comuni_italia')) + dci_incarico_dirigenziale_sections(),
-                'attributes' => array('required' => 'required'),
-            )
-        );
-
-    
-    // Stato dell’incarico
-    $cmb_main->add_field(array(
-        'id'                => $prefix . 'tipo_stato_incarico_dirigenziale',
-        'name'              => __('Stato dell’incarico *', 'design_comuni_italia'),
-        'desc'              => __('Indica lo stato attuale dell’incarico dirigenziale.', 'design_comuni_italia'),
-        'type'              => 'select',
-        'options'           => array(
-            ''          => __('Seleziona lo stato dell’incarico', 'design_comuni_italia'),
-            'in_corso'  => __('In corso', 'design_comuni_italia'),
-            'cessato'   => __('Cessato', 'design_comuni_italia'),
-            'revocato'  => __('Revocato', 'design_comuni_italia'),
-            'concluso'  => __('Concluso', 'design_comuni_italia'),
-        ),
-        'attributes'        => array('required' => 'required')
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_sezione_pubblicazione',
+        'name' => __('Sezione di pubblicazione *', 'design_comuni_italia'),
+        'desc' => __('Selezionare la sezione di destinazione: incarichi amministrativi di vertice, altri incarichi dirigenziali o dirigenti cessati. Se lo spostamento automatico dei cessati risulta attivo nelle opzioni del tema, al salvataggio la destinazione viene aggiornata in base allo stato dell\'incarico.', 'design_comuni_italia'),
+        'type' => 'select',
+        'options' => array('' => __('Seleziona la sezione di pubblicazione', 'design_comuni_italia')) + dci_incarico_dirigenziale_sections(),
+        'attributes' => array('required' => 'required'),
     ));
 
-
-
-
-    // Nome del titolare
-    $cmb_main->add_field(array(
-        'id'          => $prefix . 'nome_titolare',
-        'name'        => __('Nome del titolare *', 'design_comuni_italia'),
-        'desc'        => __('Inserisci il nome della persona alla quale è stato conferito l’incarico.', 'design_comuni_italia'),
-        'type'        => 'text',
-        'attributes'  => array('required' => 'required'),
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_nome_titolare',
+        'name' => __('Nome del titolare *', 'design_comuni_italia'),
+        'desc' => __('Indicare il nome del titolare, senza titoli professionali o qualifiche.', 'design_comuni_italia'),
+        'type' => 'text',
+        'attributes' => array('required' => 'required'),
     ));
 
-
-    // Cognome del titolare
-    $cmb_main->add_field(array(
-        'id'          => $prefix . 'cognome_titolare',
-        'name'        => __('Cognome del titolare', 'design_comuni_italia'),
-        'desc'        => __('Inserisci il cognome della persona alla quale è stato conferito l’incarico.', 'design_comuni_italia'),
-        'type'        => 'text',
-        // 'attributes'  => array('required' => 'required'),
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_cognome_titolare',
+        'name' => __('Cognome del titolare', 'design_comuni_italia'),
+        'desc' => __('Indicare il cognome del titolare. Nome e cognome identificano la persona nella scheda pubblica.', 'design_comuni_italia'),
+        'type' => 'text',
     ));
 
-     // Mansione del titolare
-    $cmb_main->add_field(array(
-        'id'          => $prefix . 'mansione_titolare',
-        'name'        => __('Denominazione dell’incarico', 'design_comuni_italia'),
-        'desc'        => __('Inserisci la denominazione completa dell’incarico o della funzione dirigenziale attribuita al titolare.', 'design_comuni_italia'),
-        'type'        => 'text',
-        // 'attributes'  => array('required' => 'required'),
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_mansione_titolare',
+        'name' => __('Denominazione dell\'incarico / Mansione', 'design_comuni_italia'),
+        'desc' => __('Indicare la funzione attribuita al titolare, ad esempio: Responsabile dell\'Area Tecnica. Il dato viene mostrato come Mansione nella card pubblica.', 'design_comuni_italia'),
+        'type' => 'text',
     ));
 
-    $cmb_main->add_field(
-        array(
-            'id'         => $prefix . 'struttura',
-            'name'       => __('Struttura organizzativa o ufficio', 'design_comuni_italia'),
-            'desc'       => __('Indica la struttura organizzativa, l’area, il settore o l’ufficio al quale è riferito l’incarico.', 'design_comuni_italia'),
-            'type'       => 'text',
-            'attributes' => array('maxlength' => 256),
-        )
-    );
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_struttura',
+        'name' => __('Struttura di appartenenza', 'design_comuni_italia'),
+        'desc' => __('Indicare l\'area, il settore, il servizio o l\'ufficio presso cui viene svolto l\'incarico, utilizzando la denominazione ufficiale dell\'organizzazione.', 'design_comuni_italia'),
+        'type' => 'text',
+        'attributes' => array('maxlength' => 256),
+    ));
 
-    $cmb_main->add_field(
-        array(
-            'id'      => $prefix . 'gratuito',
-            'name'    => __('Incarico a titolo gratuito', 'design_comuni_italia'),
-            'desc'    => __('Indica se l’incarico è svolto senza la corresponsione di alcun compenso.', 'design_comuni_italia'),
-            'type'    => 'select',
-            'default' => 'no',
-            'options' => array(
-                'no' => __('No', 'design_comuni_italia'),
-                'si' => __('Sì', 'design_comuni_italia'),
-            ),
-        )
-    );
-
-    // Compenso
-
-    $cmb_main->add_field(
-        array(
-            'id'         => $prefix . 'compenso',
-            'name'       => __('Compenso lordo annuo', 'design_comuni_italia'),
-            'desc'       => __('Indica l’ammontare complessivo del compenso lordo annuo previsto per l’incarico dirigenziale, espresso in euro. Se l’incarico è a titolo gratuito, lasciare il campo vuoto.', 'design_comuni_italia'),
-            'type'       => 'text',
-        )
-    );
-
-    // Durata
-    $cmb_main->add_field(array(
-        'id'          => $prefix . 'durata',
-        'name'        => __('Durata dell’incarico', 'design_comuni_italia'),
-        'desc'        => __('Indica la durata complessiva dell’incarico, ad esempio “3 anni” oppure “2 anni e 6 mesi”.', 'design_comuni_italia'),
-        'type'        => 'text',
-    ));   
-    
-
-    // Curriculum vitae
-    $cmb_main->add_field(
-        array(
-            'id'      => $prefix . 'curriculum',
-            'name'    => __('Curriculum vitae *', 'design_comuni_italia'),
-            'desc'    => __('Carica il curriculum vitae in formato PDF, verificando che non contenga dati personali non pertinenti alla pubblicazione.', 'design_comuni_italia'),
-            'type'    => 'file',
-            'options' => array('url' => false),
-            // 'query_args' => array('type' => array('application/pdf')),
-        )
-    );
-
-    // Metabox: conferimento
-    $cmb_conferimento = new_cmb2_box(array(
-        'id'           => $prefix . 'box_conferimento',
-        'title'        => __('Conferimento', 'design_comuni_italia'),
+    $cmb = new_cmb2_box(array(
+        'id' => '_dci_incarico_dirigenziale_box_conferimento',
+        'title' => __('2. Stato, durata e trattamento economico', 'design_comuni_italia'),
         'object_types' => array('incarico_dirig'),
-        'context'      => 'normal',
-        'priority'     => 'high',
+        'context' => 'normal',
+        'priority' => 'high',
     ));
 
-    // Data di conferimento
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_tipo_stato_incarico_dirigenziale',
+        'name' => __('Stato dell\'incarico *', 'design_comuni_italia'),
+        'desc' => __('Selezionare lo stato risultante dagli atti: In corso, Cessato, Revocato o Concluso. Se lo spostamento automatico risulta attivo, solo lo stato Cessato trasferisce la scheda in Dirigenti cessati; gli altri stati la mantengono o la riportano nella sezione ordinaria.', 'design_comuni_italia'),
+        'type' => 'select',
+        'options' => array('' => __('Seleziona lo stato dell’incarico', 'design_comuni_italia'), 'in_corso' => __('In corso', 'design_comuni_italia'), 'cessato' => __('Cessato', 'design_comuni_italia'), 'revocato' => __('Revocato', 'design_comuni_italia'), 'concluso' => __('Concluso', 'design_comuni_italia')),
+        'attributes' => array('required' => 'required'),
+    ));
 
-    $cmb_conferimento->add_field(array(
-        'id'          => $prefix . 'data_conferimento',
-        'name'        => __('Data di conferimento', 'design_comuni_italia'),
-        'desc'        => __('Indica la data in cui l’incarico è stato formalmente conferito.', 'design_comuni_italia'),
-        'type'        => 'text_date_timestamp',
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_data_conferimento',
+        'name' => __('Data di conferimento', 'design_comuni_italia'),
+        'desc' => __('Indicare la data del conferimento formale dell\'incarico, come riportata nel relativo atto, nel formato giorno/mese/anno.', 'design_comuni_italia'),
+        'type' => 'text_date_timestamp',
         'date_format' => 'd/m/Y',
     ));
 
-    // Data di scadenza
-    $cmb_conferimento->add_field(array(
-        'id'          => $prefix . 'data_scadenza',
-        'name'        => __('Data di scadenza', 'design_comuni_italia'),
-        'desc'        => __('Indica la data prevista di conclusione o scadenza dell’incarico.', 'design_comuni_italia'),
-        'type'        => 'text_date_timestamp',
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_data_scadenza',
+        'name' => __('Data di scadenza prevista', 'design_comuni_italia'),
+        'desc' => __('Indicare la data prevista di conclusione dell\'incarico nel formato giorno/mese/anno e aggiornarla in caso di proroga. La scadenza prevista non attesta, da sola, la cessazione effettiva dell\'incarico.', 'design_comuni_italia'),
+        'type' => 'text_date_timestamp',
         'date_format' => 'd/m/Y',
     ));
 
-    // Documenti allegati
-    $cmb_conferimento->add_field(array(
-        'id'   => $prefix . 'allegati',
-        'name' => __('Atti e documenti relativi all’incarico', 'design_comuni_italia'),
-        'desc' => __('Carica l’atto di conferimento e gli eventuali ulteriori documenti relativi all’incarico dirigenziale.', 'design_comuni_italia'),
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_durata',
+        'name' => __('Durata dell\'incarico', 'design_comuni_italia'),
+        'desc' => __('Indicare la durata stabilita nell\'atto, ad esempio: 3 anni oppure 2 anni e 6 mesi. Verificare la coerenza con le date e con eventuali proroghe.', 'design_comuni_italia'),
+        'type' => 'text',
+    ));
+
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_gratuito',
+        'name' => __('Incarico a titolo gratuito', 'design_comuni_italia'),
+        'desc' => __('Selezionare Si se non viene corrisposto alcun compenso; selezionare No per un incarico retribuito.', 'design_comuni_italia'),
+        'type' => 'select',
+        'default' => 'no',
+        'options' => array('no' => __('No', 'design_comuni_italia'), 'si' => __('Sì', 'design_comuni_italia')),
+    ));
+
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_compenso',
+        'name' => __('Compenso lordo annuo (euro)', 'design_comuni_italia'),
+        'desc' => __('Indicare il compenso lordo annuo previsto per l\'incarico, espresso in euro, ad esempio: 100.000,00 euro. Per gli incarichi a titolo gratuito lasciare il campo vuoto.', 'design_comuni_italia'),
+        'type' => 'text',
+    ));
+
+    $cmb = new_cmb2_box(array(
+        'id' => '_dci_incarico_dirigenziale_box_more',
+        'title' => __('3. Documenti e informazioni integrative', 'design_comuni_italia'),
+        'object_types' => array('incarico_dirig'),
+        'context' => 'normal',
+        'priority' => 'high',
+    ));
+
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_curriculum',
+        'name' => __('Curriculum vitae', 'design_comuni_italia'),
+        'desc' => __('Caricare il curriculum aggiornato, preferibilmente in PDF accessibile, privo di dati personali non pertinenti alla pubblicazione. Sostituire il documento quando viene aggiornato.', 'design_comuni_italia'),
+        'type' => 'file',
+        'options' => array('url' => false),
+    ));
+
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_allegati',
+        'name' => __('Atti e documenti dell\'incarico', 'design_comuni_italia'),
+        'desc' => __('Caricare l\'atto di conferimento e gli eventuali atti di proroga, revoca o cessazione. Assegnare ai documenti titoli riconoscibili, indicando tipologia, numero e data dell\'atto.', 'design_comuni_italia'),
         'type' => 'file_list',
-        ));
-
-
-
-
-
-    // Metabox ulteriori informazioni
-    $cmb_more = new_cmb2_box(array(
-        'id'           => $prefix . 'box_more',
-        'title'        => __('Informazioni aggiuntive', 'design_comuni_italia'),
-        'object_types' => array('incarico_dirig'),
-        'context'      => 'normal',
-        'priority'     => 'high',
     ));
 
-    
-   $cmb_more->add_field(
-        array(
-            'id'      => $prefix . 'allegati_aggiuntivi',
-            'name'    => __('Allegati aggiuntivi', 'design_comuni_italia'),
-            'type'    => 'file_list',
-            // 'query_args' => array('type' => array('application/pdf')),
-        )
-    );
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_allegati_aggiuntivi',
+        'name' => __('Allegati aggiuntivi', 'design_comuni_italia'),
+        'type' => 'file_list',
+        'desc' => __('Caricare gli ulteriori documenti destinati alla pubblicazione che non rientrano tra gli atti dell\'incarico. Utilizzare titoli descrittivi ed evitare duplicati dei documenti inseriti sopra.', 'design_comuni_italia'),
+    ));
 
-    // Campo: More info
-    $cmb_more->add_field(array(
-        'id'          => $prefix . 'more_info',
-        'name'        => __('Note e informazioni aggiuntive', 'design_comuni_italia'),
-        'desc'        => __('Inserisci eventuali informazioni integrative utili a descrivere l’incarico, i riferimenti normativi o altri dati rilevanti ai fini della trasparenza.', 'design_comuni_italia'),
+    $cmb->add_field(array(
+        'id' => '_dci_incarico_dirigenziale_more_info',
+        'name' => __('Note e informazioni integrative per la pubblicazione', 'design_comuni_italia'),
+        'desc' => __('Inserire chiarimenti sull\'incarico, riferimenti agli atti o altre informazioni utili alla consultazione. Il contenuto viene pubblicato sul portale: non utilizzare questo campo per annotazioni interne.', 'design_comuni_italia'),
         'type' => 'wysiwyg',
-        'options' => array(
-            'textarea_rows' => 8,
-            'teeny'         => false,
-            'media_buttons' => false,
-        ),
-    )); 
-
-
-   
+        'options' => array('textarea_rows' => 8, 'teeny' => false, 'media_buttons' => false),
+    ));
 }
 
 /**

@@ -20,7 +20,8 @@ while ( have_posts() ) :
     $descrizione_breve = get_post_meta( $id, $prefix . 'descrizione_breve', true );
     $data_pubbl        = get_the_date( 'j F Y', $id );
     $data_modifica     = get_the_modified_date( 'j F Y', $id );
-    $mostra_aggiornamento = $data_modifica !== '' && $data_modifica > $data_pubbl;
+    $mostra_aggiornamento = (int) get_post_modified_time('U', true, $id) > (int) get_post_time('U', true, $id)
+        && get_the_modified_date('Y-m-d', $id) !== get_the_date('Y-m-d', $id);
 
     // Anno conferimento - gestione migliorata
     $anno_conferimento = get_post_meta(get_the_ID(), $prefix . 'anno_conferimento', true);

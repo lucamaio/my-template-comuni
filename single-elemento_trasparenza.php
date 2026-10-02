@@ -34,8 +34,8 @@ global $uo_id, $inline, $audio;
             $data_modifica = get_the_modified_date('j F Y', $post->ID);
 
             $mostra_aggiornamento = (
-                $data_modifica !== ''
-                && $data_modifica > $data_pubblicazione
+                (int) get_post_modified_time('U', true, $post->ID) > (int) get_post_time('U', true, $post->ID)
+                && get_the_modified_date('Y-m-d', $post->ID) !== get_the_date('Y-m-d', $post->ID)
             );
 
             $immagine_url = is_string($immagine) ? esc_url_raw($immagine) : '';

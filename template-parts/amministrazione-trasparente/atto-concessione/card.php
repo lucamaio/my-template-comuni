@@ -1,153 +1,260 @@
 <?php
-global $prefix;
 require_once get_template_directory() . '/template-parts/amministrazione-trasparente/custom-section-card-helpers.php';
-
-if ( ! isset( $prefix ) ) {
-    $prefix = '_dci_atto_concessione_';
-}
-?>
-
-<?php
-global $dci_custom_section_card_style_printed;
-if (empty($dci_custom_section_card_style_printed)) :
-    $dci_custom_section_card_style_printed = true;
+$atto_prefix = '_dci_atto_concessione_';
+$ragione_sociale = get_post_meta(get_the_ID(), $atto_prefix . 'ragione_sociale', true) ?: 'Non specificato';
+$codice_fiscale = get_post_meta(get_the_ID(), $atto_prefix . 'codice_fiscale', true) ?: 'Non specificato';
+$responsabile = get_post_meta(get_the_ID(), $atto_prefix . 'responsabile', true) ?: 'Non specificato';
+$anno_beneficio = get_post_meta(get_the_ID(), $atto_prefix . 'anno_beneficio', true);
+$formatted_anno_beneficio = !empty($anno_beneficio) ? date_i18n('Y', $anno_beneficio) : '-';
+$importo = get_post_meta(get_the_ID(), $atto_prefix . 'importo', true);
+$importo_numeric = floatval(str_replace(',', '.', preg_replace('/[^\d,]+/', '', $importo)));
+$rag_incarico = get_post_meta(get_the_ID(), $atto_prefix . 'rag_incarico', true);
+$show_modified_date = get_post_modified_time('U', true, get_the_ID()) > get_post_time('U', true, get_the_ID());
+global $dci_concessione_card_style_printed;
+if (empty($dci_concessione_card_style_printed)) :
+    $dci_concessione_card_style_printed = true;
 ?>
 <style>
-    .dci-custom-section-card {
-        margin-bottom: 1.25rem !important;
-        border: 1px solid #d7e2ec !important;
-        border-radius: 4px !important;
-        background: #fff !important;
-        box-shadow: 0 8px 22px rgba(23, 50, 77, .07) !important;
+    .dci-concessione-card {
+        margin-bottom: 1.5rem;
+        border: 1px solid #d9e2ec;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(23, 50, 77, .08);
         overflow: hidden;
-        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
-    .dci-custom-section-card:hover {
-        border-color: #c9d7e5 !important;
-        box-shadow: 0 12px 28px rgba(23, 50, 77, .11) !important;
-        transform: translateY(-1px);
+
+    .dci-concessione-card__meta-divider {
+        margin: 0 0 1.25rem;
+        border: 0;
+        border-top: 1px solid #455a64 !important;
     }
-    .dci-custom-section-card .card-body { padding: 1.35rem; }
-    .dci-custom-section-card .border-top { border-top-color: #e4ebf2 !important; }
-    .dci-custom-section-card h5,
-    .dci-custom-section-card h6,
-    .dci-custom-section-card strong,
-    .dci-custom-section-card a:not(.btn) { color: currentColor; }
-    .dci-custom-section-card .text-muted,
-    .dci-custom-section-card small { color: #5c6f82 !important; }
-    .dci-custom-section-card .btn-link {
-        color: currentColor;
+    .dci-concessione-card__label {
+        display: block;
+        margin-bottom: .3rem;
+        color: #4f6173;
+        font-size: .75rem;
         font-weight: 700;
-        text-decoration: none;
+        letter-spacing: .035em;
+        line-height: 1.25;
+        text-transform: uppercase;
     }
-    .dci-custom-section-card .btn-link:hover { text-decoration: underline; }
-    .dci-custom-section-card .icon { fill: currentColor; }
+    .dci-concessione-card__meta {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .35rem;
+        margin-bottom: .85rem;
+        color: #455a64;
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+    .dci-concessione-card__meta .icon {
+        flex: 0 0 auto;
+        width: 1rem;
+        height: 1rem;
+        fill: currentColor;
+    }
+    .dci-concessione-card__body {
+        padding: 1.5rem;
+    }
+    .dci-concessione-card__title {
+        margin: 0;
+        color: currentColor;
+        font-size: 1.25rem;
+        line-height: 1.35;
+    }
+    .dci-concessione-card__section {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e4ebf2;
+    }
+    .dci-concessione-card__long-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: .75rem;
+    }
+    .dci-concessione-card__long-field {
+        min-width: 0;
+        padding: 1.15rem;
+        border: 1px solid #e1e7ed;
+        border-radius: 8px;
+        background: #f3f5f7;
+    }
+    .dci-concessione-card__facts {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        overflow: hidden;
+        border: 1px solid #e1e8ef;
+        border-radius: 8px;
+    }
+    .dci-concessione-card__fact {
+        display: flex;
+        align-items: flex-start;
+        gap: .7rem;
+        min-width: 0;
+        padding: 1rem;
+    }
+    .dci-concessione-card__fact + .dci-concessione-card__fact {
+        border-left: 1px solid #e1e8ef;
+    }
+    .dci-concessione-card__fact-icon {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        color: #455a64;
+        background: #eef2f5;
+    }
+    .dci-concessione-card__fact-icon .icon {
+        width: 1rem;
+        height: 1rem;
+        fill: currentColor;
+    }
+    .dci-concessione-card__fact-content {
+        min-width: 0;
+    }
+    .dci-concessione-card__documents {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    .dci-concessione-card__field {
+        min-width: 0;
+        padding: 1rem;
+        border: 1px solid #e4ebf2;
+        border-radius: 6px;
+        background: #fff;
+    }
+    .dci-concessione-card__long-field .dci-concessione-card__value {
+        white-space: normal;
+    }
+    .dci-concessione-card__value {
+        margin: 0;
+        color: #263b4d;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+    .dci-concessione-card__document {
+        display: flex;
+        align-items: flex-start;
+        gap: .4rem;
+        margin: .4rem 0 0;
+    }
+    .dci-concessione-card__document .icon {
+        flex: 0 0 auto;
+        margin-top: .1rem;
+        fill: currentColor;
+    }
+    .dci-concessione-card__document a {
+        color: currentColor;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+    }
+    .dci-concessione-card__document a:hover { text-decoration: underline; }
+    .dci-concessione-card__footer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 1rem;
+        align-items: end;
+    }
+    .dci-concessione-card__actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: .65rem;
+    }
     @media (max-width: 767.98px) {
-        .dci-custom-section-card .ps-4 { padding-left: 0 !important; }
-        .dci-custom-section-card .text-end { text-align: left !important; margin-top: .75rem; }
+        .dci-concessione-card__long-grid,
+        .dci-concessione-card__facts,
+        .dci-concessione-card__documents { grid-template-columns: 1fr; }
+        .dci-concessione-card__fact + .dci-concessione-card__fact {
+            border-top: 1px solid #dce5ed;
+            border-left: 0;
+        }
+        .dci-concessione-card__footer { grid-template-columns: 1fr; }
+        .dci-concessione-card__actions { justify-content: flex-start; }
+    }
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .dci-concessione-card__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .dci-concessione-card__fact:nth-child(3) {
+            border-top: 1px solid #e1e8ef;
+            border-left: 0;
+        }
+        .dci-concessione-card__fact:nth-child(4) { border-top: 1px solid #e1e8ef; }
+    }
+    @media (min-width: 768px) {
+        .dci-concessione-card__facts--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 </style>
 <?php endif; ?>
-
-<div class="card mb-5 rounded-3 bg-body-secondary shadow-sm dci-custom-section-card t-primary">
-    <div class="card-body">
-        <div class="row g-0">
-            <div class="col-md-12 ps-4">
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <h6 class="text-uppercase text-muted small">Titolo/Norma</h6>
-                        <p class="mb-0"><strong><?php echo esc_html(dci_custom_section_card_text(get_the_title(), 95)); ?></strong></p>
-                    </div>
+<article class="dci-concessione-card t-primary">
+    <div class="dci-concessione-card__body">
+        <span class="dci-concessione-card__meta">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#it-calendar"></use></svg>
+            Pubblicato il <time datetime="<?php echo esc_attr(get_the_date('c', get_the_ID())); ?>"><?php echo esc_html(get_the_date('j F Y', get_the_ID())); ?></time>
+            <?php if ($show_modified_date) { ?>
+                <span aria-hidden="true">–</span>
+                Aggiornato il <time datetime="<?php echo esc_attr(get_the_modified_date('c', get_the_ID())); ?>"><?php echo esc_html(get_the_modified_date('j F Y', get_the_ID())); ?></time>
+            <?php } ?>
+        </span>
+        <hr class="dci-concessione-card__meta-divider" aria-hidden="true">
+        <header>
+            <span class="dci-concessione-card__label">Oggetto dell’atto di concessione</span>
+            <h3 class="dci-concessione-card__title"><?php echo esc_html(dci_custom_section_card_text(get_the_title(), 95)); ?></h3>
+        </header>
+        <section class="dci-concessione-card__section" aria-label="Oggetto della concessione">
+            <div class="dci-concessione-card__long-field">
+                <span class="dci-concessione-card__label">Ragione dell'incarico</span>
+                <p class="dci-concessione-card__value"><?php echo esc_html(dci_custom_section_card_text($rag_incarico, 220)); ?></p>
+            </div>
+        </section>
+        <section class="dci-concessione-card__section" aria-label="Dati del beneficiario">
+            <div class="dci-concessione-card__long-field">
+                <span class="dci-concessione-card__label">Beneficiario</span>
+                <p class="dci-concessione-card__value"><?php echo esc_html(dci_custom_section_card_text($ragione_sociale, 95)); ?></p>
+                <div class="mt-3">
+                    <span class="dci-concessione-card__label">Codice fiscale / P.IVA del beneficiario</span>
+                    <p class="dci-concessione-card__value"><?php echo esc_html($codice_fiscale); ?></p>
                 </div>
-
+            </div>
+        </section>
+        <section class="dci-concessione-card__section" aria-label="Responsabile dell'atto">
+            <div class="dci-concessione-card__field">
+                <span class="dci-concessione-card__label">Responsabile dell'atto</span>
+                <p class="dci-concessione-card__value"><?php echo esc_html(dci_custom_section_card_text($responsabile, 95)); ?></p>
+            </div>
+        </section>
+        <section class="dci-concessione-card__section" aria-label="Dati della concessione">
+            <div class="dci-concessione-card__facts dci-concessione-card__facts--two">
                 <?php
-                $post_timestamp = get_post_time('U', true, get_the_ID());
-                $modified_timestamp = get_post_modified_time('U', true, get_the_ID());
-                $post_date = get_the_date('j F Y', get_the_ID());
-                $modified_date = get_the_modified_date('j F Y', get_the_ID());
-                $show_modified_date = $modified_timestamp > $post_timestamp;
-                ?>
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <div class="text-muted small" style="display: flex; align-items: center; flex-wrap: wrap; gap: .25rem .4rem; line-height: 1.4;">
-                            <svg class="icon icon-sm" aria-hidden="true" style="flex: 0 0 auto;">
-                                <use href="#it-calendar"></use>
-                            </svg>
-                            <span style="white-space: nowrap;">
-                                Pubblicato il
-                                <time datetime="<?php echo esc_attr(get_the_date('c', get_the_ID())); ?>">
-                                    <?php echo esc_html($post_date); ?>
-                                </time>
-                            </span>
-                            <?php if ($show_modified_date) { ?>
-                                <span aria-hidden="true">-</span>
-                                <span style="white-space: nowrap;">
-                                    Aggiornato il
-                                    <time datetime="<?php echo esc_attr(get_the_modified_date('c', get_the_ID())); ?>">
-                                        <?php echo esc_html($modified_date); ?>
-                                    </time>
-                                </span>
-                            <?php } ?>
+                $atto_facts = [
+                    ['Anno beneficio', $formatted_anno_beneficio, 'it-calendar', ''],
+                    ['Importo', $importo_numeric !== 0.0 ? number_format($importo_numeric, 2, ',', '.') . ' €' : '-', 'it-card', ''],
+                ];
+                foreach ($atto_facts as [$label, $value, $icon, $detail]) { ?>
+                    <div class="dci-concessione-card__fact">
+                        <span class="dci-concessione-card__fact-icon" aria-hidden="true"><svg class="icon"><use href="#<?php echo esc_attr($icon); ?>"></use></svg></span>
+                        <div class="dci-concessione-card__fact-content">
+                            <span class="dci-concessione-card__label"><?php echo esc_html($label); ?></span>
+                            <p class="dci-concessione-card__value"><?php echo esc_html($value); ?></p>
+                            <?php if ($detail !== '') { ?><p class="dci-concessione-card__value small"><?php echo esc_html($detail); ?></p><?php } ?>
                         </div>
                     </div>
-                </div>
-
-                <div class="row align-items-center mb-3">
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Beneficiario</small>
-                        <?php
-                        $rag_soc = get_post_meta(get_the_ID(), $prefix . 'ragione_sociale', true);
-                        $cod_fisc = get_post_meta(get_the_ID(), $prefix . 'codice_fiscale', true);
-
-                        $codice_fiscale = !empty($cod_fisc) ? $cod_fisc : 'Non specificato';
-                        $ragione_sociale = !empty($rag_soc) ? $rag_soc : 'Non specificato';
-                        ?>
-                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($ragione_sociale, 55)); ?></span>
-                        <span class="text-muted small d-block"><?php echo esc_html(dci_custom_section_card_text($codice_fiscale, 35)); ?></span>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Responsabile</small>
-                        <?php
-                        $responsabile = !empty(get_post_meta(get_the_ID(), $prefix . 'responsabile', true)) ? get_post_meta(get_the_ID(), $prefix . 'responsabile', true) : "Non specificato";
-                        ?>
-                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($responsabile, 55)); ?></span>
-                    </div>
-
-                    <div class="col-md-2 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Anno beneficio</small>
-                        <?php
-                        $anno_beneficio = get_post_meta(get_the_ID(), $prefix . 'anno_beneficio', true);
-                        $formatted_anno_beneficio = !empty($anno_beneficio) ? date_i18n('Y', $anno_beneficio) : '-';
-                        ?>
-                        <span class="d-block"><?php echo esc_html($formatted_anno_beneficio); ?></span>
-                    </div>
-
-                    <div class="col-md-2 col-sm-6">
-                        <small class="text-uppercase text-muted d-block">Importo</small>
-                        <?php
-                        $importo = get_post_meta(get_the_ID(), $prefix . 'importo', true);
-                        $importo_numeric = floatval(str_replace(',', '.', preg_replace('/[^\d,]+/', '', $importo)));
-                        ?>
-                        <span class="d-block"><?php echo $importo_numeric !== 0.0 ? esc_html(number_format($importo_numeric, 2, ',', '.')) . '€' : '-'; ?></span>
-                    </div>
-
-                    <div class="col-md-2 col-sm-12">
-                        <small class="text-uppercase text-muted d-block">Ragione dell'incarico</small>
-                        <?php
-                        $rag_incarico = get_post_meta(get_the_ID(), $prefix . 'rag_incarico', true);
-                        ?>
-                        <span class="d-block"><?php echo esc_html(dci_custom_section_card_text($rag_incarico, 70)); ?></span>
-                    </div>
-                </div>
-                </div>
-        </div>
-        <div class="row mt-3 pt-3 border-top border-light-subtle">
-            <div class="col-md-6">
-                <h6 class="text-uppercase text-muted small">Allegati</h6>
-                <p class="mb-0">
+                <?php } ?>
+            </div>
+        </section>
+        <section class="dci-concessione-card__section" aria-label="Documenti della concessione">
+            <div class="dci-concessione-card__field">
+                <span class="dci-concessione-card__label">Allegati</span>
+                <div class="dci-concessione-card__value">
                     <?php
-                    $allegati = get_post_meta(get_the_ID(), $prefix . 'allegati', true);
+                    $allegati = get_post_meta(get_the_ID(), $atto_prefix . 'allegati', true);
 
                     if (!empty($allegati) && is_array($allegati)) {
                         $i = 1;
@@ -170,7 +277,7 @@ if (empty($dci_custom_section_card_style_printed)) :
                             if (!$file_url) continue; // Salta se l'allegato non ha URL
 
                     ?>
-                            <span class="d-inline-flex align-items-center mb-2 me-3">
+                            <span class="dci-concessione-card__document">
                                 <svg class="icon icon-sm me-1" aria-hidden="true">
                                     <use href="#it-file"></use>
                                 </svg>
@@ -187,9 +294,12 @@ if (empty($dci_custom_section_card_style_printed)) :
                         echo 'Nessun Allegato';
                     }
                     ?>
-                </p>
+
+                </div>
             </div>
-            <div class="col-md-6 text-end dci-at-card-actions">
+        </section>
+        <footer class="dci-concessione-card__section">
+            <div class="dci-concessione-card__actions dci-at-card-actions">
                 <a href="<?php echo esc_url(get_permalink()); ?>" class="dci-at-card-detail-action btn btn-primary btn-sm">
                     <span><?php esc_html_e('Apri dettaglio', 'design_comuni_italia'); ?></span>
                     <svg class="icon icon-sm ms-1" aria-hidden="true" focusable="false"><use href="#it-arrow-right"></use></svg>
@@ -199,7 +309,8 @@ if (empty($dci_custom_section_card_style_printed)) :
                     dci_render_trasparenza_edit_link(get_the_ID());
                 }
                 ?>
+
             </div>
-        </div>
+        </footer>
     </div>
-</div>
+</article>

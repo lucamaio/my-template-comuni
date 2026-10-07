@@ -856,7 +856,6 @@ $internal_custom_sections_enabled = function_exists('dci_trasparenza_internal_cu
     ?>
 
     <div class="bg-grey-card dci-at-layout">
-        
       <?php 
           if ($obj->name == "Atti, documenti e link a BDNCP" && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_bandidigaratemplatepersonalizzato", "Trasparenza") !== '') 
                { 
@@ -955,7 +954,7 @@ $internal_custom_sections_enabled = function_exists('dci_trasparenza_internal_cu
             </div> 
         </div>
     </div>
-   <?php } else if($obj->name === "Dirigenti cessati" && dci_get_option("ck_incarichidirigenzialitemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_incarichidirigenzialitemplatepersonalizzato", "Trasparenza") !== ''){?>
+   <?php } else if($obj->name === "Dirigenti cessati" && dci_get_option("ck_incarichidirigenzialitemplatepersonalizzato", "Trasparenza") !== 'false' && dci_get_option("ck_incarichidirigenzialitemplatepersonalizzato", "Trasparenza") !== '' && dci_get_option("ck_incarichidirigenziali_cessati_automatico", "Trasparenza") !== 'false' && dci_get_option("ck_incarichidirigenziali_cessati_automatico", "Trasparenza") !== ''){?>
          <div class="container my-5">
             <div class="row g-4">
                 <h2 class="visually-hidden">Dirigenti cessati</h2>

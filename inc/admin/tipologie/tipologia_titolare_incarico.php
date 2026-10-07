@@ -5,31 +5,80 @@ function dci_titolare_incarico_archive_sql()
     global $wpdb;
 
     $now = current_datetime();
+
+    /*
+     * Soglia basata sulla data di pubblicazione.
+     * Utilizzata solamente come fallback quando non sono disponibili
+     * date utili relative all'incarico.
+     *
+     * Esempio nel 2026: 2023-01-01 00:00:00
+     */
     $publication_start = ((int) $now->format('Y') - 3) . '-01-01 00:00:00';
-    // Il giorno del terzo anniversario resta incluso nella pubblicazione.
-    $cessation_cutoff = $now->setTime(0, 0)->modify('-3 years')->getTimestamp();
+
+    /*
+     * Data esatta di tre anni fa.
+     * Il giorno del terzo anniversario rimane ancora pubblico.
+     */
+    $cessation_cutoff = $now
+        ->setTime(0, 0)
+        ->modify('-3 years')
+        ->getTimestamp();
 
     return $wpdb->prepare(
-        "({$wpdb->posts}.post_date < %s
-        AND EXISTS (
-            SELECT 1 FROM {$wpdb->postmeta} AS dci_end
-            WHERE dci_end.post_id = {$wpdb->posts}.ID
-              AND dci_end.meta_key = '_dci_titolare_incarico_data_fine'
-              AND dci_end.meta_value REGEXP '^[0-9]+$'
-              AND CAST(dci_end.meta_value AS SIGNED) > 0
-              AND CAST(dci_end.meta_value AS SIGNED) < %d
-        )
-        AND NOT EXISTS (
-            SELECT 1 FROM {$wpdb->postmeta} AS dci_invalid_end
-            WHERE dci_invalid_end.post_id = {$wpdb->posts}.ID
-              AND dci_invalid_end.meta_key = '_dci_titolare_incarico_data_fine'
-              AND (dci_invalid_end.meta_value NOT REGEXP '^[0-9]+$'
-                   OR CAST(dci_invalid_end.meta_value AS SIGNED) <= 0
-                   OR CAST(dci_invalid_end.meta_value AS SIGNED) >= %d)
-        ))",
-        $publication_start,
+        "(
+            /*
+             * CASO 1
+             * Esiste una data di cessazione valida.
+             *
+             * In questo caso è la data di cessazione a determinare
+             * la permanenza o meno nella sezione pubblica,
+             * indipendentemente dalla data di pubblicazione del post.
+             */
+            EXISTS (
+                SELECT 1
+                FROM {$wpdb->postmeta} AS dci_end
+                WHERE dci_end.post_id = {$wpdb->posts}.ID
+                  AND dci_end.meta_key = '_dci_titolare_incarico_data_fine'
+                  AND dci_end.meta_value REGEXP '^[0-9]+$'
+                  AND CAST(dci_end.meta_value AS UNSIGNED) > 0
+                  AND CAST(dci_end.meta_value AS UNSIGNED) < %d
+            )
+
+            OR
+
+            /*
+             * CASO 2
+             * Non esiste una data di cessazione valida
+             * e non esiste nemmeno una data di inizio valida.
+             *
+             * Non abbiamo quindi informazioni temporali
+             * sull'incarico e utilizziamo la data di pubblicazione
+             * come criterio di fallback.
+             */
+            (
+                {$wpdb->posts}.post_date < %s
+
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM {$wpdb->postmeta} AS dci_end_missing
+                    WHERE dci_end_missing.post_id = {$wpdb->posts}.ID
+                      AND dci_end_missing.meta_key = '_dci_titolare_incarico_data_fine'
+                      AND dci_end_missing.meta_value REGEXP '^[0-9]+$'
+                      AND CAST(dci_end_missing.meta_value AS UNSIGNED) > 0
+                )
+
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM {$wpdb->postmeta} AS dci_start_missing
+                    WHERE dci_start_missing.post_id = {$wpdb->posts}.ID
+                      AND dci_start_missing.meta_key = '_dci_titolare_incarico_data_inizio'
+                      AND dci_start_missing.meta_value REGEXP '^[0-9]+$'
+                      AND CAST(dci_start_missing.meta_value AS UNSIGNED) > 0
+                )
+            )
+        )",
         $cessation_cutoff,
-        $cessation_cutoff
+        $publication_start
     );
 }
 
@@ -251,13 +300,32 @@ function dci_add_titolare_incarico_metaboxes()
 {
     $prefix = '_dci_titolare_incarico_';
 
-    // --- Apertura ---
+    // Sezione Apertura - Dati principali del titolare incarico
     $cmb_apertura = new_cmb2_box(array(
         'id'           => $prefix . 'box_apertura',
-        'title'        => __('Dati incarico', 'design_comuni_italia'),
+        'title'        => __('Dati principali del titolare dell’incarico', 'design_comuni_italia'),
         'object_types' => array('titolare_incarico'),
         'context'      => 'normal',
         'priority'     => 'high',
+    ));
+
+    // Descizione informativa per la sezione
+    $cmb_apertura->add_field(array(
+        'id'   => $prefix . 'descrizione_dati_incarico',
+        'name' => __('Informazioni principali dell’incarico conferito', 'design_comuni_italia'),
+        'desc' => __(
+            '<p>
+                Inserisci i principali dati relativi all’incarico conferito, indicando in modo completo l’oggetto, il compenso, l’atto di conferimento, le date di inizio e cessazione e le ulteriori informazioni richieste.
+            </p>
+            <p>
+                <strong>Presta particolare attenzione alle date dell’incarico:</strong> queste informazioni vengono utilizzate per determinare correttamente il periodo di pubblicazione e la visibilità del contenuto nella sezione Amministrazione Trasparente.
+            </p>
+            <p class="mb-0">
+                <strong>In assenza delle date dell’incarico,</strong> ai fini della gestione della visibilità verrà utilizzata come riferimento la data di pubblicazione del contenuto.
+            </p>',
+            'design_comuni_italia'
+        ),
+        'type' => 'title',
     ));
 
     // $cmb_apertura->add_field(array(
@@ -268,38 +336,61 @@ function dci_add_titolare_incarico_metaboxes()
     //     'attributes'  => array('required' => 'required'),
     // ));
     
+    // Informazioni preliminari sul titolare dell’incarico
     $cmb_apertura->add_field(array(
         'id'          => $prefix . 'oggetto',
         'name'        => __("Oggetto dell'incarico *", 'design_comuni_italia'),
         'desc'        => __("Descrivi sinteticamente l’oggetto dell’incarico conferito.", 'design_comuni_italia'),
         'type'        => 'wysiwyg',
-        'attributes'  => array('required' => 'required'),
+        // 'attributes'  => array('required' => 'required'),
         'options'     => array(
-            'textarea_rows' => 8,
+            'textarea_rows' => 4,
             'teeny'         => false,
         ),
     ));
 
     $cmb_apertura->add_field(array(
         'id'          => $prefix . 'compenso',
-        'name'        => __('Compenso', 'design_comuni_italia'),
+        'name'        => __('Compenso *', 'design_comuni_italia'),
         'desc'        => __('Inserisci l’importo del compenso previsto per l’incarico.', 'design_comuni_italia'),
         'type'        => 'text',
         // 'attributes'  => array('required' => 'required'),
     ));
 
     $cmb_apertura->add_field(array(
+        'id'          => $prefix . 'atto_conferimento_incarico',
+        'name'        => __('Atto di conferimento *', 'design_comuni_italia'),
+        'desc'        => __('Inserisci il riferimento o il nome dell’atto di conferimento dell’incarico.', 'design_comuni_italia'),
+        'type'        => 'text',
+        // 'attributes'  => array('required' => 'required'),
+    ));
+
+    // Date e durata dell’incarico
+
+    $cmb_apertura->add_field(array(
         'id'          => $prefix . 'data_inizio',
-        'name'        => __('Data di inizio', 'design_comuni_italia'),
-        'desc'        => __('Seleziona la data di avvio dell’incarico.', 'design_comuni_italia'),
+        'name'        => __('Data di inizio *', 'design_comuni_italia'),
+        'desc'        => __(
+            '<p class="mb-2">Seleziona la data di inizio dell’incarico.</p>
+            <p style="font-weight: bold;">
+                Compila correttamente questo campo, in quanto la data di inizio contribuisce a determinare il periodo temporale effettivo dell’incarico e la corretta gestione della sua visibilità nella sezione Amministrazione Trasparente.
+            </p>',
+            'design_comuni_italia'
+        ),
         'type'        => 'text_date_timestamp',
         'date_format' => 'd-m-Y',
     ));
 
     $cmb_apertura->add_field(array(
         'id'          => $prefix . 'data_fine',
-        'name'        => __('Data di fine', 'design_comuni_italia'),
-        'desc'        => __('Seleziona la data di conclusione dell’incarico.', 'design_comuni_italia'),
+        'name'        => __('Data di fine *', 'design_comuni_italia'),
+        'desc'        => __(
+            '<p class="mb-2">Seleziona la data di cessazione dell’incarico.</p>
+            <p style="font-weight: bold;">
+                Compila correttamente questo campo, in quanto la data di cessazione viene utilizzata per determinare il periodo di pubblicazione dell’incarico e consentire, una volta decorso il termine di visibilità previsto dalla normativa, la sua esclusione dalla consultazione pubblica ordinaria.
+            </p>',
+            'design_comuni_italia'
+        ),
         'type'        => 'text_date_timestamp',
         'date_format' => 'd-m-Y',
     ));
@@ -307,19 +398,12 @@ function dci_add_titolare_incarico_metaboxes()
      $cmb_apertura->add_field(array(
         'id'          => $prefix . 'durata',
         'name'        => __('Durata', 'design_comuni_italia'),
-        'desc'        => __('Inserisci la durata prevista per l’incarico.', 'design_comuni_italia'),
+        'desc'        => __('Inserisci la durata prevista per l’incarico. Esempio: 1 anno.', 'design_comuni_italia'),
         'type'        => 'text',
     ));
 
 
-    $cmb_apertura->add_field(array(
-        'id'          => $prefix . 'atto_conferimento_incarico',
-        'name'        => __('Atto di conferimento *', 'design_comuni_italia'),
-        'desc'        => __('Inserisci il riferimento o il nome dell’atto di conferimento dell’incarico.', 'design_comuni_italia'),
-        'type'        => 'text',
-        'attributes'  => array('required' => 'required'),
-    ));
-
+    
     // Attestazione dell'avvenuta verifica dell'insussistenza di situazioni, anche potenziali, di conflitto di interessi
 
     $cmb_apertura->add_field(array(
@@ -337,7 +421,7 @@ function dci_add_titolare_incarico_metaboxes()
 
 
 
-    // --- Documenti ---
+    // Sezione documenti e allegati del incarico
     $cmb_documenti = new_cmb2_box(array(
         'id'           => $prefix . 'box_documenti',
         'title'        => __('Documenti allegati', 'design_comuni_italia'),
@@ -375,7 +459,7 @@ function dci_add_titolare_incarico_metaboxes()
         'desc' => __('Inserisci eventuale informazione aggiuntiva riguardo il titolare dell’incarico.', 'design_comuni_italia'),
         'type' => 'wysiwyg',
         'options' => array(
-            'textarea_rows' => 10,
+            'textarea_rows' => 8,
             'teeny' => false,
         ),
     ));

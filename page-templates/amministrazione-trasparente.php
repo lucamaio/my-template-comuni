@@ -137,7 +137,7 @@ add_action('wp_head', 'dci_trasparenza_print_seo_metadata', 5);
 
 $search_url = esc_url( home_url( '/' ));
 $link_amministrazione=dci_get_option("link_ammtrasparente");
-$url_img="https://saassipa.cultura.gov.it/wp-content/uploads/2020/04/amm_trasp-1024x381.png";
+$url_img = get_template_directory_uri() . '/assets/img/amministrazione-trasparente.png';
 $trasparenza_attiva = dci_get_option("ck_abilita_trasparenza");
 
 

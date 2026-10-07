@@ -44,6 +44,3 @@ node_modules/
 nbproject
 Thumbs.db
 .vscode
-
-docs/*
-pacchetti-aggiornamenti/*

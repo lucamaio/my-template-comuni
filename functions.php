@@ -45,6 +45,9 @@ if ( ! function_exists ( 'dci_get_tipologia_articoli_options' ) ) {
  */
 require get_template_directory() . '/inc/utils.php';
 
+// Template Bilanci e collegamento al servizio configurato.
+require get_template_directory() . '/inc/bilanci.php';
+
 /**
  * Normalizza il numero di contenuti per pagina nelle query frontend.
  *

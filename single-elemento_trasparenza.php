@@ -141,15 +141,15 @@ global $uo_id, $inline, $audio;
                     ?>
                 </div>
             </div>
-            <div class="row mt-5 mb-4">
-                <div class="col-6">
+            <div class="row mt-5 mb-4 gy-2">
+                <div class="col-12 col-sm-6">
                     <small>Data pubblicazione:</small>
                     <p class="fw-semibold font-monospace">
                         <?php echo esc_html($data_pubblicazione); ?>
                     </p>
                 </div>
                 <?php if ($mostra_aggiornamento) { ?>
-                    <div class="col-6">
+                    <div class="col-12 col-sm-6">
                         <small>Data aggiornamento:</small>
                         <p class="fw-semibold font-monospace">
                             <?php echo esc_html($data_modifica); ?>

@@ -1,6 +1,19 @@
 <?php
 global $siti_tematici, $dci_amm_sidebar_embedded, $dci_amm_sidebar_sections, $dci_amm_sidebar_column_classes;
 
+if (!function_exists('dci_format_trasparenza_section_title')) {
+    function dci_format_trasparenza_section_title($title)
+    {
+        $title = (string) $title;
+        if (!preg_match('/\p{Lu}{7,}/u', $title)) {
+            return $title;
+        }
+        $lowercase_title = mb_strtolower($title, 'UTF-8');
+        return mb_strtoupper(mb_substr($lowercase_title, 0, 1, 'UTF-8'), 'UTF-8')
+            . mb_substr($lowercase_title, 1, null, 'UTF-8');
+    }
+}
+
 if (!function_exists('dci_amm_sidebar_term_is_visible')) {
     function dci_amm_sidebar_term_is_visible($term)
     {
@@ -236,7 +249,10 @@ if (!function_exists('dci_amm_sidebar_render_term_branch')) {
     }
 }
 
-$current_term = get_queried_object();
+// Le pagine dedicate possono indicare la sezione senza alterare la query WP.
+$current_term = $args['section_term'] ?? get_queried_object();
+$sidebar_current_attribute = isset($args['section_term']) ? 'location' : 'page';
+$sidebar_theme_sites = $args['siti_tematici'] ?? $siti_tematici;
 $current_term = ($current_term instanceof WP_Term && isset($current_term->taxonomy) && $current_term->taxonomy === 'tipi_cat_amm_trasp')
     ? $current_term
     : null;
@@ -244,7 +260,7 @@ $current_term = ($current_term instanceof WP_Term && isset($current_term->taxono
 $root_term = dci_amm_sidebar_get_root_term($current_term);
 $root_term = dci_amm_sidebar_term_is_visible($root_term) ? $root_term : null;
 $embedded = !empty($dci_amm_sidebar_embedded);
-$sidebar_column_classes = !empty($dci_amm_sidebar_column_classes) ? trim((string) $dci_amm_sidebar_column_classes) : '';
+$sidebar_column_classes = trim((string) ($args['column_classes'] ?? $dci_amm_sidebar_column_classes ?? ''));
 $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_filter($dci_amm_sidebar_sections)) : [];
 ?>
 
@@ -335,7 +351,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
         background: var(--dci-amm-sidebar-accent);
     }
     .dci-amm-sidebar__nav .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row > a,
-    .dci-amm-sidebar__nav .dci-amm-sidebar__term-root > a[aria-current="page"] {
+    .dci-amm-sidebar__nav .dci-amm-sidebar__term-root > a[aria-current] {
         border-left-color: var(--dci-amm-sidebar-accent);
     }
     @supports (background: color-mix(in srgb, red, white)) {
@@ -349,7 +365,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
             background: color-mix(in srgb, var(--dci-amm-sidebar-accent) 9%, white);
         }
         .dci-amm-sidebar__nav .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row,
-        .dci-amm-sidebar__nav .dci-amm-sidebar__term-root > a[aria-current="page"] {
+        .dci-amm-sidebar__nav .dci-amm-sidebar__term-root > a[aria-current] {
             background: color-mix(in srgb, var(--dci-amm-sidebar-accent) 13%, white);
         }
     }
@@ -418,9 +434,9 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
     .dci-amm-sidebar__term-root a { font-weight: 700; }
     .dci-amm-sidebar__term-row:hover, .dci-amm-sidebar__term-root > a:hover { background: #ffffff; }
     .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row,
-    .dci-amm-sidebar__term-root > a[aria-current="page"] { background: #e7eef5; }
+    .dci-amm-sidebar__term-root > a[aria-current] { background: #e7eef5; }
     .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row > a,
-    .dci-amm-sidebar__term-root > a[aria-current="page"] { border-left-color: currentColor; font-weight: 700; }
+    .dci-amm-sidebar__term-root > a[aria-current] { border-left-color: currentColor; font-weight: 700; }
     .dci-amm-sidebar__term-item.is-current > .dci-amm-sidebar__term-row .dci-amm-sidebar__term-label { font-weight: 700; }
     .dci-amm-sidebar__external-icon { flex: 0 0 auto; fill: currentColor; }
     .dci-amm-sidebar__toggle {
@@ -590,7 +606,7 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
                     <?php $root_link_data = dci_amm_sidebar_get_term_link_data($root_term); ?>
                     <div class="dci-amm-sidebar__section-entries">
                     <p class="dci-amm-sidebar__term-root<?php echo dci_amm_sidebar_term_is_active($root_term, $current_term) ? ' is-active' : ''; ?>">
-                        <a class="text-decoration-none t-primary d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>"<?php echo $current_term instanceof WP_Term && (int) $root_term->term_id === (int) $current_term->term_id ? ' aria-current="page"' : ''; ?><?php echo $root_link_data['target']; ?>>
+                        <a class="text-decoration-none t-primary d-inline-flex align-items-center gap-1" href="<?php echo esc_url($root_link_data['url']); ?>"<?php echo $current_term instanceof WP_Term && (int) $root_term->term_id === (int) $current_term->term_id ? ' aria-current="' . esc_attr($sidebar_current_attribute) . '"' : ''; ?><?php echo $root_link_data['target']; ?>>
                             <span class="dci-amm-sidebar__group-icon" aria-hidden="true"><svg class="icon"><use href="#it-list"></use></svg></span>
                             <span><?php echo esc_html($root_display_name); ?></span>
                             <?php if (!empty($root_link_data['is_external'])) { ?>
@@ -605,11 +621,11 @@ $sidebar_sections = is_array($dci_amm_sidebar_sections) ? array_values(array_fil
                 </nav>
             <?php } ?>
 
-            <?php if (is_array($siti_tematici) && count($siti_tematici)) { ?>
+            <?php if (is_array($sidebar_theme_sites) && count($sidebar_theme_sites)) { ?>
                 <div class="dci-amm-sidebar__box dci-amm-sidebar__links">
                     <h2 class="title-medium-semi-bold dci-amm-sidebar__title">Link utili</h2>
                     <ul class="dci-amm-sidebar__theme-list">
-                        <?php foreach ($siti_tematici as $sito_tematico_id) {
+                        <?php foreach ($sidebar_theme_sites as $sito_tematico_id) {
                             dci_amm_sidebar_render_theme_item($sito_tematico_id);
                         } ?>
                     </ul>

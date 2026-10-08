@@ -22,6 +22,15 @@ function dci_register_pagina_trasparenza_options()
     $trasparenza_options = new_cmb2_box($args);
 
     $trasparenza_options->add_field(array(
+        'id' => 'url_bilanci',
+        'name' => __('URL Bilanci', 'design_comuni_italia'),
+        'desc' => __('Indirizzo del modulo Bilanci su www.servizipubblicaamministrazione.it, comprensivo del parametro Ente. Il template Bilanci mostra anni, tipologie e documenti nel sito comunale. Lasciare vuoto se il servizio non è disponibile.', 'design_comuni_italia'),
+        'type' => 'text_url',
+        'protocols' => array('http', 'https'),
+        'sanitization_cb' => 'dci_bilanci_validate_url',
+    ));
+
+    $trasparenza_options->add_field(array(
         'id'    => $prefix . 'trasparente_options',
         'name'  => __('Amministrazione Trasparente', 'design_comuni_italia'),
         'desc'  => __('Configurazione della pagina Amministrazione Trasparente (se interna).', 'design_comuni_italia'),

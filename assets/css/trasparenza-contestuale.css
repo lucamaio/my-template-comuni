@@ -193,6 +193,47 @@ a.dci-at-card-detail-action.btn-primary > .icon {
     opacity: .55;
 }
 
+/* Date delle card classiche: ogni etichetta resta insieme al suo valore. */
+.dci-at-card-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.25rem;
+    max-width: 100%;
+    margin-bottom: .6rem;
+    color: #015075;
+    font-size: 1rem;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.dci-at-card-dates__item {
+    display: flex;
+    align-items: flex-start;
+    gap: .35rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.dci-at-card-dates__text {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.dci-at-card-dates__icon {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+    margin-top: .2rem;
+    fill: currentColor;
+}
+
+@media (max-width: 575.98px) {
+    .dci-at-card-dates__item {
+        flex-basis: 100%;
+    }
+}
+
 /* Protezioni comuni contro overflow nelle pagine della Trasparenza. */
 .dci-at-layout,
 .dci-at-layout .container,

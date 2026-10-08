@@ -10,7 +10,7 @@
           "title": "Aree amministrative",
           "slug": "aree-amministrative",
           "description": "La struttura organizzativa è suddivisa in aree di competenze che gestiscono i servizi erogati alla comunità.",
-          "template_name": "aree_amministrative",
+          "template_name": "aree-amministrative",
           "children": {}
         },       
         "Enti e fondazioni": {
@@ -197,6 +197,13 @@
         "slug": "contatti",
         "description": "Sezione dedicata ai recapiti ufficiali del Comune, attraverso la quale cittadini, imprese ed enti possono mettersi in contatto con l’Amministrazione comunale. La pagina fornisce informazioni utili quali indirizzi, numeri telefonici, indirizzi di posta elettronica e altri canali di comunicazione, al fine di garantire trasparenza, accessibilità e un dialogo diretto con gli uffici competenti.",
         "template_name": "contatti",
+        "children": {}
+      },
+      "Bilanci": {
+        "title": "Bilanci",
+        "slug": "bilanci",
+        "description": "Sezione dedicata ai bilanci del Comune, contenente i documenti e le informazioni relative alla gestione finanziaria dell'ente.",
+        "template_name": "bilanci",
         "children": {}
       }
 

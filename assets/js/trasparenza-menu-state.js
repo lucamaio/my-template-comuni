@@ -99,7 +99,10 @@
             panel.style.display = isExpanded ? 'block' : 'none';
             if (title) {
                 title.classList.toggle('is-open', isExpanded);
-                title.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+                var toggle = title.querySelector('.title-custom__toggle');
+                if (toggle) {
+                    toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+                }
             }
         });
 
@@ -170,20 +173,11 @@
         }
 
         document.addEventListener('click', function (event) {
-            if (!event.target.closest('.title-custom, .js-subcat-toggle, #toggle-all-btn')) {
+            if (!event.target.closest('.title-custom__toggle, .js-subcat-toggle, #toggle-all-btn')) {
                 return;
             }
 
             window.setTimeout(saveState, 0);
-        });
-
-        document.addEventListener('keydown', function (event) {
-            if (
-                (event.key === 'Enter' || event.key === ' ')
-                && event.target.closest('.title-custom:not(.no-children)')
-            ) {
-                window.setTimeout(saveState, 0);
-            }
         });
     }
 

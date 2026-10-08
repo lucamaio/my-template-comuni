@@ -291,38 +291,31 @@ if ($elemento->post_status === "publish") :
                     'post_id' => $elemento->ID,
                 ]);
             } else { ?>
-            <span
-                class="data"
-                style="display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.6rem;color:#455a64;font-size:1rem;line-height:1.4;font-weight:600;"
-            >
-                <svg
-                    class="icon"
-                    style="flex:0 0 auto;width:1rem;height:1rem;fill:currentColor;"
-                    aria-hidden="true"
-                >
-                    <use href="#it-calendar"></use>
-                </svg>
-                Pubblicato il
-                <time datetime="<?php echo esc_attr($data_pubblicazione); ?>">
-                    <?php echo esc_html($data_pubblicazione); ?>
-                </time>
-
-                <?php if( $mostra_aggiornamento ) { ?>
-                    - Aggiornato il
-                    <time datetime="<?php echo esc_attr($data_modifica); ?>">
-                        <?php echo esc_html($data_modifica); ?>
-                    </time>
-                        
+            <div class="data dci-at-card-dates">
+                <div class="dci-at-card-dates__item">
+                    <svg class="icon dci-at-card-dates__icon" aria-hidden="true">
+                        <use href="#it-calendar"></use>
+                    </svg>
+                    <span class="dci-at-card-dates__text">
+                        Pubblicato il
+                        <time datetime="<?php echo esc_attr(get_the_date('Y-m-d', $elemento->ID)); ?>"><?php echo esc_html($data_pubblicazione); ?></time>
+                    </span>
+                </div>
+                <?php if ($mostra_aggiornamento) { ?>
+                    <div class="dci-at-card-dates__item">
+                        <svg class="icon dci-at-card-dates__icon" aria-hidden="true">
+                            <use href="#it-clock"></use>
+                        </svg>
+                        <span class="dci-at-card-dates__text">
+                            Aggiornato il
+                            <time datetime="<?php echo esc_attr(get_the_modified_date('Y-m-d', $elemento->ID)); ?>"><?php echo esc_html($data_modifica); ?></time>
+                        </span>
+                    </div>
                 <?php } ?>
-
-            
-                
-                
-                
-            </span>
+            </div>
             <?php } ?>
 
-            <h3 class="green-title-big t-primary mb-8">
+            <h3 class="card-title green-title-big t-primary mb-8">
                 <a class="text-decoration-none" href="<?php echo esc_url($link); ?>"
                     <?php echo $ck_target ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
                     data-element="service-link">

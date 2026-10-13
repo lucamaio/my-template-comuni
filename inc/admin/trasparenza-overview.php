@@ -3,6 +3,8 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+require_once dirname(__DIR__) . '/trasparenza-extra-sections.php';
+require_once dirname(__DIR__) . '/trasparenza-overview-cache.php';
 
 function dci_at_overview_post_types() {
     return array('elemento_trasparenza', 'atto_concessione', 'bando', 'titolare_incarico', 'incarico_dirig', 'incarichi_dip');
@@ -84,49 +86,11 @@ function dci_at_overview_section_counts($nodes, $occupied_ids) {
 
 /**
  * Confronta i termini ricevuti con i percorsi della struttura del tema.
- * Normalizza solo gli spazi: una voce rinominata o collocata sotto un altro
- * genitore non coincide con la struttura predefinita. Nessuna modifica ai dati.
+ * Applica le stesse equivalenze ed esclusioni dell'elenco categorie.
+ * Nessuna modifica ai dati.
  */
 function dci_at_overview_extra_section_ids($nodes, $structure) {
-    $normalize = static function ($name) {
-        return preg_replace('/\s+/u', ' ', trim((string) $name));
-    };
-    $expected = array();
-    $index = static function ($items, $parents = array()) use (&$index, &$expected, $normalize) {
-        foreach ($items as $key => $value) {
-            $name = is_int($key) ? $value : $key;
-            $path = array_merge($parents, array($normalize($name)));
-            $expected[json_encode($path)] = true;
-            if (is_array($value)) {
-                $index($value, $path);
-            }
-        }
-    };
-    $index($structure);
-
-    $paths = array();
-    $visiting = array();
-    $resolve = static function ($id) use (&$resolve, &$paths, &$visiting, $nodes, $normalize) {
-        if (array_key_exists($id, $paths)) {
-            return $paths[$id];
-        }
-        if (!isset($nodes[$id]) || isset($visiting[$id])) {
-            return null;
-        }
-        $visiting[$id] = true;
-        $parent_path = $nodes[$id]['parent'] ? $resolve($nodes[$id]['parent']) : array();
-        $paths[$id] = null === $parent_path ? null : array_merge($parent_path, array($normalize($nodes[$id]['name'])));
-        unset($visiting[$id]);
-        return $paths[$id];
-    };
-    $extra = array();
-    foreach (array_keys($nodes) as $id) {
-        $path = $resolve($id);
-        if (null === $path || !isset($expected[json_encode($path)])) {
-            $extra[] = (int) $id;
-        }
-    }
-    return $extra;
+    return dci_at_extra_section_ids($nodes, $structure);
 }
 
 /** Nomi e percorsi ricavati dalla stessa mappa già caricata, senza query aggiuntive. */
@@ -147,7 +111,8 @@ function dci_at_overview_empty_section_list($nodes, $ids) {
             'slug' => $nodes[$id]['slug'],
             'path' => implode(' / ', $path),
             'levels' => array_merge($path, array($nodes[$id]['name'])),
-            'description' => trim((string) ($nodes[$id]['description'] ?? '')),
+            'description' => dci_at_overview_excerpt($nodes[$id]['description'] ?? ''),
+            'normativa' => dci_at_overview_excerpt($nodes[$id]['normativa'] ?? ''),
         );
     }
     usort($items, static function ($a, $b) {
@@ -161,11 +126,7 @@ function dci_at_overview_empty_section_list($nodes, $ids) {
  * Non carica i post, non scarica documenti e non contatta servizi esterni.
  * Il risultato condiviso non contiene dati personali o contenuti riservati.
  */
-function dci_at_get_transparency_overview() {
-    $cached = get_transient('dci_at_overview_v8');
-    if (is_array($cached) && isset($cached['visible_sections'], $cached['empty_sections'], $cached['published'], $cached['generated_at'], $cached['empty_section_list'], $cached['extra_sections'], $cached['extra_section_list'], $cached['parent_sections'], $cached['parent_section_list'])) {
-        return $cached;
-    }
+function dci_at_build_transparency_overview() {
     if (!function_exists('dci_tipi_cat_amm_trasp_array')) {
         return new WP_Error('dci_at_structure_unavailable', 'Struttura predefinita della Trasparenza non disponibile.');
     }
@@ -194,6 +155,7 @@ function dci_at_get_transparency_overview() {
             'slug' => $term->slug,
             'parent' => (int) $term->parent,
             'description' => $term->description,
+            'normativa' => (string) get_term_meta($term->term_id, 'normativa', true),
             'visible' => '1' === (string) get_term_meta($term->term_id, 'visualizza_elemento', true),
             'custom_post_type' => $count_custom ? $custom_type : '',
             'custom_section' => false !== $manager_section ? (string) $manager_section : '',
@@ -264,6 +226,7 @@ function dci_at_get_transparency_overview() {
     $direct_ids = $occupied_ids;
     $occupied_ids = dci_at_overview_custom_occupied_ids($nodes, $occupied_ids, $totals_by_type, $manager_sections);
     $result = dci_at_overview_section_counts($nodes, $occupied_ids);
+    $result['visible_section_list'] = dci_at_overview_empty_section_list($nodes, $result['visible_section_ids']);
     $result['empty_section_list'] = dci_at_overview_empty_section_list($nodes, $result['empty_section_ids']);
     // Riutilizza la visibilità effettiva: esclude anche i discendenti di voci nascoste.
     $visible_nodes = array_intersect_key($nodes, array_fill_keys($result['visible_section_ids'], true));
@@ -274,7 +237,7 @@ function dci_at_get_transparency_overview() {
     $result['parent_sections'] = count($parent_ids);
     $result['parent_section_list'] = dci_at_overview_empty_section_list($nodes, $parent_ids);
     $section_counts = dci_at_overview_direct_counts($nodes, $direct_counts, $totals_by_type, $manager_counts);
-    foreach (array('extra_section_list', 'parent_section_list') as $list_key) {
+    foreach (array('visible_section_list', 'empty_section_list', 'extra_section_list', 'parent_section_list') as $list_key) {
         foreach ($result[$list_key] as &$section) {
             $section['published'] = $section_counts[$section['id']] ?? 0;
         }
@@ -284,7 +247,6 @@ function dci_at_get_transparency_overview() {
     $result['published'] = $published;
     $result['last_updated_gmt'] = $last_updated;
     $result['generated_at'] = time();
-    set_transient('dci_at_overview_v8', $result, 5 * MINUTE_IN_SECONDS);
     return $result;
 }
 
@@ -316,123 +278,98 @@ function dci_at_overview_parent_content_ids($nodes, $visible_ids, $direct_ids) {
     )));
 }
 
-/** Pannello comune per gli elenchi della panoramica, già presenti nella cache. */
-function dci_at_render_overview_section_panel($kind, $title, $items, $description, $empty_message, $group_by_parent = false) {
+/** Data calcolata nel fuso orario del sito: primo gennaio di cinque anni fa. */
+function dci_at_overview_empty_section_title() {
+    return sprintf('Sezioni senza contenuti nel periodo dal 01/01/%d', (int) wp_date('Y') - 5);
+}
+
+/** Titoli e descrizioni condivisi da riepilogo ed endpoint degli elenchi. */
+function dci_at_overview_panels() {
+    return array(
+        'visible' => array('title' => 'Sezioni visibili', 'description' => 'Tutte le sezioni visibili nell’alberatura pubblica. Sono escluse le sottosezioni con un genitore nascosto.', 'empty' => 'Nessuna sezione visibile rilevata.'),
+        'empty' => array('title' => dci_at_overview_empty_section_title(), 'description' => 'Sezioni visibili senza figli e senza elementi pubblicati. Le voci con figli sono escluse anche quando i figli sono nascosti.', 'empty' => 'Nessuna sezione senza contenuti rilevata.'),
+        'extra' => array('title' => 'Categorie extra', 'description' => 'Categorie visibili fuori dalla struttura corrente del tema. Sono riconosciute le denominazioni equivalenti Amministratori cessati / Cessati dall’incarico e Bandi di concorso / Concorsi. Sono esclusi Normativa, Link BDNCP, Consulta i bilanci per anno, Consultazione dati BDAP e tutte le sottovoci di Bandi di Gara e contratti › Procedimenti fino al 31/12/2023.', 'empty' => 'Nessuna categoria extra rilevata.'),
+        'parent' => array('title' => 'Categorie con figli e contenuti', 'description' => 'Contenitori visibili con elementi pubblicati direttamente associati. Ogni categoria compare una sola volta.', 'empty' => 'Nessuna categoria con figli e contenuti diretti rilevata.'),
+    );
+}
+
+/** Solo il contenitore: nessuna voce dell'elenco nell'HTML iniziale. */
+function dci_at_render_overview_section_panel($kind, $panel, $total) {
     ?>
-    <section id="dci-at-<?php echo esc_attr($kind); ?>-sections" class="dci-at-empty-sections" aria-labelledby="dci-at-<?php echo esc_attr($kind); ?>-title" hidden>
+    <section id="dci-at-<?php echo esc_attr($kind); ?>-sections" class="dci-at-empty-sections" aria-labelledby="dci-at-<?php echo esc_attr($kind); ?>-title" data-overview-panel="<?php echo esc_attr($kind); ?>" hidden>
         <div class="dci-at-empty-sections__header">
-            <div class="dci-at-empty-sections__title">
-                <span class="dci-at-empty-sections__eyebrow">Dettaglio panoramica</span>
-                <h3 id="dci-at-<?php echo esc_attr($kind); ?>-title"><?php echo esc_html($title); ?> <span class="dci-at-empty-sections__badge"><?php echo esc_html(number_format_i18n(count($items))); ?></span></h3>
-            </div>
-            <button type="button" id="dci-at-<?php echo esc_attr($kind); ?>-close" class="button">Chiudi elenco</button>
+            <h3 id="dci-at-<?php echo esc_attr($kind); ?>-title"><?php echo esc_html($panel['title']); ?> <span class="dci-at-empty-sections__badge"><?php echo esc_html(number_format_i18n($total)); ?></span></h3>
+            <button type="button" id="dci-at-<?php echo esc_attr($kind); ?>-close" class="button"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span>Chiudi elenco</button>
         </div>
-        <?php if (empty($items)) : ?>
-            <p><?php echo esc_html($empty_message); ?></p>
-        <?php else : ?>
-            <p><?php echo esc_html($description); ?></p>
-            <?php if ('empty' === $kind) : ?>
-                <p>Ogni riga identifica una sezione senza contenuti, evidenziata con l’etichetta «Senza contenuti». Le altre categorie indicano esclusivamente il percorso.</p>
-                <?php
-                $max_levels = 1;
-                foreach ($items as $section) {
-                    $max_levels = max($max_levels, count($section['levels'] ?? array($section['name'])));
-                }
-                ?>
-                <div class="dci-at-empty-hierarchy" tabindex="0" role="region" aria-label="Sezioni senza contenuti suddivise per livello gerarchico">
-                    <table>
-                        <thead>
-                            <tr>
-                                <?php for ($level = 1; $level <= $max_levels; $level++) : ?>
-                                    <th scope="col"><?php echo 1 === $level ? 'Categoria principale' : 'Categoria livello ' . esc_html($level); ?></th>
-                                <?php endfor; ?>
-                                <th scope="col">Descrizione</th>
-                                <th scope="col"><span class="screen-reader-text">Azioni</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($items as $section) : ?>
-                                <?php $levels = $section['levels'] ?? array($section['name']); ?>
-                                <tr>
-                                    <?php for ($level = 0; $level < $max_levels; $level++) : ?>
-                                        <td data-label="<?php echo 0 === $level ? 'Categoria principale' : 'Categoria livello ' . esc_attr($level + 1); ?>">
-                                            <?php if (isset($levels[$level])) : ?>
-                                                <?php if ($level === count($levels) - 1) : ?>
-                                                    <strong class="dci-at-empty-hierarchy__empty-name"><?php echo esc_html($levels[$level]); ?></strong>
-                                                    <span class="dci-at-empty-hierarchy__empty-badge">Senza contenuti</span>
-                                                <?php else : ?>
-                                                    <span class="dci-at-empty-hierarchy__ancestor"><span class="screen-reader-text">Percorso: </span><?php echo esc_html($levels[$level]); ?></span>
-                                                <?php endif; ?>
-                                            <?php else : ?>
-                                                <span aria-hidden="true">—</span>
-                                            <?php endif; ?>
-                                        </td>
-                                    <?php endfor; ?>
-                                    <td class="dci-at-empty-hierarchy__description" data-label="Descrizione">
-                                        <?php echo $section['description'] !== '' ? esc_html($section['description']) : '<span class="dci-at-empty-hierarchy__missing">Descrizione non disponibile</span>'; ?>
-                                    </td>
-                                    <td class="dci-at-empty-hierarchy__action">
-                                        <a class="dci-at-empty-sections__open" href="<?php echo esc_url(add_query_arg('tipi_cat_amm_trasp', $section['slug'], home_url('/'))); ?>" target="_blank" rel="noopener noreferrer">
-                                            <span>Apri<span class="screen-reader-text">: <?php echo esc_html($section['name']); ?> (nuova scheda)</span></span>
-                                            <span class="dashicons dashicons-external" aria-hidden="true"></span>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else : ?>
-            <?php
-            $empty_groups = array();
-            foreach ($items as $section) {
-                $root_name = $group_by_parent
-                    ? ($section['path'] !== '' ? $section['path'] : 'Sezioni principali')
-                    : ($section['path'] !== '' ? explode(' / ', $section['path'], 2)[0] : $section['name']);
-                $empty_groups[$root_name][] = $section;
-            }
-            ksort($empty_groups, SORT_NATURAL | SORT_FLAG_CASE);
-            ?>
-            <div class="dci-at-empty-sections__scroll" tabindex="0" role="region" aria-label="Elenco delle categorie raggruppate per gerarchia">
-                <?php foreach ($empty_groups as $root_name => $sections) : ?>
+        <p><?php echo esc_html($panel['description']); ?> Il numero dei contenuti si riferisce agli elementi pubblicati direttamente nella sezione, escluse le sottosezioni.</p>
+        <p data-overview-list-status role="status" aria-live="polite"></p>
+        <div class="dci-at-empty-sections__scroll" data-overview-items tabindex="0" role="region" aria-label="<?php echo esc_attr($panel['title']); ?>"></div>
+        <div class="dci-at-overview-pagination" data-overview-pagination hidden>
+            <button type="button" class="button" data-overview-prev>Precedente</button>
+            <span data-overview-page-label aria-live="polite"></span>
+            <button type="button" class="button" data-overview-next>Successiva</button>
+        </div>
+        <button type="button" class="button" data-overview-list-retry hidden>Riprova</button>
+    </section>
+    <?php
+}
+
+/** Renderizza al massimo 50 voci, con permessi valutati per l'utente corrente. */
+function dci_at_render_overview_section_items($kind, $items) {
+    $panels = dci_at_overview_panels();
+    if (empty($items)) {
+        echo '<p>' . esc_html($panels[$kind]['empty']) . '</p>';
+        return;
+    }
+    $can_manage = current_user_can('manage_options') && current_user_can('edit_tipi_cat_amm_trasp');
+    $group_by_parent = in_array($kind, array('extra', 'parent'), true);
+    $groups = array();
+    foreach ($items as $section) {
+        $group_name = $group_by_parent
+            ? ($section['path'] !== '' ? $section['path'] : 'Sezioni principali')
+            : ($section['path'] !== '' ? explode(' / ', $section['path'], 2)[0] : $section['name']);
+        $groups[$group_name][] = $section;
+    }
+    ksort($groups, SORT_NATURAL | SORT_FLAG_CASE);
+    ?>
+                <?php foreach ($groups as $group_name => $sections) : ?>
                     <section class="dci-at-empty-sections__group">
-                        <h4>
-                            <span class="dashicons dashicons-category" aria-hidden="true"></span>
-                            <span><?php echo esc_html(str_replace(' / ', ' › ', $root_name)); ?></span>
-                            <span class="dci-at-empty-sections__group-count"><?php echo esc_html(number_format_i18n(count($sections))); ?><span class="screen-reader-text"> voci</span></span>
-                        </h4>
+                        <h4><span class="dashicons dashicons-category" aria-hidden="true"></span><span><?php echo esc_html(str_replace(' / ', ' › ', $group_name)); ?></span></h4>
                         <ul class="dci-at-empty-sections__list">
                             <?php foreach ($sections as $section) : ?>
                                 <li>
                                     <div class="dci-at-empty-sections__entry">
-                                        <div class="dci-at-empty-sections__path">
-                                            <span class="screen-reader-text">Percorso: </span>Amministrazione Trasparente
-                                            <?php if ($section['path'] !== '') : ?>
-                                                <span aria-hidden="true"> › </span><?php echo esc_html(str_replace(' / ', ' › ', $section['path'])); ?>
-                                            <?php endif; ?>
-                                        </div>
-                                        <strong><?php echo esc_html($section['name']); ?></strong>
-                                        <?php if (isset($section['published'])) : ?>
-                                            <span class="dci-at-section-published">
-                                                <?php echo esc_html(number_format_i18n($section['published'])); ?>
-                                                <?php echo 1 === (int) $section['published'] ? 'elemento pubblicato' : 'elementi pubblicati'; ?>
-                                                <span class="screen-reader-text"> direttamente in questa sezione, escluse le figlie</span>
-                                            </span>
+                                        <strong><span class="dashicons dashicons-media-document" aria-hidden="true"></span><span><?php echo esc_html($section['name']); ?></span></strong>
+                                        <?php if (!empty($section['description'])) : ?>
+                                            <div class="dci-at-empty-sections__description"><?php echo esc_html($section['description']); ?></div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($section['normativa'])) : ?>
+                                            <div class="dci-at-empty-sections__normativa"><span>Normativa:</span> <?php echo esc_html($section['normativa']); ?></div>
                                         <?php endif; ?>
                                     </div>
-                                    <a class="dci-at-empty-sections__open" href="<?php echo esc_url(add_query_arg('tipi_cat_amm_trasp', $section['slug'], home_url('/'))); ?>" target="_blank" rel="noopener noreferrer">
-                                        <span>Apri sezione<span class="screen-reader-text">: <?php echo esc_html($section['name']); ?> (nuova scheda)</span></span>
-                                        <span class="dashicons dashicons-external" aria-hidden="true"></span>
-                                    </a>
+                                    <span class="dci-at-section-published">
+                                        <span class="dashicons dashicons-admin-page" aria-hidden="true"></span>
+                                        <?php echo esc_html(number_format_i18n($section['published'] ?? 0)); ?>
+                                        <?php echo 1 === (int) ($section['published'] ?? 0) ? 'contenuto' : 'contenuti'; ?>
+                                        <span class="screen-reader-text"> pubblicati direttamente in questa sezione</span>
+                                    </span>
+                                    <div class="dci-at-empty-sections__actions">
+                                        <a class="button dci-at-empty-sections__open" href="<?php echo esc_url(add_query_arg('tipi_cat_amm_trasp', $section['slug'], home_url('/'))); ?>" target="_blank" rel="noopener noreferrer">
+                                            <span class="dashicons dashicons-external" aria-hidden="true"></span>
+                                            Apri sezione<span class="screen-reader-text">: <?php echo esc_html($section['name']); ?> (nuova scheda)</span>
+                                        </a>
+                                        <?php if ($can_manage) : ?>
+                                            <a class="button dci-at-empty-sections__manage" href="<?php echo esc_url(add_query_arg(array('taxonomy' => 'tipi_cat_amm_trasp', 'tag_ID' => (int) $section['id'], 'post_type' => 'elemento_trasparenza'), admin_url('term.php'))); ?>">
+                                                <span class="dashicons dashicons-admin-generic" aria-hidden="true"></span>
+                                                Gestisci categoria<span class="screen-reader-text">: <?php echo esc_html($section['name']); ?></span>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
                     </section>
                 <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
-        <?php endif; ?>
-    </section>
     <?php
 }
 
@@ -455,21 +392,47 @@ function dci_at_overview_icon($kind) {
 /** Indicatori, senza dati dimostrativi o conteggi ricavati dai filtri della lista. */
 function dci_at_render_overview_cards() {
     $stats = dci_at_get_transparency_overview();
+    ?>
+    <div id="dci-at-overview" data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" data-nonce="<?php echo esc_attr(wp_create_nonce('dci_at_overview')); ?>" data-refresh="<?php echo dci_at_overview_needs_refresh($stats) ? '1' : '0'; ?>" data-snapshot="<?php echo is_wp_error($stats) ? '' : esc_attr(dci_at_overview_snapshot($stats)); ?>">
+        <p data-overview-status role="status" aria-live="polite" hidden></p>
+        <div data-overview-content><?php dci_at_render_overview_content($stats); ?></div>
+        <noscript><p>Abilita JavaScript per aggiornare il riepilogo e aprire gli elenchi.</p></noscript>
+    </div>
+    <?php
+}
+
+function dci_at_render_overview_content($stats) {
     if (is_wp_error($stats)) {
-        echo '<p class="dci-at-overview__note" role="status">Statistiche temporaneamente non disponibili. Gli strumenti di gestione restano utilizzabili.</p>';
+        ?>
+        <div class="dci-at-overview-recorded">
+            <span class="dashicons dashicons-clock" aria-hidden="true"></span>
+            <div><span class="dci-at-overview-recorded__label">Ultima rilevazione delle statistiche</span><strong>Rilevazione in preparazione</strong></div>
+            <p>Il riepilogo viene preparato dopo il caricamento della pagina. Gli strumenti di gestione restano utilizzabili.</p>
+            <button type="button" class="button dci-at-overview-refresh" data-overview-refresh><span class="dashicons dashicons-update" aria-hidden="true"></span>Aggiorna statistiche</button>
+        </div>
+        <?php
         return;
     }
     $updated = !empty($stats['last_updated_gmt']) && '0000-00-00 00:00:00' !== $stats['last_updated_gmt']
         ? strtotime($stats['last_updated_gmt'] . ' UTC') : false;
     $cards = array(
         array('blue', 'category', 'Sezioni visibili', number_format_i18n($stats['visible_sections']), 'Sezioni e sottosezioni dell’alberatura pubblica'),
-        array('orange', 'warning', 'Sezioni senza contenuti', number_format_i18n($stats['empty_sections']), 'Solo sezioni visibili senza figli e senza elementi pubblicati'),
+        array('orange', 'warning', dci_at_overview_empty_section_title(), number_format_i18n($stats['empty_sections']), 'Solo sezioni visibili senza figli e senza elementi pubblicati'),
         array('extra', 'networking', 'Categorie extra', number_format_i18n($stats['extra_sections']), 'Voci visibili fuori dalla struttura del tema'),
         array('parent', 'portfolio', 'Categorie con figli e contenuti', number_format_i18n($stats['parent_sections']), 'Contenitori visibili con elementi pubblicati direttamente al loro interno'),
         array('green', 'media-document', 'Elementi pubblicati', number_format_i18n($stats['published']), 'Elementi Trasparenza e cinque tipologie personalizzate'),
         array('purple', 'calendar-alt', 'Ultimo aggiornamento', $updated ? wp_date(get_option('date_format'), $updated) : '—', $updated ? 'Ultima modifica a un elemento pubblicato · ' . wp_date(get_option('time_format'), $updated) : 'Nessun elemento pubblicato'),
     );
     ?>
+    <div class="dci-at-overview-recorded">
+        <span class="dashicons dashicons-clock" aria-hidden="true"></span>
+        <div>
+            <span class="dci-at-overview-recorded__label">Ultima rilevazione delle statistiche</span>
+            <time datetime="<?php echo esc_attr(wp_date('c', $stats['generated_at'])); ?>"><?php echo esc_html(wp_date(get_option('date_format') . ' · ' . get_option('time_format'), $stats['generated_at'])); ?></time>
+        </div>
+        <p>I numeri riportano la situazione dei contenuti pubblicati alla data e all’ora indicate.</p>
+        <button type="button" class="button dci-at-overview-refresh" data-overview-refresh><span class="dashicons dashicons-update" aria-hidden="true"></span>Aggiorna statistiche</button>
+    </div>
     <dl class="dci-at-overview__grid" aria-label="Statistiche Amministrazione Trasparente">
         <?php foreach ($cards as $card) : ?>
             <div class="dci-at-overview-card dci-at-overview-card--<?php echo esc_attr($card[0]); ?>">
@@ -480,8 +443,8 @@ function dci_at_render_overview_cards() {
                 <dd>
                     <strong class="dci-at-overview-card__value"><?php echo esc_html($card[3]); ?></strong>
                     <span class="dci-at-overview-card__detail"><?php echo esc_html($card[4]); ?></span>
-                    <?php if (in_array($card[0], array('orange', 'extra', 'parent'), true)) : ?>
-                        <?php $panel_kind = 'orange' === $card[0] ? 'empty' : $card[0]; ?>
+                    <?php if (in_array($card[0], array('blue', 'orange', 'extra', 'parent'), true)) : ?>
+                        <?php $panel_kind = array('blue' => 'visible', 'orange' => 'empty')[$card[0]] ?? $card[0]; ?>
                         <button type="button" id="dci-at-<?php echo esc_attr($panel_kind); ?>-toggle" class="dci-at-overview-card__toggle" aria-expanded="false" aria-controls="dci-at-<?php echo esc_attr($panel_kind); ?>-sections">
                             <span data-empty-toggle-label>Mostra elenco</span>
                             <span class="screen-reader-text">: <?php echo esc_html($card[2]); ?></span>
@@ -492,30 +455,23 @@ function dci_at_render_overview_cards() {
         <?php endforeach; ?>
     </dl>
     <?php
-    dci_at_render_overview_section_panel(
-        'empty', 'Sezioni senza contenuti', $stats['empty_section_list'],
-        'Solo sezioni visibili senza figli e senza elementi pubblicati, comprese le tipologie personalizzate considerate dalla panoramica. Le voci con figli sono escluse anche quando i figli sono nascosti.',
-        'Nessuna sezione senza contenuti rilevata.'
-    );
-    dci_at_render_overview_section_panel(
-        'extra', 'Categorie extra', $stats['extra_section_list'],
-        'Categorie visibili non presenti con lo stesso nome e percorso nella struttura predefinita del tema, raggruppate per genitore attuale. Sono escluse le categorie nascoste e quelle con un genitore nascosto.',
-        'Nessuna categoria extra rilevata.', true
-    );
+    foreach (dci_at_overview_panels() as $kind => $panel) {
+        dci_at_render_overview_section_panel($kind, $panel, $stats[$kind === 'visible' ? 'visible_sections' : ($kind === 'empty' ? 'empty_sections' : ($kind === 'extra' ? 'extra_sections' : 'parent_sections'))]);
+    }
     ?>
-    <?php
-    dci_at_render_overview_section_panel(
-        'parent', 'Categorie con figli e contenuti', $stats['parent_section_list'],
-        'Categorie visibili con almeno una figlia e con elementi pubblicati direttamente associati, incluse le tipologie personalizzate considerate dalla panoramica. I contenuti presenti soltanto nelle sottosezioni non sono conteggiati. Ogni categoria compare una sola volta.',
-        'Nessuna categoria con figli e contenuti diretti rilevata.', true
-    );
-    ?>
-    <p class="dci-at-overview__note">
-        Sono inclusi gli elementi pubblicati di Atti di concessione, Bandi di gara, Titolari di incarichi, Incarichi dirigenziali e Incarichi conferiti e autorizzati.
-        Le sezioni dedicate attive sono verificate in base ai rispettivi contenuti. Restano esclusi dal conteggio delle sezioni vuote i collegamenti esterni, gli obblighi non applicabili e le altre gestioni dedicate.
-        Rilevazione: <?php echo esc_html(wp_date(get_option('date_format') . ' · ' . get_option('time_format'), $stats['generated_at'])); ?>.
-        Il riepilogo viene ricalcolato dopo le modifiche o alla prima apertura dopo 5 minuti.
-    </p>
+    <section class="dci-at-overview-help" aria-label="Come leggere le statistiche">
+        <div>
+            <h3><span class="dashicons dashicons-chart-bar" aria-hidden="true"></span>A cosa servono</h3>
+            <p>Le statistiche aiutano a organizzare l’Amministrazione Trasparente: mostrano le sezioni visibili, quelle senza contenuti, le categorie extra e i contenitori con pubblicazioni da verificare. Usa <strong>Mostra elenco</strong> per individuare le voci interessate e aprire la relativa sezione.</p>
+            <p>Gli elenchi vengono caricati solo quando li apri, con <strong>50 voci per pagina</strong>. Il numero dei contenuti di ogni sezione comprende gli elementi pubblicati direttamente al suo interno, senza sommare quelli delle sottosezioni.</p>
+        </div>
+        <div>
+            <h3><span class="dashicons dashicons-update" aria-hidden="true"></span>Quando si aggiornano</h3>
+            <p>All’apertura del pannello il riepilogo si aggiorna se sono trascorsi <strong>15 minuti</strong> dall’ultima rilevazione oppure se sono stati modificati contenuti, categorie o impostazioni rilevanti. Se nessuno consulta il pannello, non vengono eseguiti ricalcoli.</p>
+            <p>Durante l’aggiornamento resta visibile l’ultimo risultato disponibile, conservato per un massimo di <strong>24 ore</strong>. Puoi richiedere la verifica con <strong>Aggiorna statistiche</strong>: se i dati sono ancora aggiornati, vengono riutilizzati.</p>
+        </div>
+        <p class="dci-at-overview-help__scope"><strong>Cosa viene conteggiato:</strong> gli Elementi Trasparenza pubblicati e i contenuti pubblicati di Atti di concessione, Bandi di gara, Titolari di incarichi, Incarichi dirigenziali e Incarichi conferiti e autorizzati. I collegamenti esterni, gli obblighi non applicabili e le altre gestioni dedicate non vengono segnalati come sezioni vuote.</p>
+    </section>
     <?php
 }
 
@@ -524,7 +480,8 @@ function dci_at_overview_mark_dirty() {
     add_action('shutdown', 'dci_at_overview_flush_cache', 100);
 }
 function dci_at_overview_flush_cache() {
-    delete_transient('dci_at_overview_v8');
+    // Conserva l'ultimo risultato leggibile e segnala la necessità di aggiornarlo.
+    update_option('dci_at_overview_revision_v12', wp_generate_uuid4(), false);
 }
 foreach (dci_at_overview_post_types() as $dci_overview_type) {
     add_action('save_post_' . $dci_overview_type, 'dci_at_overview_mark_dirty');
@@ -556,7 +513,7 @@ add_action('added_term_relationship', 'dci_at_overview_relationship_changed', 10
 add_action('deleted_term_relationships', 'dci_at_overview_relationship_changed', 10, 3);
 
 function dci_at_overview_meta_changed($meta_id, $term_id, $key) {
-    if (in_array($key, array('visualizza_elemento', 'term_url', 'obbligo_non_applicabile'), true)) {
+    if (in_array($key, array('visualizza_elemento', 'term_url', 'obbligo_non_applicabile', 'normativa'), true)) {
         dci_at_overview_mark_dirty();
     }
 }

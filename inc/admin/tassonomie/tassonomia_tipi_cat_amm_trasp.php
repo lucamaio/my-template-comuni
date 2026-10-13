@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__, 2) . '/trasparenza-extra-sections.php';
 /* -------------------------------------------------------------
  *  TASSONOMIA: tipi_cat_amm_trasp
  * ----------------------------------------------------------- */
@@ -464,9 +465,7 @@ function dci_get_tipi_cat_amm_trasp_admin_stats() {
 
 	$stats['total'] = count( $terms );
 	$duplicate_map = [];
-	$expected_paths = function_exists( 'dci_tipi_cat_amm_trasp_array' )
-		? array_flip( dci_flatten_tipi_cat_amm_trasp_expected_paths( dci_tipi_cat_amm_trasp_array() ) )
-		: [];
+	$nodes = [];
 
 	foreach ( $terms as $term ) {
 		$visible = (string) get_term_meta( $term->term_id, 'visualizza_elemento', true );
@@ -490,10 +489,13 @@ function dci_get_tipi_cat_amm_trasp_admin_stats() {
 		}
 		$duplicate_map[ $normalized_name ][] = (int) $term->term_id;
 
-		$term_path = dci_get_tipi_cat_amm_trasp_term_path( $term );
-		if ( ! empty( $expected_paths ) && ! isset( $expected_paths[ $term_path ] ) ) {
-			$stats['extra_ids'][] = (int) $term->term_id;
-		}
+		$nodes[(int) $term->term_id] = [
+			'name'   => $term->name,
+			'parent' => (int) $term->parent,
+		];
+	}
+	if ( function_exists( 'dci_tipi_cat_amm_trasp_array' ) ) {
+		$stats['extra_ids'] = dci_at_extra_section_ids( $nodes, dci_tipi_cat_amm_trasp_array() );
 	}
 
 	foreach ( $duplicate_map as $ids ) {

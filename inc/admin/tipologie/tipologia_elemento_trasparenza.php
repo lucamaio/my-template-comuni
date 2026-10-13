@@ -115,7 +115,7 @@ function dci_elemento_trasparenza_render_admin_help($views)
 
         <?php dci_at_render_overview_cards(); ?>
 
-        <details class="dci-at-notices" open>
+        <details class="dci-at-notices" data-dci-at-notices-key="<?php echo esc_attr('dci-at-notices-v1-' . get_current_blog_id() . '-' . get_current_user_id()); ?>" open>
             <summary class="dci-at-notices__summary">
                 <span class="dashicons dashicons-megaphone" aria-hidden="true"></span>
                 <span class="dci-at-notices__intro">
@@ -130,7 +130,7 @@ function dci_elemento_trasparenza_render_admin_help($views)
             </summary>
             <div class="dci-at-notices__body">
 
-        <section class="dci-at-structure-notice" aria-labelledby="dci-at-structure-notice-title">
+        <section class="dci-at-structure-notice mt-5" aria-labelledby="dci-at-structure-notice-title">
             <div class="dci-at-structure-notice__heading">
                 <span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
                 <h3 id="dci-at-structure-notice-title"><?php esc_html_e('Aggiornamento della struttura di Amministrazione Trasparente', 'design_comuni_italia'); ?></h3>
@@ -140,7 +140,7 @@ function dci_elemento_trasparenza_render_admin_help($views)
             <div class="dci-at-structure-notice__actions">
                 <div>
                     <h4><?php esc_html_e('Categorie extra: individuare le voci da verificare', 'design_comuni_italia'); ?></h4>
-                    <p><?php esc_html_e('Nella panoramica in alto, selezionare «Mostra elenco» nella scheda «Categorie extra» per consultare le voci visibili che non corrispondono alla struttura predefinita dell’albero. L’elenco riporta il percorso di ciascuna categoria e il numero di elementi pubblicati direttamente al suo interno, per agevolare la verifica e concordare con la ditta l’eventuale ricollocazione.', 'design_comuni_italia'); ?></p>
+                    <p><?php esc_html_e('Nella panoramica in alto, selezionare «Mostra elenco» nella scheda «Categorie extra» per consultare le voci visibili che non corrispondono alla struttura predefinita dell’albero. L’elenco riporta il titolo di ciascuna categoria, la descrizione e la normativa quando presenti, e il numero di elementi pubblicati direttamente al suo interno, per agevolare la verifica e concordare con la ditta l’eventuale ricollocazione.', 'design_comuni_italia'); ?></p>
                 </div>
                 <div>
                     <h4><?php esc_html_e('Categorie con figli e contenuti: verificare la collocazione', 'design_comuni_italia'); ?></h4>
@@ -183,63 +183,27 @@ function dci_elemento_trasparenza_render_admin_help($views)
         <div
             class="dci-trasparenza-admin-guide"
             id="dci-trasparenza-admin-guide"
+            role="region"
+            aria-labelledby="dci-trasparenza-admin-guide-title"
             hidden
         >
-            <h2><?php esc_html_e('Come pubblicare un elemento', 'design_comuni_italia'); ?></h2>
-            <p>
-                <?php esc_html_e(
-                    'Per pubblicare un elemento nell’Amministrazione Trasparente, segui questi passaggi:',
-                    'design_comuni_italia'
-                ); ?>
+            <div class="dci-trasparenza-admin-guide__header">
+                <span class="dashicons dashicons-book-alt" aria-hidden="true"></span>
+                <h2 id="dci-trasparenza-admin-guide-title"><?php esc_html_e('Come si pubblica all’interno dell’Amministrazione Trasparente?', 'design_comuni_italia'); ?></h2>
+            </div>
+            <p class="dci-trasparenza-admin-guide__intro">
+                <?php echo wp_kses_post(__('Per pubblicare un nuovo contenuto all’interno dell’<strong>Amministrazione Trasparente</strong>, procedi nel seguente modo:', 'design_comuni_italia')); ?>
             </p>
-            <ol>
-                <li>
-                    <?php
-                    printf(
-                        /* translators: %s: Button label. */
-                        esc_html__('Fai clic sul pulsante %s, accanto al titolo “Amministrazione Trasparente”. Si aprirà la schermata per l’inserimento dei dati.', 'design_comuni_italia'),
-                        '<strong>' . esc_html__('Aggiungi un Elemento Trasparenza', 'design_comuni_italia') . '</strong>'
-                    );
-                    ?>
-                </li>
-                <li><?php esc_html_e('Inserisci un titolo chiaro e riconoscibile per l’elemento da pubblicare.', 'design_comuni_italia'); ?></li>
-                <li><?php esc_html_e('Seleziona la categoria nella quale pubblicare l’elemento. Nell’elenco sono disponibili soltanto le categorie interne al sito che non rimandano a collegamenti esterni.', 'design_comuni_italia'); ?></li>
-                <li><?php esc_html_e('Se necessario, inserisci una breve descrizione del contenuto.', 'design_comuni_italia'); ?></li>
-                <li>
-                    <?php
-                    printf(
-                        /* translators: %s: Field label. */
-                        esc_html__('Inserisci il documento o il collegamento da pubblicare nel campo %s.', 'design_comuni_italia'),
-                        '<strong>' . esc_html__('Documento/link', 'design_comuni_italia') . '</strong>'
-                    );
-                    ?>
-                </li>
-                <li>
-                    <?php
-                    printf(
-                        /* translators: %s: Button label. */
-                        esc_html__('Controlla attentamente i dati inseriti, quindi pubblica l’elemento tramite il pulsante laterale %s.', 'design_comuni_italia'),
-                        '<strong>' . esc_html__('Pubblica', 'design_comuni_italia') . '</strong>'
-                    );
-                    ?>
-                </li>
-                <li>
-                    <?php
-                    printf(
-                        /* translators: %s: Link label. */
-                        esc_html__('Dopo la pubblicazione, apri l’elemento tramite il collegamento %s e verifica che contenuto, documento e categoria siano corretti.', 'design_comuni_italia'),
-                        '<strong>' . esc_html__('Visualizza', 'design_comuni_italia') . '</strong>'
-                    );
-                    ?>
-                </li>
+            <ol class="dci-trasparenza-admin-guide__steps">
+                <li><?php echo wp_kses_post(__('Accedi al sito utilizzando le tue credenziali per entrare nell’<strong>area riservata</strong>.', 'design_comuni_italia')); ?></li>
+                <li><?php echo wp_kses_post(__('Apri la pagina principale dell’<strong>Amministrazione Trasparente</strong>.', 'design_comuni_italia')); ?></li>
+                <li><?php echo wp_kses_post(__('Raggiungi la <strong>sezione</strong> o la <strong>sottosezione</strong> nella quale desideri pubblicare il nuovo contenuto.', 'design_comuni_italia')); ?></li>
+                <li><?php echo wp_kses_post(__('Tra i comandi disponibili nella sezione, seleziona <strong>“Aggiungi un elemento”</strong>.', 'design_comuni_italia')); ?></li>
+                <li><?php echo wp_kses_post(__('Si aprirà la schermata di inserimento del nuovo contenuto. Compila tutti i campi richiesti, prestando particolare attenzione a quelli contrassegnati dal simbolo <strong>*</strong>, che indicano i <strong>campi obbligatori</strong>.', 'design_comuni_italia')); ?></li>
+                <li><?php echo wp_kses_post(__('Se necessario, puoi allegare uno o più documenti oppure inserire collegamenti a pagine o risorse esterne utilizzando gli appositi campi presenti nella sezione <strong>“Documenti e collegamenti”</strong>.', 'design_comuni_italia')); ?></li>
+                <li><?php esc_html_e('Prima di procedere con la pubblicazione, verifica attentamente che tutte le informazioni inserite siano corrette, complete e che eventuali documenti o collegamenti siano quelli desiderati.', 'design_comuni_italia'); ?></li>
+                <li><?php echo wp_kses_post(__('Dopo aver completato la verifica, seleziona il pulsante <strong>“Pubblica”</strong> per rendere il contenuto visibile all’interno dell’Amministrazione Trasparente.', 'design_comuni_italia')); ?></li>
             </ol>
-            <p>
-                <strong><?php esc_html_e('Nota:', 'design_comuni_italia'); ?></strong>
-                <?php esc_html_e(
-                    'le categorie principali servono a organizzare l’alberatura; per la pubblicazione seleziona una delle relative sottocategorie disponibili.',
-                    'design_comuni_italia'
-                ); ?>
-            </p>
         </div>
     </div>
 

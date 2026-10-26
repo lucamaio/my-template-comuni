@@ -95,7 +95,7 @@ function dci_rating_add_content_after_title($post) {
 
         if (isset($curr_post_id)) {
             $post_title = get_the_title($curr_post_id);
-            _e('Pagina valutata: <h1>' . $post_title . '</h1>', 'design_comuni_italia');
+            echo '<h1>' . esc_html__('Pagina valutata:', 'design_comuni_italia') . ' ' . esc_html($post_title) . '</h1>';
         }
 
         //_e('<span><i>il <b>Titolo</b> è il <b>Titolo della pagina o del contenuto valutato</b></i></span><br><br><br> ', 'design_comuni_italia');

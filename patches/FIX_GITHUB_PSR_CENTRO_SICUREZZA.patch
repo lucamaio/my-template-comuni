@@ -1,0 +1,533 @@
+--- a/functions.php
++++ b/functions.php
+@@ -50,6 +50,21 @@
+     add_action('admin_notices', function () {
+         if ((int) get_current_user_id() !== 1 || !current_user_can('manage_options')) { return; }
+         echo '<div class="notice notice-warning"><p><strong>PSR Geo Login non disponibile:</strong> manca inc/psr-geo-login.php nel tema. Verificare GitHub/Plesk.</p></div>';
++    });
++}
++
++/**
++ * PSR Centro Sicurezza: console riservata all'amministratore WordPress ID 1.
++ * Il registro è autonomo e viene caricato soltanto se presente, per evitare
++ * errori fatali durante deploy GitHub parziali.
++ */
++$psr_security_center_file = get_template_directory() . '/inc/psr-security-center.php';
++if (is_file($psr_security_center_file) && is_readable($psr_security_center_file)) {
++    require_once $psr_security_center_file;
++} else {
++    add_action('admin_notices', function () {
++        if ((int)get_current_user_id() !== 1 || !current_user_can('manage_options')) { return; }
++        echo '<div class="notice notice-warning"><p><strong>PSR Centro Sicurezza:</strong> il modulo dei registri non è installato. Verificare inc/psr-security-center.php nel deploy.</p></div>';
+     });
+ }
+ 
+--- a/inc/psr-login-security.php
++++ b/inc/psr-login-security.php
+@@ -27,7 +27,7 @@
+     $state = psr_login_rate_state($ip);
+     return max(0, (int) ($state['until'] ?? 0) - time());
+ }
+-function psr_login_rate_failure($ip) {
++function psr_login_rate_failure($ip, $reason = 'password', $username = '') {
+     if ($ip === '') { return; }
+     $state = psr_login_rate_state($ip);
+     $now = time();
+@@ -42,11 +42,20 @@
+     elseif ($count >= 10) { $state['until'] = max((int)$state['until'], $now + HOUR_IN_SECONDS); }
+     elseif ($count >= 5) { $state['until'] = max((int)$state['until'], $now + 10 * MINUTE_IN_SECONDS); }
+     set_transient(psr_login_ip_key($ip), $state, 8 * DAY_IN_SECONDS);
++    if (function_exists('psr_center_sync_ip')) { psr_center_sync_ip($ip, $state); }
++    if (function_exists('psr_center_log_event')) {
++        psr_center_log_event($reason === 'otp' ? 'otp_failed' : 'login_failed',
++            $count >= 15 ? 'critical' : 'warning', $ip, $username, '', $reason === 'otp' ? 'otp' : 'login',
++            'Tentativo ' . $count . ($state['until'] > $now ? '; blocco fino a ' . gmdate('Y-m-d H:i:s', $state['until']) . ' UTC' : ''));
++    }
+ }
+ function psr_login_auth_precheck($user, $username, $password) {
+     if (defined('WP_CLI') && WP_CLI) { return $user; }
+     $remaining = psr_login_rate_blocked(psr_login_ip());
+     if ($remaining) {
++        if (function_exists('psr_center_log_limited')) {
++            psr_center_log_limited('login_blocked','warning',psr_login_ip(),(string)$username,'','login','Accesso negato: IP gia bloccato',60);
++        }
+         return new WP_Error('psr_login_blocked', 'Troppi tentativi di accesso. Riprova piu\' tardi.');
+     }
+     return $user;
+@@ -61,7 +70,7 @@
+         // Account inesistente o password errata sono i soli errori conteggiati.
+         if (!array_intersect($codes, array('incorrect_password','invalid_username','invalid_email','authentication_failed','invalid_password','invalid_credentials'))) { return; }
+     }
+-    psr_login_rate_failure(psr_login_ip());
++    psr_login_rate_failure(psr_login_ip(), 'password', $username);
+ }
+ add_action('wp_login_failed', 'psr_login_failed_password', 10, 2);
+ 
+@@ -197,7 +206,15 @@
+         'redirect'=>wp_validate_redirect(isset($_REQUEST['redirect_to']) ? (string)wp_unslash($_REQUEST['redirect_to']) : '', admin_url()),
+     );
+     $sent = psr_login_email_issue($user, $ticket, $pending);
+-    if (is_wp_error($sent)) { return $sent; } // Mai creare sessioni senza OTP inviato.
++    if (is_wp_error($sent)) {
++        if (function_exists('psr_center_log_event')) {
++            psr_center_log_event('otp_delivery_failed','critical',psr_login_ip(),$user->user_login,'','otp', $sent->get_error_code());
++        }
++        return $sent;
++    } // Mai creare sessioni senza OTP inviato.
++    if (function_exists('psr_center_log_event')) {
++        psr_center_log_event('otp_sent','info',psr_login_ip(),$user->user_login,'','otp','OTP richiesto dopo password corretta');
++    }
+     set_transient(psr_login_pending_key($ticket), $pending, 5 * MINUTE_IN_SECONDS);
+     psr_login_set_pending_cookie($ticket, $pending['code_expires']);
+     wp_safe_redirect(add_query_arg('action', 'psr_mfa', wp_login_url()));
+@@ -259,12 +276,18 @@
+                 if (!get_option('_psr_login_email_to', '')) {
+                     update_option('_psr_login_email_to', psr_login_email_target($user), false);
+                 }
+-                if (psr_login_ip() !== '') { delete_transient(psr_login_ip_key(psr_login_ip())); }
++                if (psr_login_ip() !== '') {
++                    delete_transient(psr_login_ip_key(psr_login_ip()));
++                    if (function_exists('psr_center_remove_ip')) { psr_center_remove_ip(psr_login_ip()); }
++                }
++                if (function_exists('psr_center_log_event')) {
++                    psr_center_log_event('otp_verified','info',psr_login_ip(),$user->user_login,'','otp','Codice monouso verificato');
++                }
+                 psr_login_grant_session($user, $pending);
+                 wp_safe_redirect($pending['redirect']); exit;
+             }
+             $pending['tries'] = (int)$pending['tries'] + 1;
+-            psr_login_rate_failure(psr_login_ip());
++            psr_login_rate_failure(psr_login_ip(), 'otp', $user->user_login);
+             if ($pending['tries'] >= 5 || psr_login_rate_blocked(psr_login_ip())) {
+                 psr_login_cancel_ticket($ticket);
+                 wp_die('Troppi codici errati. Ricomincia dal login dopo il blocco.', 'PSR - OTP email', array('response'=>403));
+@@ -301,6 +324,7 @@
+ add_action('admin_menu', 'psr_login_admin_menu');
+ function psr_login_admin_page() {
+     if ((int)get_current_user_id() !== 1 || !current_user_can('manage_options')) { wp_die('Non autorizzato', '', array('response'=>403)); }
++    if (function_exists('psr_center_page')) { psr_center_page('otp'); return; }
+     $user = get_userdata(1);
+     $target = psr_login_email_target($user);
+     $pinned = get_option('_psr_login_email_to', '');
+--- a/inc/psr-geo-login.php
++++ b/inc/psr-geo-login.php
+@@ -101,6 +101,10 @@
+     return $GLOBALS['psr_geo_request_decision'] = $out;
+ }
+ function psr_geo_deny() {
++    if (function_exists('psr_center_log_limited')) {
++        $d = psr_geo_decision();
++        psr_center_log_limited('geo_denied','critical',(string)$d['ip'],'',(string)$d['country'],'geo','Pannello o login respinto',60);
++    }
+     nocache_headers();
+     if (function_exists('status_header')) { status_header(403); }
+     wp_die('Accesso amministrativo non consentito dall\'area geografica rilevata. Se ti trovi in Italia, contatta il gestore del portale per la verifica dell\'IP.',
+@@ -115,6 +119,10 @@
+ // Blocca anche i percorsi che invocano wp_authenticate senza usare wp-login.php.
+ function psr_geo_authenticate($user, $username, $password) {
+     if (psr_geo_decision()['blocked']) {
++        if (function_exists('psr_center_log_limited')) {
++            $d = psr_geo_decision();
++            psr_center_log_limited('geo_denied','critical',(string)$d['ip'],(string)$username,(string)$d['country'],'authenticate','Tentativo login estero',60);
++        }
+         return new WP_Error('psr_geo_foreign_ip', 'Accesso amministrativo non consentito dall\'area geografica rilevata.');
+     }
+     return $user;
+@@ -136,6 +144,10 @@
+ function psr_geo_rest_authentication($result) {
+     if (is_wp_error($result)) { return $result; }
+     if (is_user_logged_in() && psr_geo_decision()['blocked']) {
++        if (function_exists('psr_center_log_limited')) {
++            $d = psr_geo_decision();
++            psr_center_log_limited('geo_denied','critical',(string)$d['ip'],'',(string)$d['country'],'rest','API REST autenticata respinta',60);
++        }
+         return new WP_Error('psr_geo_foreign_ip', 'Accesso amministrativo non consentito dall\'area geografica rilevata.', array('status'=>403));
+     }
+     return $result;
+@@ -145,7 +157,13 @@
+ // XML-RPC puo' offrire un altro percorso di autenticazione non-browser.
+ // Non disabilitare XML-RPC per il resto dei visitatori/servizi italiani.
+ function psr_geo_xmlrpc_enabled($enabled) {
+-    if (psr_geo_decision()['blocked']) { return false; }
++    if (psr_geo_decision()['blocked']) {
++        if (function_exists('psr_center_log_limited')) {
++            $d=psr_geo_decision();
++            psr_center_log_limited('geo_denied','critical',(string)$d['ip'],'',(string)$d['country'],'xmlrpc','XML-RPC estero respinto',60);
++        }
++        return false;
++    }
+     return $enabled;
+ }
+ add_filter('xmlrpc_enabled', 'psr_geo_xmlrpc_enabled', 0);
+@@ -168,6 +186,7 @@
+     if ((int) get_current_user_id() !== 1 || !current_user_can('manage_options')) {
+         wp_die('Non autorizzato', '', array('response'=>403));
+     }
++    if (function_exists('psr_center_page')) { psr_center_page('geo'); return; }
+     $d = psr_geo_decision();
+     echo '<div class="wrap"><h1>PSR Geo Login — riservato ID 1</h1>';
+     echo '<p>Stato filtro: <strong>' . (psr_geo_enabled() ? 'Attivo' : 'Disattivato da wp-config.php') . '</strong></p>';
+--- a/inc/psr-security-center.php
++++ b/inc/psr-security-center.php
+@@ -0,0 +1,361 @@
++<?php
++/**
++ * PSR Centro Sicurezza — audit login, blocchi, GeoIP e OTP email.
++ * Solo amministratore WordPress ID 1; nessun dato pubblico o endpoint anonimo.
++ * Database creato al primo evento/login o accesso alla console; non esegue scansioni filesystem.
++ */
++if (!defined('ABSPATH')) { exit; }
++
++function psr_center_is_owner() {
++    return (int) get_current_user_id() === 1 && current_user_can('manage_options');
++}
++function psr_center_tables() {
++    global $wpdb;
++    return array($wpdb->prefix . 'psr_security_events', $wpdb->prefix . 'psr_security_ip_state');
++}
++function psr_center_install() {
++    static $did = null;
++    if ($did !== null) { return $did; }
++    if (get_option('_psr_center_schema_v', '') === '1') { return $did = true; }
++    global $wpdb;
++    list($events, $ips) = psr_center_tables();
++    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
++    $charset = $wpdb->get_charset_collate();
++    $sql_events = "CREATE TABLE $events (
++        id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
++        happened_at datetime NOT NULL,
++        event_type varchar(32) NOT NULL,
++        severity varchar(12) NOT NULL,
++        ip varchar(45) NOT NULL DEFAULT '',
++        username varchar(80) NOT NULL DEFAULT '',
++        country varchar(2) NOT NULL DEFAULT '',
++        source varchar(24) NOT NULL DEFAULT '',
++        note varchar(191) NOT NULL DEFAULT '',
++        PRIMARY KEY  (id),
++        KEY happened_at (happened_at),
++        KEY event_time (event_type,happened_at),
++        KEY ip_time (ip,happened_at)
++    ) $charset;";
++    $sql_ips = "CREATE TABLE $ips (
++        ip varchar(45) NOT NULL,
++        attempts int(10) unsigned NOT NULL DEFAULT 0,
++        blocked_until datetime DEFAULT NULL,
++        first_seen datetime NOT NULL,
++        last_seen datetime NOT NULL,
++        origin varchar(12) NOT NULL DEFAULT 'auto',
++        PRIMARY KEY  (ip),
++        KEY blocked_until (blocked_until),
++        KEY last_seen (last_seen)
++    ) $charset;";
++    dbDelta($sql_events);
++    dbDelta($sql_ips);
++    // Controllo effettivo: se il DB non consente CREATE TABLE non considerarlo installato.
++    $e = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($events)));
++    $i = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($ips)));
++    if ($e !== $events || $i !== $ips) { return $did = false; }
++    update_option('_psr_center_schema_v', '1', false);
++    return $did = true;
++}
++function psr_center_clean_ip($ip) {
++    $ip = trim((string) $ip);
++    return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '';
++}
++function psr_center_log_event($event, $severity = 'info', $ip = '', $username = '', $country = '', $source = 'login', $note = '') {
++    // Whitelist per impedire inquinamento del registro con dati arbitrari.
++    $allowed = array('login_failed','login_blocked','login_success','otp_sent','otp_failed','otp_verified',
++        'otp_delivery_failed','geo_denied','geo_unavailable','manual_ban','manual_unban');
++    if (!in_array($event, $allowed, true)) { return false; }
++    if (!psr_center_install()) { return false; }
++    global $wpdb;
++    list($events) = psr_center_tables();
++    $ip = psr_center_clean_ip($ip);
++    $username = substr(sanitize_text_field((string)$username), 0, 80);
++    $note = substr(sanitize_text_field((string)$note), 0, 191);
++    $country = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', (string)$country), 0, 2));
++    $severity = in_array($severity, array('info','warning','critical'), true) ? $severity : 'info';
++    $source = substr(sanitize_key((string)$source), 0, 24);
++    return (bool) $wpdb->insert($events, array(
++        'happened_at'=>gmdate('Y-m-d H:i:s'), 'event_type'=>$event, 'severity'=>$severity,
++        'ip'=>$ip, 'username'=>$username, 'country'=>$country, 'source'=>$source, 'note'=>$note,
++    ), array('%s','%s','%s','%s','%s','%s','%s','%s'));
++}
++function psr_center_log_limited($event, $severity, $ip, $username = '', $country = '', $source = 'login', $note = '', $seconds = 60) {
++    $ip = psr_center_clean_ip($ip);
++    $key = '_psr_loglim_' . substr(hash_hmac('sha256', $event . '|' . $source . '|' . $ip, wp_salt('auth')), 0, 32);
++    if (get_transient($key)) { return false; }
++    set_transient($key, 1, max(30, (int)$seconds));
++    return psr_center_log_event($event, $severity, $ip, $username, $country, $source, $note);
++}
++function psr_center_sync_ip($ip, $state, $origin = 'auto') {
++    $ip = psr_center_clean_ip($ip);
++    if (!$ip || !psr_center_install() || !is_array($state)) { return; }
++    global $wpdb;
++    list(, $ips) = psr_center_tables();
++    $now = gmdate('Y-m-d H:i:s');
++    $start = (int)($state['start'] ?? time());
++    $until = (int)($state['until'] ?? 0);
++    $wpdb->replace($ips, array(
++        'ip'=>$ip, 'attempts'=>max(0,(int)($state['n'] ?? 0)),
++        'blocked_until'=>$until > time() ? gmdate('Y-m-d H:i:s',$until) : null,
++        'first_seen'=>gmdate('Y-m-d H:i:s', $start > 0 ? $start : time()),
++        'last_seen'=>$now, 'origin'=>$origin === 'manual' ? 'manual' : 'auto',
++    ), array('%s','%d','%s','%s','%s','%s'));
++}
++function psr_center_remove_ip($ip) {
++    $ip = psr_center_clean_ip($ip);
++    if (!$ip || !psr_center_install()) { return; }
++    global $wpdb;
++    list(, $ips) = psr_center_tables();
++    $wpdb->delete($ips, array('ip'=>$ip), array('%s'));
++}
++function psr_center_on_login($username, $user) {
++    if (!($user instanceof WP_User)) { return; }
++    $ip = function_exists('psr_login_ip') ? psr_login_ip() : '';
++    psr_center_log_event('login_success', 'info', $ip, $user->user_login, '', 'login', 'Utente ID ' . (int)$user->ID);
++}
++add_action('wp_login', 'psr_center_on_login', 30, 2);
++
++function psr_center_cleanup() {
++    if (!psr_center_install()) { return; }
++    global $wpdb;
++    list($events, $ips) = psr_center_tables();
++    $days = (int)get_option('_psr_center_retention', 30);
++    if (!in_array($days, array(7,14,30,60,90), true)) { $days=30; }
++    $cutoff = gmdate('Y-m-d H:i:s', time()-$days*DAY_IN_SECONDS);
++    $wpdb->query($wpdb->prepare("DELETE FROM $events WHERE happened_at < %s LIMIT 3000", $cutoff));
++    $wpdb->query($wpdb->prepare("DELETE FROM $ips WHERE last_seen < %s AND (blocked_until IS NULL OR blocked_until < %s) LIMIT 3000", $cutoff, gmdate('Y-m-d H:i:s')));
++}
++add_action('psr_center_daily_cleanup', 'psr_center_cleanup');
++function psr_center_schedule_cleanup() {
++    if (!wp_next_scheduled('psr_center_daily_cleanup')) {
++        wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', 'psr_center_daily_cleanup');
++    }
++}
++add_action('admin_init', 'psr_center_schedule_cleanup');
++
++function psr_center_menu() {
++    if (!psr_center_is_owner()) { return; }
++    add_menu_page('PSR Centro Sicurezza', 'PSR Sicurezza', 'manage_options', 'psr-security-center',
++        'psr_center_page', 'dashicons-shield-alt', 58);
++    add_submenu_page('psr-security-center', 'Panoramica', 'Panoramica', 'manage_options', 'psr-security-center', 'psr_center_page');
++    // Le vecchie pagine restano disponibili per compatibilita' ma non duplicano il menu Strumenti.
++    remove_submenu_page('tools.php','psr-login-security');
++    remove_submenu_page('tools.php','psr-geo-login');
++}
++add_action('admin_menu', 'psr_center_menu', 999);
++function psr_center_enqueue($hook) {
++    if (!psr_center_is_owner() || strpos((string)$hook, 'psr-security-center') === false) { return; }
++    wp_enqueue_style('psr-security-center', false, array(), '1.0');
++    wp_add_inline_style('psr-security-center', psr_center_css());
++}
++add_action('admin_enqueue_scripts','psr_center_enqueue');
++function psr_center_css() {
++    return '.psrc{max-width:1440px;margin:24px 24px 30px 0;color:#172d42}.psrc *{box-sizing:border-box}.psrc-header{background:linear-gradient(118deg,#092b50,#155b94);color:#fff;border-radius:15px;padding:25px 30px;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}.psrc-header h1{color:#fff;font-size:27px;line-height:1.2;margin:3px 0 8px}.psrc-header p{margin:0;color:#d8e8f5}.psrc-label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;color:#90d5ff}.psrc-chip{padding:9px 15px;border:1px solid #7bb3dd;color:#fff;border-radius:30px;font-weight:700;background:#ffffff16}.psrc-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.psrc-tabs a{text-decoration:none;padding:11px 16px;border-radius:9px;background:white;border:1px solid #d9e3eb;color:#304862;font-weight:650}.psrc-tabs a.active{background:#16548a;color:#fff;border-color:#16548a}.psrc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}.psrc-card{background:#fff;border:1px solid #dce5ed;border-radius:13px;padding:19px 20px;box-shadow:0 3px 14px #163b5610}.psrc-card .label{color:#667b8e;font-size:13px;font-weight:700}.psrc-card .value{font-size:29px;color:#102f4d;font-weight:800;margin:7px 0}.psrc-card .detail{color:#738598;font-size:12px}.psrc-layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(270px,1fr);gap:18px}.psrc h2{font-size:18px;margin:0 0 18px;color:#183c60}.psrc h3{margin:16px 0 8px}.psrc-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px;align-items:end;height:198px;padding-top:15px}.psrc-bar-cell{height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;text-align:center;font-size:12px;color:#667b8e}.psrc-bar{background:linear-gradient(#278bd7,#165b96);min-height:4px;border-radius:7px 7px 3px 3px}.psrc-table{width:100%;border-collapse:collapse}.psrc-table th{text-align:left;color:#647a90;background:#f2f6fa;font-size:12px;letter-spacing:.15px}.psrc-table th,.psrc-table td{border-bottom:1px solid #e5edf3;padding:12px;vertical-align:middle}.psrc-table tr:hover td{background:#fafcff}.psrc-pill{display:inline-block;padding:4px 9px;border-radius:25px;font-size:11px;font-weight:800;background:#eaf0f6;color:#365b7a}.psrc-pill.critical,.psrc-pill.danger{background:#ffe6e6;color:#a31f2b}.psrc-pill.warning{background:#fff3d8;color:#946000}.psrc-pill.ok{background:#e6f6ee;color:#126341}.psrc-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:0 0 16px}.psrc-toolbar label{font-size:12px;font-weight:700;color:#586d80;display:block;margin:0 0 4px}.psrc-toolbar select,.psrc-toolbar input{min-width:155px;max-width:100%}.psrc-btn{display:inline-block;border:0;background:#165b91;color:#fff!important;padding:8px 14px;text-decoration:none;border-radius:7px;font-weight:700;cursor:pointer}.psrc-btn.secondary{background:#eaf1f7;color:#244e71!important}.psrc-muted{color:#627a8c}.psrc-info{border-left:4px solid #2885c5;background:#edf7ff;border-radius:5px;padding:13px 15px;margin:15px 0}.psrc-alert{border-left-color:#c98227;background:#fff7ea}.psrc-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.psrc-actions form{display:inline-flex;gap:6px;align-items:center;margin:0}.psrc .tablenav-pages{margin:15px 0}.psrc .tablenav-pages a{margin:0 4px}.psrc-small{font-size:12px}.psrc table code{white-space:nowrap}@media(max-width:1050px){.psrc-layout{grid-template-columns:1fr}}@media(max-width:782px){.psrc{margin:12px 10px 20px 0}.psrc-header{padding:20px}.psrc-card{padding:14px}.psrc-table{display:block;overflow-x:auto;white-space:nowrap}}';
++}
++function psr_center_url($tab = 'overview', $extra = array()) {
++    return add_query_arg(array_merge(array('page'=>'psr-security-center','tab'=>$tab),$extra), admin_url('admin.php'));
++}
++function psr_center_label($type) {
++    $labels = array('login_failed'=>'Password errata','login_blocked'=>'Login già bloccato','login_success'=>'Accesso riuscito',
++        'otp_sent'=>'OTP email inviato','otp_failed'=>'OTP errato','otp_verified'=>'OTP verificato',
++        'otp_delivery_failed'=>'Invio OTP fallito','geo_denied'=>'IP estero bloccato','geo_unavailable'=>'GeoIP non disponibile',
++        'manual_ban'=>'Ban manuale','manual_unban'=>'Sblocco manuale');
++    return $labels[$type] ?? $type;
++}
++function psr_center_local_date($utc) {
++    if (!$utc) { return '—'; }
++    return esc_html(get_date_from_gmt($utc, 'd/m/Y H:i:s'));
++}
++function psr_center_fetch_stats() {
++    global $wpdb;
++    list($events,$ips) = psr_center_tables();
++    $day = gmdate('Y-m-d H:i:s', time()-DAY_IN_SECONDS);
++    $week = gmdate('Y-m-d H:i:s', time()-7*DAY_IN_SECONDS);
++    $now = gmdate('Y-m-d H:i:s');
++    return array(
++        'failed24'=>(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $events WHERE happened_at >= %s AND event_type IN ('login_failed','otp_failed')",$day)),
++        'geo7'=>(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $events WHERE happened_at >= %s AND event_type = 'geo_denied'",$week)),
++        'otp7'=>(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $events WHERE happened_at >= %s AND event_type='otp_verified'",$week)),
++        'blocked'=>(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $ips WHERE blocked_until >= %s",$now)),
++        'events7'=>(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $events WHERE happened_at >= %s",$week)),
++    );
++}
++function psr_center_process_action() {
++    if (!psr_center_is_owner() || ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !isset($_POST['psr_center_action'])) { return; }
++    check_admin_referer('psr_center_action');
++    $action = sanitize_key(wp_unslash($_POST['psr_center_action']));
++    $redirect_tab = $action === 'retention' ? 'settings' : 'blocks';
++    if ($action === 'retention') {
++        $days=(int)($_POST['days'] ?? 30);
++        if (in_array($days,array(7,14,30,60,90),true)) { update_option('_psr_center_retention',$days,false); }
++    } elseif (in_array($action, array('ban','unban'), true)) {
++        $ip = psr_center_clean_ip(sanitize_text_field(wp_unslash($_POST['ip'] ?? '')));
++        if (!$ip || $ip === (function_exists('psr_login_ip') ? psr_login_ip() : '') || (function_exists('psr_geo_ip_allowlisted') && psr_geo_ip_allowlisted($ip))) {
++            wp_safe_redirect(psr_center_url('blocks',array('psr_msg'=>'refused')));exit;
++        }
++        if ($action === 'unban') {
++            delete_transient(psr_login_ip_key($ip));
++            psr_center_remove_ip($ip);
++            psr_center_log_event('manual_unban','warning', $ip, '', '', 'dashboard','Revocato da ID 1');
++        } else {
++            $seconds=(int)($_POST['duration'] ?? 3600);
++            if (!in_array($seconds,array(3600,86400,604800),true)) { $seconds = 3600; }
++            $state=psr_login_rate_state($ip);
++            $now=time();
++            $state['start'] = $state['start'] ?: $now;
++            $state['until']=max((int)$state['until'],$now+$seconds);
++            set_transient(psr_login_ip_key($ip),$state,8*DAY_IN_SECONDS);
++            psr_center_sync_ip($ip,$state,'manual');
++            psr_center_log_event('manual_ban','critical',$ip,'','','dashboard','Durata ' . ($seconds/3600) . ' ore, ID 1');
++        }
++    }
++    wp_safe_redirect(psr_center_url($redirect_tab,array('psr_msg'=>'saved'))); exit;
++}
++add_action('admin_init','psr_center_process_action', 20);
++function psr_center_export_csv() {
++    if (!psr_center_is_owner()) { wp_die('Non autorizzato','',array('response'=>403)); }
++    check_admin_referer('psr_center_export');
++    if (!psr_center_install()) { wp_die('Registro indisponibile.'); }
++    global $wpdb;
++    list($events) = psr_center_tables();
++    $cutoff=gmdate('Y-m-d H:i:s',time()-30*DAY_IN_SECONDS);
++    $rows=$wpdb->get_results($wpdb->prepare("SELECT happened_at,event_type,severity,ip,username,country,source,note FROM $events WHERE happened_at >= %s ORDER BY id DESC LIMIT 5000",$cutoff),ARRAY_A);
++    nocache_headers();
++    header('Content-Type: text/csv; charset=UTF-8');
++    header('Content-Disposition: attachment; filename="psr-security-events-' . gmdate('Ymd-His') . '.csv"');
++    header('X-Content-Type-Options: nosniff');
++    $out=fopen('php://output','w');
++    fwrite($out,"\xEF\xBB\xBF");
++    fputcsv($out,array('UTC','Evento','Gravita','IP','Username','Paese','Fonte','Note'),';');
++    foreach ($rows as $row) {
++        $cells=array_values($row);
++        foreach ($cells as &$v) {
++            $v=str_replace(array("\r","\n"),' ',(string)$v);
++            if (preg_match('/^[\s\x00-\x1f]*[=+@\-]/u',$v)) { $v="'".$v; }
++        } unset($v);
++        fputcsv($out,$cells,';');
++    }
++    fclose($out);exit;
++}
++add_action('admin_post_psr_center_export','psr_center_export_csv');
++function psr_center_page($forced_tab = '') {
++    if (!psr_center_is_owner()) { wp_die('Non autorizzato','',array('response'=>403)); }
++    $tab = $forced_tab ?: sanitize_key(wp_unslash($_GET['tab'] ?? 'overview'));
++    if (!in_array($tab,array('overview','events','blocks','geo','otp','settings'),true)) { $tab='overview'; }
++    $ready = psr_center_install();
++    echo '<div class="wrap psrc"><header class="psrc-header"><div><div class="psrc-label">PSR SECURITY SUITE · ACCESSO RISERVATO</div><h1>Centro Sicurezza</h1><p>Controllo accessi, monitoraggio IP e protezione amministratori</p></div><span class="psrc-chip">&#128274; Solo amministratore ID 1</span></header>';
++    $tabs=array('overview'=>'Panoramica','events'=>'Tentativi e attività','blocks'=>'IP bloccati','geo'=>'Filtro geografico','otp'=>'OTP email','settings'=>'Impostazioni');
++    echo '<nav class="psrc-tabs" aria-label="Sezioni centro sicurezza">';
++    foreach ($tabs as $key=>$label) { echo '<a class="'.($tab===$key?'active':'').'" href="'.esc_url(psr_center_url($key)).'">'.esc_html($label).'</a>'; }
++    echo '</nav>';
++    if (!$ready) { echo '<div class="notice notice-error"><p><strong>Il database non consente di creare le tabelle PSR.</strong> Verifica i permessi CREATE TABLE dell’utente MySQL e consulta i log Plesk. Il login continua a funzionare, ma il registro eventi non è disponibile.</p></div></div>';return; }
++    if (isset($_GET['psr_msg'])) { echo '<div class="notice notice-'.($_GET['psr_msg']==='saved'?'success':'warning').'"><p>'.($_GET['psr_msg']==='saved'?'Operazione completata.':'Operazione rifiutata: IP non valido, IP attuale o IP in whitelist.').'</p></div>'; }
++    switch($tab) {
++        case 'overview': psr_center_overview();break;
++        case 'events': psr_center_events();break;
++        case 'blocks': psr_center_blocks();break;
++        case 'geo': psr_center_geo();break;
++        case 'otp': psr_center_otp();break;
++        case 'settings': psr_center_settings();break;
++    }
++    echo '<p class="psrc-muted psrc-small" style="margin:20px 0">I dati sono visibili solo all’ID 1 e riguardano gli eventi PSR successivi all’installazione. L’accesso al database non sostituisce la protezione Plesk/WAF né i report Wordfence.</p></div>';
++}
++function psr_center_overview() {
++    global $wpdb;
++    list($events) = psr_center_tables();
++    $s=psr_center_fetch_stats();
++    $kpis=array(
++        array('Tentativi errati · 24 ore',$s['failed24'],'Password / OTP'),
++        array('IP bloccati · adesso',$s['blocked'],'Blocchi non scaduti'),
++        array('Accessi esteri negati · 7 giorni',$s['geo7'],'Campionati per IP e percorso'),
++        array('OTP verificati · 7 giorni',$s['otp7'],'Completati dall’ID 1'),
++    );
++    echo '<div class="psrc-kpis">';foreach($kpis as $k){echo '<div class="psrc-card"><div class="label">'.esc_html($k[0]).'</div><div class="value">'.(int)$k[1].'</div><div class="detail">'.esc_html($k[2]).'</div></div>';}echo '</div>';
++    echo '<div class="psrc-layout"><section class="psrc-card"><h2>Attività di sicurezza negli ultimi 7 giorni</h2>';
++    $days=array();for($n=6;$n>=0;$n--){$date=gmdate('Y-m-d',strtotime('-'.$n.' days'));$days[$date]=0;}
++    $rows=$wpdb->get_results($wpdb->prepare("SELECT DATE(happened_at) AS day,COUNT(*) AS num FROM $events WHERE happened_at >= %s GROUP BY DATE(happened_at)",gmdate('Y-m-d H:i:s',time()-7*DAY_IN_SECONDS)));
++    foreach($rows as $r){if(isset($days[$r->day])){$days[$r->day]=(int)$r->num;}}
++    $max=max(1,max($days));echo '<div class="psrc-bars" role="img" aria-label="Grafico eventi negli ultimi sette giorni">';
++    foreach($days as $date=>$v){$h=max(4,round(($v/$max)*156));echo '<div class="psrc-bar-cell"><strong>'.(int)$v.'</strong><div class="psrc-bar" style="height:'.(int)$h.'px" title="'.esc_attr($date.' - '.$v.' eventi').'"></div><span>'.esc_html(date('d/m',strtotime($date))).'</span></div>';}
++    echo '</div><p class="psrc-muted psrc-small">Tutti gli eventi registrati da PSR · la geolocalizzazione estera è limitata a un evento per IP/percorso al minuto.</p></section>';
++    echo '<section class="psrc-card"><h2>Stato delle protezioni</h2><table class="psrc-table">';
++    $checks=array('OTP email amministratore'=>function_exists('psr_login_email_issue'),'Blocco progressivo IP'=>function_exists('psr_login_rate_failure'),
++        'GeoIP accessi'=>function_exists('psr_geo_enabled') && psr_geo_enabled(),'Registro eventi'=>true,'Protezione web shell'=>function_exists('psr_guard_new_shell_names'));
++    foreach($checks as $name=>$on){echo '<tr><td>'.esc_html($name).'</td><td><span class="psrc-pill '.($on?'ok':'warning').'">'.($on?'Attivo':'Da verificare').'</span></td></tr>';}
++    echo '</table><p class="psrc-muted psrc-small">L’indicatore verifica la presenza del modulo, non garantisce che il server sia completamente protetto.</p></section></div>';
++    echo '<div class="psrc-card" style="margin-top:18px"><h2>Ultimi eventi</h2>';psr_center_event_table(10, '', '', 1);echo '<p><a class="psrc-btn secondary" href="'.esc_url(psr_center_url('events')).'">Apri il registro completo →</a></p></div>';
++}
++function psr_center_event_table($limit, $event_filter='', $ip_filter='', $page=1) {
++    global $wpdb;
++    list($events) = psr_center_tables();
++    $where='WHERE 1=1';$vals=array();
++    if ($event_filter !== '') {$where.=' AND event_type=%s';$vals[]=$event_filter;}
++    if ($ip_filter !== '') {$where.=' AND ip=%s';$vals[]=$ip_filter;}
++    $offset=max(0,($page-1)*$limit);
++    $sql="SELECT * FROM $events $where ORDER BY id DESC LIMIT %d OFFSET %d";
++    $vals[]=$limit;$vals[]=$offset;
++    $rows=$wpdb->get_results($wpdb->prepare($sql,$vals));
++    echo '<table class="psrc-table"><thead><tr><th>Data / ora</th><th>Evento</th><th>IP pubblico</th><th>Account tentato</th><th>Paese</th><th>Dettagli</th></tr></thead><tbody>';
++    if (!$rows) {echo '<tr><td colspan="6">Nessun evento registrato per questi filtri.</td></tr>';}
++    foreach($rows as $r){$cls=$r->severity==='critical'?'critical':($r->severity==='warning'?'warning':'ok');
++        echo '<tr><td>'.psr_center_local_date($r->happened_at).'</td><td><span class="psrc-pill '.esc_attr($cls).'">'.esc_html(psr_center_label($r->event_type)).'</span></td><td><code>'.esc_html($r->ip ?: '—').'</code></td><td>'.esc_html($r->username ?: '—').'</td><td>'.esc_html($r->country ?: '—').'</td><td>'.esc_html($r->note ?: $r->source).'</td></tr>';
++    }
++    echo '</tbody></table>';return count($rows);
++}
++function psr_center_events(){
++    global $wpdb;
++    list($events)=psr_center_tables();
++    $types=array(''=>'Tutti gli eventi','login_failed'=>'Password errata','login_blocked'=>'Login bloccato','login_success'=>'Accesso riuscito','otp_sent'=>'OTP richiesto','otp_failed'=>'OTP errato','otp_verified'=>'OTP verificato','otp_delivery_failed'=>'Errore invio OTP','geo_denied'=>'Accesso estero negato','geo_unavailable'=>'GeoIP non disponibile','manual_ban'=>'Ban manuale','manual_unban'=>'Sblocco manuale');
++    $type=sanitize_key(wp_unslash($_GET['event']??''));if(!array_key_exists($type,$types)){$type='';}
++    $ip=psr_center_clean_ip(sanitize_text_field(wp_unslash($_GET['ip']??'')));
++    $page=max(1,min(500,(int)($_GET['paged']??1)));
++    echo '<div class="psrc-card"><h2>Registro accessi e tentativi</h2><form class="psrc-toolbar" method="get" action="'.esc_url(admin_url('admin.php')).'">';
++    echo '<input type="hidden" name="page" value="psr-security-center"><input type="hidden" name="tab" value="events">';
++    echo '<div><label for="psr-event">Tipo evento</label><select id="psr-event" name="event">';foreach($types as $v=>$label){echo '<option value="'.esc_attr($v).'" '.selected($v,$type,false).'>'.esc_html($label).'</option>';}echo '</select></div>';
++    echo '<div><label for="psr-ip">Indirizzo IP</label><input id="psr-ip" type="text" name="ip" placeholder="Filtra IP esatto" value="'.esc_attr($ip).'"></div><button class="psrc-btn" type="submit">Applica filtri</button><a class="psrc-btn secondary" href="'.esc_url(psr_center_url('events')).'">Azzera</a></form>';
++    echo '<p class="psrc-muted psrc-small">Sono registrati IP, nomi utente tentati ed eventi; non vengono salvate password o codici OTP. I tentativi GeoIP ripetuti vengono campionati per evitare saturazione.</p>';
++    psr_center_event_table(30,$type,$ip,$page);
++    $where='WHERE 1=1';$params=array();if($type!==''){$where.=' AND event_type=%s';$params[]=$type;}if($ip!==''){$where.=' AND ip=%s';$params[]=$ip;}
++    $count=$params?(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $events $where",$params)):(int)$wpdb->get_var("SELECT COUNT(*) FROM $events");
++    $pages=(int)ceil($count/30);echo '<div class="tablenav-pages"><span>'.(int)$count.' eventi · pagina '.(int)$page.' di '.max(1,$pages).'</span>';
++    if($page>1){echo '<a href="'.esc_url(psr_center_url('events',array('event'=>$type,'ip'=>$ip,'paged'=>$page-1))).'">← Precedente</a>';}
++    if($page<$pages){echo '<a href="'.esc_url(psr_center_url('events',array('event'=>$type,'ip'=>$ip,'paged'=>$page+1))).'">Successiva →</a>';}
++    echo '</div>';
++    echo '<p><a class="psrc-btn secondary" href="'.esc_url(wp_nonce_url(admin_url('admin-post.php?action=psr_center_export'),'psr_center_export')).'">Esporta CSV ultimi 30 giorni (max 5.000 eventi)</a></p></div>';
++}
++function psr_center_action_form($action,$ip,$label,$duration=0) {
++    echo '<form method="post">';wp_nonce_field('psr_center_action');
++    echo '<input type="hidden" name="psr_center_action" value="'.esc_attr($action).'"><input type="hidden" name="ip" value="'.esc_attr($ip).'">';
++    if($duration){echo '<input type="hidden" name="duration" value="'.(int)$duration.'">';}
++    echo '<button class="psrc-btn secondary" type="submit" onclick="return confirm(\'Confermi l’operazione per questo IP?\')">'.esc_html($label).'</button></form>';
++}
++function psr_center_blocks(){
++    global $wpdb;list($events,$ips)=psr_center_tables();
++    $now=gmdate('Y-m-d H:i:s');
++    $rows=$wpdb->get_results($wpdb->prepare("SELECT s.*, (SELECT e.username FROM $events e WHERE e.ip=s.ip AND e.username <> '' ORDER BY e.id DESC LIMIT 1) AS last_username FROM $ips s WHERE s.blocked_until > %s ORDER BY s.blocked_until DESC LIMIT 250",$now));
++    echo '<div class="psrc-card"><h2>Indirizzi IP attualmente bloccati</h2><p class="psrc-info">Blocchi applicati solo agli accessi WordPress. Il ban scade automaticamente. Gli accessi esteri vengono negati dal filtro GeoIP e non compaiono necessariamente in questa tabella. La lista include gli IP tracciati da questa versione di PSR.</p>';
++    echo '<table class="psrc-table"><thead><tr><th>IP</th><th>Account tentato</th><th>Tentativi</th><th>Tipo blocco</th><th>Ultima attività</th><th>Scadenza</th><th>Gestione</th></tr></thead><tbody>';
++    if(!$rows){echo '<tr><td colspan="7">Nessun IP bloccato in questo momento.</td></tr>';}
++    foreach($rows as $r){echo '<tr><td><code>'.esc_html($r->ip).'</code></td><td>'.esc_html($r->last_username ?: '—').'</td><td>'.(int)$r->attempts.'</td><td><span class="psrc-pill warning">'.esc_html($r->origin==='manual'?'Manuale':'Automatico').'</span></td><td>'.psr_center_local_date($r->last_seen).'</td><td>'.psr_center_local_date($r->blocked_until).'</td><td>';psr_center_action_form('unban',$r->ip,'Sblocca');echo '</td></tr>';}
++    echo '</tbody></table></div><div class="psrc-card" style="margin-top:18px"><h2>Blocca o sblocca manualmente un IP</h2><form method="post" class="psrc-toolbar">';wp_nonce_field('psr_center_action');
++    echo '<div><label>IP pubblico</label><input required name="ip" placeholder="Indirizzo IPv4 / IPv6"></div><div><label>Durata ban</label><select name="duration"><option value="3600">1 ora</option><option value="86400">24 ore</option><option value="604800">7 giorni</option></select></div><button class="psrc-btn" name="psr_center_action" value="ban">Blocca IP</button><button class="psrc-btn secondary" name="psr_center_action" value="unban">Sblocca IP</button></form><p class="psrc-muted">Per sicurezza non puoi bloccare il tuo IP corrente o uno autorizzato dalla whitelist GeoIP. Non inserire IP condivisi senza verificarne il proprietario.</p></div>';
++}
++function psr_center_geo(){
++    $d=function_exists('psr_geo_decision')?psr_geo_decision():array('ip'=>'','country'=>'','reason'=>'missing','blocked'=>false);
++    echo '<div class="psrc-kpis"><div class="psrc-card"><div class="label">Filtro Italia</div><div class="value" style="font-size:21px">'.(function_exists('psr_geo_enabled')&&psr_geo_enabled()?'Attivo':'Non disponibile').'</div><div class="detail">Login e pannello di tutti i ruoli</div></div><div class="psrc-card"><div class="label">IP rilevato</div><div class="value" style="font-size:21px">'.esc_html($d['ip']?:'Non pubblico').'</div><div class="detail">REMOTE_ADDR senza header non verificati</div></div><div class="psrc-card"><div class="label">Paese</div><div class="value">'.esc_html($d['country']?:'—').'</div><div class="detail">'.esc_html($d['reason']).'</div></div></div>';
++    echo '<div class="psrc-card"><h2>Protezione geografica degli accessi</h2><p>Le connessioni con IP pubblico identificato come <strong>non italiano</strong> vengono respinte con HTTP 403. La navigazione pubblica non viene filtrata.</p><p class="psrc-info psrc-alert"><strong>Attenzione:</strong> se il servizio GeoIP non risponde o l’indirizzo proviene da un proxy non riconosciuto, l’accesso rimane possibile: non è una garanzia di esclusione assoluta di tutti gli IP esteri.</p><p>Gli IP non sono geolocalizzati in modo affidabile tramite intestazioni HTTP non autenticate. Le modifiche al filtro e le eccezioni sono gestite in <code>wp-config.php</code> e in Plesk, non da questo pannello.</p></div>';
++}
++function psr_center_otp(){
++    $u=get_userdata(1);$mail=function_exists('psr_login_email_target')?psr_login_email_target($u):'';
++    $pinned=(string)get_option('_psr_login_email_to','');
++    echo '<div class="psrc-kpis"><div class="psrc-card"><div class="label">Metodo verifica ID 1</div><div class="value" style="font-size:21px">OTP via email</div><div class="detail">8 cifre · monouso · 5 minuti</div></div><div class="psrc-card"><div class="label">Email destinazione</div><div class="value" style="font-size:17px;overflow-wrap:anywhere">'.esc_html($mail?:'NON CONFIGURATA').'</div><div class="detail">'.($pinned?'Vincolata dopo verifica riuscita':'Non ancora vincolata').'</div></div><div class="psrc-card"><div class="label">Protezione login</div><div class="value" style="font-size:21px">Progressiva</div><div class="detail">5 / 10 / 15 / 25 tentativi</div></div></div>';
++    echo '<div class="psrc-card"><h2>Politica OTP e anti brute-force</h2><p>Il codice viene spedito solo <strong>dopo che la password è corretta</strong>. Non viene memorizzato in chiaro e non è mostrato nel registro.</p><p><strong>Blocchi:</strong> 5 errori → 10 min · 10 → 1 ora · 15 → 24 ore · 25 → 7 giorni.</p><p class="psrc-info psrc-alert">Verifica SMTP prima degli aggiornamenti. In caso di mancato recapito OTP, l’accesso ID 1 resta negato; il recupero richiede Plesk/WP-CLI, non un pulsante pubblico.</p><p>Il cambio della casella email vincolata non è permesso da qui, per non consentire la deviazione dei codici in caso di sessione compromessa.</p></div>';
++}
++function psr_center_settings(){
++    $days=(int)get_option('_psr_center_retention',30);
++    echo '<div class="psrc-card"><h2>Conservazione dei registri</h2><p>Per limitare l’esposizione di dati personali, IP e username tentati vengono conservati per un periodo configurabile; gli eventi più vecchi vengono eliminati con manutenzione giornaliera.</p>';
++    echo '<form method="post" class="psrc-toolbar">';wp_nonce_field('psr_center_action');
++    echo '<input type="hidden" name="psr_center_action" value="retention"><div><label>Conservazione</label><select name="days">';foreach(array(7,14,30,60,90) as $v){echo '<option value="'.$v.'" '.selected($v,$days,false).'>'.$v.' giorni</option>';}echo '</select></div><button class="psrc-btn" type="submit">Salva impostazione</button></form>';
++    echo '<p class="psrc-muted">La conservazione riguarda solo PSR, non i log web del server o Wordfence.</p></div>';
++    echo '<div class="psrc-card" style="margin-top:18px"><h2>Funzionamento e privacy</h2><p><strong>Carico minimo:</strong> scritture nel database quando avvengono eventi di autenticazione o sicurezza; nessuna scansione dei file durante la normale navigazione.</p><p><strong>Visibilità:</strong> menu, esportazione e comandi protetti lato server e accessibili soltanto all’utente WordPress ID 1 con permessi <code>manage_options</code>.</p><p><strong>Autenticazione:</strong> i blocchi restano indipendenti dal pannello; un problema di visualizzazione non disabilita OTP o controllo IP.</p></div>';
++}

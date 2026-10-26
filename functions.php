@@ -8,8 +8,107 @@
  */
 
 /**
+ * PSR Security Guard: caricamento opzionale per non interrompere il sito
+ * se il modulo non e' stato ancora distribuito o e' stato rimosso.
+ */
+$psr_security_guard_file = get_template_directory() . '/inc/psr-security-guard.php';
+if (is_file($psr_security_guard_file) && is_readable($psr_security_guard_file)) {
+    require_once $psr_security_guard_file;
+} else {
+    // La pagina resta raggiungibile, ma l'amministratore ID 1 deve sapere che
+    // la protezione NON e' attiva perche' il file manca dal deploy.
+    add_action('admin_notices', function () {
+        if (get_current_user_id() !== 1 || !current_user_can('manage_options')) { return; }
+        echo '<div class="notice notice-error"><p><strong>PSR Security Guard NON attivo:</strong> manca inc/psr-security-guard.php nel tema. Ripristinare il file tramite GitHub/Plesk.</p></div>';
+    });
+}
+
+/**
+ * Mitigazioni sugli invii anonimi e sui parametri REST dei servizi cittadini.
+ * Non modifica accesso pubblico ai moduli, alle pagine e alle API di lettura.
+ */
+$psr_public_request_guard_file = get_template_directory() . '/inc/psr-public-request-guard.php';
+if (is_file($psr_public_request_guard_file) && is_readable($psr_public_request_guard_file)) {
+    require_once $psr_public_request_guard_file;
+}
+
+/** Editor PHP dal pannello disabilitati; aggiornamenti e deploy Git invariati. */
+$psr_file_editor_lock = get_template_directory() . '/inc/psr-file-editor-lock.php';
+if (is_file($psr_file_editor_lock) && is_readable($psr_file_editor_lock)) {
+    require_once $psr_file_editor_lock;
+}
+
+/**
+ * PSR Login Security: OTP obbligatorio amministratore principale ID 1 e
+ * protezione anti brute-force sul login. Modulo indipendente dallo scanner.
+ * Se assente, non causare errori fatali: avviso riservato all'ID 1.
+ */
+$psr_login_security_file = get_template_directory() . '/inc/psr-login-security.php';
+if (is_file($psr_login_security_file) && is_readable($psr_login_security_file)
+    && is_readable(get_template_directory() . '/inc/psr-auth-hardening.php')) {
+    require_once $psr_login_security_file;
+} else {
+    add_action('admin_notices', function () {
+        if (get_current_user_id() !== 1 || !current_user_can('manage_options')) { return; }
+        echo '<div class="notice notice-error"><p><strong>PSR Login Security NON attivo:</strong> verificare inc/psr-login-security.php e inc/psr-auth-hardening.php nel deploy GitHub/Plesk.</p></div>';
+    });
+    // Un deploy incompleto non deve aprire login senza OTP o fermare il sito pubblico.
+    $psr_missing_auth_deny = static function () {
+        wp_die('Protezione accessi non disponibile. Ripristinare i file del tema dal server.', '', array('response'=>503));
+    };
+    add_action('login_init', $psr_missing_auth_deny, -100);
+    add_filter('authenticate', static function ($user) { return new WP_Error('psr_auth_unavailable','Protezione accessi non disponibile.'); }, PHP_INT_MAX);
+    add_filter('rest_authentication_errors', static function ($result) {
+        return get_current_user_id()>0 ? new WP_Error('psr_auth_unavailable','Protezione accessi non disponibile.',array('status'=>503)) : $result;
+    }, PHP_INT_MAX);
+    add_action('init', static function () use ($psr_missing_auth_deny) {
+        $dispatcher=in_array(basename((string)($_SERVER['SCRIPT_NAME']??'')),array('admin-ajax.php','admin-post.php'),true);
+        if ((is_admin() && !$dispatcher) || is_user_logged_in()) { $psr_missing_auth_deny(); }
+    }, -100);
+}
+
+/**
+ * PSR Geo Login: accesso a wp-login/wp-admin limitato agli IP
+ * riconosciuti come italiani; le pagine pubbliche restano accessibili.
+ * Il file e' facoltativo per evitare blocchi fatali in caso di deploy incompleto.
+ */
+$psr_geo_login_file = get_template_directory() . '/inc/psr-geo-login.php';
+if (is_file($psr_geo_login_file) && is_readable($psr_geo_login_file)) {
+    require_once $psr_geo_login_file;
+} else {
+    add_action('admin_notices', function () {
+        if ((int) get_current_user_id() !== 1 || !current_user_can('manage_options')) { return; }
+        echo '<div class="notice notice-warning"><p><strong>PSR Geo Login non disponibile:</strong> manca inc/psr-geo-login.php nel tema. Verificare GitHub/Plesk.</p></div>';
+    });
+}
+
+/**
+ * PSR Centro Sicurezza: console riservata all'amministratore WordPress ID 1.
+ * Il registro è autonomo e viene caricato soltanto se presente, per evitare
+ * errori fatali durante deploy GitHub parziali.
+ */
+$psr_security_center_file = get_template_directory() . '/inc/psr-security-center.php';
+if (is_file($psr_security_center_file) && is_readable($psr_security_center_file)) {
+    require_once $psr_security_center_file;
+} else {
+    add_action('admin_notices', function () {
+        if ((int)get_current_user_id() !== 1 || !current_user_can('manage_options')) { return; }
+        echo '<div class="notice notice-warning"><p><strong>PSR Centro Sicurezza:</strong> il modulo dei registri non è installato. Verificare inc/psr-security-center.php nel deploy.</p></div>';
+    });
+}
+
+/** PSR Antispam commenti: filtro attivo di default, configurabile da ID 1. */
+$psr_comment_antispam_file = get_template_directory() . '/inc/psr-comment-antispam.php';
+if (is_file($psr_comment_antispam_file) && is_readable($psr_comment_antispam_file)) {
+    require_once $psr_comment_antispam_file;
+}
+
+/**
  * Funzionalità Trasversali
  */
+$psr_file_manager_installer = get_template_directory() . '/inc/psr-file-manager-policy-installer.php';
+if (is_readable($psr_file_manager_installer)) { require_once $psr_file_manager_installer; }
+
 require get_template_directory() . '/inc/funzionalita_trasversali.php';
 
 /**
@@ -223,7 +322,7 @@ add_action('deleted_option', 'dci_maybe_bump_async_template_parts_cache_version_
 function dci_async_template_parts_cache_key($template_key, $page_id, $term_id, $taxonomy, $query_string, $current_url = '') {
     return 'dci_async_tpl_' . md5(wp_json_encode(array(
         'version' => dci_async_template_parts_cache_version(),
-        'schema' => 'pagination-path-v2',
+        'schema' => 'pagination-context-v3',
         'template_key' => $template_key,
         'page_id' => (int) $page_id,
         'term_id' => (int) $term_id,
@@ -248,15 +347,20 @@ function dci_get_template_part_async($template_key) {
     $placeholder_id = 'dci-async-' . sanitize_html_class($template_key) . '-' . wp_rand(1000, 9999);
     $label = $templates[$template_key]['label'];
     $loader_class = !empty($templates[$template_key]['compact']) ? 'py-4' : 'container py-5';
+    // Un termine non e' un post: evitare di riutilizzare il suo ID come page_id.
+    // Funziona anche per category/tag archive e per la pagina articoli (WP_Post).
+    $dci_queried_object = get_queried_object();
+    $dci_queried_page_id = $dci_queried_object instanceof WP_Post ? (int) $dci_queried_object->ID : 0;
+    $dci_queried_term = $dci_queried_object instanceof WP_Term ? $dci_queried_object : null;
     ?>
     <div
         id="<?php echo esc_attr($placeholder_id); ?>"
         class="dci-async-template"
         data-template-key="<?php echo esc_attr($template_key); ?>"
-        data-page-id="<?php echo esc_attr(get_queried_object_id()); ?>"
-        <?php if (is_tax()) { ?>
-            data-term-id="<?php echo esc_attr(get_queried_object_id()); ?>"
-            data-taxonomy="<?php echo esc_attr(get_queried_object()->taxonomy); ?>"
+        data-page-id="<?php echo esc_attr($dci_queried_page_id); ?>"
+        <?php if ($dci_queried_term) { ?>
+            data-term-id="<?php echo esc_attr($dci_queried_term->term_id); ?>"
+            data-taxonomy="<?php echo esc_attr($dci_queried_term->taxonomy); ?>"
         <?php } ?>
         role="status"
         aria-live="polite"
@@ -277,6 +381,43 @@ function dci_get_template_part_async($template_key) {
 add_action('wp_ajax_dci_load_template_part', 'dci_load_template_part_ajax');
 add_action('wp_ajax_nopriv_dci_load_template_part', 'dci_load_template_part_ajax');
 function dci_load_template_part_ajax() {
+    // Il rendering pubblico non deve accedere a bozze, password o record interni,
+    // neppure recuperando un HTML precedentemente memorizzato in cache.
+    foreach (array('template_key','query_string','current_url','taxonomy','page_id','term_id') as $field) {
+        if (isset($_POST[$field]) && !is_string($_POST[$field])) {
+            wp_send_json_error(array('message'=>'Richiesta non valida.'),400);
+        }
+    }
+    $requested_page = isset($_POST['page_id']) ? absint($_POST['page_id']) : 0;
+    $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
+    $taxonomy = isset($_POST['taxonomy']) ? sanitize_key(wp_unslash($_POST['taxonomy'])) : '';
+    $public_term = null;
+
+    if ($term_id || $taxonomy !== '') {
+        // Gli archivi pubblici sono termini, non WP_Post: validare la tassonomia
+        // e l'esistenza del termine, SENZA allentare i controlli sui post privati.
+        $tax_object = $taxonomy !== '' ? get_taxonomy($taxonomy) : false;
+        if (!$term_id || !$tax_object || empty($tax_object->public)) {
+            wp_send_json_error(array('message' => 'Categoria non disponibile.'), 404);
+        }
+        $public_term = get_term($term_id, $taxonomy);
+        if (!$public_term || is_wp_error($public_term)) {
+            wp_send_json_error(array('message' => 'Categoria non disponibile.'), 404);
+        }
+        // Compatibilita' con i vecchi HTML eventualmente ancora in cache:
+        // accettare solo page_id == term_id, mai un page_id arbitrario.
+        if ($requested_page && $requested_page !== $term_id) {
+            wp_send_json_error(array('message' => 'Contesto non valido.'), 400);
+        }
+        $requested_page = 0;
+    } elseif ($requested_page) {
+        $public_page = get_post($requested_page);
+        if (!$public_page || $public_page->post_status !== 'publish' || $public_page->post_password !== ''
+            || !is_post_type_viewable($public_page->post_type)
+            || in_array($public_page->post_type, array('appuntamento', 'richiesta_assistenza', 'segnala_disservizio', 'rating'), true)) {
+            wp_send_json_error(array('message' => 'Contenuto non disponibile.'), 404);
+        }
+    }
     $template_key = isset($_POST['template_key']) ? sanitize_key(wp_unslash($_POST['template_key'])) : '';
     $templates = dci_async_template_parts_map();
 
@@ -304,9 +445,7 @@ function dci_load_template_part_ajax() {
         }
     }
 
-    $term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
-    $taxonomy = isset($_POST['taxonomy']) ? sanitize_key(wp_unslash($_POST['taxonomy'])) : '';
-    $page_id = isset($_POST['page_id']) ? absint($_POST['page_id']) : 0;
+    $page_id = $requested_page;
 
     global $wp_query;
     if (isset($_GET['paged'])) {
@@ -316,13 +455,13 @@ function dci_load_template_part_ajax() {
         $wp_query->set('page', max(1, absint($_GET['page'])));
     }
 
-    if ($term_id && $taxonomy) {
-        $term = get_term($term_id, $taxonomy);
-        if ($term && !is_wp_error($term)) {
-            $wp_query->queried_object = $term;
-            $wp_query->queried_object_id = $term_id;
-            $wp_query->is_tax = true;
-        }
+    if ($public_term) {
+        $wp_query->queried_object = $public_term;
+        $wp_query->queried_object_id = $term_id;
+        $wp_query->is_archive = true;
+        $wp_query->is_tax = true;
+        if ($taxonomy === 'category') { $wp_query->is_category = true; }
+        if ($taxonomy === 'post_tag') { $wp_query->is_tag = true; }
     }
 
     $cache_key = dci_async_template_parts_cache_key($template_key, $page_id, $term_id, $taxonomy, $query_string, $current_url);

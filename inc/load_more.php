@@ -1,5 +1,25 @@
 <?php
 
+/** Tipologie interne: UI e query di gestione conservate, nessuna pagina pubblica. */
+function psr_internal_records_visibility($args, $type) {
+    if (in_array($type,array('appuntamento','richiesta_assistenza','segnala_disservizio','rating'),true)) {
+        $args['publicly_queryable']=false;
+        $args['exclude_from_search']=true;
+        $args['show_in_rest']=false;
+    }
+    return $args;
+}
+add_filter('register_post_type_args','psr_internal_records_visibility',100,2);
+
+function psr_load_more_public_types($requested) {
+    $public=array();
+    foreach(get_post_types(array(),'objects') as $name=>$type) {
+        if (is_post_type_viewable($type) && !in_array($name,array('attachment','appuntamento','richiesta_assistenza','segnala_disservizio','rating'),true)) { $public[]=$name; }
+    }
+    if ($requested==='any' || empty($requested)) { return $public; }
+    return array_values(array_intersect($public,(array)$requested));
+}
+
 
 add_action( 'wp_enqueue_scripts', 'load_more_script' );
 function load_more_script() {
@@ -28,6 +48,9 @@ add_action("wp_ajax_load_more" , "load_more");
 add_action("wp_ajax_nopriv_load_more" , "load_more");
 function load_more(){
 	global $servizio, $i, $hide_categories;
+	foreach(array('load_card_type','post_types','query_params','additional_filter','tax_query','filter_ids','post_count','load_posts','search') as $field) {
+		if(isset($_POST[$field]) && !is_string($_POST[$field])) { wp_send_json_error(array('message'=>'Richiesta non valida.'),400); }
+	}
 	
     // prepare our arguments for the query
 	$load_card_type = isset($_POST['load_card_type']) ? sanitize_key(wp_unslash($_POST['load_card_type'])) : '';
@@ -119,9 +142,17 @@ function load_more(){
 	if ( isset($url_query_params["s"]) ) $args['s'] = $url_query_params["s"];
 	if (!empty($tax_query)) $args['tax_query'] = $tax_query;
 	if (!empty($filter_ids)) $args['post__in'] = array_values(array_filter(array_map('absint', $filter_ids)));
-	if (!empty($additional_filter)) $args = array_merge($args, $additional_filter);
+	// Mantiene i filtri tassonomici generati dal tema, senza accettare opzioni
+	// WP_Query arbitrarie (tipologie interne, fields, meta_key, permessi, ecc.).
+	foreach($additional_filter as $key=>$value) {
+		$taxonomy=is_string($key) ? get_taxonomy($key) : false;
+		if ($taxonomy && $taxonomy->public && (is_string($value) || is_int($value))) { $args[$key]=$value; }
+	}
+	$args['post_type']=psr_load_more_public_types($args['post_type']??'any');
+	if (!$args['post_type']) { wp_send_json(array('response'=>'','post_count'=>$post_count,'all_results'=>true)); }
 	$args['posts_per_page'] = $load_posts;
 	$args['post_status'] = 'publish';
+	$args['has_password'] = false;
 	$args['offset'] = $post_count;
 	$args['ignore_sticky_posts'] = true;
  

@@ -1326,11 +1326,13 @@ if (!function_exists('dci_get_maggioli_services_data')) {
         $request_args = array(
             'timeout' => 3,
             'redirection' => 2,
-            'sslverify' => false,
+            'sslverify' => !(defined('PSR_ALLOW_INSECURE_REMOTE_SSL') && PSR_ALLOW_INSECURE_REMOTE_SSL),
+            'reject_unsafe_urls' => true,
+            'limit_response_size' => 2097152,
             'user-agent' => 'PSR-Theme-Maggioli/1.0 (+'. home_url('/') .')',
         );
 
-        $response = wp_remote_get($url, $request_args);
+        $response = wp_safe_remote_get($url, $request_args);
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             set_transient($cache_key, array(), 2 * MINUTE_IN_SECONDS);
             delete_transient($lock_key);

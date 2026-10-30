@@ -237,6 +237,7 @@ if (function_exists('dci_render_trasparenza_not_applicable_notice')) {
         [
             'start_year' => $public_start_year,
             'count' => $archive_query->found_posts,
+            'show_publication_duration' => !empty($the_query->posts),
             'post_type' => 'incarico_dirig',
         ]
     );

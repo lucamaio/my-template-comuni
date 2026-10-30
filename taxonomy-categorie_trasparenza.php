@@ -933,7 +933,7 @@ $internal_custom_sections_enabled = function_exists('dci_trasparenza_internal_cu
             <div class="row g-4">
                 <h2 class="visually-hidden">Titolari di incarichi dirigenziali amministrativi di vertice </h2>
                 <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
-                    <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
+                    <?php // L'avviso di non applicabilita viene stampato dal template dell'elenco. ?>
                      <?php $sezione = $obj->name; ?>
                     <?php get_template_part("template-parts/amministrazione-trasparente/incarichi-dirigenziali/tutti-incarichi"); ?>
                 </div>
@@ -946,7 +946,7 @@ $internal_custom_sections_enabled = function_exists('dci_trasparenza_internal_cu
             <div class="row g-4">
                 <h2 class="visually-hidden">Incarichi dirigenziali a qualsiasi titolo conferiti</h2>
                 <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
-                    <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
+                    <?php // L'avviso di non applicabilita viene stampato dal template dell'elenco. ?>
                     <?php $sezione = $obj->name; ?>
                     <?php get_template_part("template-parts/amministrazione-trasparente/incarichi-dirigenziali/tutti-incarichi"); ?>
                 </div>
@@ -959,7 +959,7 @@ $internal_custom_sections_enabled = function_exists('dci_trasparenza_internal_cu
             <div class="row g-4">
                 <h2 class="visually-hidden">Dirigenti cessati</h2>
                 <div class="col-12 col-lg-8 pt-20 pt-lg-20 pb-lg-20">
-                    <?php dci_render_trasparenza_not_applicable_notice($obj); ?>
+                    <?php // L'avviso di non applicabilita viene stampato dal template dell'elenco. ?>
                     <?php $sezione = $obj->name; ?>
                     <?php get_template_part("template-parts/amministrazione-trasparente/incarichi-dirigenziali/tutti-incarichi"); ?>
                 </div>

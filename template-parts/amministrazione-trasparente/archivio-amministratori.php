@@ -2,6 +2,13 @@
 /**
  * Divisore per i contenuti storici visibili agli utenti autorizzati.
  *
+ * Visibilita riservata: il chiamante deve aver verificato l'autenticazione e
+ * l'abilitazione tramite dci_user_can_view_trasparenza_archive(), e deve avere
+ * risultati nella query dello storico. Questo wrapper non esegue un controllo
+ * autonomo dei permessi. Attualmente e richiamato da titolare_incarico/tutti-titolari.php,
+ * che crea la query storica solo per gli utenti abilitati; il ramo consulenti
+ * delega inoltre ad avviso-storico.php, che ripete il controllo prima dell'HTML.
+ *
  * @var array $args {
  *     @type int $start_year Primo anno visibile agli utenti finali.
  *     @type int $count      Numero di contenuti storici trovati.

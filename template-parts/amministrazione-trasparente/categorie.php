@@ -1141,12 +1141,8 @@ window.addEventListener('pageshow', function() {
                         <?php if ($at_search_year_outside_public_range) { ?>
                             <div class="dci-at-search-results" role="status">
                                 <div class="dci-at-search-results__empty">
-                                    <p class="dci-at-search-results__empty-title">
-                                        L'anno <?= esc_html($at_requested_search_year); ?> non rientra nel periodo di pubblicazione consultabile
-                                    </p>
                                     <p class="dci-at-search-results__empty-text">
-                                        Gli utenti finali possono consultare i contenuti pubblicati dal <?= esc_html($at_public_start_year); ?> a oggi.
-                                        Gli eventuali documenti degli anni precedenti non vengono mostrati nella ricerca pubblica; possono essere richiesti tramite la procedura di accesso civico generalizzato.
+                                        Nessun elemento trovato con i criteri di ricerca selezionati.
                                     </p>
                                 </div>
                             </div>

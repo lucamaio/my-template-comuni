@@ -1,5 +1,14 @@
 <?php
-/** Informativa specifica per lo storico dei titolari di incarichi. */
+/**
+ * Avviso RISERVATO dello storico dei titolari di collaborazione o consulenza.
+ *
+ * Visibile solo agli utenti autenticati e abilitati allo storico: il controllo
+ * dci_user_can_view_trasparenza_archive() richiede manage_options oppure
+ * visualizza_storico_trasparenza. Il solo accesso con credenziali non basta.
+ * Se il controllo manca o restituisce false, il return seguente impedisce
+ * qualsiasi output di questo file. Il chiamante lo usa in presenza di risultati
+ * nella query dello storico; l'avviso non appartiene all'elenco pubblico vuoto.
+ */
 if (!function_exists('dci_user_can_view_trasparenza_archive') || !dci_user_can_view_trasparenza_archive()) {
     return;
 }
@@ -15,7 +24,6 @@ $archive_count = isset($args['count']) ? absint($args['count']) : 0;
     <p><strong>Come si calcolano i tre anni:</strong> il termine decorre dalla data effettiva di cessazione dell'incarico, considerando <strong>giorno, mese e anno</strong>. Per questi incarichi non si applica la decorrenza dal 1° gennaio dell'anno successivo prevista dalla regola generale dell'art. 8, comma 3. Ad esempio, per un incarico cessato il <strong>5 ottobre 2023</strong>, il triennio si compie il <strong>5 ottobre 2026</strong>: fino a tale data il contenuto resta nell'elenco pubblico.</p>
     <p>Una volta decorso il termine applicabile, viene meno l'obbligo di pubblicazione dei relativi contenuti nella sezione <strong>Amministrazione Trasparente</strong>. La sola data di pubblicazione non determina la cessazione dell'obbligo: occorre considerare la data di cessazione dell'incarico.</p>
     <p>I contenuti dello storico restano consultabili dagli utenti autorizzati, secondo i rispettivi livelli di accesso, per le attività amministrative interne, di verifica e controllo. Restano fermi gli obblighi di conservazione degli atti.</p>
-    <p>I soggetti esterni possono richiedere l'accesso ai dati e ai documenti ai sensi dell'<strong>art. 5 del d.lgs. 33/2013</strong>, nel rispetto dei limiti previsti dall'<strong>art. 5-bis</strong> e delle altre disposizioni applicabili in materia di accesso.</p>
     <p class="mb-0">
         In questo elenco sono presenti <strong><?php echo esc_html(number_format_i18n($archive_count)); ?> elementi</strong>
         pubblicati prima del <strong><?php echo esc_html($start_year); ?></strong> e riferiti a incarichi cessati da oltre tre anni.

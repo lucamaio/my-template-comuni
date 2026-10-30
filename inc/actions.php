@@ -144,8 +144,21 @@ function dci_create_menu_locations() {
 /**
  * Add css admin style
  */
+function dci_is_theme_admin_screen() {
+    $screen = get_current_screen();
+    if (!$screen) { return false; }
+    // Configurazione CMB2 del tema; nessun CSS su utenti, plugin, dashboard o PSR.
+    if ($screen->id === 'toplevel_page_dci_options' || strpos($screen->id, 'configurazione_page_') === 0
+        || $screen->id === 'tools_page_manuale-comuni') { return true; }
+    $types = array_merge(array('post', 'page'), dci_get_tipologie_names());
+    return in_array($screen->base, array('post', 'edit', 'term', 'edit-tags'), true)
+        && in_array($screen->post_type, $types, true);
+}
 function dci_admin_css_load() {
-    wp_enqueue_style( 'style-admin-css', get_template_directory_uri() . '/inc/admin-css/style-admin.css' );
+    if (!dci_is_theme_admin_screen()) { return; }
+    $relative = '/inc/admin-css/style-admin.css';
+    wp_enqueue_style('style-admin-css', get_template_directory_uri() . $relative,
+        array(), (string)filemtime(get_template_directory() . $relative));
 }
 add_action( 'admin_enqueue_scripts', 'dci_admin_css_load' );
 

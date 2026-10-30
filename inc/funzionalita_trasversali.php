@@ -209,7 +209,9 @@ function dci_get_external_fragment_request_args($context = 'Fragment') {
         'timeout' => max(1, min(4, $timeout)),
         'redirection' => 2,
         'user-agent' => 'PSR-Theme-' . sanitize_key($context) . '-Fetch/1.0 (+' . home_url('/') . ')',
-        'sslverify' => false,
+        'sslverify' => !(defined('PSR_ALLOW_INSECURE_REMOTE_SSL') && PSR_ALLOW_INSECURE_REMOTE_SSL),
+        'reject_unsafe_urls' => true,
+        'limit_response_size' => 2097152,
     );
 }
 
@@ -505,7 +507,7 @@ function dci_get_external_footer_payload() {
 
             $external_api = trailingslashit($candidate_home) . 'wp-json/wp/v2/footer/rendered/';
             $attempted_sources[] = $external_api;
-            $api_response = wp_remote_get($external_api, $request_args);
+            $api_response = wp_safe_remote_get($external_api, $request_args);
 
             if (!is_wp_error($api_response) && wp_remote_retrieve_response_code($api_response) === 200) {
                 $payload = json_decode(wp_remote_retrieve_body($api_response), true);
@@ -528,7 +530,7 @@ function dci_get_external_footer_payload() {
             }
 
             $attempted_sources[] = $candidate_home;
-            $home_response = wp_remote_get($candidate_home, $request_args);
+            $home_response = wp_safe_remote_get($candidate_home, $request_args);
             if (!is_wp_error($home_response) && wp_remote_retrieve_response_code($home_response) === 200) {
                 $external_html = wp_remote_retrieve_body($home_response);
                 $footer_html = dci_extract_footer_html($external_html);
@@ -878,7 +880,7 @@ function dci_get_external_home_snapshot($external_home, $candidate_homes = array
     $request_args = dci_get_external_fragment_request_args('Head');
 
     foreach ($candidate_homes as $candidate_home) {
-        $response = wp_remote_get($candidate_home, $request_args);
+        $response = wp_safe_remote_get($candidate_home, $request_args);
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
             $html = wp_remote_retrieve_body($response);
             if (!empty($html)) {
@@ -933,7 +935,7 @@ function dci_get_external_header_html() {
 
     foreach ($candidate_homes as $candidate_home) {
         $external_api = trailingslashit($candidate_home) . 'wp-json/wp/v2/header/rendered/';
-        $api_response = wp_remote_get($external_api, $request_args);
+        $api_response = wp_safe_remote_get($external_api, $request_args);
 
         if (!is_wp_error($api_response) && wp_remote_retrieve_response_code($api_response) === 200) {
             $payload = json_decode(wp_remote_retrieve_body($api_response), true);
@@ -946,7 +948,7 @@ function dci_get_external_header_html() {
     }
 
     foreach ($candidate_homes as $candidate_home) {
-        $response = wp_remote_get($candidate_home, $request_args);
+        $response = wp_safe_remote_get($candidate_home, $request_args);
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
             $header_html = dci_extract_header_html(wp_remote_retrieve_body($response));
             if (!empty($header_html)) {
@@ -1702,7 +1704,19 @@ add_action( 'wp_enqueue_scripts', 'dci_enqueue_dci_rating_script' );
  */
 function dci_save_rating(){
 
-    $params = json_decode(json_encode($_POST), true);
+    $params = wp_unslash($_POST);
+    foreach (array('title', 'radioResponse') as $field) {
+        if (isset($params[$field]) && is_string($params[$field])) {
+            $params[$field] = sanitize_text_field($params[$field]);
+        }
+    }
+    if (isset($params['freeText']) && is_string($params['freeText'])) {
+        $params['freeText'] = sanitize_textarea_field($params['freeText']);
+    }
+    if (isset($params['page']) && is_string($params['page']) && $params['page'] !== 'null') {
+        $params['page'] = esc_url_raw($params['page']);
+    }
+    $postId = 0;
 
     if((array_key_exists("title", $params)) && ($params['title']!= null)) {
         $postId = wp_insert_post(array(
@@ -1756,7 +1770,18 @@ add_action("wp_ajax_nopriv_save_rating" , "dci_save_rating");
  */
 function dci_save_richiesta_assistenza(){
 
-    $params = json_decode(json_encode($_POST), true);
+    $params = wp_unslash($_POST);
+    foreach (array('nome', 'cognome', 'telefono', 'servizio') as $field) {
+        if (isset($params[$field]) && is_string($params[$field])) {
+            $params[$field] = sanitize_text_field($params[$field]);
+        }
+    }
+    if (isset($params['email']) && is_string($params['email'])) {
+        $params['email'] = sanitize_email($params['email']);
+    }
+    if (isset($params['dettagli']) && is_string($params['dettagli'])) {
+        $params['dettagli'] = sanitize_textarea_field($params['dettagli']);
+    }
     $postId = 0;
 
     date_default_timezone_set('Europe/Rome');
@@ -2054,13 +2079,24 @@ function dci_send_richiesta_assistenza_notification($postId, $params, $ticket_ti
  */
 function dci_save_appuntamento(){
 
-    $params = json_decode(json_encode($_POST), true);
+    $params = wp_unslash($_POST);
+    foreach (array('name', 'surname', 'phone') as $field) {
+        if (isset($params[$field]) && is_string($params[$field])) {
+            $params[$field] = sanitize_text_field($params[$field]);
+        }
+    }
+    if (isset($params['email']) && is_string($params['email'])) {
+        $params['email'] = sanitize_email($params['email']);
+    }
+    if (isset($params['moreDetails']) && is_string($params['moreDetails'])) {
+        $params['moreDetails'] = sanitize_textarea_field($params['moreDetails']);
+    }
     $postId = 0;
     $appuntamento_title = '';
     $appointment_obj = array();
 
     if (array_key_exists('appointment', $params) && $params['appointment'] !== 'null') {
-        $appointment_obj = json_decode(stripslashes($params['appointment']), true);
+        $appointment_obj = json_decode($params['appointment'], true);
     }
 
     $appointment_start = !empty($appointment_obj['startDate'])
@@ -2113,15 +2149,15 @@ function dci_save_appuntamento(){
     }
 
     if(array_key_exists("service", $params) && $params['service'] != "null") {
-        $service_obj = json_decode(stripslashes($params['service']), true);
+        $service_obj = json_decode($params['service'], true);
         //$service_id = $service_obj['id'];
-        update_post_meta($postId, '_dci_appuntamento_servizio',$service_obj['name']);
+        update_post_meta($postId, '_dci_appuntamento_servizio', sanitize_text_field((string)($service_obj['name'] ?? '')));
     }
 
     if(array_key_exists("office", $params) && $params['office'] != "null") {
-        $office_obj = json_decode(stripslashes($params['office']), true);
+        $office_obj = json_decode($params['office'], true);
         //$office_id = $office_obj['id'];
-        update_post_meta($postId, '_dci_appuntamento_unita_organizzativa', $office_obj['name']);
+        update_post_meta($postId, '_dci_appuntamento_unita_organizzativa', sanitize_text_field((string)($office_obj['name'] ?? '')));
     }
 
     if(array_key_exists("appointment", $params) && $params['appointment'] != "null") {
@@ -2177,20 +2213,20 @@ function dci_send_appuntamento_notification($postId, $params, $data) {
 
     $service_name = '';
     if (array_key_exists('service', $params) && $params['service'] != "null") {
-        $service_obj = json_decode(stripslashes($params['service']), true);
+        $service_obj = json_decode($params['service'], true);
         $service_name = $service_obj['name'] ?? '';
     }
 
     $office_name = '';
     if (array_key_exists('office', $params) && $params['office'] != "null") {
-        $office_obj = json_decode(stripslashes($params['office']), true);
+        $office_obj = json_decode($params['office'], true);
         $office_name = $office_obj['name'] ?? '';
     }
 
     $appointment_start = '';
     $appointment_end = '';
     if (array_key_exists('appointment', $params) && $params['appointment'] != "null") {
-        $appointment_obj = json_decode(stripslashes($params['appointment']), true);
+        $appointment_obj = json_decode($params['appointment'], true);
         $appointment_start = $appointment_obj['startDate'] ?? '';
         $appointment_end = $appointment_obj['endDate'] ?? '';
     }
